@@ -1,0 +1,1564 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-bg: #0b0c15;
+  --color-surface: #11131e;
+  --color-surface-elevated: #181b29;
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-primary: #00d9ff;
+  --color-secondary: #a55eea;
+  --color-accent: #ff6b9d;
+  --color-text-primary: #f3f4f6;
+  --color-text-secondary: #c2c6d4;
+  --color-muted: #8b8fa3;
+  --color-glass: rgba(17, 19, 30, 0.55);
+  --color-glass-border: rgba(255, 255, 255, 0.14);
+}
+
+.light {
+  --color-bg: #f8f9fb;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #f1f4f8;
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-primary: #007a99;
+  --color-secondary: #7c3aed;
+  --color-accent: #db2777;
+  --color-text-primary: #0b0c15;
+  --color-text-secondary: #4b4f5c;
+  --color-muted: #5f636f;
+  --color-glass: rgba(255, 255, 255, 0.62);
+  --color-glass-border: rgba(0, 0, 0, 0.1);
+}
+
+@supports (color: oklch(from #000000 l c h)) {
+  :root {
+    --color-bg: oklch(from #0b0c15 l c h);
+    --color-surface: oklch(from #11131e l c h);
+    --color-surface-elevated: oklch(from #181b29 l c h);
+    --color-border: oklch(from #ffffff l c h / 0.12);
+    --color-primary: oklch(from #00d9ff l c h);
+    --color-secondary: oklch(from #a55eea l c h);
+    --color-accent: oklch(from #ff6b9d l c h);
+    --color-text-primary: oklch(from #f3f4f6 l c h);
+    --color-text-secondary: oklch(from #c2c6d4 l c h);
+    --color-muted: oklch(from #8b8fa3 l c h);
+    --color-glass: oklch(from #11131e l c h / 0.55);
+    --color-glass-border: oklch(from #ffffff l c h / 0.14);
+  }
+
+  .light {
+    --color-bg: oklch(from #f8f9fb l c h);
+    --color-surface: oklch(from #ffffff l c h);
+    --color-surface-elevated: oklch(from #f1f4f8 l c h);
+    --color-border: oklch(from #000000 l c h / 0.1);
+    --color-primary: oklch(from #007a99 l c h);
+    --color-secondary: oklch(from #7c3aed l c h);
+    --color-accent: oklch(from #db2777 l c h);
+    --color-text-primary: oklch(from #0b0c15 l c h);
+    --color-text-secondary: oklch(from #4b4f5c l c h);
+    --color-muted: oklch(from #5f636f l c h);
+    --color-glass: oklch(from #ffffff l c h / 0.62);
+    --color-glass-border: oklch(from #000000 l c h / 0.1);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 技术栈跑马灯：1:1 移植 12-next-spline-3d / acertenity 的 scroll 关键帧。
+   --animation-duration / --animation-direction 由 InfiniteMovingCards / InfiniteLogoSlider 注入；
+   内容克隆为两份，translateX(-50%) 实现无缝循环。 */
+.scroller {
+  --animation-duration: 40s;
+  --animation-direction: forwards;
+}
+
+.animate-scroll {
+  animation: scroll var(--animation-duration) linear infinite;
+  animation-direction: var(--animation-direction);
+}
+
+@keyframes scroll {
+  to {
+    transform: translateX(calc(-50% - 0.5rem));
+  }
+}
+
+/* Quantico 字体（8112 TECH STACK 标题用） */
+.font-quantico {
+  font-family: 'Quantico', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@supports (font-family: 'Quantico') {
+  .font-quantico {
+    font-family: 'Quantico', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+}
+
+/* 作品卡片自动漂移：独立于滚动驱动位移（scroll x 在子元素），此处让方块「自己动起来」。
+   幅度明显加大、速度放慢到约 8112 TECH STACK 跑马灯(slow=80s) 的 1/2。reduced-motion 时静止。 */
+@keyframes card-drift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(16px, -22px, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.card-auto-drift {
+  animation: card-drift var(--drift-dur, 18s) ease-in-out infinite;
+  animation-delay: var(--drift-delay, 0s);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-auto-drift {
+    animation: none;
+  }
+}
+
+#root {
+  position: relative;
+}
+
+::placeholder {
+  color: var(--color-muted) !important;
+  opacity: 1 !important;
+}
+
+input,
+textarea,
+select {
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--color-primary);
+}
+
+.light input,
+.light textarea,
+.light select {
+  border-color: rgba(0, 0, 0, 0.18);
+}
+
+@supports (color: oklch(from #000000 l c h)) {
+  .light input,
+  .light textarea,
+  .light select {
+    border-color: oklch(from #000000 l c h / 0.18);
+  }
+}
+
+.light input:focus,
+.light textarea:focus,
+.light select:focus {
+  border-color: var(--color-primary);
+}
+
+.text-shadow-readable {
+  text-shadow:
+    0 1px 6px color-mix(in srgb, var(--color-bg) 92%, transparent),
+    0 2px 18px color-mix(in srgb, var(--color-bg) 78%, transparent),
+    0 4px 40px color-mix(in srgb, var(--color-bg) 58%, transparent);
+}
+
+@supports (color: oklch(from #000000 l c h)) {
+  .text-shadow-readable {
+    text-shadow:
+      0 1px 6px oklch(from var(--color-bg) l c h / 0.92),
+      0 2px 18px oklch(from var(--color-bg) l c h / 0.78),
+      0 4px 40px oklch(from var(--color-bg) l c h / 0.58);
+  }
+}
+
+.divider-line {
+  border-top: 1px solid var(--color-border);
+}
+
+:root {
+  --badge-mint-text: #6ee7b7;
+  --badge-orange-text: #fb923c;
+}
+
+.light {
+  --badge-mint-text: #047857;
+  --badge-orange-text: #c2410c;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 5px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: rgba(128, 128, 128, 0.08);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.3);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.45);
+}
+
+@supports (color: oklch(from #808080 l c h)) {
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: oklch(from #808080 l c h / 0.08);
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: oklch(from #808080 l c h / 0.3);
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: oklch(from #808080 l c h / 0.45);
+  }
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.font-display {
+  font-family:
+    'SmileySans-Subset',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+
+.text-glow {
+  text-shadow:
+    0 0 8px currentColor,
+    0 0 24px currentColor,
+    0 0 48px color-mix(in srgb, currentColor 50%, transparent);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(128, 128, 128, 0.12) 0%,
+    rgba(128, 128, 128, 0.24) 50%,
+    rgba(128, 128, 128, 0.12) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite linear;
+  border-radius: 0.5rem;
+}
+
+@supports (color: oklch(from #808080 l c h)) {
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      oklch(from #808080 l c h / 0.12) 0%,
+      oklch(from #808080 l c h / 0.24) 50%,
+      oklch(from #808080 l c h / 0.12) 100%
+    );
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 可访问性：减少动画偏好 */
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* View Transitions API */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.8s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(root) {
+  animation-name: vt-fade-out;
+}
+
+::view-transition-new(root) {
+  animation-name: vt-fade-in;
+}
+
+@keyframes vt-fade-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+::view-transition-old(command-palette),
+::view-transition-new(command-palette) {
+  animation-duration: 0.35s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(command-palette) {
+  animation-name: vt-command-out;
+}
+
+::view-transition-new(command-palette) {
+  animation-name: vt-command-in;
+}
+
+@keyframes vt-command-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(-12px);
+  }
+}
+
+@keyframes vt-command-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Circular reveal theme transition */
+html.circular-reveal-active::view-transition-new(root) {
+  animation-name: circular-reveal-in;
+  animation-duration: 0.7s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html.circular-reveal-active::view-transition-old(root) {
+  animation-name: circular-reveal-out;
+  animation-duration: 0.7s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes circular-reveal-in {
+  from {
+    clip-path: circle(0% at var(--circular-origin-x, 50%) var(--circular-origin-y, 50%));
+  }
+
+  to {
+    clip-path: circle(150% at var(--circular-origin-x, 50%) var(--circular-origin-y, 50%));
+  }
+}
+
+@keyframes circular-reveal-out {
+  from {
+    clip-path: circle(150% at var(--circular-origin-x, 50%) var(--circular-origin-y, 50%));
+  }
+
+  to {
+    clip-path: circle(0% at var(--circular-origin-x, 50%) var(--circular-origin-y, 50%));
+  }
+}
+
+/* CSS Scroll-driven Animations */
+.scroll-reveal {
+  opacity: 1;
+}
+
+.scroll-reveal-item {
+  opacity: 1;
+}
+
+.scroll-progress-bar {
+  width: var(--progress-target, 100%);
+}
+
+/* 统一入场动画 — IntersectionObserver 驱动（见 components/Reveal.tsx） */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 1.4s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+  /* 根因修复（交界白线）：原本永久 will-change:opacity,transform 会把每个 .reveal（含
+     恰好落在「项目作品/技能」交界处的技能标题）永久提升为独立合成层。快速滚动时该层边缘
+     与相邻 section 在分数像素处错位，露出浏览器默认白色（而非深色底），表现为交界粗白线。
+     移除永久 will-change：过渡期间浏览器会自动提升图层，动画结束后自动降级，既不损失入场
+     性能，也消除了长期驻留的合成层这一整类交界闪白问题。 */
+}
+
+.reveal--visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* 减少动画偏好转为静态：内容直接可见，无位移、无过渡 */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal--visible {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+.reduced-motion .reveal,
+.reduced-motion .reveal--visible {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .scroll-reveal {
+      animation: scroll-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 35%;
+    }
+
+    .scroll-reveal-item {
+      animation: scroll-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 12% cover 38%;
+    }
+
+    .scroll-parallax {
+      animation: scroll-parallax linear;
+      animation-timeline: scroll(root);
+    }
+
+    .scroll-progress-bar {
+      width: 0;
+      animation: scroll-progress-grow linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 40%;
+    }
+  }
+}
+
+@keyframes scroll-reveal {
+  from {
+    opacity: 0.85;
+    transform: translateY(32px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scroll-parallax {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-60px);
+  }
+}
+
+@keyframes scroll-progress-grow {
+  to {
+    width: var(--progress-target, 100%);
+  }
+}
+
+/* Container Queries */
+.card-container {
+  container-type: inline-size;
+  container-name: card;
+}
+
+@container card (max-width: 220px) {
+  .card-container {
+    padding: var(--spacing-3);
+  }
+
+  .card-container .card-header {
+    margin-bottom: var(--spacing-2);
+  }
+
+  .card-container .card-footer {
+    margin-top: var(--spacing-2);
+    padding-top: var(--spacing-2);
+  }
+}
+
+@container card (min-width: 480px) {
+  .card-container {
+    padding: var(--spacing-8);
+  }
+}
+
+.section-card-container {
+  container-type: inline-size;
+  container-name: section-card;
+}
+
+@container section-card (max-width: 260px) {
+  .section-card-container {
+    padding: var(--spacing-4);
+  }
+}
+
+@container section-card (min-width: 560px) {
+  .section-card-container {
+    padding: var(--spacing-8);
+  }
+}
+
+/* 3D Tilt Card */
+.tilt-card {
+  transform-style: preserve-3d;
+}
+
+.tilt-card-glow,
+.tilt-card-border {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.tilt-card.is-tilt-active .tilt-card-glow,
+.tilt-card.is-tilt-active .tilt-card-border {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tilt-card {
+    transform: none !important;
+  }
+
+  .tilt-card-glow,
+  .tilt-card-border {
+    opacity: 0 !important;
+    transition: none;
+  }
+}
+
+.reduced-motion .tilt-card {
+  transform: none !important;
+}
+
+.reduced-motion .tilt-card-glow,
+.reduced-motion .tilt-card-border {
+  opacity: 0 !important;
+  transition: none;
+}
+
+/* Experience Timeline */
+.timeline {
+  --timeline-progress: 0;
+  --timeline-line-width: 2px;
+  --timeline-node-size: 1.25rem;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 1.25rem;
+  top: 0;
+  bottom: 0;
+  width: var(--timeline-line-width);
+  background: var(--color-muted);
+  opacity: 0.35;
+  border-radius: 999px;
+}
+
+.timeline::after {
+  content: '';
+  position: absolute;
+  left: 1.25rem;
+  top: 0;
+  width: var(--timeline-line-width);
+  height: 100%;
+  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-secondary) 50%, var(--color-accent) 100%);
+  border-radius: 999px;
+  transform: scaleY(var(--timeline-progress));
+  transform-origin: top center;
+  box-shadow:
+    0 0 12px var(--color-primary),
+    0 0 28px var(--color-secondary);
+  transition: transform 0.1s linear;
+  z-index: 1;
+}
+
+@media (min-width: 768px) {
+  .timeline::before,
+  .timeline::after {
+    left: 50%;
+    transform: translateX(-50%) scaleY(var(--timeline-progress));
+  }
+
+  .timeline::before {
+    transform: translateX(-50%) scaleY(1);
+  }
+}
+
+.timeline-item {
+  perspective: 1200px;
+}
+
+.timeline-card-wrapper {
+  transform-style: preserve-3d;
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 1.2s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.timeline-item.is-visible .timeline-card-wrapper,
+.timeline-item:first-child .timeline-card-wrapper {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.timeline-card-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(0, 217, 255, 0.4), rgba(165, 94, 234, 0.2) 50%, transparent 70%);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.timeline-item:hover .timeline-card-wrapper::before,
+.timeline-item:focus-within .timeline-card-wrapper::before {
+  opacity: 1;
+}
+
+.timeline-node {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.timeline-node.is-active {
+  transform: scale(1.35);
+  background: var(--color-primary);
+  border-color: var(--color-bg);
+}
+
+.timeline-node.is-active::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 2px solid var(--color-primary);
+  opacity: 0.85;
+  box-shadow:
+    0 0 16px var(--color-primary),
+    0 0 32px var(--color-secondary),
+    0 0 48px var(--color-accent);
+  animation: timeline-node-active-pulse 1.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes timeline-node-active-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.timeline-details {
+  max-height: 4rem;
+}
+
+.timeline-item:hover .timeline-details,
+.timeline-item:focus-within .timeline-details {
+  max-height: 20rem;
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .timeline-item {
+      animation: timeline-item-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 12% cover 35%;
+    }
+  }
+}
+
+@keyframes timeline-item-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(40px) rotateX(8deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) rotateX(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timeline::after {
+    transform: scaleY(1);
+  }
+
+  .timeline-card-wrapper {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .timeline-node {
+    animation: none;
+  }
+
+  .timeline-node.is-active {
+    transform: none;
+  }
+
+  .timeline-node.is-active::after {
+    animation: none;
+    opacity: 0.85;
+    transform: scale(1);
+  }
+
+  .timeline-details {
+    max-height: none;
+  }
+}
+
+.reduced-motion .timeline::after {
+  transform: scaleY(1);
+}
+
+.reduced-motion .timeline-card-wrapper {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reduced-motion .timeline-node {
+  animation: none;
+}
+
+.reduced-motion .timeline-node.is-active {
+  transform: none;
+}
+
+.reduced-motion .timeline-node.is-active::after {
+  animation: none;
+  opacity: 0.85;
+  transform: scale(1);
+}
+
+.reduced-motion .timeline-details {
+  max-height: none;
+}
+
+/* Anchor Positioning */
+.nav-anchor {
+  position: relative;
+}
+
+.nav-tooltip {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  z-index: 60;
+}
+
+.nav-anchor:hover .nav-tooltip,
+.nav-anchor:focus-visible .nav-tooltip {
+  opacity: 1;
+}
+
+@supports (top: anchor(bottom)) {
+  .nav-tooltip {
+    top: calc(anchor(bottom) + 6px);
+    left: anchor(center);
+  }
+}
+
+/* Skill Galaxy Fallback */
+.skill-galaxy-aurora {
+  background:
+    radial-gradient(circle at 20% 30%, var(--color-primary) 0%, transparent 35%),
+    radial-gradient(circle at 80% 70%, var(--color-secondary) 0%, transparent 35%),
+    radial-gradient(circle at 50% 50%, var(--color-accent) 0%, transparent 45%);
+  filter: blur(60px);
+  animation: skill-galaxy-aurora-drift 18s ease-in-out infinite alternate;
+}
+
+.skill-galaxy-stars {
+  background-image:
+    radial-gradient(2px 2px at 20px 40px, var(--color-text-primary), transparent),
+    radial-gradient(1.5px 1.5px at 80px 120px, var(--color-primary), transparent),
+    radial-gradient(1px 1px at 160px 60px, var(--color-secondary), transparent),
+    radial-gradient(2px 2px at 240px 180px, var(--color-accent), transparent),
+    radial-gradient(1.5px 1.5px at 320px 90px, var(--color-text-primary), transparent);
+  background-size: 360px 220px;
+  opacity: 0.35;
+  animation: skill-galaxy-stars-pan 24s linear infinite;
+}
+
+.skill-galaxy-constellation {
+  background-image:
+    linear-gradient(var(--color-primary) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-primary) 1px, transparent 1px);
+  background-size: 120px 120px;
+  opacity: 0.04;
+  animation: skill-galaxy-constellation-drift 30s linear infinite;
+}
+
+@keyframes skill-galaxy-aurora-drift {
+  from {
+    transform: translate3d(-4%, -4%, 0) scale(1);
+  }
+
+  to {
+    transform: translate3d(4%, 4%, 0) scale(1.08);
+  }
+}
+
+@keyframes skill-galaxy-stars-pan {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 360px 220px;
+  }
+}
+
+@keyframes skill-galaxy-constellation-drift {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 120px 120px;
+  }
+}
+
+/* Advanced Tabs */
+.advanced-tabs-list {
+  box-shadow:
+    0 0 28px color-mix(in srgb, var(--color-primary) 8%, transparent),
+    inset 0 0 0 1px var(--color-glass-border);
+}
+
+.advanced-tabs-indicator {
+  background: var(--color-primary);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--color-primary) 55%, transparent);
+}
+
+/* Projects Clothesline — 物理晾衣架便签 */
+.clothesline-region {
+  --rope-silver-light: #e8eaed;
+  --rope-silver-mid: #9aa0a6;
+  --rope-silver-dark: #5f6368;
+  --rope-brown-light: #a9743d;
+  --rope-brown-dark: #6b4423;
+  --note-text: #2b2118;
+  --note-text-soft: #6b5a45;
+  --note-link: #8a4d16;
+  position: relative;
+  height: 26rem;
+}
+
+@media (min-width: 768px) {
+  .clothesline-region {
+    height: 30rem;
+  }
+}
+
+/* 测试页用：区域撑满父容器剩余高度（flex 列布局） */
+.clothesline-region--fill {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+}
+
+/* 画布与容器（.clothesline-region）同宽同左缘，银绳恰好跨满便签区，
+   不再满幅溢出视口；放大缩放时随区域一并被外层 .clothesline-scroll 横向滚动揭示。 */
+.clothesline-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 满幅（full-bleed）破出容器：
+   - 满幅：用 width:100vw + margin-left:calc(50% - 50vw) 从 Section 的 max-w-6xl 居中容器里「破出」，
+     使容器恰好跨满整个视口 → 内部 .clothesline-canvas（region 同宽）银绳两端角点钉在视口边缘，
+     正常/缩小缩放下绳子连到浏览器两边（与改动前观感一致）。
+   - 不再设 overflow：原先的 overflow-x/y:auto 会把本容器变成滚动容器/独立合成层，其底边（region 高度处，
+     技能区上方固定高度）在滚动分数像素处与下层错位露出白色（见下方根因修复注释）。现 overflow 默认 visible，
+     100vw 破出产生的横向溢出由 body 的 overflow-x:hidden 兜底裁切，既不触发整页横滚，也不创建合成层。
+   - 取舍：放大缩放下不再提供横向滚动条揭示被挡便签（改为由 body 裁切），该 niche 功能让位于消除可见的白线缺陷。 */
+.clothesline-scroll {
+  position: relative;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  /* 根因修复（交界粗白线）：原 overflow-x/y:auto 把本容器变成滚动容器/独立合成层，
+     其底边恰落在 region 高度处（技能区上方固定高度）。滚动时该层底边在分数像素处与下层错位，
+     露出浏览器默认白色 → 贯穿整条的粗白线；向下滚动时物理给便签施加向下力，白色便签被推到该层底边，
+     于是表现为「便签触到固定高度就出白线」。改为不创建滚动容器（overflow 默认 visible），
+     100vw 破出满幅的溢出由 body 的 overflow-x:hidden 兜底裁切，既保留满幅绳效，又根除该整条裁切边这类交界闪白。
+     （代价：放大缩放下不再提供横向滚动揭示被挡便签，改为由 body 裁切——该 niche 功能让位于消除可见缺陷。） */
+}
+
+/* 测试页填充模式：让滚动容器也撑满父级剩余高度 */
+.clothesline-scroll:has(.clothesline-region--fill) {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.clothesline-note {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transform-origin: 50% 50%;
+  /* 根因修复（交界白线）：原本 will-change:transform 把每张（白色）便签永久提升为独立合成层，
+     其层边缘在滚动分数像素处与下层错位会露白。便签本就由物理引擎每帧 transform 驱动，
+     过渡/摆动期间浏览器会自动提升图层、静止后自动降级，无需永久 will-change。 */
+}
+
+/* 窄屏静态卡片网格（<768px 由 JS 切换渲染）：覆盖物理便签的绝对定位与隐藏初始态，
+   复用同一张羊皮纸素材、染色规则与内容排版（.clothesline-note-content 的 inset 百分比）。 */
+.clothesline-mobile-grid {
+  display: grid;
+  gap: 1.25rem;
+  padding: 0 0.75rem;
+}
+
+.clothesline-static-note {
+  position: relative;
+  opacity: 1;
+  width: 100%;
+  max-width: 22rem;
+  margin: 0 auto;
+  aspect-ratio: 547 / 638;
+  transform: none;
+  will-change: auto;
+}
+
+.clothesline-note-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center top;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.clothesline-note-tint {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  /* 染色只落在羊皮卷不透明区域，避免矩形光晕 */
+  -webkit-mask-image: url('/images/标准.png');
+  mask-image: url('/images/标准.png');
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-position: center top;
+  mask-position: center top;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* 四张便签浅色系：纯白 / 象牙白 / 浅粉 / 浅杏 */
+.clothesline-note[data-tint='0'] .clothesline-note-tint {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.clothesline-note[data-tint='1'] .clothesline-note-tint {
+  background: rgba(255, 246, 220, 0.34);
+}
+
+.clothesline-note[data-tint='2'] .clothesline-note-tint {
+  background: rgba(255, 205, 216, 0.4);
+}
+
+.clothesline-note[data-tint='3'] .clothesline-note-tint {
+  background: rgba(253, 230, 200, 0.42);
+}
+
+.clothesline-note-content {
+  position: absolute;
+  /* FP-01 像素级实测（Playwright canvas getImageData 扫描标准.png 547×638）：
+   * 算法：①dark=max(r,g,b)<70 边框/螺旋；②cream=非dark且非纯白；
+   * ③螺旋下沿=上部35%内左25%区域dark密度>30%的最后一行→y=137px(21.47%)；
+   * ④安全矩形=螺旋下沿以下逐行扫cream，左缘P70分位数、右缘P30分位数（统计法避过渡行污染）；
+   * ⑤四边各内缩6px安全边距。
+   * 测得(px): top=143 left=107 right=506 bottom=609
+   * 转百分比: top=22.41% / right=7.50% / bottom=4.55% / left=19.56%
+   * 基于此修复了文字越出羊皮卷实际边界（尤其左侧螺旋卷曲区） */
+  inset: 22.41% 7.5% 4.55% 19.56%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  /* 段间距（标题↔正文、正文↔链接）钉死为 1em = 正文自身字号，
+     满足「间隙不超过正文字号大小」的排版规范；与正文行距（--note-body-line 1.38）解耦——
+     段落间距 < 行距，使同段文字聚合更紧、段间仍清晰可辨。
+     em 以 --note-fit 为基准，间距随字号缩放，自动规范。 */
+  --note-body-line: 1.38;
+  gap: 1em;
+  /* FP-04：单一字号旋钮，运行时由 useNoteAutoFit 二分搜索推到「刚好放得下」的最大值。
+     兜底 0.8rem 保证 JS 未执行时仍有可读默认字号。 */
+  font-size: var(--note-fit, 0.8rem);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.clothesline-note-content > * {
+  pointer-events: auto;
+}
+
+.clothesline-note-title {
+  /* 根因修复：移除旧 flex-shrink:0 上下硬钉，三板块作为一组随自然流排版。
+     FP-04：em 相对 --note-fit（保持「标题最大」层次，1.45em 对应基准 0.8 的约 1.16rem） */
+  margin: 0 3% 0 1%;
+  font-size: 1.45em;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--note-text);
+}
+
+.clothesline-note-desc {
+  margin: 0 2% 0 2%;
+  font-size: 1em;
+  line-height: var(--note-body-line);
+  letter-spacing: 0.004em;
+  color: var(--note-text-soft);
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.clothesline-note-link {
+  /* 根因修复：移除旧 flex-shrink:0 上下硬钉；同时移除 margin-top:auto 的「底部锚定」——
+     该属性会把盒子剩余空白全部吸到正文与链接之间，导致部分便签空隙过大。
+     改为自然流式：链接紧跟正文（仅 1.38em 统一段间距，与标题-正文间距一致），
+     剩余留白落到羊皮卷底部，符合手写便签的自然排版；
+     顺带使 useNoteAutoFit 的 4% 保守回退仅在内容真填满时才触发，不再被 auto 误触发。
+     FP-04：font-size 1.05em 相对 --note-fit */
+  margin: 0 3% 0 1%;
+  font-size: 1.05em;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--note-link);
+  text-decoration: none;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.clothesline-note-link:hover {
+  text-decoration: underline;
+}
+
+.clothesline-note-content a:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* 打字机块状光标 */
+.caret-blink {
+  animation: caret-blink 1s steps(1, end) infinite;
+}
+
+@keyframes caret-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ============ 五子棋 · 高端重做 ============ */
+
+/* 落子缩放入场（弹性缓动） */
+@keyframes gomoku-drop {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* 连珠高亮脉冲 */
+@keyframes gomoku-win-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px #fde047,
+      0 0 10px #fde047;
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px #fde047,
+      0 0 22px #fde047;
+  }
+}
+
+.gomoku-stone {
+  width: 86%;
+  height: 86%;
+  border-radius: 9999px;
+  animation: gomoku-drop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.gomoku-stone--black {
+  background: radial-gradient(circle at 35% 30%, #5b6573, #0a0e16 72%);
+  box-shadow:
+    inset 0 -2px 4px rgba(0, 0, 0, 0.6),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.gomoku-stone--white {
+  background: radial-gradient(circle at 35% 30%, #ffffff, #cbd5e1 72%);
+  box-shadow:
+    inset 0 -2px 4px rgba(0, 0, 0, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* 最后一手高亮（青色环） */
+.gomoku-stone--last {
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.85),
+    0 0 14px rgba(56, 189, 248, 0.85);
+}
+
+/* 连珠高亮（金色脉冲） */
+.gomoku-stone--win {
+  box-shadow:
+    0 0 0 2px #fde047,
+    0 0 16px #fde047;
+  animation:
+    gomoku-drop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+    gomoku-win-pulse 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gomoku-stone {
+    animation: none;
+  }
+  .gomoku-stone--win {
+    animation: gomoku-win-pulse 1.2s ease-in-out infinite;
+  }
+}
+
+.reduced-motion .gomoku-stone {
+  animation: none;
+}
+
+.reduced-motion .gomoku-stone--win {
+  animation: gomoku-win-pulse 1.2s ease-in-out infinite;
+}
+
+/* Ink Reveal Overlay — 100% mimo.xiaomi.com algorithm */
+.ink-reveal-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ============ 经历卡片 · 02-react-three-fiber 移植 ============ */
+
+/* 绿粉渐变描边（green-pink-gradient 原样移植） */
+.experience-gradient-border {
+  background: linear-gradient(90.13deg, #00cea8 1.9%, #bf61ff 97.5%);
+}
+
+/* 标签渐变文字（8102 blue/green/pink-text-gradient 原样移植） */
+.text-gradient-blue {
+  background: linear-gradient(to top, #2f80ed, #56ccf2);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.text-gradient-green {
+  background: linear-gradient(to top, #11998e, #38ef7d);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.text-gradient-pink {
+  background: linear-gradient(to top, #ec008c, #fc6767);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* 成就列表：悬停/聚焦时浮现（8102 .Box1 hover 揭示交互） */
+.experience-achievements {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(8px);
+  overflow: hidden;
+  transition:
+    max-height 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+
+.experience-card:hover .experience-achievements,
+.experience-card:focus-within .experience-achievements,
+.experience-achievements.is-visible {
+  max-height: 30rem;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.experience-card:focus {
+  outline: none;
+}
+
+.experience-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+  border-radius: 1.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .experience-achievements {
+    max-height: none;
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+.reduced-motion .experience-achievements {
+  max-height: none;
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+/* ============ 联系卡片 · 01-threejs-particles Get In Touch 移植 ============ */
+
+.contact-item-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: var(--color-glass);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--color-glass-border);
+  border-radius: 15px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.contact-item-link:hover,
+.contact-item-link:focus-visible {
+  transform: translateX(10px) rotate(1deg);
+  box-shadow: 0 10px 30px rgba(0, 245, 255, 0.1);
+}
+
+.contact-item-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.contact-item-icon {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background: linear-gradient(135deg, #00f5ff, #8338ec);
+  border-radius: 15px;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.contact-item-link:hover .contact-item-icon,
+.contact-item-link:focus-visible .contact-item-icon {
+  transform: rotate(-5deg) scale(1.1);
+  box-shadow:
+    0 5px 20px rgba(0, 245, 255, 0.45),
+    0 0 16px rgba(0, 245, 255, 0.25);
+}
+
+.contact-item-label {
+  color: var(--color-primary);
+  margin-bottom: 0.5rem;
+}
+
+.contact-item-value {
+  color: var(--color-text-secondary);
+  transition: color 0.3s ease;
+  overflow-wrap: anywhere;
+}
+
+.contact-item-link:hover .contact-item-value,
+.contact-item-link:focus-visible .contact-item-value {
+  color: var(--color-primary);
+}
+
+/* 联系行右侧胶囊按钮：复制与跳转同款（仅图标/功能不同）。
+   点击有 active:scale-95 反馈；复制成功后发光。 */
+.contact-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border);
+  padding: 0.45rem 0.9rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  color: var(--color-muted);
+  background: transparent;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.35s ease;
+}
+
+.contact-pill:hover,
+.contact-pill:focus-visible {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.contact-pill:active {
+  transform: scale(0.95);
+}
+
+.contact-pill:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.contact-pill--copy.is-copied {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--color-primary) 28%, transparent),
+    0 0 18px color-mix(in srgb, var(--color-primary) 45%, transparent);
+}
+
+@supports (color: oklch(from #000000 l c h)) {
+  .contact-pill--copy.is-copied {
+    box-shadow:
+      0 0 0 3px oklch(from var(--color-primary) l c h / 0.28),
+      0 0 18px oklch(from var(--color-primary) l c h / 0.45);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-item-link,
+  .contact-item-icon,
+  .contact-item-value {
+    transition: none;
+  }
+
+  .contact-item-link:hover,
+  .contact-item-link:focus-visible {
+    transform: none;
+  }
+
+  .contact-item-link:hover .contact-item-icon,
+  .contact-item-link:focus-visible .contact-item-icon {
+    transform: none;
+  }
+}
+
+.reduced-motion .contact-item-link,
+.reduced-motion .contact-item-icon,
+.reduced-motion .contact-item-value,
+.reduced-motion .contact-pill {
+  transition: none;
+}
+
+.reduced-motion .contact-item-link:hover,
+.reduced-motion .contact-item-link:focus-visible {
+  transform: none;
+}
+
+.reduced-motion .contact-item-link:hover .contact-item-icon,
+.reduced-motion .contact-item-link:focus-visible .contact-item-icon {
+  transform: none;
+}
+
+/* ============ 顶部菜单栏 · 12-next-spline-3d glass-nav 移植 ============ */
+
+.glass-nav {
+  background: rgba(7, 19, 45, 0.18);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
+  backdrop-filter: blur(10px) saturate(160%);
+  border: 1px solid rgba(125, 211, 252, 0.08);
+  box-shadow:
+    0 8px 32px rgba(12, 74, 110, 0.1),
+    0 2px 8px rgba(12, 74, 110, 0.08),
+    0 0 0 1px rgba(125, 211, 252, 0.04);
+}
+
+.nav-link-pill {
+  position: relative;
+  border-radius: 9999px;
+  border: 1px solid rgba(125, 211, 252, 0.4);
+  color: #bae6fd;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s,
+    color 0.2s;
+}
+
+.nav-link-pill:hover,
+.nav-link-pill:focus-visible {
+  background: rgba(125, 211, 252, 0.1);
+  border-color: rgba(125, 211, 252, 0.7);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.45);
+}
+
+.nav-link-pill:focus-visible {
+  outline: 2px solid rgba(56, 189, 248, 0.6);
+  outline-offset: 2px;
+}

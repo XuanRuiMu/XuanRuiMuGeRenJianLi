@@ -1,0 +1,672 @@
+{
+  "starryBg": {
+    "title": "特效控制面板",
+    "galaxy": "星系参数",
+    "particleSize": "粒子大小",
+    "branches": "旋臂数",
+    "radius": "缩放",
+    "zoom": "缩放",
+    "spin": "旋转",
+    "randomness": "扩散",
+    "colorBreath": "颜色呼吸",
+    "cycleSpeed": "周期速度",
+    "supernova": "超新星",
+    "frequency": "频率",
+    "nebula": "星云",
+    "count": "数量",
+    "opacity": "透明度",
+    "twinkle": "星星闪烁",
+    "intensity": "强度",
+    "speed": "速度",
+    "stardust": "尘埃粒子",
+    "enabled": "启用",
+    "display": "显示",
+    "inkScreen": "水墨遮罩",
+    "hideStarry": "彻底隐藏星空",
+    "panelTrigger": "特效面板",
+    "viewAngle": "视角角度",
+    "centerDim": "中心暗化",
+    "period": "渐变周期",
+    "startOpacity": "起始渐变透明度",
+    "endOpacity": "最终渐变透明度"
+  },
+  "pwa": {
+    "offlineTitle": "离线模式",
+    "offlineDescription": "当前处于离线模式，已启用简化渲染",
+    "updateAvailable": "发现新版本，刷新以更新",
+    "updateButton": "立即刷新",
+    "updateLater": "稍后",
+    "offlineReady": "已支持离线访问",
+    "cacheQuotaWarning": "缓存空间不足，已自动清理旧资源",
+    "errorRegister": "PWA 注册失败"
+  },
+  "loading": {
+    "title": "玄锐暮的在线简历",
+    "tips": ["正在加载简历数据...", "正在初始化主题与布局...", "正在准备命令面板..."]
+  },
+  "intro": {
+    "enterButton": "进入简历",
+    "audioHint": "",
+    "escHint": "按 Esc 或点击右上角可再次开启本界面",
+    "hoverHint": "悬停看看效果，点一下就进简历"
+  },
+  "nav": {
+    "main": "主导航",
+    "hero": "首页",
+    "about": "关于",
+    "projects": "项目",
+    "skills": "技能",
+    "experience": "经历",
+    "education": "教育",
+    "design": "设计",
+    "media": "媒体",
+    "contact": "联系"
+  },
+  "command": {
+    "title": "命令面板",
+    "open": "命令面板",
+    "placeholder": "输入命令或搜索模块...",
+    "empty": "未找到匹配命令",
+    "sections": "模块跳转",
+    "actions": "快捷操作",
+    "toggleTheme": "切换主题",
+    "copyEmail": "复制邮箱",
+    "copyGithub": "复制 GitHub",
+    "openChat": "打开 AI 助手",
+    "downloadResume": "下载简历"
+  },
+  "theme": {
+    "dark": "深色模式",
+    "light": "浅色模式",
+    "system": "跟随系统",
+    "select": "选择主题"
+  },
+  "error": {
+    "title": "页面暂时无法显示",
+    "description": "页面渲染出错了，刷新一下试试。",
+    "reload": "刷新页面"
+  },
+  "footer": {
+    "copyright": "© 2026 玄锐暮. 保留所有权利。",
+    "status": "玄锐暮 · 在线简历 · 离线可用"
+  },
+  "hero": {
+    "hint": "按 ⌘K 打开命令面板，或用顶部导航切换模块。",
+    "cta": {
+      "copyEmail": "复制邮箱",
+      "viewProjects": "查看项目",
+      "downloadResume": "下载简历",
+      "openAIChat": "AI 问答"
+    },
+    "copied": "已复制",
+    "metricsTitle": "My Technologies"
+  },
+  "about": {
+    "title": "关于我",
+    "subtitle": "写后端、做开源、录课程，业余时间写歌和小说。",
+    "intro": "我是玄锐暮，天津仁爱学院计算机专业的应届生。三年多里，我把已删除的经历从一个插件慢慢做成 8 世界 32 职业的 MMORPG 服务端；在 B站 录了 10 多门计算机课，也帮 50 多位毕业生改过论文。不写代码的时候，就在写歌、写小说、剪视频。我习惯先把结构想明白再动手，卡住了会先翻源码，而不是直接问人。",
+    "metrics": {
+      "projects": {
+        "label": "完成项目",
+        "value": "4+"
+      },
+      "techStack": {
+        "label": "核心技术",
+        "value": "8+"
+      },
+      "courses": {
+        "label": "发布课程",
+        "value": "10+"
+      },
+      "students": {
+        "label": "论文指导",
+        "value": "50+"
+      }
+    },
+    "caption": {
+      "intro": "// about.intro",
+      "meta": "{ readOnly: true }",
+      "eof": "// EOF"
+    }
+  },
+  "resume": {
+    "target": "目标岗位",
+    "contact": "联系方式",
+    "education": "教育背景",
+    "filename": "简历"
+  },
+  "contact": {
+    "title": "联系我",
+    "subtitle": "有岗位、合作或想聊技术，发邮件就好，看到会回。",
+    "copyEmail": "复制",
+    "stillSure": {
+      "subtitle": "// you can play a game while thinking"
+    },
+    "info": {
+      "email": "邮箱",
+      "phone": "电话",
+      "github": "GitHub",
+      "bilibili": "B站"
+    },
+    "form": {
+      "name": "你的名字",
+      "email": "你的邮箱",
+      "message": "留言内容",
+      "submit": "发送留言",
+      "sending": "发送中...",
+      "success": "留言已发送，我会尽快回复。",
+      "error": "发送失败，请稍后重试。"
+    },
+    "validation": {
+      "nameRequired": "请输入姓名",
+      "emailRequired": "请输入邮箱",
+      "emailInvalid": "邮箱格式不正确",
+      "messageRequired": "请输入留言内容",
+      "messageMin": "留言至少 10 个字符",
+      "messageMax": "留言最多 500 个字符"
+    }
+  },
+  "projects": {
+    "title": "项目作品",
+    "subtitle": "实际做过并上线的项目，从游戏服务端到 AI 小工具。",
+    "link": {
+      "github": "GitHub",
+      "demo": "演示"
+    },
+    "wind": {
+      "title": "便签力度设置",
+      "strength": "便签力度"
+    }
+  },
+  "experience": {
+    "title": "经历",
+    "subtitle": "写代码、修 Bug、录课和做创作的时间线。",
+    "timelineLabel": "经历时间线",
+    "hoverHint": "悬停或聚焦查看成就与亮点",
+    "achievementsTitle": "成就与亮点"
+  },
+  "showcase": {
+    "titleLine1": "持续探索",
+    "titleLine2": "教育与多维创作",
+    "subtitle": "课程、设计、写作、音乐和游戏世界观，把一个个想法真正做出来。",
+    "rows": {
+      "education": "教育背景",
+      "design": "设计",
+      "media": "多媒体创作"
+    },
+    "cards": {
+      "degree": {
+        "title": "学历 · 天津仁爱学院",
+        "desc": "计算机科学与技术（本科）· 2022.09 - 2026.06"
+      },
+      "coding": {
+        "title": "编程基础",
+        "desc": "Python 从入门到能写项目 · C 语言基础和指针"
+      },
+      "systems": {
+        "title": "系统与网络",
+        "desc": "计算机网络系统串讲 · 组成原理搞懂硬件怎么跑"
+      },
+      "lowlevel": {
+        "title": "数据与底层",
+        "desc": "数据结构与算法 · 汇编寄存器与指令 · MySQL 数据库"
+      },
+      "teaching": {
+        "title": "教学成果",
+        "desc": "8 节突击课 · 50+ 毕业生论文陪跑 · 283 人学习群"
+      },
+      "resumeTheater": {
+        "title": "简历 3D 剧场",
+        "desc": "你正在看的这个网站，React + Three.js 个人作品集"
+      },
+      "xrmUi": {
+        "title": "已删除的经历 UI 体系",
+        "desc": "游戏菜单、技能面板和 HUD 的整套设计"
+      },
+      "aiToolchain": {
+        "title": "AI 工具链视觉",
+        "desc": "为 85+ 个自定义 Skill 画统一图标与输出卡片"
+      },
+      "toolbox": {
+        "title": "设计工具箱",
+        "desc": "Figma · Three.js · Tailwind · UI/UX · 3D 视觉 · 品牌"
+      },
+      "generative": {
+        "title": "生成艺术",
+        "desc": "用代码驱动图案与流动的视觉实验"
+      },
+      "novel": {
+        "title": "已删除的经历小说",
+        "desc": "世界观编年史与角色故事的长期写作"
+      },
+      "comedy": {
+        "title": "原创单口相声",
+        "desc": "从文本创作到角色语音差异化设计"
+      },
+      "gameWorld": {
+        "title": "游戏世界设计",
+        "desc": "8 世界 32 职业 MMORPG · BOSS 技能循环与阶段切换"
+      },
+      "courses": {
+        "title": "B站 10+ 门课程",
+        "desc": "计算机课程录制 · 剪辑与知识可视化"
+      },
+      "escape": {
+        "title": "原创歌曲《逃脱》",
+        "desc": "词曲、编曲到母带全部独立完成"
+      }
+    }
+  },
+  "education": {
+    "title": "教育背景",
+    "subtitle": "本科课程、自学内容和教学成果。",
+    "tabs": {
+      "summary": "概览",
+      "courses": "课程",
+      "achievements": "成果"
+    },
+    "paragraph": "我就读于天津仁爱学院计算机科学与技术专业（本科），预计 2026 年 6 月毕业。在校期间系统学习过 Python、C 语言、计算机网络、计算机组成原理、数据结构与算法、汇编语言和 MySQL 等课程；课余给零基础同学做过突击辅导，带过 50 多位毕业生的论文，也长期在 QQ 学习群里答疑和分享资料。"
+  },
+  "design": {
+    "title": "设计",
+    "subtitle": "给项目做 UI、品牌和 3D 视觉时留下的东西。",
+    "toolsTitle": "设计工具",
+    "canvasLabel": "生成艺术画板，点击可重新生成图案",
+    "canvasHint": "点击画板重新生成 · 移动鼠标影响流动"
+  },
+  "media": {
+    "title": "媒体",
+    "subtitle": "小说、相声、视频课、音乐和游戏世界观。"
+  },
+  "skills": {
+    "title": "技能",
+    "subtitle": "工程、AI Agent 和创作这几个方向，我大概会些什么。",
+    "radarTitle": "技能雷达",
+    "categories": {
+      "it": {
+        "label": "工程开发",
+        "description": "写 Java 后端和 React 前端，也拿 Python 写脚本；最近在看 AI Agent 和 MCP。",
+        "tags": [
+          "Java 后端架构",
+          "Spring Boot / JPA / JWT",
+          "AI Agent 工具链",
+          "Python 自动化",
+          "React + Three.js",
+          "MySQL / Redis",
+          "Docker / K8s / CI/CD",
+          "RESTful API 设计"
+        ]
+      },
+      "creative": {
+        "label": "创作设计",
+        "description": "做 UI、品牌视觉、音乐编曲，也剪视频写东西。",
+        "tags": [
+          "Figma",
+          "Three.js",
+          "Tailwind CSS",
+          "UI/UX",
+          "3D 视觉",
+          "品牌设计",
+          "架子鼓",
+          "吉他",
+          "MIDI 编曲",
+          "技术写作",
+          "视频剪辑",
+          "小说创作",
+          "相声剧本",
+          "游戏策划"
+        ]
+      },
+      "soft": {
+        "label": "教学协作",
+        "description": "教课、改论文、拆知识点、群里答疑。",
+        "tags": ["课程设计", "论文指导", "知识拆解", "社群答疑", "知识可视化", "技术教学"]
+      }
+    }
+  },
+  "chat": {
+    "title": "AI 助手",
+    "close": "关闭",
+    "placeholder": "输入问题，例如：你是谁 / 你的技术栈 / 介绍一下已删除的经历",
+    "answers": {
+      "name": "我叫{name}，主写 Java 后端，也写 Python 脚本和 React 前端。",
+      "target": "想找个 Java 后端、AI 工具开发或全栈的岗位。",
+      "contact": "邮箱是 {email}，电话是 {phone}。",
+      "projects": "做过已删除的经历 MMORPG 服务端、Spring Boot 管理后台、AI 总控制台，也给 Slimefun4 提过 PR。",
+      "skills": "主要用 Java/Spring Boot、Python、React，也玩 MySQL、Redis，最近在折腾 AI Agent 和 MCP。",
+      "education": "我就读于{school}，{major}专业{degree}，预计 {period} 毕业。",
+      "experience": "独立开发已删除的经历、给 Slimefun4 提 PR、在 B站 录课、帮毕业生改论文。",
+      "fallback": "这个问题我本地没准备答案，你可以发邮件 {email} 问我。"
+    }
+  },
+  "ai": {
+    "title": "AI 助手",
+    "close": "关闭",
+    "placeholder": "输入问题，例如：你是谁 / 你的技术栈 / 介绍一下已删除的经历",
+    "send": "发送",
+    "loading": "正在想...",
+    "error": "发送失败，请重试",
+    "empty": "有什么可以帮你的？",
+    "localMode": "当前是本地自动回复",
+    "reset": "清空对话",
+    "quickQuestions": ["你是谁", "你的技术栈", "介绍一下已删除的经历", "联系方式"],
+    "component": {
+      "projectNotFound": "未找到对应项目",
+      "noSkillData": "暂无技能数据",
+      "timeline": {
+        "experience": "经历时间线",
+        "media": "媒体创作时间线",
+        "education": "教育时间线"
+      }
+    }
+  },
+  "radar": {
+    "placeholder": "技能雷达图"
+  },
+  "data": {
+    "personalInfo": {
+      "expectedCity": "天津各区域均可",
+      "availability": "可随时入职"
+    },
+    "projects": {
+      "xrm": {
+        "name": "已删除的经历",
+        "desc": " 1.21.4 整合包，融合魔法、科技与冒险，深度自定义世界生成与剧情线。",
+        "tags": ["Java", "Spigot", "MySQL", "Redis"],
+        "metrics": {
+          "classes": "120+ Java 类",
+          "systems": "8 世界 / 32 职业"
+        }
+      },
+      "admin": {
+        "name": "Spring Boot 管理后台",
+        "desc": "给已删除的经历做的管理后台，8 张 MySQL 表管玩家、物品和日志；JWT 鉴权、Redis 缓存，接口文档用 Swagger。",
+        "tags": ["Spring Boot", "JPA", "JWT", "Swagger"],
+        "metrics": {
+          "tables": "8 张数据表",
+          "auth": "JWT + Redis 缓存"
+        }
+      },
+      "aiConsole": {
+        "name": "AI 总控制台",
+        "desc": "用 Python 写的 AI 工具管理台，2435 行代码，能批量拉仓库、管多家 API Key、定时更新数据源，也拿来做 MCP 测试。",
+        "tags": ["Python", "Git 自动化", "MCP", "API 集成"],
+        "metrics": {
+          "lines": "2435 行 Python",
+          "sources": "8 源数据更新"
+        }
+      },
+      "slimefun": {
+        "name": "Slimefun4 开源贡献",
+        "desc": "Fork Slimefun4 后修了几个多数据库兼容的 Bug，PR 已经合进主分支。",
+        "tags": ["开源", "MySQL/PostgreSQL/SQLite"],
+        "metrics": {
+          "databases": "MySQL / PostgreSQL / SQLite",
+          "contribution": "PR 已合并"
+        }
+      }
+    },
+    "skills": {
+      "it": {
+        "headline": "工程开发",
+        "intro": "后端主要写 Java/Spring Boot，前端用 React，平时拿 Python 写脚本；最近在折腾 AI Agent 工具链和 MCP。",
+        "items": {
+          "javaBackend": "Java 后端架构",
+          "springBoot": "Spring Boot / JPA / JWT",
+          "aiAgent": "AI Agent 工具链",
+          "pythonAutomation": "Python 自动化",
+          "reactThree": "React + Three.js",
+          "database": "MySQL / Redis",
+          "devOps": "Docker / K8s / CI/CD",
+          "apiDesign": "RESTful API 设计"
+        },
+        "cards": {
+          "planner": {
+            "title": "Planner",
+            "items": ["需求拆解", "架构设计", "PRD 生成", "多 Agent 怎么配合"]
+          },
+          "coder": {
+            "title": "Coder",
+            "items": ["Java 25 / Spring Boot 3.4", "Python 自动化", "React + Three.js", "RESTful API 设计"]
+          },
+          "reviewer": {
+            "title": "Reviewer",
+            "items": ["代码三轴审查", "安全 Hook", "测试覆盖审计", "结构化输出校验"]
+          },
+          "debugger": {
+            "title": "Debugger",
+            "items": ["运行时日志收集", "根因深挖", "方案前置验证", "Bug 修到干净"]
+          }
+        }
+      },
+      "education": {
+        "headline": "教学与内容",
+        "intro": "在 B站 有个频道「玄锐暮」，把操作系统、计网这些课拆成能听懂的视频，也帮毕业生捋论文思路和改格式。",
+        "items": {
+          "courseDesign": "课程设计",
+          "thesisGuidance": "论文指导",
+          "knowledgeBreakdown": "知识拆解",
+          "communityQna": "社群答疑",
+          "visualization": "知识可视化"
+        }
+      },
+      "media": {
+        "headline": "多媒体创作",
+        "intro": "写小说、录视频、做相声，单纯喜欢把这些想法做出来。",
+        "items": {
+          "techWriting": "技术写作",
+          "videoEditing": "视频剪辑",
+          "novelWriting": "小说创作",
+          "comedyWriting": "相声剧本",
+          "gameDesign": "游戏策划"
+        }
+      }
+    },
+    "design": {
+      "headline": "设计与视觉",
+      "intro": "做 UI 先让别人把信息看清楚，再聊好不好看。",
+      "works": {
+        "resumeTheater": {
+          "name": "简历 3D 剧场",
+          "category": "UI/UX + 3D",
+          "desc": "现在看到的这个网站，用 React + Three.js 做的个人作品集。"
+        },
+        "xrmUi": {
+          "name": "已删除的经历 UI 体系",
+          "category": "游戏 UI",
+          "desc": "给已删除的经历做的游戏菜单、技能面板和 HUD。"
+        },
+        "aiToolchain": {
+          "name": "AI 工具链视觉",
+          "category": "品牌设计",
+          "desc": "给 85 多个自定义 Skill 画了统一图标和输出卡片。"
+        }
+      },
+      "tools": {
+        "figma": "Figma",
+        "threejs": "Three.js",
+        "tailwind": "Tailwind CSS",
+        "uiux": "UI/UX",
+        "3d": "3D 视觉",
+        "branding": "品牌设计"
+      }
+    },
+    "music": {
+      "headline": "音乐创作",
+      "intro": "乐理和编曲都是自己瞎琢磨的，也用代码在  里生成过 MIDI 乐器。",
+      "tracks": {
+        "escape": {
+          "name": "逃脱",
+          "type": "原创歌曲",
+          "desc": "一首从词曲到编曲都自己完成的原创歌。"
+        },
+        "javaInstrument": {
+          "name": "Java 乐器系统",
+          "type": "程序化音乐",
+          "desc": "在  里用代码写出 MIDI 音高、节拍器和多人合奏。"
+        }
+      },
+      "skills": {
+        "drums": "架子鼓",
+        "guitar": "吉他",
+        "theory": "基础乐理",
+        "kontakt": "Kontakt8 音色库",
+        "midi": "MIDI 编曲",
+        "spectrum": "频谱可视化"
+      }
+    },
+    "media": {
+      "headline": "多媒体创作",
+      "intro": "写小说、录视频、做相声，单纯喜欢把这些想法做出来。",
+      "categories": {
+        "writing": {
+          "label": "写作",
+          "items": {
+            "novel": "已删除的经历小说 / 编年史",
+            "blog": "技术博客与文档"
+          }
+        },
+        "comedy": {
+          "label": "相声",
+          "items": {
+            "original": "原创单口相声",
+            "voice": "角色语音差异化设计"
+          }
+        },
+        "game": {
+          "label": "游戏",
+          "items": {
+            "worlds": "8 世界 32 职业 MMORPG 设计",
+            "boss": "BOSS 技能循环与阶段切换"
+          }
+        },
+        "video": {
+          "label": "视频",
+          "items": {
+            "courses": "B站 10+ 门计算机课程",
+            "editing": "教程剪辑与知识可视化"
+          }
+        }
+      },
+      "timeline": {
+        "2022": "立项已删除的经历，开始在 B站 更新计算机课程。",
+        "2023": "职业、天赋、任务这些核心系统基本做完。",
+        "2024": "搭了 85 多个 AI Skill，让几个 Agent 能配合工作。",
+        "2025": "原创歌曲《逃脱》上线，词曲编曲到母带都自己弄。"
+      }
+    },
+    "experience": {
+      "entries": {
+        "xrm": {
+          "title": "独立开发者 · 已删除的经历 MMORPG",
+          "organization": "个人项目",
+          "period": "2022 - 至今",
+          "description": "一个人做已删除的经历服务端，从一个插件写到 120 多个类，搭出 8 世界 32 职业的 MMORPG 框架。",
+          "achievement1": "主导 9 个核心模块从 0 到 1，支撑 800+ 并发玩家稳定运行",
+          "achievement2": "设计 8 世界 32 职业框架，热更新逻辑不重启服务端",
+          "achievement3": "用 Redis 缓存会话与排行榜，平均延迟压到 30ms 以内"
+        },
+        "openSource": {
+          "title": "开源贡献者 · Slimefun4",
+          "organization": "开源社区",
+          "period": "2024",
+          "description": "在 Slimefun4 里修了几个 MySQL/PostgreSQL/SQLite 兼容的 Bug，PR 已经合进主分支。",
+          "achievement1": "修复 MySQL/PostgreSQL/SQLite 多库兼容的 3 个关键 Bug",
+          "achievement2": "提交 PR 通过 CI 与代码评审，已合进主分支",
+          "achievement3": "为社区补充可复现的数据库测试样例与文档"
+        },
+        "teacher": {
+          "title": "教育内容创作者",
+          "organization": "B站 / QQ 学习群",
+          "period": "2022 - 至今",
+          "description": "录了 10 多门计算机课，帮 50 多位毕业生改论文，QQ 学习群现在 283 人。",
+          "achievement1": "录制 10+ 门计算机课程，覆盖零基础到进阶实战",
+          "achievement2": "一对一指导 50+ 毕业生走完选题到答辩全流程",
+          "achievement3": "维护 283 人学习群，沉淀系统化复习资料库"
+        },
+        "multimedia": {
+          "title": "多媒体创作者",
+          "organization": "个人创作",
+          "period": "2022 - 至今",
+          "description": "写已删除的经历的小说和编年史，做原创歌曲《逃脱》，也剪技术教程视频。",
+          "achievement1": "创作原创歌曲《逃脱》，词曲编曲到母带独立完成",
+          "achievement2": "撰写已删除的经历小说与编年史，搭建完整世界观",
+          "achievement3": "剪辑技术教程视频，单条最高播放量破万"
+        }
+      }
+    },
+    "education": {
+      "courses": {
+        "python": {
+          "name": "Python",
+          "level": "从入门到能写项目"
+        },
+        "c": {
+          "name": "C 语言",
+          "level": "基础和指针"
+        },
+        "network": {
+          "name": "计算机网络",
+          "level": "系统串讲"
+        },
+        "computerOrganization": {
+          "name": "计算机组成原理",
+          "level": "硬件是怎么跑的"
+        },
+        "algorithms": {
+          "name": "数据结构与算法",
+          "level": "核心逻辑"
+        },
+        "assembly": {
+          "name": "汇编语言",
+          "level": "寄存器与指令"
+        },
+        "mysql": {
+          "name": "MySQL",
+          "level": "数据库基础"
+        }
+      },
+      "achievements": {
+        "crashCourse": "给 0 基础同学做了 8 节突击课，帮他把免修考试过了。",
+        "thesis": "带过 50 多位毕业生，从选题到答辩陪他们走了一遍。",
+        "community": "打理 QQ 学习群，平时答疑、丢资料、聊技术。"
+      }
+    },
+    "radar": {
+      "dimensions": {
+        "backendArchitecture": {
+          "label": "后端架构",
+          "description": "Java/Spring Boot 服务端、数据库设计和 SQL 调优"
+        },
+        "aiAgent": {
+          "label": "AI Agent",
+          "description": "自定义 Skill、多 Agent 协作和 MCP 协议"
+        },
+        "fullStack": {
+          "label": "全栈开发",
+          "description": "React/TypeScript 前端、RESTful API 和工程化"
+        },
+        "devops": {
+          "label": "DevOps",
+          "description": "Docker、CI/CD 和运维脚本"
+        },
+        "techTeaching": {
+          "label": "技术教学",
+          "description": "课程设计、论文修改和社群答疑"
+        },
+        "designAesthetic": {
+          "label": "设计审美",
+          "description": "UI/UX、品牌视觉和 Three.js 3D"
+        },
+        "musicCreation": {
+          "label": "音乐创作",
+          "description": "作曲、编曲和程序化 MIDI"
+        },
+        "contentCreation": {
+          "label": "内容创作",
+          "description": "技术博客、小说和视频教程"
+        }
+      }
+    }
+  }
+}

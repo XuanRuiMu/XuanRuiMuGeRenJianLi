@@ -1,0 +1,48 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# 环境变量文件（含密钥，严禁入库；保留 .env.example 作为模板）
+.env
+.env.*
+!.env.example
+.analysis
+.visual-verification
+.verification
+.trae
+test-results
+playwright-report
+dev-dist
+lighthouse-report.json
+visual-qa-screenshots
+screenshots
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# WorkBuddy evidence screenshots
+.workbuddy/
+
+# Legacy session artifacts — template-comparison / verification screenshots, not resume source
+# (kept ignored so `git add -A` never tries to stage them as nested-repo gitlinks)
+preview-lab/
+redesign-lab/
+references/

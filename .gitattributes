@@ -1,0 +1,2 @@
+# 统一换行符为 LF（仓库 committed 文件本就是 LF；规范化工作区以彻底消除换行符幻影修改）
+* text=auto eol=lf

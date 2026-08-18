@@ -1,0 +1,54 @@
+{
+  "id": "/",
+  "name": "玄锐暮 · AI 简历",
+  "short_name": "玄锐暮简历",
+  "description": "玄锐暮的 AI-Native Developer Résumé Hub，展示 Java 后端、AI 应用、全栈开发与多媒体创作能力。",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0C15",
+  "theme_color": "#0B0C15",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "项目作品",
+      "short_name": "项目",
+      "description": "查看独立主导与参与的项目作品",
+      "url": "/#projects",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "技能雷达",
+      "short_name": "技能",
+      "description": "查看全栈工程、AI Agent 与创作能力分布",
+      "url": "/#skills",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "联系我",
+      "short_name": "联系",
+      "description": "查看联系方式并发送留言",
+      "url": "/#contact",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "categories": ["portfolio", "personalization", "productivity"],
+  "lang": "zh-CN"
+}
