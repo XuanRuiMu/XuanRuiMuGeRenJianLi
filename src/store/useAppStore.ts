@@ -22,6 +22,7 @@ export interface AppState {
   aiMessages: AiMessage[]
   aiModel: 'flash' | 'pro'
   aiThinking: boolean
+  aiThinkingStrength: 'low' | 'high' | 'max'
   reducedMotion: boolean
   isOffline: boolean
   updateAvailable: boolean
@@ -41,6 +42,7 @@ export interface AppState {
   clearAiMessages: () => void
   setAiModel: (model: 'flash' | 'pro') => void
   setAiThinking: (enabled: boolean) => void
+  setAiThinkingStrength: (strength: 'low' | 'high' | 'max') => void
   setReducedMotion: (enabled: boolean) => void
   setOffline: (offline: boolean) => void
   setUpdateAvailable: (available: boolean) => void
@@ -83,6 +85,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   aiMessages: [],
   aiModel: 'flash',
   aiThinking: true,
+  aiThinkingStrength: 'high',
   reducedMotion: false,
   isOffline: false,
   updateAvailable: false,
@@ -102,6 +105,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   clearAiMessages: () => set({ aiMessages: [] }),
   setAiModel: (model) => set({ aiModel: model }),
   setAiThinking: (enabled) => set({ aiThinking: enabled }),
+  setAiThinkingStrength: (strength) => set({ aiThinkingStrength: strength }),
   setReducedMotion: (enabled) => set({ reducedMotion: enabled }),
   setOffline: (offline) => set({ isOffline: offline }),
   setUpdateAvailable: (available) => set({ updateAvailable: available }),

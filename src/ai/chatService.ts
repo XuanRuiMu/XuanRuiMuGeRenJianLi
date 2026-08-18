@@ -57,16 +57,16 @@ function parseDeepSeekResponse(rawContent: string): AssistantPayload {
 }
 
 async function callDeepSeek(messages: AiMessage[], apiKey: string): Promise<AiMessage> {
-  // 模型与思考开关来自全局 store（AIChat 面板可切换 flash / pro 与思考 on/off）。
+  // 模型与思考开关/强度来自全局 store（AIChat 面板经 /model 指令切换 flash / pro、思考 on/off 与强度）。
   // 上下文默认拉满：每次请求发送完整对话历史（DeepSeek v4 为无状态 API，需自行携带上下文）。
-  const { aiModel, aiThinking } = useAppStore.getState()
+  const { aiModel, aiThinking, aiThinkingStrength } = useAppStore.getState()
   const model = DEEPSEEK_MODELS[aiModel]
   const userQuestion = 获取最后用户内容(messages)
   const contextChunks = retrieveChunks(userQuestion, DEEPSEEK_RETRIEVE_TOP_K)
   const context = contextChunks.map((chunk, index) => `[${index + 1}] ${chunk.content}`).join('\n\n')
   const systemPrompt = buildSystemPrompt(context)
 
-  // 构建请求体：thinking 开关 + reasoning_effort（v4 思考模式默认 high）。
+  // 构建请求体：thinking 开关 + reasoning_effort（v4 思考模式，强度可 low/high/max）。
   // 思考模式下 temperature/top_p 等被 API 忽略（不报错），此处保留 temperature 无害。
   const body: Record<string, unknown> = {
     model,
@@ -79,7 +79,7 @@ async function callDeepSeek(messages: AiMessage[], apiKey: string): Promise<AiMe
     response_format: { type: 'json_object' },
     thinking: { type: aiThinking ? 'enabled' : 'disabled' },
   }
-  if (aiThinking) body.reasoning_effort = 'high'
+  if (aiThinking) body.reasoning_effort = aiThinkingStrength
 
   const response = await fetch(DEEPSEEK_ENDPOINT, {
     method: 'POST',

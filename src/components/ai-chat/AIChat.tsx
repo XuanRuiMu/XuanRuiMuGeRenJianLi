@@ -66,8 +66,12 @@ export function AIChat({ className }: AIChatProps) {
 
   const aiModel = useAppStore((state) => state.aiModel)
   const aiThinking = useAppStore((state) => state.aiThinking)
+  const aiThinkingStrength = useAppStore((state) => state.aiThinkingStrength ?? 'high')
   const setAiModel = useAppStore((state) => state.setAiModel)
   const setAiThinking = useAppStore((state) => state.setAiThinking)
+  const setAiThinkingStrength = useAppStore((state) => state.setAiThinkingStrength)
+  const [modelMenuOpen, setModelMenuOpen] = useState(false)
+  const [menuCursor, setMenuCursor] = useState(0)
 
   const [optimisticMessages, addOptimisticMessage] = useOptimistic<AiMessage[], AiMessage>(
     aiMessages,
@@ -124,14 +128,71 @@ export function AIChat({ className }: AIChatProps) {
     setInput('')
   }, [clearAiMessages, chatMutation])
 
-  // 终端习惯：Esc 关闭面板（中断会话）
+  // /model 指令：1:1 还原 Claude Code 的模型选择面板（箭头导航 + 回车选择 + T 切换思考 + Esc 退出）。
+  // 选项行：模型(radio) → Think 开关 → 思考强度(开启时显示)。
+  type MenuItem =
+    | { kind: 'model'; value: 'flash' | 'pro' }
+    | { kind: 'think' }
+    | { kind: 'strength'; value: 'low' | 'high' | 'max' }
+
+  const buildMenuItems = useCallback((): MenuItem[] => {
+    const items: MenuItem[] = [
+      { kind: 'model', value: 'flash' },
+      { kind: 'model', value: 'pro' },
+      { kind: 'think' },
+    ]
+    if (aiThinking) {
+      items.push({ kind: 'strength', value: 'low' }, { kind: 'strength', value: 'high' }, { kind: 'strength', value: 'max' })
+    }
+    return items
+  }, [aiThinking])
+
+  const activateMenuItem = useCallback(
+    (item: MenuItem) => {
+      if (item.kind === 'model') {
+        setAiModel(item.value)
+        setModelMenuOpen(false)
+        setMenuCursor(0)
+      } else if (item.kind === 'think') {
+        setAiThinking(!aiThinking)
+        // 关闭思考时强度行消失，夹紧光标避免越界
+        if (aiThinking) setMenuCursor((c) => Math.min(c, 2))
+      } else {
+        setAiThinkingStrength(item.value)
+      }
+    },
+    [aiThinking, setAiModel, setAiThinking, setAiThinkingStrength]
+  )
+
+  // 终端习惯：Esc 关闭面板（中断会话）；/model 面板打开时，方向键导航、回车选择、T 切换思考
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (modelMenuOpen) {
+        const items = buildMenuItems()
+        if (event.key === 'ArrowDown') {
+          event.preventDefault()
+          setMenuCursor((c) => (c + 1) % items.length)
+        } else if (event.key === 'ArrowUp') {
+          event.preventDefault()
+          setMenuCursor((c) => (c - 1 + items.length) % items.length)
+        } else if (event.key === 'Enter') {
+          event.preventDefault()
+          activateMenuItem(items[menuCursor])
+        } else if (event.key === 'Escape') {
+          event.preventDefault()
+          setModelMenuOpen(false)
+        } else if (event.key === 't' || event.key === 'T') {
+          event.preventDefault()
+          setAiThinking(!aiThinking)
+          if (aiThinking) setMenuCursor((c) => Math.min(c, 2))
+        }
+        return
+      }
       if (event.key === 'Escape') {
         setChatOpen(false)
       }
     },
-    [setChatOpen]
+    [modelMenuOpen, menuCursor, aiThinking, buildMenuItems, activateMenuItem, setAiThinking, setChatOpen]
   )
 
   if (!chatOpen) {
@@ -196,44 +257,6 @@ export function AIChat({ className }: AIChatProps) {
         </div>
       </div>
 
-      {/* 模型 / 思考 控制条：切换 deepseek-v4-flash / pro，开启或关闭思考模式 */}
-      <div className="flex items-center gap-3 border-b border-[#1f1f1f] bg-[#0d0d0d] px-3 py-1.5 text-[10px]">
-        <div className="flex items-center gap-1.5">
-          <span className="text-[#666]">model</span>
-          {(['flash', 'pro'] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setAiModel(m)}
-              aria-pressed={aiModel === m}
-              className={cn(
-                'rounded px-1.5 py-0.5 transition-colors',
-                aiModel === m ? 'bg-[#d97757] text-white' : 'text-[#888] hover:text-[#e6e6e6]'
-              )}
-            >
-              {m}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-[#666]">think</span>
-          {([true, false] as const).map((v) => (
-            <button
-              key={String(v)}
-              type="button"
-              onClick={() => setAiThinking(v)}
-              aria-pressed={aiThinking === v}
-              className={cn(
-                'rounded px-1.5 py-0.5 transition-colors',
-                aiThinking === v ? 'bg-[#d97757] text-white' : 'text-[#888] hover:text-[#e6e6e6]'
-              )}
-            >
-              {v ? 'on' : 'off'}
-            </button>
-          ))}
-        </div>
-      </div>
-
       <div className="flex-1 overflow-y-auto px-3 py-3 scrollbar-thin">
         {optimisticMessages.length === 0 ? (
           <div className="flex h-full flex-col justify-center gap-2 text-[13px]">
@@ -242,7 +265,7 @@ export function AIChat({ className }: AIChatProps) {
               {t('ai.empty')}
             </p>
             <p className="text-xs text-[#9aa0aa]">我可以回答关于玄锐暮简历、技术栈与项目的问题。</p>
-            <p className="text-[11px] text-[#666]">/help 查看指令 · /clear 清空对话</p>
+            <p className="text-[11px] text-[#666]">/model 切换模型与思考 · /clear 清空对话</p>
             <div className="mt-1 flex flex-wrap gap-2">
               {ta('ai.quickQuestions').map((question) => (
                 <button
@@ -296,13 +319,93 @@ export function AIChat({ className }: AIChatProps) {
         )}
       </div>
 
+      {modelMenuOpen &&
+        (() => {
+          const items = buildMenuItems()
+          return (
+            <div className="mx-1 mb-1 rounded-md border border-[#2a2a2a] bg-[#0b0b0b] p-2 font-mono text-[11px]">
+              <div className="mb-1 flex items-center gap-2 text-[#d97757]">
+                <span>╭─</span>
+                <span>/model</span>
+                <span className="h-px flex-1 bg-[#d97757]/40" />
+                <span>╮</span>
+              </div>
+              <div className="mb-1 px-1 text-[#666]">
+                选择模型与思考 · ↑↓ 移动 · ⏎ 选择 · T 切换思考 · esc 退出
+              </div>
+              {items.map((item, i) => {
+                const active = i === menuCursor
+                let line: React.ReactNode
+                if (item.kind === 'model') {
+                  const sel = aiModel === item.value
+                  const name = item.value === 'pro' ? 'deepseek-v4-pro' : 'deepseek-v4-flash'
+                  const hint = item.value === 'pro' ? '旗舰 · 1M 上下文' : '极速响应'
+                  line = (
+                    <>
+                      {sel ? '◉' : '○'} {name} <span className="text-[#666]">{hint}</span>
+                    </>
+                  )
+                } else if (item.kind === 'think') {
+                  line = (
+                    <>
+                      Think:{' '}
+                      <span className={aiThinking ? 'text-[#4ade80]' : 'text-[#9aa0aa]'}>
+                        {aiThinking ? '● On' : '○ Off'}
+                      </span>
+                    </>
+                  )
+                } else {
+                  const sel = aiThinkingStrength === item.value
+                  const label = item.value === 'low' ? '低' : item.value === 'high' ? '高' : '极高'
+                  line = (
+                    <>
+                      {sel ? '◉' : '○'} 强度 {label} ({item.value})
+                    </>
+                  )
+                }
+                return (
+                  <div
+                    key={i}
+                    className={cn(
+                      'flex cursor-pointer items-center gap-1 rounded px-1 py-0.5',
+                      active ? 'bg-[#d97757] text-black' : 'text-[#cfcfcf]'
+                    )}
+                    onMouseEnter={() => setMenuCursor(i)}
+                    onClick={() => activateMenuItem(item)}
+                  >
+                    <span className="select-none">{active ? '❯' : ' '}</span>
+                    <span>{line}</span>
+                  </div>
+                )
+              })}
+              <div className="mt-1 flex items-center gap-2 text-[#d97757]">
+                <span>╰</span>
+                <span className="h-px flex-1 bg-[#d97757]/40" />
+                <span>╯</span>
+              </div>
+            </div>
+          )
+        })()}
+
       {sendState.error && (
         <div className="border-t border-[#2a2a2a] bg-[#3b1d1d] px-3 py-2 text-xs text-[#f0a0a0]" role="alert">
           {sendState.error}
         </div>
       )}
 
-      <form action={formAction} className="border-t border-[#1f1f1f] bg-[#0a0a0a] p-2.5">
+      <form
+        action={formAction}
+        onSubmit={(event) => {
+          // /model 指令：Enter 时不发送，改为打开模型选择面板
+          if (input.trim() === '/model') {
+            event.preventDefault()
+            setModelMenuOpen(true)
+            setMenuCursor(0)
+            setInput('')
+          }
+        }}
+        className="border-t border-[#1f1f1f] bg-[#0a0a0a] p-2.5"
+      >
         <div className="flex items-center gap-2 rounded border border-[#2a2a2a] bg-[#121212] px-2.5 py-2 transition-colors focus-within:border-[#d97757]">
           <span className="select-none text-[#d97757]" aria-hidden="true">
             ❯
@@ -331,7 +434,7 @@ export function AIChat({ className }: AIChatProps) {
           <span>esc 中断 · ⏎ 发送</span>
           <span className="flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-[#4ade80]" aria-hidden="true" />
-            {`${aiModel === 'pro' ? 'deepseek-v4-pro' : 'deepseek-v4-flash'} · ${aiThinking ? 'think on' : 'think off'} · CTX 1M`}
+            {`${aiModel === 'pro' ? 'deepseek-v4-pro' : 'deepseek-v4-flash'} · ${aiThinking ? `think ${aiThinkingStrength}` : 'think off'} · CTX 1M`}
           </span>
         </div>
       </form>

@@ -174,7 +174,7 @@ export function ContactSection() {
                     aria-label="复制"
                   >
                     {copiedEmail ? <Check size={14} className="text-[#22d3ee]" /> : <Copy size={14} />}
-                    <span>{copiedEmail ? t('hero.copied') : t('contact.copyEmail')}</span>
+                    {copiedEmail && <span>{t('hero.copied')}</span>}
                   </button>
                 ) : (
                   <a

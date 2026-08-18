@@ -16,13 +16,15 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
     render(<ShowcaseSection />)
     for (const row of showcaseRows) {
       for (const card of row.cards) {
-        expect(screen.getByText(t(card.titleKey))).toBeInTheDocument()
-        expect(screen.getByText(t(card.descKey))).toBeInTheDocument()
+        // 每张逻辑卡片至少渲染一次（marquee 无缝循环会渲染两份相同卡片组）
+        expect(screen.getAllByText(t(card.titleKey)).length).toBeGreaterThanOrEqual(1)
+        expect(screen.getAllByText(t(card.descKey)).length).toBeGreaterThanOrEqual(1)
       }
     }
-    // 15 张卡：3 行 × 5 张
+    // 15 张逻辑卡 × 2 份（无缝 marquee 轨道）：3 行 × 5 张 × 2
+    const expected = showcaseRows.reduce((n, r) => n + r.cards.length, 0) * 2
     const cards = document.querySelectorAll('.group\\/card')
-    expect(cards).toHaveLength(15)
+    expect(cards).toHaveLength(expected)
   })
 
   it('keeps original section anchors so navigation still works', () => {
@@ -35,8 +37,9 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
 
   it('ports the neon gradient border design on every card', () => {
     render(<ShowcaseSection />)
+    // 30 张 = 15 逻辑卡 × 2 份 marquee 轨道
     const cards = document.querySelectorAll('.group\\/card')
-    expect(cards).toHaveLength(15)
+    expect(cards).toHaveLength(30)
     for (const card of cards) {
       const border = card.querySelector('.bg-gradient-to-r') as HTMLElement
       expect(border).not.toBeNull()
@@ -49,12 +52,19 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
   it('renders the bilibili card as an external link and others as plain cards', () => {
     render(<ShowcaseSection />)
     const escapedTitle = t('showcase.cards.courses.title').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    const link = screen.getByRole('link', { name: new RegExp(escapedTitle) })
-    expect(link).toHaveAttribute('target', '_blank')
-    expect(link).toHaveAttribute('href', 'https://space.bilibili.com/383504924')
+    // marquee 渲染两份，故 bilibili 链接出现两次，均应为外链
+    const links = screen.getAllByRole('link', { name: new RegExp(escapedTitle) })
+    expect(links.length).toBe(2)
+    for (const link of links) {
+      expect(link).toHaveAttribute('target', '_blank')
+      expect(link).toHaveAttribute('href', 'https://space.bilibili.com/383504924')
+    }
 
-    const degreeCard = screen.getByText(t('showcase.cards.degree.title')).closest('.group\\/card') as HTMLElement
-    expect(within(degreeCard).queryByRole('link')).toBeNull()
+    const degreeTextNodes = screen.getAllByText(t('showcase.cards.degree.title'))
+    for (const node of degreeTextNodes) {
+      const degreeCard = node.closest('.group\\/card') as HTMLElement
+      expect(within(degreeCard).queryByRole('link')).toBeNull()
+    }
   })
 
   it('renders rows statically without inline transform under reduced motion', () => {
@@ -66,8 +76,9 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
     })) as unknown as typeof window.matchMedia
 
     render(<ShowcaseSection />)
+    // 30 张 = 15 逻辑卡 × 2 份 marquee 轨道（reduced-motion 下静止但仍渲染两份）
     const cards = document.querySelectorAll('.group\\/card')
-    expect(cards).toHaveLength(15)
+    expect(cards).toHaveLength(30)
     for (const card of cards) {
       const el = card as HTMLElement
       // 减少动效时不应注入 transform 行内样式（仅保留 drift 动画所需的 CSS 变量）

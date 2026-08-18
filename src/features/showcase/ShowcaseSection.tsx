@@ -21,6 +21,7 @@ import { motion, useScroll, useTransform, useSpring, type MotionValue } from 'fr
 import { showcaseRows, type ShowcaseCard } from '../../data/showcase'
 import { t } from '../../i18n/translations'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
+import { cn } from '../../lib/utils'
 
 /** 卡片图标映射（按卡片 id） */
 const CARD_ICONS: Record<string, LucideIcon> = {
@@ -103,15 +104,7 @@ function ShowcaseProductCard({ card, translate, index, reducedMotion }: Showcase
   )
 
   return (
-    <div
-      className="card-auto-drift group/card h-32 w-[11rem] shrink-0 md:h-[26.75rem] md:w-[22rem] lg:h-96 lg:w-[30rem]"
-      style={
-        {
-          ['--drift-dur' as string]: `${15 + (index % 5) * 2.4}s`,
-          ['--drift-delay' as string]: `${(index % 4) * -1.3}s`,
-        } as React.CSSProperties
-      }
-    >
+    <div className="group/card h-32 w-[11rem] shrink-0 md:h-[26.75rem] md:w-[22rem] lg:h-96 lg:w-[30rem]">
       <motion.div
         style={reducedMotion ? undefined : { x: translate }}
         whileHover={reducedMotion ? undefined : { y: -20 }}
@@ -201,21 +194,28 @@ export function ShowcaseSection() {
                 <span id={row.anchorId} className="block scroll-mt-24" aria-hidden="true">
                   &nbsp;
                 </span>
+                {/* 自主横移轨道：渲染两份相同卡片组，translateX(-50%) 无缝循环；
+                    方向与该排滚动视差一致（偶数排右、奇数排左），模拟向下划动网页。 */}
                 <motion.div
-                  className={
+                  className={cn(
+                    'showcase-marquee',
                     reversed
-                      ? 'flex flex-row-reverse space-x-reverse space-x-20'
-                      : 'flex flex-row space-x-20'
-                  }
+                      ? 'showcase-marquee--right flex flex-row-reverse'
+                      : 'showcase-marquee--left flex flex-row'
+                  )}
                 >
-                  {row.cards.map((card, cardIndex) => (
-                    <ShowcaseProductCard
-                      key={card.id}
-                      card={card}
-                      translate={translate}
-                      index={rowIndex * 5 + cardIndex}
-                      reducedMotion={reducedMotion}
-                    />
+                  {[0, 1].map((group) => (
+                    <div key={group} className="flex gap-20 pr-20">
+                      {row.cards.map((card, cardIndex) => (
+                        <ShowcaseProductCard
+                          key={`${card.id}-${group}`}
+                          card={card}
+                          translate={translate}
+                          index={rowIndex * 5 + cardIndex}
+                          reducedMotion={reducedMotion}
+                        />
+                      ))}
+                    </div>
                   ))}
                 </motion.div>
               </div>

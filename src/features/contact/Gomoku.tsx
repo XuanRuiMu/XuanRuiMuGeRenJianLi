@@ -115,6 +115,7 @@ export function Gomoku() {
   const [lastMove, setLastMove] = useState<Coord | null>(null)
   const [winning, setWinning] = useState<Coord[]>([])
   const [thinking, setThinking] = useState(false)
+  const [flipping, setFlipping] = useState(false)
 
   const aiMove = useCallback((next: Board) => {
     const [r, c] = findBestMove(next, WHITE, BLACK)
@@ -159,7 +160,7 @@ export function Gomoku() {
     [board, turn, winner, mode, aiMove]
   )
 
-  const reset = useCallback(() => {
+  const clearBoard = useCallback(() => {
     setBoard(createBoard())
     setTurn(BLACK)
     setWinner(null)
@@ -167,6 +168,19 @@ export function Gomoku() {
     setWinning([])
     setThinking(false)
   }, [])
+
+  const reset = useCallback(() => {
+    // 「掫桌」：先播放掀翻棋盘动画，动画结束再清盘（reduced-motion 直接清盘）
+    if (flipping) return
+    const reduce =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduce) {
+      clearBoard()
+      return
+    }
+    setFlipping(true)
+  }, [flipping, clearBoard])
 
   const switchMode = useCallback((next: Mode) => {
     setMode(next)
@@ -191,7 +205,9 @@ export function Gomoku() {
   return (
     <div className="flex w-full max-w-[340px] flex-col items-center gap-3">
       <div className="flex w-full items-center justify-between gap-2">
-        <span className="font-mono text-sm font-semibold text-[#e6e6e6]">五子棋</span>
+        <span className="bg-gradient-to-r from-[#5eead4] via-[#818cf8] to-[#f0abfc] bg-clip-text font-mono text-sm font-bold text-transparent">
+          五子棋
+        </span>
         <div
           className="flex items-center gap-0.5 rounded-full border border-[#2a2a2a] p-0.5"
           role="group"
@@ -203,7 +219,9 @@ export function Gomoku() {
             aria-pressed={mode === 'pve'}
             className={cn(
               'rounded-full px-2.5 py-1 text-xs transition-colors',
-              mode === 'pve' ? 'bg-[#d97757] text-white' : 'text-[#9aa0aa] hover:text-[#e6e6e6]'
+              mode === 'pve'
+                ? 'bg-gradient-to-r from-[#d97757] to-[#fb7185] text-white shadow-[0_2px_10px_rgba(217,119,87,0.5)]'
+                : 'text-[#9aa0aa] hover:text-[#e6e6e6]'
             )}
           >
             人机
@@ -214,7 +232,9 @@ export function Gomoku() {
             aria-pressed={mode === 'pvp'}
             className={cn(
               'rounded-full px-2.5 py-1 text-xs transition-colors',
-              mode === 'pvp' ? 'bg-[#d97757] text-white' : 'text-[#9aa0aa] hover:text-[#e6e6e6]'
+              mode === 'pvp'
+                ? 'bg-gradient-to-r from-[#d97757] to-[#fb7185] text-white shadow-[0_2px_10px_rgba(217,119,87,0.5)]'
+                : 'text-[#9aa0aa] hover:text-[#e6e6e6]'
             )}
           >
             双人
@@ -224,17 +244,30 @@ export function Gomoku() {
           type="button"
           onClick={reset}
           className="inline-flex items-center gap-1 rounded-full border border-[#2a2a2a] px-2.5 py-1 text-xs text-[#cfcfcf] transition-colors hover:border-[#d97757] hover:text-[#f0f0f0]"
-          aria-label="掀桌重开"
+          aria-label="掫桌重开"
         >
           <RotateCcw size={12} />
-          掀桌
+          掫桌
         </button>
       </div>
 
       <span className="font-mono text-xs text-[#9aa0aa]">{status}</span>
 
-      <div className="relative aspect-square w-full max-w-[320px] rounded-2xl border border-white/10 bg-gradient-to-br from-[#0f1b2e] to-[#0a0f1a] p-3 shadow-[0_8px_30px_rgba(0,0,0,0.45)]">
-        <div className="relative h-full w-full">
+      <div className="relative w-full max-w-[320px] rounded-3xl bg-gradient-to-br from-[#d97757] via-[#f0abfc] to-[#38bdf8] p-[2px] shadow-[0_12px_44px_rgba(0,0,0,0.55)]">
+        <div
+          className={cn(
+            'relative aspect-square w-full rounded-[22px] border border-white/10 bg-gradient-to-br from-[#0f1b2e] to-[#0a0f1a] p-3',
+            flipping && 'gomoku-board--flip'
+          )}
+          style={{ transformOrigin: 'center' }}
+          onAnimationEnd={() => {
+            if (flipping) {
+              clearBoard()
+              setFlipping(false)
+            }
+          }}
+        >
+          <div className="relative h-full w-full">
           {/* 棋盘格线 + 星位 */}
           <svg
             viewBox="0 0 14 14"
@@ -291,6 +324,7 @@ export function Gomoku() {
           )}
         </div>
       </div>
+    </div>
     </div>
   )
 }

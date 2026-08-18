@@ -117,40 +117,45 @@ body,
   }
 }
 
-/* 作品卡片自动漂移：让方块「自己会一直动」——完全独立于滚动，纯 CSS 持续运行。
-   采用多关键帧「游走」轨迹（横向+纵向+微旋转），幅度大且相邻卡片错相位，
-   任何时刻都在自主漂浮，不会因停止滚动而冻结（彻底消除「修了好多遍都没修好」的根因：
-   此前只靠 16px 微弱漂浮 + 滚动才动的横向视差，停止滚动即静止）。
+/* 作品卡片自主横移（根因修复）：纯 CSS 无限 marquee，方向固定且与滚动视差同方向，
+   速度清晰可见（约 45s 走完一组 ≈ 56px/s），彻底消除「方向随机 + 太慢」的观感。
+   同一排卡片永远朝同一方向移动——模拟向下划动网页时该行被推走的方向（偶数排右、奇数排左），
+   且任意时刻都在动，停止滚动也不会冻结。轨道内渲染两份相同卡片组，translateX(-50%) 无缝循环。
    reduced-motion 时静止。 */
-@keyframes card-drift {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(0deg);
+@keyframes showcase-marquee-left {
+  from {
+    transform: translateX(0);
   }
-  20% {
-    transform: translate3d(30px, -16px, 0) rotate(0.8deg);
-  }
-  40% {
-    transform: translate3d(-12px, -28px, 0) rotate(-0.6deg);
-  }
-  60% {
-    transform: translate3d(-30px, 12px, 0) rotate(0.7deg);
-  }
-  80% {
-    transform: translate3d(14px, 26px, 0) rotate(-0.7deg);
-  }
-  100% {
-    transform: translate3d(0, 0, 0) rotate(0deg);
+  to {
+    transform: translateX(-50%);
   }
 }
 
-.card-auto-drift {
-  animation: card-drift var(--drift-dur, 18s) ease-in-out infinite;
-  animation-delay: var(--drift-delay, 0s);
+@keyframes showcase-marquee-right {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.showcase-marquee {
+  width: max-content;
   will-change: transform;
 }
 
+.showcase-marquee--left {
+  animation: showcase-marquee-left var(--marquee-dur, 45s) linear infinite;
+}
+
+.showcase-marquee--right {
+  animation: showcase-marquee-right var(--marquee-dur, 45s) linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .card-auto-drift {
+  .showcase-marquee--left,
+  .showcase-marquee--right {
     animation: none;
   }
 }
@@ -1236,6 +1241,33 @@ html.circular-reveal-active::view-transition-old(root) {
     box-shadow:
       0 0 0 3px #fde047,
       0 0 22px #fde047;
+  }
+}
+
+/* 掫桌：掀翻棋盘 3D 动画（rotateX 翻起 + 抬起 + 轻微摇摆后回正） */
+@keyframes gomoku-board-flip {
+  0% {
+    transform: perspective(900px) rotateX(0deg) translateY(0) rotateZ(0deg) scale(1);
+  }
+  35% {
+    transform: perspective(900px) rotateX(-82deg) translateY(-26px) rotateZ(-5deg) scale(1.05);
+  }
+  68% {
+    transform: perspective(900px) rotateX(-82deg) translateY(-16px) rotateZ(4deg) scale(1.02);
+  }
+  100% {
+    transform: perspective(900px) rotateX(0deg) translateY(0) rotateZ(0deg) scale(1);
+  }
+}
+
+.gomoku-board--flip {
+  animation: gomoku-board-flip 0.72s cubic-bezier(0.45, 0.05, 0.25, 1);
+  transform-style: preserve-3d;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gomoku-board--flip {
+    animation: none;
   }
 }
 
