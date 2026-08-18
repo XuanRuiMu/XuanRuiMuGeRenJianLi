@@ -5,11 +5,12 @@ import { cn } from '../../lib/utils'
 const SIZE = 15
 const EMPTY = 0
 const BLACK = 1 // 玩家（黑，先手）
-const WHITE = 2 // AI（白）
+const WHITE = 2 // AI（白）或 多人模式的另一名玩家
 
 type Cell = typeof EMPTY | typeof BLACK | typeof WHITE
 type Board = Cell[][]
 type Coord = [number, number]
+type Mode = 'pve' | 'pvp'
 
 const DIRECTIONS: Coord[] = [
   [0, 1],
@@ -101,15 +102,19 @@ function getWinningLine(board: Board, r: number, c: number, player: Cell): Coord
 }
 
 /**
- * 五子棋（标准 15×15）：玩家执黑先手，AI 执白基于攻防启发式落子。
+ * 五子棋（标准 15×15）：
+ * - 人机模式（pve，默认）：玩家执黑先手，AI 执白基于攻防启发式落子。
+ * - 双人模式（pvp）：黑白双方均为玩家，原地轮流派落，无 AI。
  * 高端暗色玻璃棋盘：棋线 + 星位、黑白分明立体棋子、落子缩放入场、最后一手青环高亮、连珠金色脉冲。
  */
 export function Gomoku() {
+  const [mode, setMode] = useState<Mode>('pve')
   const [board, setBoard] = useState<Board>(createBoard)
   const [turn, setTurn] = useState<Cell>(BLACK)
   const [winner, setWinner] = useState<Cell | null>(null)
   const [lastMove, setLastMove] = useState<Coord | null>(null)
   const [winning, setWinning] = useState<Coord[]>([])
+  const [thinking, setThinking] = useState(false)
 
   const aiMove = useCallback((next: Board) => {
     const [r, c] = findBestMove(next, WHITE, BLACK)
@@ -124,25 +129,34 @@ export function Gomoku() {
     } else {
       setTurn(BLACK)
     }
+    setThinking(false)
   }, [])
 
   const handleCell = useCallback(
     (r: number, c: number) => {
-      if (winner || turn !== BLACK || board[r][c] !== EMPTY) return
+      if (winner || board[r][c] !== EMPTY) return
+      // 人机模式：仅执黑的玩家可落子；双人模式：轮到谁谁落
+      if (mode === 'pve' && turn !== BLACK) return
       const next = board.map((row) => row.slice())
-      next[r][c] = BLACK
+      next[r][c] = turn
       setBoard(next)
       setLastMove([r, c])
-      const line = getWinningLine(next, r, c, BLACK)
+      const line = getWinningLine(next, r, c, turn)
       if (line) {
-        setWinner(BLACK)
+        setWinner(turn)
         setWinning(line)
+        setThinking(false)
         return
       }
-      setTurn(WHITE)
-      window.setTimeout(() => aiMove(next), 220)
+      if (mode === 'pve') {
+        setTurn(WHITE)
+        setThinking(true)
+        window.setTimeout(() => aiMove(next), 240)
+      } else {
+        setTurn(turn === BLACK ? WHITE : BLACK)
+      }
     },
-    [board, turn, winner, aiMove]
+    [board, turn, winner, mode, aiMove]
   )
 
   const reset = useCallback(() => {
@@ -151,28 +165,69 @@ export function Gomoku() {
     setWinner(null)
     setLastMove(null)
     setWinning([])
+    setThinking(false)
+  }, [])
+
+  const switchMode = useCallback((next: Mode) => {
+    setMode(next)
+    // 切换模式即重开一局，避免上局残子影响新模式的先后手语义
+    setBoard(createBoard())
+    setTurn(BLACK)
+    setWinner(null)
+    setLastMove(null)
+    setWinning([])
+    setThinking(false)
   }, [])
 
   const status = useMemo(() => {
-    if (winner === BLACK) return '🎉 你赢了！（黑棋）'
-    if (winner === WHITE) return 'AI 获胜（白棋），再来一局？'
-    return turn === BLACK ? '轮到你落子（黑棋）' : 'AI 思考中…'
-  }, [winner, turn])
+    if (winner === BLACK) return mode === 'pve' ? '🎉 你赢了！（黑棋）' : '⚫ 黑方胜利！'
+    if (winner === WHITE) return mode === 'pve' ? 'AI 获胜（白棋），再来一局？' : '⚪ 白方胜利！'
+    if (mode === 'pve') return thinking ? 'AI 思考中…' : '轮到你落子（黑棋）'
+    return turn === BLACK ? '⚫ 黑方落子' : '⚪ 白方落子'
+  }, [winner, turn, mode, thinking])
 
   const isWin = (r: number, c: number) => winning.some(([wr, wc]) => wr === r && wc === c)
 
   return (
     <div className="flex w-full max-w-[340px] flex-col items-center gap-3">
-      <div className="flex w-full items-center justify-between">
-        <span className="font-mono text-sm font-semibold text-[#e6e6e6]">五子棋 · 人机对弈</span>
+      <div className="flex w-full items-center justify-between gap-2">
+        <span className="font-mono text-sm font-semibold text-[#e6e6e6]">五子棋</span>
+        <div
+          className="flex items-center gap-0.5 rounded-full border border-[#2a2a2a] p-0.5"
+          role="group"
+          aria-label="对战模式"
+        >
+          <button
+            type="button"
+            onClick={() => switchMode('pve')}
+            aria-pressed={mode === 'pve'}
+            className={cn(
+              'rounded-full px-2.5 py-1 text-xs transition-colors',
+              mode === 'pve' ? 'bg-[#d97757] text-white' : 'text-[#9aa0aa] hover:text-[#e6e6e6]'
+            )}
+          >
+            人机
+          </button>
+          <button
+            type="button"
+            onClick={() => switchMode('pvp')}
+            aria-pressed={mode === 'pvp'}
+            className={cn(
+              'rounded-full px-2.5 py-1 text-xs transition-colors',
+              mode === 'pvp' ? 'bg-[#d97757] text-white' : 'text-[#9aa0aa] hover:text-[#e6e6e6]'
+            )}
+          >
+            双人
+          </button>
+        </div>
         <button
           type="button"
           onClick={reset}
           className="inline-flex items-center gap-1 rounded-full border border-[#2a2a2a] px-2.5 py-1 text-xs text-[#cfcfcf] transition-colors hover:border-[#d97757] hover:text-[#f0f0f0]"
-          aria-label="重新开局"
+          aria-label="掀桌重开"
         >
           <RotateCcw size={12} />
-          重开
+          掀桌
         </button>
       </div>
 

@@ -1,220 +1,143 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
-import { cn } from '../../lib/utils'
-import { techstackV2, companies, type TechCard, type Company } from '../../data/techStack'
-
-/* ── InfiniteMovingCards：1:1 移植 12-next-spline-3d (acertenity) ──
- * 克隆子节点实现无缝循环；--animation-duration / --animation-direction 由 props 注入；
- * 两侧 mask 渐隐；鼠标悬停暂停。 */
-function InfiniteMovingCards({
-  items,
-  direction = 'left',
-  speed = 'fast',
-  pauseOnHover = true,
-  className,
-}: {
-  items: TechCard[]
-  direction?: 'left' | 'right'
-  speed?: 'fast' | 'normal' | 'slow'
-  pauseOnHover?: boolean
-  className?: string
-}) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const scrollerRef = useRef<HTMLUListElement>(null)
-  const [start, setStart] = useState(false)
-
-  const getDirection = useCallback(() => {
-    if (!containerRef.current) return
-    containerRef.current.style.setProperty('--animation-direction', direction === 'left' ? 'forwards' : 'reverse')
-  }, [direction])
-
-  const getSpeed = useCallback(() => {
-    if (!containerRef.current) return
-    const duration = speed === 'fast' ? '20s' : speed === 'normal' ? '40s' : '80s'
-    containerRef.current.style.setProperty('--animation-duration', duration)
-  }, [speed])
-
-  const addAnimation = useCallback(() => {
-    const container = containerRef.current
-    const scroller = scrollerRef.current
-    if (!container || !scroller) return
-    scroller.querySelectorAll('[data-cloned="true"]').forEach((node) => node.remove())
-    Array.from(scroller.children).forEach((item) => {
-      const clone = item.cloneNode(true) as HTMLElement
-      clone.setAttribute('data-cloned', 'true')
-      clone.setAttribute('aria-hidden', 'true')
-      scroller.appendChild(clone)
-    })
-    getDirection()
-    getSpeed()
-    setStart(true)
-  }, [getDirection, getSpeed])
-
-  useEffect(() => {
-    addAnimation()
-  }, [addAnimation, items])
-
-  return (
-    <div
-      ref={containerRef}
-      className={cn(
-        'scroller quantico-regular relative z-20 w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_20%,white_80%,transparent)]',
-        className
-      )}
-    >
-      <ul
-        ref={scrollerRef}
-        className={cn(
-          'flex quantico-regular min-w-full shrink-0 gap-16 py-4 w-max flex-nowrap',
-          start && 'animate-scroll',
-          pauseOnHover && 'hover:[animation-play-state:paused]'
-        )}
-      >
-        {items.map((item, idx) => (
-          <li
-            key={item.name + idx}
-            className="w-[78vw] max-w-[22rem] quantico-regular relative flex-shrink-0 rounded-2xl border border-slate-800 p-5 md:w-[20rem] md:py-6"
-            style={{ background: 'linear-gradient(to right, #0c1225, #0c243e, #0b3557)' }}
-          >
-            <img
-              src={item.icon}
-              alt=""
-              aria-hidden="true"
-              className="mb-3 h-9 w-9 object-contain"
-              loading="lazy"
-            />
-            <blockquote>
-              <span className="relative z-20 block text-base leading-[1.6] text-white/90 md:text-lg">
-                {item.quote}
-              </span>
-              <div className="relative z-20 mt-6 flex flex-col">
-                <span className="text-xl font-bold leading-[1.6] text-white md:text-2xl">{item.name}</span>
-                <span className="bg-gradient-to-r from-[#fde047] via-[#f472b6] to-[#a855f7] bg-clip-text text-base font-normal leading-[1.6] text-transparent md:text-xl">
-                  {item.title}
-                </span>
-              </div>
-            </blockquote>
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-/* ── InfiniteLogoSlider：1:1 移植 12-next-spline-3d ── */
-function InfiniteLogoSlider({
-  items,
-  direction = 'left',
-  speed = 'fast',
-  pauseOnHover = true,
-  className,
-}: {
-  items: ReactNode[]
-  direction?: 'left' | 'right'
-  speed?: 'fast' | 'normal' | 'slow'
-  pauseOnHover?: boolean
-  className?: string
-}) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const scrollerRef = useRef<HTMLUListElement>(null)
-  const [start, setStart] = useState(false)
-
-  const getDirection = useCallback(() => {
-    if (!containerRef.current) return
-    containerRef.current.style.setProperty('--animation-direction', direction === 'left' ? 'forwards' : 'reverse')
-  }, [direction])
-
-  const getSpeed = useCallback(() => {
-    if (!containerRef.current) return
-    const duration = speed === 'fast' ? '20s' : speed === 'normal' ? '40s' : '80s'
-    containerRef.current.style.setProperty('--animation-duration', duration)
-  }, [speed])
-
-  const addAnimation = useCallback(() => {
-    const container = containerRef.current
-    const scroller = scrollerRef.current
-    if (!container || !scroller) return
-    scroller.querySelectorAll('[data-cloned="true"]').forEach((node) => node.remove())
-    Array.from(scroller.children).forEach((item) => {
-      const clone = item.cloneNode(true) as HTMLElement
-      clone.setAttribute('data-cloned', 'true')
-      clone.setAttribute('aria-hidden', 'true')
-      scroller.appendChild(clone)
-    })
-    getDirection()
-    getSpeed()
-    setStart(true)
-  }, [getDirection, getSpeed])
-
-  useEffect(() => {
-    addAnimation()
-  }, [addAnimation, items])
-
-  return (
-    <div
-      ref={containerRef}
-      className={cn(
-        'scroller relative z-20 w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_20%,white_80%,transparent)]',
-        className
-      )}
-    >
-      <ul
-        ref={scrollerRef}
-        className={cn(
-          'flex min-w-full shrink-0 gap-16 py-4 w-max flex-nowrap',
-          start && 'animate-scroll',
-          pauseOnHover && 'hover:[animation-play-state:paused]'
-        )}
-      >
-        {items.map((item, idx) => (
-          <li key={idx} className="flex-shrink-0">
-            {item}
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
+import { useEffect, useMemo, useRef } from 'react'
+import { techstackV2, type TechCard } from '../../data/techStack'
+import { useReducedMotion } from '../../hooks/useReducedMotion'
 
 /**
- * 我的技术栈 · 1:1 移植 8112 的 TECH STACK 区块：
- * 渐变标题 + 技术卡横向跑马灯(slow) + 公司/服务条跑马灯(fast，含 docker/cloudinary)。
+ * My Technologies · 1:1 移植参考站（localhost:8110/#contact）的「技术球」意向。
+ *
+ * 根因取舍：旧版用横向跑马灯卡片（InfiniteMovingCards / InfiniteLogoSlider），
+ * 与参考站的「旋转技术球」形态不符，且两套 marquee 组件仅此一处使用即成死代码。
+ * 现改为 JS 驱动的 3D 球面标签云（Fibonacci 均匀分布 + 绕 Y 轴自转 + 固定 X 倾角），
+ * 每帧直接写入 DOM transform/opacity（不触发 React 重渲染，性能极致），
+ * 标签始终朝向相机（billboard），深度决定缩放/透明度/层级，呈现真实的「技术球」体积感。
+ * 空闲即自转「自己动起来」；reduced-motion 时静态成球。
  */
+
+const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5))
+const SPHERE_RADIUS = 150 // 球面投影半径（px）
+const TILT_X = (16 * Math.PI) / 180 // 固定 X 轴倾角，制造俯视立体感
+const SPIN_SPEED = 0.0016 // 每毫秒绕 Y 轴弧度，≈ 单次缓慢自转
+
+interface OrbPoint {
+  card: TechCard
+  bx: number
+  by: number
+  bz: number
+}
+
+function buildSphere(n: number): OrbPoint[] {
+  const points: OrbPoint[] = []
+  for (let i = 0; i < n; i++) {
+    // Fibonacci 球：y 均匀铺开，水平面按黄金角旋转铺满
+    const y = n === 1 ? 0 : 1 - (i / (n - 1)) * 2
+    const ring = Math.sqrt(Math.max(0, 1 - y * y))
+    const theta = GOLDEN_ANGLE * i
+    const x = Math.cos(theta) * ring
+    const z = Math.sin(theta) * ring
+    // 先绕 X 轴固定倾斜，得到初始姿态
+    const by = y * Math.cos(TILT_X) - z * Math.sin(TILT_X)
+    const bz = y * Math.sin(TILT_X) + z * Math.cos(TILT_X)
+    points.push({ card: techstackV2[i], bx: x, by, bz })
+  }
+  return points
+}
+
 export function TechStack() {
+  const reducedMotion = useReducedMotion()
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const orbRefs = useRef<Array<HTMLDivElement | null>>([])
+  const angleRef = useRef(0)
+
+  const orbs = useMemo(() => buildSphere(techstackV2.length), [])
+
+  useEffect(() => {
+    if (reducedMotion) {
+      // 静态成球：按初始角度投影一次
+      renderFrame(0)
+      return
+    }
+    let raf = 0
+    let last = performance.now()
+    const loop = (now: number) => {
+      const dt = now - last
+      last = now
+      angleRef.current += SPIN_SPEED * dt
+      renderFrame(angleRef.current)
+      raf = requestAnimationFrame(loop)
+    }
+    raf = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(raf)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reducedMotion, orbs])
+
+  const renderFrame = (angle: number) => {
+    const cosA = Math.cos(angle)
+    const sinA = Math.sin(angle)
+    for (let i = 0; i < orbs.length; i++) {
+      const el = orbRefs.current[i]
+      if (!el) continue
+      const { bx, by, bz } = orbs[i]
+      // 绕 Y 轴自转
+      const x = bx * cosA + bz * sinA
+      const z = -bx * sinA + bz * cosA
+      const y = by
+      const depth = (z + 1) / 2 // 0(后) → 1(前)
+      const scale = 0.5 + 0.75 * depth
+      const opacity = 0.32 + 0.68 * depth
+      el.style.transform = `translate(-50%, -50%) translate(${x * SPHERE_RADIUS}px, ${y * SPHERE_RADIUS}px) scale(${scale})`
+      el.style.opacity = String(opacity)
+      el.style.zIndex = String(Math.round(depth * 100))
+    }
+  }
+
   return (
-    <div className="w-full" aria-label="我的技术栈">
-      <h2 className="quantico-regular mb-8 text-center text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#6EFFB1] to-[#A594F9] md:text-4xl">
-        TECH{' '}
-        <span className="quantico-regular bg-gradient-to-r from-[#fde047] via-[#f472b6] to-[#a855f7] bg-clip-text text-transparent">
-          STACK
+    <div className="w-full flex flex-col items-center" aria-label="My Technologies">
+      <h2 className="font-display mb-1 text-center text-3xl font-bold md:text-4xl">
+        <span className="bg-gradient-to-r from-[#A594F9] via-[#7dd3fc] to-[#6EFFB1] bg-clip-text text-transparent">
+          My Technologies
         </span>
       </h2>
+      <p className="mb-2 text-sm text-[#9aa0aa]">自转的技术宇宙 · 悬停查看</p>
 
-      <InfiniteMovingCards items={techstackV2} direction="right" speed="slow" />
-
-      <div className="mt-6">
-        <InfiniteLogoSlider
-          direction="left"
-          speed="fast"
-          items={companies.map((company: Company) => (
-            <div
-              key={company.id}
-              className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-slate-800 p-4 transition-transform duration-300 hover:scale-105 md:flex-row md:max-w-60 max-w-40 bg-gradient-to-r from-[#0c1225] via-[#0c243e] to-[#0b3557]"
-            >
+      <div
+        ref={wrapRef}
+        className="relative mx-auto"
+        style={{ width: 380, height: 380 }}
+        role="img"
+        aria-label={`技术栈：${techstackV2.map((t) => t.name).join('、')}`}
+      >
+        {/* 核心光晕 */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{
+            background:
+              'radial-gradient(circle, rgba(124,211,252,0.18) 0%, rgba(165,148,249,0.10) 45%, transparent 70%)',
+            filter: 'blur(6px)',
+          }}
+        />
+        {orbs.map((orb, i) => (
+          <div
+            key={orb.card.name}
+            ref={(el) => {
+              orbRefs.current[i] = el
+            }}
+            className="tech-orb group absolute left-1/2 top-1/2 flex cursor-default flex-col items-center justify-center gap-1 will-change-transform"
+          >
+            <div className="flex h-14 w-14 items-center justify-center rounded-full border border-white/15 bg-[#0e1424]/90 shadow-[0_0_18px_rgba(124,211,252,0.25)] backdrop-blur-sm transition-transform duration-200 group-hover:scale-110 group-hover:border-[#7dd3fc]/60">
               <img
-                src={company.img}
-                alt={company.name}
-                className="h-10 w-10 object-contain md:h-12 md:w-12"
-                loading="lazy"
-              />
-              <img
-                src={company.nameImg}
-                alt={`${company.name} logo`}
-                className="h-8 w-20 max-w-[6rem] object-contain md:h-8"
+                src={orb.card.icon}
+                alt=""
+                aria-hidden="true"
+                className="h-8 w-8 object-contain"
                 loading="lazy"
               />
             </div>
-          ))}
-        />
+            <span className="rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-medium text-[#dfe6f2] whitespace-nowrap">
+              {orb.card.name}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   )

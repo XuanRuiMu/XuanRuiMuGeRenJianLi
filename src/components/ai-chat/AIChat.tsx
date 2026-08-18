@@ -11,28 +11,6 @@ interface AIChatProps {
   className?: string
 }
 
-/** Claude 风格星标（双峰/星芒），用于右下角入口与面板标识 */
-function ClaudeMark({ className = 'h-5 w-5' }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
-      <path
-        d="M12 2c.4 3.9 1.9 5.4 5.8 5.8-3.9.4-5.4 1.9-5.8 5.8-.4-3.9-1.9-5.4-5.8-5.8C10.1 7.4 11.6 5.9 12 2Z"
-        fill="currentColor"
-      />
-      <path
-        d="M18.5 13.5c.2 2 .9 2.7 2.9 2.9-2 .2-2.7.9-2.9 2.9-.2-2-1-2.7-2.9-2.9 2-.2 2.7-.9 2.9-2.9Z"
-        fill="currentColor"
-        opacity="0.7"
-      />
-      <path
-        d="M5.5 13.5c.2 2 .9 2.7 2.9 2.9-2 .2-2.7.9-2.9 2.9-.2-2-1-2.7-2.9-2.9 2-.2 2.7-.9 2.9-2.9Z"
-        fill="currentColor"
-        opacity="0.7"
-      />
-    </svg>
-  )
-}
-
 function escapeHtml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
@@ -45,6 +23,29 @@ function renderMarkdown(content: string): string {
     .replace(/```([\s\S]*?)```/g, '<pre class="overflow-x-auto rounded-lg bg-black/60 p-2 text-xs">$1</pre>')
     .replace(/`([^`]+)`/g, '<code class="rounded bg-black/60 px-1 py-0.5 text-xs text-[#e6b3a3]">$1</code>')
     .replace(/\n/g, '<br />')
+}
+
+/** 终端工具块：用 box-drawing 字符（╭─ ╰─）还原 Claude Code CLI 的工具调用框 */
+function ToolBlock({ name, ok = true }: { name: string; ok?: boolean }) {
+  return (
+    <div className="my-1 font-mono text-[12px] leading-relaxed">
+      <div className="flex items-center text-[#d9864f]">
+        <span>╭─</span>
+        <span className="px-1">{name}</span>
+        <span className="h-px flex-1 bg-[#d9864f]/40" />
+        <span>╮</span>
+      </div>
+      <div className="flex items-center gap-1 px-1 py-0.5 text-[#9aa0aa]">
+        <span>{ok ? '✓' : '…'}</span>
+        <span>{ok ? '已检索本地知识库并生成回答' : '检索中'}</span>
+      </div>
+      <div className="flex items-center text-[#d9864f]">
+        <span>╰</span>
+        <span className="h-px flex-1 bg-[#d9864f]/40" />
+        <span>╯</span>
+      </div>
+    </div>
+  )
 }
 
 interface SendState {
@@ -118,6 +119,16 @@ export function AIChat({ className }: AIChatProps) {
     setInput('')
   }, [clearAiMessages, chatMutation])
 
+  // 终端习惯：Esc 关闭面板（中断会话）
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === 'Escape') {
+        setChatOpen(false)
+      }
+    },
+    [setChatOpen]
+  )
+
   if (!chatOpen) {
     return (
       <button
@@ -130,7 +141,7 @@ export function AIChat({ className }: AIChatProps) {
         )}
         aria-label={t('ai.title')}
       >
-        <ClaudeMark className="h-6 w-6" />
+        <span className="font-mono text-lg font-bold">❯_</span>
       </button>
     )
   }
@@ -138,19 +149,22 @@ export function AIChat({ className }: AIChatProps) {
   return (
     <div
       className={cn(
-        'fixed bottom-4 right-4 z-[70] flex h-[34rem] w-80 flex-col overflow-hidden rounded-xl border border-[#2a2a2a] bg-[#0d0d0d] font-mono text-[#e6e6e6] shadow-2xl',
-        'sm:w-96',
+        'fixed bottom-4 right-4 z-[70] flex h-[34rem] w-80 flex-col overflow-hidden rounded-md border border-[#262626] bg-[#0a0a0a] font-mono text-[#e6e6e6] shadow-2xl',
+        'sm:w-[26rem]',
         className
       )}
       role="dialog"
       aria-modal="true"
       aria-label={t('ai.title')}
     >
-      {/* 标题栏 */}
-      <div className="flex items-center justify-between border-b border-[#2a2a2a] bg-[#161616] px-4 py-2.5">
+      {/* 终端标题栏：claude + 版本 / 重置 / 关闭 */}
+      <div className="flex items-center justify-between border-b border-[#1f1f1f] bg-[#0d0d0d] px-3 py-2">
         <div className="flex items-center gap-2">
-          <ClaudeMark className="h-4 w-4 text-[#d97757]" />
-          <span className="text-sm font-semibold tracking-tight text-[#f0f0f0]">Claude Code</span>
+          <span className="text-[#d97757]" aria-hidden="true">
+            ❯
+          </span>
+          <span className="text-sm font-semibold tracking-tight text-[#f0f0f0]">claude</span>
+          <span className="text-[10px] text-[#666]">v1.0.0</span>
           <span className="ml-1 inline-flex items-center gap-1 text-[10px] text-[#4ade80]">
             <span className="h-1.5 w-1.5 rounded-full bg-[#4ade80]" aria-hidden="true" />
             online
@@ -177,19 +191,15 @@ export function AIChat({ className }: AIChatProps) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-3 scrollbar-thin">
+      <div className="flex-1 overflow-y-auto px-3 py-3 scrollbar-thin">
         {optimisticMessages.length === 0 ? (
-          <div className="flex h-full flex-col justify-center gap-3 text-sm">
-            <div className="flex items-center gap-2 text-[#d97757]">
-              <ClaudeMark className="h-5 w-5" />
-              <span className="font-semibold text-[#f0f0f0]">Claude Code</span>
-            </div>
-            <p className="text-[#e6e6e6]">
-              <span className="text-[#d97757]">✻ </span>
-              <span>{t('ai.empty')}</span>
+          <div className="flex h-full flex-col justify-center gap-2 text-[13px]">
+            <p className="text-[#d97757]">
+              <span aria-hidden="true">✻ </span>
+              {t('ai.empty')}
             </p>
             <p className="text-xs text-[#9aa0aa]">我可以回答关于玄锐暮简历、技术栈与项目的问题。</p>
-            <p className="text-xs text-[#6b7280]">/help 查看指令 · /clear 清空对话</p>
+            <p className="text-[11px] text-[#666]">/help 查看指令 · /clear 清空对话</p>
             <div className="mt-1 flex flex-wrap gap-2">
               {ta('ai.quickQuestions').map((question) => (
                 <button
@@ -197,7 +207,7 @@ export function AIChat({ className }: AIChatProps) {
                   type="button"
                   disabled={isPending}
                   onClick={() => handleQuickQuestion(question)}
-                  className="rounded-full border border-[#2a2a2a] bg-[#161616] px-3 py-1.5 text-xs text-[#cfcfcf] transition-colors hover:border-[#d97757] hover:text-[#f0f0f0] disabled:opacity-50"
+                  className="rounded-full border border-[#2a2a2a] bg-[#161616] px-3 py-1 text-xs text-[#cfcfcf] transition-colors hover:border-[#d97757] hover:text-[#f0f0f0] disabled:opacity-50"
                 >
                   {question}
                 </button>
@@ -205,25 +215,22 @@ export function AIChat({ className }: AIChatProps) {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-3.5">
+          <div className="flex flex-col gap-3">
             {optimisticMessages.map((message, index) =>
               message.role === 'user' ? (
-                <div key={`${message.role}-${index}`} className="flex gap-2 text-sm leading-relaxed text-[#ededed]">
+                <div key={`${message.role}-${index}`} className="flex gap-2 text-[13px] leading-relaxed text-[#ededed]">
                   <span className="select-none text-[#d97757]" aria-hidden="true">
                     ❯
                   </span>
                   <span className="whitespace-pre-wrap break-words">{message.content}</span>
                 </div>
               ) : (
-                <div key={`${message.role}-${index}`} className="flex gap-2 text-sm leading-relaxed text-[#e6e6e6]">
+                <div key={`${message.role}-${index}`} className="flex gap-2 text-[13px] leading-relaxed text-[#e6e6e6]">
                   <span className="select-none pt-0.5 text-[#d97757]" aria-hidden="true">
                     ⏺
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="mb-1 flex items-center gap-1.5 text-xs text-[#9aa0aa]">
-                      <span>✦ 检索知识库 (RAG)</span>
-                      <span className="text-[#4ade80]">✓</span>
-                    </div>
+                    <ToolBlock name="检索知识库 (RAG)" />
                     <div dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }} />
                     {message.component && <UiComponentRenderer component={message.component} />}
                   </div>
@@ -231,13 +238,13 @@ export function AIChat({ className }: AIChatProps) {
               )
             )}
             {isPending && (
-              <div className="flex gap-2 text-sm text-[#9aa0aa]">
+              <div className="flex gap-2 text-[13px] text-[#9aa0aa]">
                 <span className="select-none pt-0.5 text-[#d97757]" aria-hidden="true">
                   ⏺
                 </span>
                 <div className="flex items-center gap-1.5">
-                  <Loader2 size={14} className="animate-spin text-[#d97757]" />
-                  <span>✦ 检索知识库 (RAG)…</span>
+                  <Loader2 size={13} className="animate-spin text-[#d97757]" />
+                  <span>✻ 思考中…</span>
                 </div>
               </div>
             )}
@@ -247,13 +254,13 @@ export function AIChat({ className }: AIChatProps) {
       </div>
 
       {sendState.error && (
-        <div className="border-t border-[#2a2a2a] bg-[#3b1d1d] px-4 py-2 text-xs text-[#f0a0a0]" role="alert">
+        <div className="border-t border-[#2a2a2a] bg-[#3b1d1d] px-3 py-2 text-xs text-[#f0a0a0]" role="alert">
           {sendState.error}
         </div>
       )}
 
-      <form action={formAction} className="border-t border-[#2a2a2a] bg-[#0d0d0d] p-3">
-        <div className="flex items-center gap-2 rounded-lg border border-[#2a2a2a] bg-[#161616] px-3 py-2 transition-colors focus-within:border-[#d97757]">
+      <form action={formAction} className="border-t border-[#1f1f1f] bg-[#0a0a0a] p-2.5">
+        <div className="flex items-center gap-2 rounded border border-[#2a2a2a] bg-[#121212] px-2.5 py-2 transition-colors focus-within:border-[#d97757]">
           <span className="select-none text-[#d97757]" aria-hidden="true">
             ❯
           </span>
@@ -263,27 +270,25 @@ export function AIChat({ className }: AIChatProps) {
             type="text"
             value={input}
             onChange={(event) => setInput(event.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder={t('ai.placeholder')}
-            className="flex-1 bg-transparent text-sm text-[#e6e6e6] outline-none placeholder:text-[#666]"
+            className="flex-1 bg-transparent text-[13px] text-[#e6e6e6] outline-none placeholder:text-[#555]"
             disabled={isPending}
             maxLength={200}
           />
-          <button
-            type="submit"
-            disabled={!input.trim() || isPending}
-            aria-label={t('ai.send')}
-            className="flex items-center gap-1 rounded px-1.5 py-1 text-[#9aa0aa] transition-colors hover:bg-white/10 hover:text-[#d97757] disabled:opacity-40"
-          >
-            <span className="text-sm leading-none" aria-hidden="true">
-              ⏎
-            </span>
-          </button>
+          <span
+            aria-hidden="true"
+            className={cn(
+              'inline-block h-4 w-[7px] bg-[#d97757]',
+              !isPending && 'animate-pulse'
+            )}
+          />
         </div>
-        <div className="mt-1.5 flex items-center justify-between text-[10px] text-[#6b7280]">
+        <div className="mt-1.5 flex items-center justify-between text-[10px] text-[#666]">
           <span>esc 中断 · ⏎ 发送</span>
           <span className="flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-[#4ade80]" aria-hidden="true" />
-            deepseek-chat
+            deepseek-chat · CTX 12K · $0.00
           </span>
         </div>
       </form>

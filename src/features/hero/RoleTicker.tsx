@@ -19,9 +19,10 @@ interface RoleTickerProps {
 
 export function RoleTicker({
   roles = ROLES,
-  typeSpeed = 60,
-  backSpeed = 40,
-  backDelay = 1500,
+  // 用户要求整体放缓为原来的 1/2：逐字/删字/停顿时长全部翻倍（60→120 / 40→80 / 1500→3000）
+  typeSpeed = 120,
+  backSpeed = 80,
+  backDelay = 3000,
 }: RoleTickerProps) {
   const reducedMotion = useReducedMotion()
   const [text, setText] = useState(reducedMotion ? roles[0] : '')
@@ -76,12 +77,12 @@ export function RoleTicker({
         {'>'}
       </span>
       <span className="inline-flex items-end font-mono" role="status" aria-live="off">
-        <span className="bg-gradient-to-r from-[#34d399] to-[#38ef7d] bg-clip-text font-semibold text-transparent">
+        <span className="bg-gradient-to-r from-[#5eead4] via-[#818cf8] to-[#f0abfc] bg-clip-text font-semibold text-transparent">
           {text}
         </span>
         <span
           aria-hidden="true"
-          className={cn('ml-0.5 text-[#38ef7d]', !reducedMotion && 'caret-blink')}
+          className={cn('ml-0.5 text-[#f0abfc]', !reducedMotion && 'caret-blink')}
         >
           {reducedMotion ? '' : '|'}
         </span>

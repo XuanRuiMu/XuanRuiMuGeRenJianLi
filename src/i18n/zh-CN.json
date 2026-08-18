@@ -138,9 +138,9 @@
   "contact": {
     "title": "联系我",
     "subtitle": "有岗位、合作或想聊技术，发邮件就好，看到会回。",
-    "copyEmail": "复制",
+    "copyEmail": "",
     "stillSure": {
-      "subtitle": "// you can play a game while thinking"
+      "title": "考虑的时候，来把紧张刺激的五子棋吗？"
     },
     "info": {
       "email": "邮箱",

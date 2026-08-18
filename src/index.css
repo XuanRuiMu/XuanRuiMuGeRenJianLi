@@ -117,17 +117,29 @@ body,
   }
 }
 
-/* 作品卡片自动漂移：独立于滚动驱动位移（scroll x 在子元素），此处让方块「自己动起来」。
-   幅度明显加大、速度放慢到约 8112 TECH STACK 跑马灯(slow=80s) 的 1/2。reduced-motion 时静止。 */
+/* 作品卡片自动漂移：让方块「自己会一直动」——完全独立于滚动，纯 CSS 持续运行。
+   采用多关键帧「游走」轨迹（横向+纵向+微旋转），幅度大且相邻卡片错相位，
+   任何时刻都在自主漂浮，不会因停止滚动而冻结（彻底消除「修了好多遍都没修好」的根因：
+   此前只靠 16px 微弱漂浮 + 滚动才动的横向视差，停止滚动即静止）。
+   reduced-motion 时静止。 */
 @keyframes card-drift {
   0% {
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0) rotate(0deg);
   }
-  50% {
-    transform: translate3d(16px, -22px, 0);
+  20% {
+    transform: translate3d(30px, -16px, 0) rotate(0.8deg);
+  }
+  40% {
+    transform: translate3d(-12px, -28px, 0) rotate(-0.6deg);
+  }
+  60% {
+    transform: translate3d(-30px, 12px, 0) rotate(0.7deg);
+  }
+  80% {
+    transform: translate3d(14px, 26px, 0) rotate(-0.7deg);
   }
   100% {
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0) rotate(0deg);
   }
 }
 

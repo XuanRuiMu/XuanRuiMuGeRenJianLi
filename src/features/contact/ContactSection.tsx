@@ -191,10 +191,11 @@ export function ContactSection() {
             )
           })}
 
-          {/* Still Not Sure About Contacting Me? · 五子棋 */}
+          {/* 五子棋小游戏 */}
           <div className="mt-2 rounded-xl border border-border bg-surface/40 p-5">
-            <h3 className="font-mono text-lg font-semibold text-text-primary">Still Not Sure About Contacting Me?</h3>
-            <p className="mb-4 font-mono text-sm text-muted">{t('contact.stillSure.subtitle')}</p>
+            <h3 className="mb-4 font-mono text-lg font-semibold text-text-primary">
+              {t('contact.stillSure.title')}
+            </h3>
             <div className="flex justify-center">
               <Gomoku />
             </div>
