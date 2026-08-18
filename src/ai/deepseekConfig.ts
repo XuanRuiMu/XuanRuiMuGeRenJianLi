@@ -8,8 +8,6 @@
  */
 export const DEEPSEEK_API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY ?? ''
 
-export const DEEPSEEK_MODEL = 'deepseek-v4-flash'
-
 /** v4 模型可选：flash（快）/ pro（旗舰），均为 1M 上下文、384K 输出、MIT 许可。 */
 export const DEEPSEEK_MODELS = { flash: 'deepseek-v4-flash', pro: 'deepseek-v4-pro' } as const
 

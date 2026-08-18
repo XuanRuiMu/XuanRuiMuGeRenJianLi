@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { sendChatMessage } from './chatService'
 import { personalInfo } from '../data/personalInfo'
-import { DEEPSEEK_MODEL, DEEPSEEK_ENDPOINT } from './deepseekConfig'
+import { DEEPSEEK_MODELS, DEEPSEEK_ENDPOINT } from './deepseekConfig'
 
 const mockFetch = vi.fn()
 
@@ -67,9 +67,9 @@ describe('chatService', () => {
     expect(callArgs[0]).toBe(DEEPSEEK_ENDPOINT)
     expect((callArgs[1].headers as Record<string, string>).Authorization).toBe('Bearer sk-test')
     const body = JSON.parse((callArgs[1].body as string) ?? '{}')
-    expect(body.model).toBe(DEEPSEEK_MODEL)
+    expect(body.model).toBe(DEEPSEEK_MODELS.flash)
     expect(body.thinking).toEqual({ type: 'enabled' })
-    expect(body.reasoning_effort).toBe('high')
+    expect(body).not.toHaveProperty('reasoning_effort')
     expect(body.response_format).toEqual({ type: 'json_object' })
     expect(result.message.content).toBe('DeepSeek 回答')
   })

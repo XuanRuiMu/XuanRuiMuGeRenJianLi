@@ -32,6 +32,37 @@ function createBoard(): Board {
   return Array.from({ length: SIZE }, () => Array<Cell>(SIZE).fill(EMPTY))
 }
 
+/**
+ * 落子音效：用 Web Audio 实时合成一记短促「咔嗒」，无需任何外部音频资源（零体积、零请求）。
+ * AudioContext 惰性创建，并在用户手势上下文中 resume，规避浏览器自动播放限制。
+ */
+let stoneAudioCtx: AudioContext | null = null
+function getStoneAudioCtx(): AudioContext | null {
+  if (typeof window === 'undefined') return null
+  const Ctor = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+  if (!Ctor) return null
+  if (!stoneAudioCtx) stoneAudioCtx = new Ctor()
+  if (stoneAudioCtx.state === 'suspended') void stoneAudioCtx.resume()
+  return stoneAudioCtx
+}
+
+function playStoneSound(): void {
+  const ctx = getStoneAudioCtx()
+  if (!ctx) return
+  const now = ctx.currentTime
+  const osc = ctx.createOscillator()
+  const gain = ctx.createGain()
+  osc.type = 'triangle'
+  osc.frequency.setValueAtTime(440, now)
+  osc.frequency.exponentialRampToValueAtTime(180, now + 0.09)
+  gain.gain.setValueAtTime(0.0001, now)
+  gain.gain.exponentialRampToValueAtTime(0.22, now + 0.005)
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12)
+  osc.connect(gain).connect(ctx.destination)
+  osc.start(now)
+  osc.stop(now + 0.13)
+}
+
 /** 评估在 (r,c) 落子 player 后，经过该点的最长连线（含两端延伸），返回启发式分数 */
 function evaluatePoint(board: Board, r: number, c: number, player: Cell): number {
   let total = 0
@@ -121,6 +152,7 @@ export function Gomoku() {
     const [r, c] = findBestMove(next, WHITE, BLACK)
     const after = next.map((row) => row.slice())
     after[r][c] = WHITE
+    playStoneSound()
     setBoard(after)
     setLastMove([r, c])
     const line = getWinningLine(after, r, c, WHITE)
@@ -140,6 +172,7 @@ export function Gomoku() {
       if (mode === 'pve' && turn !== BLACK) return
       const next = board.map((row) => row.slice())
       next[r][c] = turn
+      playStoneSound()
       setBoard(next)
       setLastMove([r, c])
       const line = getWinningLine(next, r, c, turn)

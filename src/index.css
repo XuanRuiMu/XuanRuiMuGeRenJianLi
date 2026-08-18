@@ -1247,16 +1247,13 @@ html.circular-reveal-active::view-transition-old(root) {
 /* 掫桌：掀翻棋盘 3D 动画（rotateX 翻起 + 抬起 + 轻微摇摆后回正） */
 @keyframes gomoku-board-flip {
   0% {
-    transform: perspective(900px) rotateX(0deg) translateY(0) rotateZ(0deg) scale(1);
+    transform: perspective(900px) rotateY(0deg);
   }
-  35% {
-    transform: perspective(900px) rotateX(-82deg) translateY(-26px) rotateZ(-5deg) scale(1.05);
-  }
-  68% {
-    transform: perspective(900px) rotateX(-82deg) translateY(-16px) rotateZ(4deg) scale(1.02);
+  50% {
+    transform: perspective(900px) rotateY(90deg) scale(0.96);
   }
   100% {
-    transform: perspective(900px) rotateX(0deg) translateY(0) rotateZ(0deg) scale(1);
+    transform: perspective(900px) rotateY(180deg);
   }
 }
 
@@ -1450,7 +1447,20 @@ html.circular-reveal-active::view-transition-old(root) {
   color: #ffffff;
   background: linear-gradient(135deg, #00f5ff, #8338ec);
   border-radius: 15px;
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform-origin: center center;
+  will-change: transform;
+  backface-visibility: hidden;
+  transition:
+    transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    box-shadow 0.3s ease;
+}
+
+/* 图案（SVG）独立合成层：父级 hover 的 scale() 收尾时不再因子像素重栅格化而「瞬移」 */
+.contact-item-icon svg {
+  display: block;
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .contact-item-link:hover .contact-item-icon,

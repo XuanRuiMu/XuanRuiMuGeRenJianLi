@@ -66,10 +66,8 @@ export function AIChat({ className }: AIChatProps) {
 
   const aiModel = useAppStore((state) => state.aiModel)
   const aiThinking = useAppStore((state) => state.aiThinking)
-  const aiThinkingStrength = useAppStore((state) => state.aiThinkingStrength ?? 'high')
   const setAiModel = useAppStore((state) => state.setAiModel)
   const setAiThinking = useAppStore((state) => state.setAiThinking)
-  const setAiThinkingStrength = useAppStore((state) => state.setAiThinkingStrength)
   const [modelMenuOpen, setModelMenuOpen] = useState(false)
   const [menuCursor, setMenuCursor] = useState(0)
 
@@ -128,63 +126,42 @@ export function AIChat({ className }: AIChatProps) {
     setInput('')
   }, [clearAiMessages, chatMutation])
 
-  // /model 指令：1:1 还原 Claude Code 的模型选择面板（箭头导航 + 回车选择 + T 切换思考 + Esc 退出）。
-  // 选项行：模型(radio) → Think 开关 → 思考强度(开启时显示)。
-  type MenuItem =
-    | { kind: 'model'; value: 'flash' | 'pro' }
-    | { kind: 'think' }
-    | { kind: 'strength'; value: 'low' | 'high' | 'max' }
-
-  const buildMenuItems = useCallback((): MenuItem[] => {
-    const items: MenuItem[] = [
-      { kind: 'model', value: 'flash' },
-      { kind: 'model', value: 'pro' },
-      { kind: 'think' },
-    ]
-    if (aiThinking) {
-      items.push({ kind: 'strength', value: 'low' }, { kind: 'strength', value: 'high' }, { kind: 'strength', value: 'max' })
-    }
-    return items
-  }, [aiThinking])
+  // /model 指令：仅 deepseek-v4-flash / deepseek-v4-pro 两个模型。
+  // 交互约束（用户硬性要求）：模型只能 ↑↓ 切换；思考开关只能 ←→ 切换；不再有思考强度。
+  type ModelValue = 'flash' | 'pro'
+  const MODEL_ORDER: ModelValue[] = ['flash', 'pro']
 
   const activateMenuItem = useCallback(
-    (item: MenuItem) => {
-      if (item.kind === 'model') {
-        setAiModel(item.value)
-        setModelMenuOpen(false)
-        setMenuCursor(0)
-      } else if (item.kind === 'think') {
-        setAiThinking(!aiThinking)
-        // 关闭思考时强度行消失，夹紧光标避免越界
-        if (aiThinking) setMenuCursor((c) => Math.min(c, 2))
-      } else {
-        setAiThinkingStrength(item.value)
-      }
+    (item: { kind: 'model'; value: ModelValue }) => {
+      setAiModel(item.value)
+      setModelMenuOpen(false)
+      setMenuCursor(0)
     },
-    [aiThinking, setAiModel, setAiThinking, setAiThinkingStrength]
+    [setAiModel]
   )
 
-  // 终端习惯：Esc 关闭面板（中断会话）；/model 面板打开时，方向键导航、回车选择、T 切换思考
+  // 终端习惯：Esc 关闭面板（中断会话）；/model 面板打开时：
+  // ↑↓ 切换模型（实时生效）、←→ 切换思考开关、⏎ 选择并关闭、Esc 退出。
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (modelMenuOpen) {
-        const items = buildMenuItems()
         if (event.key === 'ArrowDown') {
           event.preventDefault()
-          setMenuCursor((c) => (c + 1) % items.length)
+          setMenuCursor((c) => (c + 1) % MODEL_ORDER.length)
+          setAiModel(MODEL_ORDER[(menuCursor + 1) % MODEL_ORDER.length])
         } else if (event.key === 'ArrowUp') {
           event.preventDefault()
-          setMenuCursor((c) => (c - 1 + items.length) % items.length)
+          setMenuCursor((c) => (c - 1 + MODEL_ORDER.length) % MODEL_ORDER.length)
+          setAiModel(MODEL_ORDER[(menuCursor - 1 + MODEL_ORDER.length) % MODEL_ORDER.length])
+        } else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+          event.preventDefault()
+          setAiThinking(!aiThinking)
         } else if (event.key === 'Enter') {
           event.preventDefault()
-          activateMenuItem(items[menuCursor])
+          setModelMenuOpen(false)
         } else if (event.key === 'Escape') {
           event.preventDefault()
           setModelMenuOpen(false)
-        } else if (event.key === 't' || event.key === 'T') {
-          event.preventDefault()
-          setAiThinking(!aiThinking)
-          if (aiThinking) setMenuCursor((c) => Math.min(c, 2))
         }
         return
       }
@@ -192,7 +169,7 @@ export function AIChat({ className }: AIChatProps) {
         setChatOpen(false)
       }
     },
-    [modelMenuOpen, menuCursor, aiThinking, buildMenuItems, activateMenuItem, setAiThinking, setChatOpen]
+    [modelMenuOpen, menuCursor, aiThinking, setAiModel, setAiThinking, setChatOpen, MODEL_ORDER]
   )
 
   if (!chatOpen) {
@@ -321,7 +298,11 @@ export function AIChat({ className }: AIChatProps) {
 
       {modelMenuOpen &&
         (() => {
-          const items = buildMenuItems()
+          const thinkLabel = (
+            <span className={aiThinking ? 'text-[#4ade80]' : 'text-[#9aa0aa]'}>
+              {aiThinking ? '● On' : '○ Off'}
+            </span>
+          )
           return (
             <div className="mx-1 mb-1 rounded-md border border-[#2a2a2a] bg-[#0b0b0b] p-2 font-mono text-[11px]">
               <div className="mb-1 flex items-center gap-2 text-[#d97757]">
@@ -331,50 +312,31 @@ export function AIChat({ className }: AIChatProps) {
                 <span>╮</span>
               </div>
               <div className="mb-1 px-1 text-[#666]">
-                选择模型与思考 · ↑↓ 移动 · ⏎ 选择 · T 切换思考 · esc 退出
+                ↑↓ 模型 · ←→ 思考开关 · ⏎ 确认 · esc 退出
               </div>
-              {items.map((item, i) => {
+              {MODEL_ORDER.map((value, i) => {
                 const active = i === menuCursor
-                let line: React.ReactNode
-                if (item.kind === 'model') {
-                  const sel = aiModel === item.value
-                  const name = item.value === 'pro' ? 'deepseek-v4-pro' : 'deepseek-v4-flash'
-                  const hint = item.value === 'pro' ? '旗舰 · 1M 上下文' : '极速响应'
-                  line = (
-                    <>
-                      {sel ? '◉' : '○'} {name} <span className="text-[#666]">{hint}</span>
-                    </>
-                  )
-                } else if (item.kind === 'think') {
-                  line = (
-                    <>
-                      Think:{' '}
-                      <span className={aiThinking ? 'text-[#4ade80]' : 'text-[#9aa0aa]'}>
-                        {aiThinking ? '● On' : '○ Off'}
-                      </span>
-                    </>
-                  )
-                } else {
-                  const sel = aiThinkingStrength === item.value
-                  const label = item.value === 'low' ? '低' : item.value === 'high' ? '高' : '极高'
-                  line = (
-                    <>
-                      {sel ? '◉' : '○'} 强度 {label} ({item.value})
-                    </>
-                  )
-                }
+                const sel = aiModel === value
+                const name = value === 'pro' ? 'deepseek-v4-pro' : 'deepseek-v4-flash'
+                const hint = value === 'pro' ? '旗舰 · 1M 上下文' : '极速响应'
                 return (
                   <div
-                    key={i}
+                    key={value}
                     className={cn(
                       'flex cursor-pointer items-center gap-1 rounded px-1 py-0.5',
                       active ? 'bg-[#d97757] text-black' : 'text-[#cfcfcf]'
                     )}
-                    onMouseEnter={() => setMenuCursor(i)}
-                    onClick={() => activateMenuItem(item)}
+                    onMouseEnter={() => {
+                      setMenuCursor(i)
+                      setAiModel(value)
+                    }}
+                    onClick={() => activateMenuItem({ kind: 'model', value })}
                   >
                     <span className="select-none">{active ? '❯' : ' '}</span>
-                    <span>{line}</span>
+                    <span className="flex-1">
+                      {sel ? '◉' : '○'} {name} <span className="text-[#666]">{hint}</span>
+                    </span>
+                    <span>Think: {thinkLabel}</span>
                   </div>
                 )
               })}
@@ -434,7 +396,7 @@ export function AIChat({ className }: AIChatProps) {
           <span>esc 中断 · ⏎ 发送</span>
           <span className="flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-[#4ade80]" aria-hidden="true" />
-            {`${aiModel === 'pro' ? 'deepseek-v4-pro' : 'deepseek-v4-flash'} · ${aiThinking ? `think ${aiThinkingStrength}` : 'think off'} · CTX 1M`}
+            {`${aiModel === 'pro' ? 'deepseek-v4-pro' : 'deepseek-v4-flash'} · ${aiThinking ? 'think on' : 'think off'} · CTX 1M`}
           </span>
         </div>
       </form>
