@@ -8,7 +8,13 @@
  */
 export const DEEPSEEK_API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY ?? ''
 
-export const DEEPSEEK_MODEL = 'deepseek-v4-pro'
+export const DEEPSEEK_MODEL = 'deepseek-v4-flash'
+
+/** v4 模型可选：flash（快）/ pro（旗舰），均为 1M 上下文、384K 输出、MIT 许可。 */
+export const DEEPSEEK_MODELS = { flash: 'deepseek-v4-flash', pro: 'deepseek-v4-pro' } as const
+
+/** v4 上下文上限（token），状态栏「上下文默认最大」指示用。 */
+export const DEEPSEEK_CONTEXT_MAX = 1_000_000
 
 /** v4 系列默认启用 thinking，max_tokens 需 ≥500，此处开满以承载长思考。 */
 export const DEEPSEEK_MAX_TOKENS = 8192

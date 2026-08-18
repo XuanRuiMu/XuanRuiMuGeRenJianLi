@@ -20,6 +20,8 @@ export interface AppState {
   commandOpen: boolean
   chatOpen: boolean
   aiMessages: AiMessage[]
+  aiModel: 'flash' | 'pro'
+  aiThinking: boolean
   reducedMotion: boolean
   isOffline: boolean
   updateAvailable: boolean
@@ -37,6 +39,8 @@ export interface AppState {
   setChatOpen: (open: boolean) => void
   addAiMessage: (message: AiMessage) => void
   clearAiMessages: () => void
+  setAiModel: (model: 'flash' | 'pro') => void
+  setAiThinking: (enabled: boolean) => void
   setReducedMotion: (enabled: boolean) => void
   setOffline: (offline: boolean) => void
   setUpdateAvailable: (available: boolean) => void
@@ -77,6 +81,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   commandOpen: false,
   chatOpen: false,
   aiMessages: [],
+  aiModel: 'flash',
+  aiThinking: true,
   reducedMotion: false,
   isOffline: false,
   updateAvailable: false,
@@ -94,6 +100,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   setChatOpen: (open) => set({ chatOpen: open }),
   addAiMessage: (message) => set((state) => ({ aiMessages: [...state.aiMessages, message] })),
   clearAiMessages: () => set({ aiMessages: [] }),
+  setAiModel: (model) => set({ aiModel: model }),
+  setAiThinking: (enabled) => set({ aiThinking: enabled }),
   setReducedMotion: (enabled) => set({ reducedMotion: enabled }),
   setOffline: (offline) => set({ isOffline: offline }),
   setUpdateAvailable: (available) => set({ updateAvailable: available }),

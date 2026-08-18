@@ -31,10 +31,14 @@ function createMockState(overrides: Record<string, unknown> = {}) {
     chatOpen: false,
     setChatOpen,
     aiMessages: mockAiMessages,
+    aiModel: 'flash',
+    aiThinking: true,
     addAiMessage: vi.fn((message) => {
       mockAiMessages.push(message)
     }),
     clearAiMessages,
+    setAiModel: vi.fn(),
+    setAiThinking: vi.fn(),
     ...overrides,
   }
 }

@@ -64,6 +64,11 @@ export function AIChat({ className }: AIChatProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const chatMutation = useChatService()
 
+  const aiModel = useAppStore((state) => state.aiModel)
+  const aiThinking = useAppStore((state) => state.aiThinking)
+  const setAiModel = useAppStore((state) => state.setAiModel)
+  const setAiThinking = useAppStore((state) => state.setAiThinking)
+
   const [optimisticMessages, addOptimisticMessage] = useOptimistic<AiMessage[], AiMessage>(
     aiMessages,
     (state, message) => [...state, message]
@@ -157,13 +162,13 @@ export function AIChat({ className }: AIChatProps) {
       aria-modal="true"
       aria-label={t('ai.title')}
     >
-      {/* 终端标题栏：claude + 版本 / 重置 / 关闭 */}
+      {/* 终端标题栏：Xuan Harness + 版本 / 重置 / 关闭 */}
       <div className="flex items-center justify-between border-b border-[#1f1f1f] bg-[#0d0d0d] px-3 py-2">
         <div className="flex items-center gap-2">
           <span className="text-[#d97757]" aria-hidden="true">
             ❯
           </span>
-          <span className="text-sm font-semibold tracking-tight text-[#f0f0f0]">claude</span>
+          <span className="text-sm font-semibold tracking-tight text-[#f0f0f0]">Xuan Harness</span>
           <span className="text-[10px] text-[#666]">v1.0.0</span>
           <span className="ml-1 inline-flex items-center gap-1 text-[10px] text-[#4ade80]">
             <span className="h-1.5 w-1.5 rounded-full bg-[#4ade80]" aria-hidden="true" />
@@ -188,6 +193,44 @@ export function AIChat({ className }: AIChatProps) {
           >
             <X size={16} />
           </button>
+        </div>
+      </div>
+
+      {/* 模型 / 思考 控制条：切换 deepseek-v4-flash / pro，开启或关闭思考模式 */}
+      <div className="flex items-center gap-3 border-b border-[#1f1f1f] bg-[#0d0d0d] px-3 py-1.5 text-[10px]">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[#666]">model</span>
+          {(['flash', 'pro'] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setAiModel(m)}
+              aria-pressed={aiModel === m}
+              className={cn(
+                'rounded px-1.5 py-0.5 transition-colors',
+                aiModel === m ? 'bg-[#d97757] text-white' : 'text-[#888] hover:text-[#e6e6e6]'
+              )}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[#666]">think</span>
+          {([true, false] as const).map((v) => (
+            <button
+              key={String(v)}
+              type="button"
+              onClick={() => setAiThinking(v)}
+              aria-pressed={aiThinking === v}
+              className={cn(
+                'rounded px-1.5 py-0.5 transition-colors',
+                aiThinking === v ? 'bg-[#d97757] text-white' : 'text-[#888] hover:text-[#e6e6e6]'
+              )}
+            >
+              {v ? 'on' : 'off'}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -288,7 +331,7 @@ export function AIChat({ className }: AIChatProps) {
           <span>esc 中断 · ⏎ 发送</span>
           <span className="flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-[#4ade80]" aria-hidden="true" />
-            deepseek-chat · CTX 12K · $0.00
+            {`${aiModel === 'pro' ? 'deepseek-v4-pro' : 'deepseek-v4-flash'} · ${aiThinking ? 'think on' : 'think off'} · CTX 1M`}
           </span>
         </div>
       </form>

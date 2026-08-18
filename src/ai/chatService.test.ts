@@ -68,6 +68,8 @@ describe('chatService', () => {
     expect((callArgs[1].headers as Record<string, string>).Authorization).toBe('Bearer sk-test')
     const body = JSON.parse((callArgs[1].body as string) ?? '{}')
     expect(body.model).toBe(DEEPSEEK_MODEL)
+    expect(body.thinking).toEqual({ type: 'enabled' })
+    expect(body.reasoning_effort).toBe('high')
     expect(body.response_format).toEqual({ type: 'json_object' })
     expect(result.message.content).toBe('DeepSeek 回答')
   })

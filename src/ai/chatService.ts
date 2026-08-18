@@ -6,11 +6,12 @@ import { getLocalAnswer } from './localEngine'
 import { extractJsonFromText, parseAssistantPayload, type AssistantPayload } from './structuredOutput'
 import {
   DEEPSEEK_API_KEY,
-  DEEPSEEK_MODEL,
   DEEPSEEK_MAX_TOKENS,
   DEEPSEEK_RETRIEVE_TOP_K,
   DEEPSEEK_ENDPOINT,
+  DEEPSEEK_MODELS,
 } from './deepseekConfig'
+import { useAppStore } from '../store/useAppStore'
 
 export interface ChatOptions {
   deepseekApiKey?: string
@@ -55,11 +56,30 @@ function parseDeepSeekResponse(rawContent: string): AssistantPayload {
   return parseAssistantPayload(extracted)
 }
 
-async function callDeepSeek(messages: AiMessage[], apiKey: string, model: string): Promise<AiMessage> {
+async function callDeepSeek(messages: AiMessage[], apiKey: string): Promise<AiMessage> {
+  // 模型与思考开关来自全局 store（AIChat 面板可切换 flash / pro 与思考 on/off）。
+  // 上下文默认拉满：每次请求发送完整对话历史（DeepSeek v4 为无状态 API，需自行携带上下文）。
+  const { aiModel, aiThinking } = useAppStore.getState()
+  const model = DEEPSEEK_MODELS[aiModel]
   const userQuestion = 获取最后用户内容(messages)
   const contextChunks = retrieveChunks(userQuestion, DEEPSEEK_RETRIEVE_TOP_K)
   const context = contextChunks.map((chunk, index) => `[${index + 1}] ${chunk.content}`).join('\n\n')
   const systemPrompt = buildSystemPrompt(context)
+
+  // 构建请求体：thinking 开关 + reasoning_effort（v4 思考模式默认 high）。
+  // 思考模式下 temperature/top_p 等被 API 忽略（不报错），此处保留 temperature 无害。
+  const body: Record<string, unknown> = {
+    model,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      ...messages.map((message) => ({ role: message.role, content: message.content })),
+    ],
+    temperature: 0.6,
+    max_tokens: DEEPSEEK_MAX_TOKENS,
+    response_format: { type: 'json_object' },
+    thinking: { type: aiThinking ? 'enabled' : 'disabled' },
+  }
+  if (aiThinking) body.reasoning_effort = 'high'
 
   const response = await fetch(DEEPSEEK_ENDPOINT, {
     method: 'POST',
@@ -67,16 +87,7 @@ async function callDeepSeek(messages: AiMessage[], apiKey: string, model: string
       'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        ...messages.map((message) => ({ role: message.role, content: message.content })),
-      ],
-      temperature: 0.6,
-      max_tokens: DEEPSEEK_MAX_TOKENS,
-      response_format: { type: 'json_object' },
-    }),
+    body: JSON.stringify(body),
   })
 
   if (!response.ok) {
@@ -100,7 +111,7 @@ export async function sendChatMessage(messages: AiMessage[], options: ChatOption
   const userQuestion = 获取最后用户内容(messages)
 
   try {
-    const answer = await callDeepSeek(messages, apiKey, options.model ?? DEEPSEEK_MODEL)
+    const answer = await callDeepSeek(messages, apiKey)
     return { message: answer }
   } catch {
     // 任何网络/配额异常都回退到本地 RAG 兜底，保证对话不中断

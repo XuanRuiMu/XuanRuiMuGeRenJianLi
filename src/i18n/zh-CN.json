@@ -93,13 +93,10 @@
   "hero": {
     "hint": "按 ⌘K 打开命令面板，或用顶部导航切换模块。",
     "cta": {
-      "copyEmail": "复制邮箱",
-      "viewProjects": "查看项目",
-      "downloadResume": "下载简历",
-      "openAIChat": "AI 问答"
+      "downloadResume": "下载简历"
     },
     "copied": "已复制",
-    "metricsTitle": "My Technologies"
+    "metricsTitle": "技术"
   },
   "about": {
     "title": "关于我",

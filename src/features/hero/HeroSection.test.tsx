@@ -1,19 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { HeroSection } from './HeroSection'
 import { personalInfo } from '../../data/personalInfo'
 import { t } from '../../i18n/translations'
-
-const setChatOpen = vi.fn()
-const transitionToSection = vi.fn()
-
-vi.mock('../../store/useAppStore', () => ({
-  useAppStore: (selector: (state: unknown) => unknown) =>
-    selector({
-      setChatOpen,
-      transitionToSection,
-    }),
-}))
 
 describe('HeroSection', () => {
   beforeEach(() => {
@@ -37,42 +26,13 @@ describe('HeroSection', () => {
     expect(screen.getAllByText('Docker').length).toBeGreaterThanOrEqual(1)
   })
 
-  it('renders all CTA buttons', () => {
+  it('renders the download resume button (only CTA kept)', () => {
     render(<HeroSection />)
-    expect(screen.getByRole('button', { name: t('hero.cta.copyEmail') })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: t('hero.cta.viewProjects') })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: t('hero.cta.downloadResume') })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: t('hero.cta.openAIChat') })).toBeInTheDocument()
-  })
-
-  it('copies email to clipboard and shows copied state', async () => {
-    render(<HeroSection />)
-    const button = screen.getByRole('button', { name: t('hero.cta.copyEmail') })
-    fireEvent.click(button)
-
-    await waitFor(() => {
-      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(personalInfo.email)
-    })
-    expect(screen.getByRole('button', { name: t('hero.copied') })).toBeInTheDocument()
-
-    act(() => {
-      vi.advanceTimersByTime(2500)
-    })
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: t('hero.cta.copyEmail') })).toBeInTheDocument()
-    })
-  })
-
-  it('navigates to projects section', () => {
-    render(<HeroSection />)
-    fireEvent.click(screen.getByRole('button', { name: t('hero.cta.viewProjects') }))
-    expect(transitionToSection).toHaveBeenCalledWith('projects')
-  })
-
-  it('opens AI chat', () => {
-    render(<HeroSection />)
-    fireEvent.click(screen.getByRole('button', { name: t('hero.cta.openAIChat') }))
-    expect(setChatOpen).toHaveBeenCalledWith(true)
+    // 复制邮箱 / 查看项目 / AI 问答 三个入口已按需求删除
+    expect(screen.queryByText('复制邮箱')).not.toBeInTheDocument()
+    expect(screen.queryByText('查看项目')).not.toBeInTheDocument()
+    expect(screen.queryByText('AI 问答')).not.toBeInTheDocument()
   })
 
   it('downloads resume markdown file', () => {
