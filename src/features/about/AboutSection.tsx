@@ -109,15 +109,16 @@ export function AboutSection() {
                       aria-label={行}
                     >
                       <span aria-hidden="true">{已显文本}</span>
-                      <span aria-hidden="true" className="opacity-0">
-                        {未显文本}
-                      </span>
                       {显示光标 && (
                         <span
                           aria-hidden="true"
                           className="caret-blink ml-0.5 inline-block h-[1.05em] w-[0.6ch] -translate-y-[0.12em] bg-current align-middle"
                         />
                       )}
+                      {/* 未显文本占位保持行高恒定；光标插在已显/未显之间，随打字逐字前移 */}
+                      <span aria-hidden="true" className="opacity-0">
+                        {未显文本}
+                      </span>
                     </p>
 
                     {是强调行 && (

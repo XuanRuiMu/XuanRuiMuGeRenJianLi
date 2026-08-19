@@ -33,6 +33,32 @@ function createBoard(): Board {
 }
 
 /**
+ * 棋盘格线 + 星位（纯展示，无交互）。
+ * 正反两面共用：现实的棋盘正反都是棋面，掫桌翻面后背面同样呈现完整格线，
+ * 而非一块纯黑板。
+ */
+function BoardGrid() {
+  return (
+    <svg
+      viewBox="0 0 14 14"
+      preserveAspectRatio="none"
+      className="pointer-events-none absolute inset-0 h-full w-full"
+      aria-hidden="true"
+    >
+      {Array.from({ length: SIZE }).map((_, i) => (
+        <line key={`v${i}`} x1={i} y1={0} x2={i} y2={14} stroke="rgba(255,255,255,0.16)" strokeWidth={0.03} />
+      ))}
+      {Array.from({ length: SIZE }).map((_, i) => (
+        <line key={`h${i}`} x1={0} y1={i} x2={14} y2={i} stroke="rgba(255,255,255,0.16)" strokeWidth={0.03} />
+      ))}
+      {STAR_POINTS.map(([r, c]) => (
+        <circle key={`s${r}${c}`} cx={c} cy={r} r={0.13} fill="rgba(255,255,255,0.4)" />
+      ))}
+    </svg>
+  )
+}
+
+/**
  * 落子音效：用 Web Audio 实时合成一记短促「咔嗒」，无需任何外部音频资源（零体积、零请求）。
  * AudioContext 惰性创建，并在用户手势上下文中 resume，规避浏览器自动播放限制。
  */
@@ -311,23 +337,7 @@ export function Gomoku() {
           {/* 正面：棋盘（格线/星位/落子/连线），翻转后转到背面不可见 */}
           <div className="gomoku-flip__face gomoku-flip__face--front">
             <div className="relative h-full w-full">
-          {/* 棋盘格线 + 星位 */}
-          <svg
-            viewBox="0 0 14 14"
-            preserveAspectRatio="none"
-            className="pointer-events-none absolute inset-0 h-full w-full"
-            aria-hidden="true"
-          >
-            {Array.from({ length: SIZE }).map((_, i) => (
-              <line key={`v${i}`} x1={i} y1={0} x2={i} y2={14} stroke="rgba(255,255,255,0.16)" strokeWidth={0.03} />
-            ))}
-            {Array.from({ length: SIZE }).map((_, i) => (
-              <line key={`h${i}`} x1={0} y1={i} x2={14} y2={i} stroke="rgba(255,255,255,0.16)" strokeWidth={0.03} />
-            ))}
-            {STAR_POINTS.map(([r, c]) => (
-              <circle key={`s${r}${c}`} cx={c} cy={r} r={0.13} fill="rgba(255,255,255,0.4)" />
-            ))}
-          </svg>
+          <BoardGrid />
 
           {/* 交叉点（可点击落子） */}
           {board.map((row, r) =>
@@ -367,8 +377,12 @@ export function Gomoku() {
           )}
             </div>
           </div>
-          {/* 背面：干净渐变面板，翻面后呈现，直观表达「正面跑到背面」 */}
-          <div className="gomoku-flip__face gomoku-flip__face--back" aria-hidden="true" />
+          {/* 背面：同样是棋盘（现实逻辑：棋盘反面也是棋面），翻面后呈现完整格线 */}
+          <div className="gomoku-flip__face gomoku-flip__face--back" aria-hidden="true">
+            <div className="relative h-full w-full">
+              <BoardGrid />
+            </div>
+          </div>
         </div>
       </div>
     </div>

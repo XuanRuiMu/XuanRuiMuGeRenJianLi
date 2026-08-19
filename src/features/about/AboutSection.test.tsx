@@ -20,6 +20,16 @@ describe('关于我 - 高度恒定性', () => {
 describe('关于我 - 打字机光标', () => {
   beforeEach(() => {
     vi.useFakeTimers()
+    // 测试环境无 matchMedia：显式 mock，消除对 jsdom 能力与用例执行顺序的隐式依赖
+    vi.spyOn(window, 'matchMedia').mockImplementation(
+      () =>
+        ({
+          matches: false,
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        }) as unknown as MediaQueryList
+    )
   })
 
   afterEach(() => {
@@ -41,6 +51,34 @@ describe('关于我 - 打字机光标', () => {
       vi.runAllTimers()
     })
     expect(光标数(container)).toBe(0)
+  })
+
+  it('光标紧跟已打出的文字（位于已显文本与隐藏占位之间，随打字前移）', () => {
+    const { container } = render(<AboutSection />)
+    act(() => {
+      vi.advanceTimersByTime(48 * 5)
+    })
+    const 光标 = container.querySelector('.caret-blink')
+    expect(光标).toBeTruthy()
+    const 段落 = 光标!.closest('p[aria-label]')!
+    const 子元素 = Array.from(段落.children)
+    const 光标位置 = 子元素.indexOf(光标 as Element)
+    // 光标必须夹在已显文本（索引0）与隐藏占位（opacity-0）之间，才能随打字逐字前移
+    expect(光标位置).toBe(1)
+    expect((子元素[2] as HTMLElement).className).toContain('opacity-0')
+    const 已显长度 = ((子元素[0] as HTMLElement).textContent ?? '').length
+    expect(已显长度).toBeGreaterThan(0)
+    expect(已显长度 + ((子元素[2] as HTMLElement).textContent ?? '').length).toBe(
+      (段落.getAttribute('aria-label') ?? '').length
+    )
+    // 推进打字：已显文本增长，光标仍夹在两者之间（跟随移动而非钉在行尾）
+    act(() => {
+      vi.advanceTimersByTime(48 * 5)
+    })
+    const 光标后移 = container.querySelector('.caret-blink')
+    expect(光标后移).toBeTruthy()
+    expect(Array.from(段落.children).indexOf(光标后移 as Element)).toBe(1)
+    expect(((Array.from(段落.children)[0] as HTMLElement).textContent ?? '').length).toBeGreaterThan(已显长度)
   })
 
   it('reduced-motion 下直接呈现全文且全程无光标', () => {

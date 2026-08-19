@@ -1174,11 +1174,13 @@ html.circular-reveal-active::view-transition-old(root) {
   padding: 12px;
 }
 
-/* 背面：干净渐变面板，翻面 180° 后呈现，直观表达「正面转到背面」 */
+/* 背面：同样是棋盘（现实的棋盘正反两面都是棋面），与正面同底色/同内边距，
+   格线/星位由 Gomoku.tsx 的共享棋盘格线组件渲染，翻面后依然是完整棋面而非纯黑板 */
 .gomoku-flip__face--back {
   transform: rotateY(180deg);
   background: linear-gradient(135deg, #0a0f1a, #0f1b2e);
   border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 12px;
 }
 
 .gomoku-flip.is-flipping {
@@ -1207,6 +1209,10 @@ html.circular-reveal-active::view-transition-old(root) {
 
 .gomoku-stone--white {
   background: radial-gradient(circle at 35% 30%, #ffffff, #cbd5e1 72%);
+  /* 深色描边：真实围棋白子在深色棋盘上靠暗边轮廓成像；无描边时白色石与
+     浅色格线/光晕融为一团不可辨。用 border 而非 box-shadow，避免被 --last/--win 的环覆盖；
+     3px 保证小尺寸棋子（单元格约 20px）上描边清晰可辨 */
+  border: 3px solid rgba(10, 15, 26, 0.95);
   box-shadow:
     inset 0 -2px 4px rgba(0, 0, 0, 0.15),
     0 2px 4px rgba(0, 0, 0, 0.4);
