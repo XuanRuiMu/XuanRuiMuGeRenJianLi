@@ -46,15 +46,17 @@ function getStoneAudioCtx(): AudioContext | null {
   return stoneAudioCtx
 }
 
-function playStoneSound(): void {
+function playStoneSound(color: Cell): void {
   const ctx = getStoneAudioCtx()
   if (!ctx) return
   const now = ctx.currentTime
+  const startFreq = color === WHITE ? 616 : 440
+  const endFreq = color === WHITE ? 252 : 180
   const osc = ctx.createOscillator()
   const gain = ctx.createGain()
   osc.type = 'triangle'
-  osc.frequency.setValueAtTime(440, now)
-  osc.frequency.exponentialRampToValueAtTime(180, now + 0.09)
+  osc.frequency.setValueAtTime(startFreq, now)
+  osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.09)
   gain.gain.setValueAtTime(0.0001, now)
   gain.gain.exponentialRampToValueAtTime(0.22, now + 0.005)
   gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12)
@@ -155,7 +157,7 @@ export function Gomoku() {
     const [r, c] = findBestMove(next, WHITE, BLACK)
     const after = next.map((row) => row.slice())
     after[r][c] = WHITE
-    playStoneSound()
+    playStoneSound(WHITE)
     setBoard(after)
     setLastMove([r, c])
     const line = getWinningLine(after, r, c, WHITE)
@@ -175,7 +177,7 @@ export function Gomoku() {
       if (mode === 'pve' && turn !== BLACK) return
       const next = board.map((row) => row.slice())
       next[r][c] = turn
-      playStoneSound()
+      playStoneSound(turn)
       setBoard(next)
       setLastMove([r, c])
       const line = getWinningLine(next, r, c, turn)

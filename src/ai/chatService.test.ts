@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { sendChatMessage } from './chatService'
+import { sendChatMessage, compactConversation } from './chatService'
 import { personalInfo } from '../data/personalInfo'
 import { DEEPSEEK_MODELS, DEEPSEEK_ENDPOINT } from './deepseekConfig'
 import { useAppStore } from '../store/useAppStore'
@@ -160,5 +160,61 @@ describe('chatService', () => {
     const result = await sendChatMessage([{ role: 'user', content: '教育背景' }], { deepseekApiKey: 'sk-test' })
 
     expect(result.message.component).toEqual({ type: 'Timeline', scope: 'education' })
+  })
+
+  it('passes the abort signal through to fetch（Claude Code Esc 中断链路）', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: '{"text":"回答"}' } }] }),
+    })
+    const controller = new AbortController()
+
+    await sendChatMessage([{ role: 'user', content: '你是谁' }], { deepseekApiKey: 'sk-test', signal: controller.signal })
+
+    const callArgs = mockFetch.mock.calls[0] as [string, RequestInit]
+    expect(callArgs[1].signal).toBe(controller.signal)
+  })
+
+  it('rethrows AbortError without falling back to the local answer（中断不得被兜底吞掉）', async () => {
+    mockFetch.mockRejectedValueOnce(new DOMException('The operation was aborted.', 'AbortError'))
+
+    await expect(sendChatMessage([{ role: 'user', content: '你是谁' }], { deepseekApiKey: 'sk-test' })).rejects.toMatchObject({
+      name: 'AbortError',
+    })
+  })
+})
+
+describe('compactConversation（/compact 语义压缩）', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', mockFetch)
+    useAppStore.setState({ aiModel: 'flash', aiThinking: true })
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.clearAllMocks()
+  })
+
+  it('returns the model summary text on success', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: '{"text":"用户询问了技术栈"}' } }] }),
+    })
+
+    const 摘要 = await compactConversation([
+      { role: 'user', content: '你的技术栈是什么' },
+      { role: 'assistant', content: 'React + TypeScript' },
+    ])
+
+    expect(摘要).toBe('用户询问了技术栈')
+    const callArgs = mockFetch.mock.calls[0] as [string, RequestInit]
+    const body = JSON.parse((callArgs[1].body as string) ?? '{}')
+    expect(body.thinking).toEqual({ type: 'disabled' })
+  })
+
+  it('throws on failure instead of fabricating a local summary（压缩失败不得伪造摘要）', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 503, text: async () => 'Service Unavailable' })
+
+    await expect(compactConversation([{ role: 'user', content: '你好' }])).rejects.toThrow()
   })
 })

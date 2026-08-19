@@ -346,6 +346,31 @@
     "empty": "有什么可以帮你的？",
     "localMode": "当前是本地自动回复",
     "reset": "清空对话",
+    "busyHint": "esc 中断 · ⏎ 排队发送",
+    "idleHint": "esc 关闭 · ⏎ 发送",
+    "thinking": "✻ 思考中…",
+    "emptyCommands": "/help 查看全部指令（对齐 Claude Code）",
+    "queue": {
+      "label": "已排队",
+      "hint": "当前回复结束后依次发送 · esc 可中断当前回复"
+    },
+    "commands": {
+      "help": "可用指令（对齐 Claude Code）：\n  /clear    清空对话历史，开始新会话\n  /new      /clear 的别名\n  /compact  压缩对话历史，保留语义\n  /model    切换模型与思考开关\n  /status   查看面板状态\n  /help     查看指令列表",
+      "unknownPrefix": "未知指令：",
+      "unknownSuffix": "。输入 /help 查看可用指令",
+      "compacting": "✻ 正在压缩对话…",
+      "compacted": "✻ 已压缩对话历史，语义保留",
+      "compactFailed": "✗ 压缩失败，历史未变",
+      "compactEmpty": "没有可压缩的对话历史",
+      "compactBusy": "请求进行中无法压缩，请等待回复完成或按 esc 中断",
+      "compactInterrupted": "✕ 压缩已中断",
+      "compactSummaryPrefix": "对话摘要",
+      "interrupted": "✕ 请求已被用户中断",
+      "statusModel": "模型",
+      "statusThinking": "思考",
+      "statusMessages": "消息数",
+      "statusContext": "上下文"
+    },
     "quickQuestions": ["你是谁", "你的技术栈", "介绍一下已删除的经历", "联系方式"],
     "component": {
       "projectNotFound": "未找到对应项目",

@@ -1,15 +1,20 @@
-import { useRef, useState, useEffect, useCallback, useOptimistic, useActionState, startTransition } from 'react'
+import { useRef, useState, useEffect, useCallback, useOptimistic, startTransition } from 'react'
 import { X, Loader2, RefreshCw } from 'lucide-react'
 import { useAppStore } from '../../store/useAppStore'
 import { cn } from '../../lib/utils'
 import { t, ta } from '../../i18n/translations'
-import { useChatService } from '../../ai/chatService'
+import { useChatService, compactConversation, 是否中断错误 } from '../../ai/chatService'
 import { UiComponentRenderer } from './UiComponentRegistry'
 import type { AiMessage } from '../../store/useAppStore'
 
 interface AIChatProps {
   className?: string
 }
+
+// /model 指令：仅 deepseek-v4-flash / deepseek-v4-pro 两个模型。
+// 模块级常量：避免组件内声明导致依赖它的 useCallback 每次渲染都重建。
+type ModelValue = 'flash' | 'pro'
+const MODEL_ORDER: ModelValue[] = ['flash', 'pro']
 
 function escapeHtml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -48,10 +53,6 @@ function ToolBlock({ name, ok = true }: { name: string; ok?: boolean }) {
   )
 }
 
-interface SendState {
-  error: string | null
-}
-
 export function AIChat({ className }: AIChatProps) {
   const chatOpen = useAppStore((state) => state.chatOpen)
   const setChatOpen = useAppStore((state) => state.setChatOpen)
@@ -60,9 +61,11 @@ export function AIChat({ className }: AIChatProps) {
   const clearAiMessages = useAppStore((state) => state.clearAiMessages)
 
   const [input, setInput] = useState('')
+  const [sendError, setSendError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const chatMutation = useChatService()
+  const isPending = chatMutation.isPending
 
   const aiModel = useAppStore((state) => state.aiModel)
   const aiThinking = useAppStore((state) => state.aiThinking)
@@ -71,30 +74,178 @@ export function AIChat({ className }: AIChatProps) {
   const [modelMenuOpen, setModelMenuOpen] = useState(false)
   const [menuCursor, setMenuCursor] = useState(0)
 
+  // 指令输出（/help /status /compact /未知指令）：瞬态本地状态，不进对话历史，
+  // 避免污染发给模型的上下文（Claude Code 的指令输出同样不属于会话历史）。
+  const [systemLines, setSystemLines] = useState<string[]>([])
+  // 消息队列（对齐 Claude Code）：忙时发送的消息排队，当前回合结束后依次发出。
+  const [queued, setQueued] = useState<string[]>([])
+  const [compacting, setCompacting] = useState(false)
+  const abortRef = useRef<AbortController | null>(null)
+  // 排队泄放与手动发送共用同一闸门，防止 isPending 翻转间隙双发。
+  const sendingRef = useRef(false)
+  // 会话代数（根因守护）：/clear、重置等开启新会话时自增。abort 的拒绝是异步到达的，
+  // 仅靠「先 abort 后 clear」的顺序无法阻止孤儿请求写入已清空的新会话；
+  // 所有异步写入前比对代数，代数已变则丢弃。
+  const generationRef = useRef(0)
+  // 同步最新历史到 ref：排队泄放时闭包中的 aiMessages 可能已过期。
+  const aiMessagesRef = useRef(aiMessages)
+  aiMessagesRef.current = aiMessages
+
   const [optimisticMessages, addOptimisticMessage] = useOptimistic<AiMessage[], AiMessage>(
     aiMessages,
     (state, message) => [...state, message]
   )
 
-  const [sendState, formAction, isPending] = useActionState<SendState, FormData>(
-    async (_prevState, formData) => {
-      const content = formData.get('message')?.toString().trim() ?? ''
-      if (!content || chatMutation.isPending) return { error: null }
-
+  /**
+   * 发送单条消息（对齐 Claude Code）：发送后立即清空输入栏（由调用方 setInput('')），
+   * 携带 AbortController 支持 Esc 中断；中断时保留已发消息并记一条中断提示，
+   * 其他错误走错误栏。
+   */
+  const sendMessage = useCallback(
+    async (content: string) => {
+      const gen = generationRef.current
       const userMessage: AiMessage = { role: 'user', content }
       addOptimisticMessage(userMessage)
-      setInput('')
-
+      setSendError(null)
+      const controller = new AbortController()
+      abortRef.current = controller
       try {
-        const result = await chatMutation.mutateAsync([...aiMessages, userMessage])
+        const result = await chatMutation.mutateAsync({
+          messages: [...aiMessagesRef.current, userMessage],
+          signal: controller.signal,
+        })
+        // 会话已在等待期间被切换（/clear、重置）：丢弃写入，不让孤儿回合污染新会话
+        if (generationRef.current !== gen) return
         addAiMessage(userMessage)
         addAiMessage(result.message)
-        return { error: null }
-      } catch {
-        return { error: t('ai.error') }
+      } catch (err) {
+        if (generationRef.current !== gen) return
+        if (是否中断错误(err)) {
+          // Claude Code：中断后已发出的消息保留，当前回合终止
+          addAiMessage(userMessage)
+          setSystemLines([t('ai.commands.interrupted')])
+        } else {
+          setSendError(t('ai.error'))
+        }
+      } finally {
+        abortRef.current = null
       }
     },
-    { error: null }
+    [chatMutation, addAiMessage, addOptimisticMessage]
+  )
+
+  /** 排队泄放：空闲时把队首消息发出（Claude Code 的 queued 语义） */
+  useEffect(() => {
+    if (sendingRef.current || isPending || compacting || queued.length === 0) return
+    sendingRef.current = true
+    const [next, ...rest] = queued
+    setQueued(rest)
+    startTransition(() => {
+      void sendMessage(next).finally(() => {
+        sendingRef.current = false
+      })
+    })
+  }, [isPending, compacting, queued, sendMessage])
+
+  /** 指令分发（对齐 Claude Code 语义）：/clear 新会话、/compact 语义压缩、/help /status /model、未知指令报错 */
+  const runCommand = useCallback(
+    async (raw: string) => {
+      const cmd = raw.split(/\s+/)[0].toLowerCase()
+      switch (cmd) {
+        case '/help':
+          setSystemLines(t('ai.commands.help').split('\n'))
+          break
+        case '/clear':
+        case '/new': {
+          // Claude Code 的 /clear：清全部历史开新会话（不可恢复）。/new 为兼容别名。
+          // 先自增代数再 abort：异步到达的中断拒绝会被代数校验丢弃，不污染新会话。
+          generationRef.current += 1
+          abortRef.current?.abort()
+          clearAiMessages()
+          chatMutation.reset()
+          setQueued([])
+          setSystemLines([])
+          setSendError(null)
+          setCompacting(false)
+          break
+        }
+        case '/status': {
+          const 历史数 = aiMessagesRef.current.length
+          setSystemLines([
+            `${t('ai.commands.statusModel')}：${aiModel === 'pro' ? 'deepseek-v4-pro' : 'deepseek-v4-flash'}`,
+            `${t('ai.commands.statusThinking')}：${aiThinking ? 'on' : 'off'}`,
+            `${t('ai.commands.statusMessages')}：${历史数}`,
+            `${t('ai.commands.statusContext')}：1M`,
+          ])
+          break
+        }
+        case '/model':
+          setModelMenuOpen(true)
+          setMenuCursor(0)
+          break
+        case '/compact': {
+          if (isPending || sendingRef.current || compacting) {
+            // 在途回合未被序列化前不得压缩，否则旧回合会在压缩后复活，语义压缩名存实亡
+            setSystemLines([t('ai.commands.compactBusy')])
+            break
+          }
+          if (aiMessagesRef.current.length === 0) {
+            setSystemLines([t('ai.commands.compactEmpty')])
+            break
+          }
+          const gen = generationRef.current
+          const controller = new AbortController()
+          abortRef.current = controller
+          setCompacting(true)
+          setSystemLines([t('ai.commands.compacting')])
+          try {
+            const 摘要 = await compactConversation(aiMessagesRef.current, { signal: controller.signal })
+            // 压缩期间会话已被 /clear 切换：丢弃摘要，不回填新会话
+            if (generationRef.current !== gen) break
+            clearAiMessages()
+            addAiMessage({ role: 'user', content: `[${t('ai.commands.compactSummaryPrefix')}] ${摘要}` })
+            setSystemLines([t('ai.commands.compacted')])
+          } catch (err) {
+            if (generationRef.current === gen) {
+              setSystemLines([t(是否中断错误(err) ? 'ai.commands.compactInterrupted' : 'ai.commands.compactFailed')])
+            }
+          } finally {
+            abortRef.current = null
+            setCompacting(false)
+          }
+          break
+        }
+        default:
+          setSystemLines([`${t('ai.commands.unknownPrefix')}${cmd}${t('ai.commands.unknownSuffix')}`])
+      }
+    },
+    [aiModel, aiThinking, isPending, compacting, clearAiMessages, addAiMessage, chatMutation]
+  )
+
+  /** 输入提交统一入口：指令分流；忙时排队；空闲时发送 */
+  const submitInput = useCallback(
+    (raw: string) => {
+      const content = raw.trim()
+      if (!content) return
+      setInput('')
+      if (content.startsWith('/')) {
+        void runCommand(content)
+        return
+      }
+      // 新动作即清除指令输出（瞬态语义：不滞留在消息流）
+      setSystemLines([])
+      if (isPending || sendingRef.current || compacting) {
+        setQueued((prev) => [...prev, content])
+        return
+      }
+      sendingRef.current = true
+      startTransition(() => {
+        void sendMessage(content).finally(() => {
+          sendingRef.current = false
+        })
+      })
+    },
+    [isPending, compacting, runCommand, sendMessage]
   )
 
   const scrollToBottom = useCallback(() => {
@@ -111,26 +262,24 @@ export function AIChat({ className }: AIChatProps) {
   const handleQuickQuestion = useCallback(
     (question: string) => {
       if (isPending) return
-      const formData = new FormData()
-      formData.set('message', question)
-      startTransition(() => {
-        formAction(formData)
-      })
+      submitInput(question)
     },
-    [formAction, isPending]
+    [submitInput, isPending]
   )
 
   const handleReset = useCallback(() => {
+    generationRef.current += 1
+    abortRef.current?.abort()
     clearAiMessages()
     chatMutation.reset()
     setInput('')
+    setQueued([])
+    setSystemLines([])
+    setSendError(null)
+    setCompacting(false)
   }, [clearAiMessages, chatMutation])
 
-  // /model 指令：仅 deepseek-v4-flash / deepseek-v4-pro 两个模型。
-  // 交互约束（用户硬性要求）：模型只能 ↑↓ 切换；思考开关只能 ←→ 切换；不再有思考强度。
-  type ModelValue = 'flash' | 'pro'
-  const MODEL_ORDER: ModelValue[] = ['flash', 'pro']
-
+  // /model 面板交互约束（用户硬性要求）：模型只能 ↑↓ 切换；思考开关只能 ←→ 切换；不再有思考强度。
   const activateMenuItem = useCallback(
     (item: { kind: 'model'; value: ModelValue }) => {
       setAiModel(item.value)
@@ -165,11 +314,18 @@ export function AIChat({ className }: AIChatProps) {
         }
         return
       }
+      // 终端习惯：忙时 Esc 中断当前请求（对齐 Claude Code）；闲时 Esc 关闭面板。
+      // /model 面板打开时：↑↓ 切模型、←→ 切思考、⏎/Esc 关闭。
       if (event.key === 'Escape') {
-        setChatOpen(false)
+        if (isPending || compacting) {
+          event.preventDefault()
+          abortRef.current?.abort()
+        } else {
+          setChatOpen(false)
+        }
       }
     },
-    [modelMenuOpen, menuCursor, aiThinking, setAiModel, setAiThinking, setChatOpen, MODEL_ORDER]
+    [modelMenuOpen, menuCursor, aiThinking, setAiModel, setAiThinking, setChatOpen, isPending, compacting]
   )
 
   if (!chatOpen) {
@@ -235,14 +391,14 @@ export function AIChat({ className }: AIChatProps) {
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-3 scrollbar-thin">
-        {optimisticMessages.length === 0 ? (
+        {optimisticMessages.length === 0 && systemLines.length === 0 ? (
           <div className="flex h-full flex-col justify-center gap-2 text-[13px]">
             <p className="text-[#d97757]">
               <span aria-hidden="true">✻ </span>
               {t('ai.empty')}
             </p>
             <p className="text-xs text-[#9aa0aa]">我可以回答关于玄锐暮简历、技术栈与项目的问题。</p>
-            <p className="text-[11px] text-[#666]">/model 切换模型与思考 · /clear 清空对话</p>
+            <p className="text-[11px] text-[#666]">{t('ai.emptyCommands')}</p>
             <div className="mt-1 flex flex-wrap gap-2">
               {ta('ai.quickQuestions').map((question) => (
                 <button
@@ -280,15 +436,22 @@ export function AIChat({ className }: AIChatProps) {
                 </div>
               )
             )}
-            {isPending && (
+            {(isPending || compacting) && (
               <div className="flex gap-2 text-[13px] text-[#9aa0aa]">
                 <span className="select-none pt-0.5 text-[#d97757]" aria-hidden="true">
                   ⏺
                 </span>
                 <div className="flex items-center gap-1.5">
                   <Loader2 size={13} className="animate-spin text-[#d97757]" />
-                  <span>✻ 思考中…</span>
+                  <span>{compacting ? t('ai.commands.compacting') : t('ai.thinking')}</span>
                 </div>
+              </div>
+            )}
+            {systemLines.length > 0 && (
+              <div className="whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-[#9aa0aa]">
+                {systemLines.map((line, index) => (
+                  <div key={`${index}-${line.slice(0, 8)}`}>{line}</div>
+                ))}
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -349,22 +512,29 @@ export function AIChat({ className }: AIChatProps) {
           )
         })()}
 
-      {sendState.error && (
+      {sendError && (
         <div className="border-t border-[#2a2a2a] bg-[#3b1d1d] px-3 py-2 text-xs text-[#f0a0a0]" role="alert">
-          {sendState.error}
+          {sendError}
+        </div>
+      )}
+
+      {/* 消息队列（对齐 Claude Code）：忙时发送的消息显示在输入框上方，回复结束后依次发出 */}
+      {queued.length > 0 && (
+        <div className="border-t border-[#1f1f1f] bg-[#0d0d0d] px-3 py-1.5 font-mono text-[11px] text-[#9aa0aa]">
+          {queued.map((message, index) => (
+            <div key={`${index}-${message.slice(0, 8)}`} className="truncate">
+              ⏳ {t('ai.queue.label')} {index + 1}：{message}
+            </div>
+          ))}
+          <div className="text-[#666]">{t('ai.queue.hint')}</div>
         </div>
       )}
 
       <form
-        action={formAction}
         onSubmit={(event) => {
-          // /model 指令：Enter 时不发送，改为打开模型选择面板
-          if (input.trim() === '/model') {
-            event.preventDefault()
-            setModelMenuOpen(true)
-            setMenuCursor(0)
-            setInput('')
-          }
+          // 指令与排队分流统一由 submitInput 处理（对齐 Claude Code 的输入语义）
+          event.preventDefault()
+          submitInput(input)
         }}
         className="border-t border-[#1f1f1f] bg-[#0a0a0a] p-2.5"
       >
@@ -381,7 +551,6 @@ export function AIChat({ className }: AIChatProps) {
             onKeyDown={handleKeyDown}
             placeholder={t('ai.placeholder')}
             className="flex-1 bg-transparent text-[13px] text-[#e6e6e6] outline-none placeholder:text-[#555]"
-            disabled={isPending}
             maxLength={200}
           />
           <span
@@ -393,7 +562,7 @@ export function AIChat({ className }: AIChatProps) {
           />
         </div>
         <div className="mt-1.5 flex items-center justify-between text-[10px] text-[#666]">
-          <span>esc 中断 · ⏎ 发送</span>
+          <span>{isPending || compacting ? t('ai.busyHint') : t('ai.idleHint')}</span>
           <span className="flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-[#4ade80]" aria-hidden="true" />
             {`${aiModel === 'pro' ? 'deepseek-v4-pro' : 'deepseek-v4-flash'} · ${aiThinking ? 'think on' : 'think off'} · CTX 1M`}

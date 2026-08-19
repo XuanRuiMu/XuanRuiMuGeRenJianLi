@@ -86,8 +86,7 @@ export function AboutSection() {
 
               const 尚未完成 = !已打完
               const 是激活行 = 开始打字 && 尚未完成 && 已显字符数 >= 起始 && 已显字符数 < 起始 + 行.length
-              const 完成后末行 = 开始打字 && 已打完 && 索引 === 段落行.length - 1
-              const 显示光标 = (是激活行 || 完成后末行) && !减少动画
+              const 显示光标 = 是激活行 && !减少动画
 
               return (
                 <div key={索引} className="group flex items-start gap-3 sm:gap-5 py-2 sm:py-3">
