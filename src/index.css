@@ -117,47 +117,11 @@ body,
   }
 }
 
-/* 作品卡片自主横移（根因修复）：纯 CSS 无限 marquee，方向固定且与滚动视差同方向，
-   速度清晰可见（约 45s 走完一组 ≈ 56px/s），彻底消除「方向随机 + 太慢」的观感。
-   同一排卡片永远朝同一方向移动——模拟向下划动网页时该行被推走的方向（偶数排右、奇数排左），
-   且任意时刻都在动，停止滚动也不会冻结。轨道内渲染两份相同卡片组，translateX(-50%) 无缝循环。
-   reduced-motion 时静止。 */
-@keyframes showcase-marquee-left {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-@keyframes showcase-marquee-right {
-  from {
-    transform: translateX(-50%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
+/* 作品展示区横移轨道：位移由 ShowcaseSection 共享 rAF 控制器写入内联 transform
+   （惯性缓停/缓起、三排整体联动），此处只提供轨道布局基线。 */
 .showcase-marquee {
   width: max-content;
   will-change: transform;
-}
-
-.showcase-marquee--left {
-  animation: showcase-marquee-left var(--marquee-dur, 45s) linear infinite;
-}
-
-.showcase-marquee--right {
-  animation: showcase-marquee-right var(--marquee-dur, 45s) linear infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .showcase-marquee--left,
-  .showcase-marquee--right {
-    animation: none;
-  }
 }
 
 #root {
@@ -472,19 +436,6 @@ html.circular-reveal-active::view-transition-old(root) {
   }
 }
 
-/* CSS Scroll-driven Animations */
-.scroll-reveal {
-  opacity: 1;
-}
-
-.scroll-reveal-item {
-  opacity: 1;
-}
-
-.scroll-progress-bar {
-  width: var(--progress-target, 100%);
-}
-
 /* 统一入场动画 — IntersectionObserver 驱动（见 components/Reveal.tsx） */
 .reveal {
   opacity: 0;
@@ -519,62 +470,6 @@ html.circular-reveal-active::view-transition-old(root) {
   opacity: 1 !important;
   transform: none !important;
   transition: none !important;
-}
-
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .scroll-reveal {
-      animation: scroll-reveal linear both;
-      animation-timeline: view();
-      animation-range: entry 10% cover 35%;
-    }
-
-    .scroll-reveal-item {
-      animation: scroll-reveal linear both;
-      animation-timeline: view();
-      animation-range: entry 12% cover 38%;
-    }
-
-    .scroll-parallax {
-      animation: scroll-parallax linear;
-      animation-timeline: scroll(root);
-    }
-
-    .scroll-progress-bar {
-      width: 0;
-      animation: scroll-progress-grow linear both;
-      animation-timeline: view();
-      animation-range: entry 10% cover 40%;
-    }
-  }
-}
-
-@keyframes scroll-reveal {
-  from {
-    opacity: 0.85;
-    transform: translateY(32px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes scroll-parallax {
-  from {
-    transform: translateY(0);
-  }
-
-  to {
-    transform: translateY(-60px);
-  }
-}
-
-@keyframes scroll-progress-grow {
-  to {
-    width: var(--progress-target, 100%);
-  }
 }
 
 /* Container Queries */
@@ -1244,26 +1139,54 @@ html.circular-reveal-active::view-transition-old(root) {
   }
 }
 
-/* 掫桌：掀翻棋盘 3D 动画（rotateX 翻起 + 抬起 + 轻微摇摆后回正） */
-@keyframes gomoku-board-flip {
+/* 掫桌：绕垂直轴（Y）旋转 180°，正面棋盘转到背面（正面/背面双面 3D 翻转）。
+   契约锁：时长 0.8s 与 Gomoku.tsx 的 400ms 中段清盘定时器双源耦合（清盘须发生在
+   ~90° 侧棱时刻），改此时长必须同步改 Gomoku.tsx 的 flipClearTimerRef 延时。 */
+@keyframes gomoku-flip {
   0% {
-    transform: perspective(900px) rotateY(0deg);
-  }
-  50% {
-    transform: perspective(900px) rotateY(90deg) scale(0.96);
+    transform: rotateY(0deg);
   }
   100% {
-    transform: perspective(900px) rotateY(180deg);
+    transform: rotateY(180deg);
   }
 }
 
-.gomoku-board--flip {
-  animation: gomoku-board-flip 0.72s cubic-bezier(0.45, 0.05, 0.25, 1);
+/* 3D 翻转容器：perspective 由父级外层提供；preserve-3d 让正/背面构成真实立体 */
+.gomoku-flip {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
   transform-style: preserve-3d;
 }
 
+.gomoku-flip__face {
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* 正面：原棋盘样式（深色玻璃 + 描边 + 内边距） */
+.gomoku-flip__face--front {
+  background: linear-gradient(135deg, #0f1b2e, #0a0f1a);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px;
+}
+
+/* 背面：干净渐变面板，翻面 180° 后呈现，直观表达「正面转到背面」 */
+.gomoku-flip__face--back {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #0a0f1a, #0f1b2e);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.gomoku-flip.is-flipping {
+  animation: gomoku-flip 0.8s cubic-bezier(0.45, 0.05, 0.25, 1);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .gomoku-board--flip {
+  .gomoku-flip.is-flipping {
     animation: none;
   }
 }
@@ -1448,19 +1371,19 @@ html.circular-reveal-active::view-transition-old(root) {
   background: linear-gradient(135deg, #00f5ff, #8338ec);
   border-radius: 15px;
   transform-origin: center center;
+  /* 根因修复：常驻合成层（基线 translateZ(0)）。无此声明时，过渡期间浏览器临时提升图层、
+     过渡结束 transform 回归静态后销毁图层，两次栅格化的子像素对齐不一致 → 图案在动画结束
+     瞬间向左上「瞬移」。常驻层使过渡前后栅格化完全一致（已用 A/B 像素对比验证）。 */
+  transform: translateZ(0);
   will-change: transform;
-  backface-visibility: hidden;
   transition:
     transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     box-shadow 0.3s ease;
 }
 
-/* 图案（SVG）独立合成层：父级 hover 的 scale() 收尾时不再因子像素重栅格化而「瞬移」 */
+/* 图案（SVG）：作为父级常驻合成层的一部分渲染，无需自身独立层/backface，避免收尾重栅格化缝隙 */
 .contact-item-icon svg {
   display: block;
-  transform: translateZ(0);
-  will-change: transform;
-  backface-visibility: hidden;
 }
 
 .contact-item-link:hover .contact-item-icon,

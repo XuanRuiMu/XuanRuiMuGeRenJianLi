@@ -85,6 +85,32 @@ describe('AIChat', () => {
     }
   })
 
+  it('shows default deepseek-v4-flash with thinking on in status bar when open', () => {
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(createMockState({ chatOpen: true }))
+    )
+
+    render(<AIChat />)
+    expect(screen.getByText('deepseek-v4-flash · think on · CTX 1M')).toBeInTheDocument()
+  })
+
+  it('shows flash selected and Think On by default in the /model panel', async () => {
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(createMockState({ chatOpen: true }))
+    )
+
+    render(<AIChat />)
+    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    fireEvent.change(input, { target: { value: '/model' } })
+    fireEvent.submit(input.closest('form') as HTMLFormElement)
+
+    await waitFor(() => {
+      expect(screen.getAllByText('● On')).not.toHaveLength(0)
+    })
+    const flashLines = screen.getAllByText(/deepseek-v4-flash/)
+    expect(flashLines.some((el) => (el.textContent ?? '').includes('◉'))).toBe(true)
+  })
+
   it('does not send message when input is empty', async () => {
     mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
       selector(createMockState({ chatOpen: true }))

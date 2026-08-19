@@ -2,12 +2,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { sendChatMessage } from './chatService'
 import { personalInfo } from '../data/personalInfo'
 import { DEEPSEEK_MODELS, DEEPSEEK_ENDPOINT } from './deepseekConfig'
+import { useAppStore } from '../store/useAppStore'
 
 const mockFetch = vi.fn()
 
 describe('chatService', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', mockFetch)
+    // 锁定默认模型与思考开关（flash + 思考开），避免跨用例状态污染
+    useAppStore.setState({ aiModel: 'flash', aiThinking: true })
   })
 
   afterEach(() => {

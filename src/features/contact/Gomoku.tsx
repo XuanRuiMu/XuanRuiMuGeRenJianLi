@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { RotateCcw } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
@@ -147,6 +147,9 @@ export function Gomoku() {
   const [winning, setWinning] = useState<Coord[]>([])
   const [thinking, setThinking] = useState(false)
   const [flipping, setFlipping] = useState(false)
+  const flipClearTimerRef = useRef<number | undefined>(undefined)
+
+  useEffect(() => () => window.clearTimeout(flipClearTimerRef.current), [])
 
   const aiMove = useCallback((next: Board) => {
     const [r, c] = findBestMove(next, WHITE, BLACK)
@@ -203,7 +206,8 @@ export function Gomoku() {
   }, [])
 
   const reset = useCallback(() => {
-    // 「掫桌」：先播放掀翻棋盘动画，动画结束再清盘（reduced-motion 直接清盘）
+    // 「掫桌」：绕垂直轴翻面 0.8s。清盘放在翻转中段（~90° 侧棱朝向观众、两面均不可见时），
+    // 而非动画结束瞬间——否则 rotateY 从 180° 归零与清盘同帧发生，会闪回一帧满盘旧棋盘。
     if (flipping) return
     const reduce =
       typeof window !== 'undefined' &&
@@ -213,6 +217,8 @@ export function Gomoku() {
       return
     }
     setFlipping(true)
+    window.clearTimeout(flipClearTimerRef.current)
+    flipClearTimerRef.current = window.setTimeout(clearBoard, 400)
   }, [flipping, clearBoard])
 
   const switchMode = useCallback((next: Mode) => {
@@ -286,21 +292,23 @@ export function Gomoku() {
 
       <span className="font-mono text-xs text-[#9aa0aa]">{status}</span>
 
-      <div className="relative w-full max-w-[320px] rounded-3xl bg-gradient-to-br from-[#d97757] via-[#f0abfc] to-[#38bdf8] p-[2px] shadow-[0_12px_44px_rgba(0,0,0,0.55)]">
+      <div
+        className="relative w-full max-w-[320px] rounded-3xl bg-gradient-to-br from-[#d97757] via-[#f0abfc] to-[#38bdf8] p-[2px] shadow-[0_12px_44px_rgba(0,0,0,0.55)]"
+        style={{ perspective: '900px' }}
+      >
+        {/* 3D 翻转容器：绕垂直轴（Y）旋转 180°，正面棋盘转到背面（根因修复：单面 rotateY 仅镜像、无「背面」语义） */}
         <div
-          className={cn(
-            'relative aspect-square w-full rounded-[22px] border border-white/10 bg-gradient-to-br from-[#0f1b2e] to-[#0a0f1a] p-3',
-            flipping && 'gomoku-board--flip'
-          )}
-          style={{ transformOrigin: 'center' }}
-          onAnimationEnd={() => {
-            if (flipping) {
-              clearBoard()
+          className={cn('gomoku-flip', flipping && 'is-flipping')}
+          onAnimationEnd={(event) => {
+            // 只响应翻转容器自身的 animationend；棋子入场等子元素动画冒泡上来会误触清盘
+            if (flipping && event.target === event.currentTarget) {
               setFlipping(false)
             }
           }}
         >
-          <div className="relative h-full w-full">
+          {/* 正面：棋盘（格线/星位/落子/连线），翻转后转到背面不可见 */}
+          <div className="gomoku-flip__face gomoku-flip__face--front">
+            <div className="relative h-full w-full">
           {/* 棋盘格线 + 星位 */}
           <svg
             viewBox="0 0 14 14"
@@ -355,9 +363,12 @@ export function Gomoku() {
               )
             })
           )}
+            </div>
+          </div>
+          {/* 背面：干净渐变面板，翻面后呈现，直观表达「正面跑到背面」 */}
+          <div className="gomoku-flip__face gomoku-flip__face--back" aria-hidden="true" />
         </div>
       </div>
-    </div>
     </div>
   )
 }

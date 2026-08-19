@@ -99,12 +99,11 @@ export function TechStack() {
 
   return (
     <div className="w-full flex flex-col items-center" aria-label="技术">
-      <h2 className="font-display mb-1 text-center text-3xl font-bold md:text-4xl">
+      <h2 className="font-display mb-4 text-center text-3xl font-bold md:text-4xl">
         <span className="bg-gradient-to-r from-[#A594F9] via-[#7dd3fc] to-[#6EFFB1] bg-clip-text text-transparent">
           技术
         </span>
       </h2>
-      <p className="mb-2 text-sm text-[#9aa0aa]">点击跳转官网 · 悬停暂停旋转</p>
 
       <div
         ref={wrapRef}

@@ -129,31 +129,43 @@ function ShowcaseProductCard({ card, index, reducedMotion }: ShowcaseProductCard
 }
 
 /**
- * 单排自动横移轨道（根因修复）。
+ * 三排共享的「暂停/缓动」控制器（根因修复核心）。
  *
- * 旧实现是「CSS translateX(-50%) 关键帧 + 卡片滚动视差 x + flex-row-reverse」三者混合：
- * 当视口宽 ≥ 单组宽、或滚动视差偏移与 -50% 取模不同步时，首尾衔接处露出空隙（断点）。
+ * 旧实现：每一排各自实例化一份 useAutoMarquee，悬停/滚动各自独立判定，
+ * 三排的暂停状态完全独立 → 悬停一排只停一排，无法「作为一个整体一起停止、一起移动」，
+ * 且 CSS animation-play-state 只能瞬停瞬起，没有惯性缓冲。
  *
- * 新实现改用统一的 requestAnimationFrame 引擎，从头消除该根因：
- * - 精确测量「单组」像素宽（含其尾部留白），用取模运算实现数学上严格的无缝首尾相接，
- *   任意视口宽度下都复制足够份数填满轨道，杜绝空隙；
- * - 速度做惯性平滑（当前速度向目标速度缓动），悬停任一张卡片 → 目标速度归零（缓停），
- *   鼠标移出 → 目标速度恢复（缓起）；
- * - 窗口发生上/下划动（wheel / touchmove）→ 全局暂停 1 秒，随后目标速度恢复（缓缓起步）；
+ * 新实现：在 ShowcaseSection 建一个全局唯一控制器，所有排共享同一悬停集合与
+ * scrollPauseUntilRef。各轨道用自身 pointerenter/pointerleave 注册悬停（边界事件，
+ * 零持续开销）；wheel/touchmove 触发全局暂停 1 秒。每排 rAF 只读共享信号做
+ * 帧率无关指数惯性缓动 → 三排天然同步缓停/缓起。
+ */
+interface MarqueeControl {
+  hovered: Set<HTMLElement>
+  scrollPauseUntilRef: React.MutableRefObject<number>
+}
+
+/**
+ * 单排自动横移轨道。
+ * 接收共享控制器：轨道注册自身悬停状态进控制器，rAF 读取共享暂停信号做惯性缓动。
+ * - 速度做帧率无关的指数惯性缓动（当前速度向目标速度缓动）：
+ *   - 悬停缓停 τ≈0.4s（带惯性的缓冲停止，非瞬停）；
+ *   - 滚动缓停 τ≈0.18s（快速停稳，保证 1 秒暂停窗口内真正静止）；
+ *   - 恢复/启动 τ≈0.7s（缓缓起步）。
+ * - 全局滚动（wheel/touchmove）→ 暂停 1 秒，随后缓缓起步。
+ * - 任意一排被悬停 → 三排同时缓停；全部移开 → 三排同时缓起。
  * - reduced-motion 完全静止，不注入任何 transform。
  */
 function useAutoMarquee(opts: {
+  control: MarqueeControl
   direction: 1 | -1
   baseSpeed: number
-  hoverPausedRef: React.MutableRefObject<boolean>
   reducedMotion: boolean
 }) {
-  const { direction, baseSpeed, hoverPausedRef, reducedMotion } = opts
+  const { control, direction, baseSpeed, reducedMotion } = opts
   const trackRef = useRef<HTMLDivElement>(null)
   const groupRef = useRef<HTMLDivElement>(null)
   const [copies, setCopies] = useState(2)
-  // 滚动暂停截止时间戳（本 hook 自持，悬停/滚动监听与 rAF 同闭包，杜绝跨组件 ref 错配）
-  const scrollPauseUntilRef = useRef(0)
 
   const offsetRef = useRef(0)
   const speedRef = useRef(0)
@@ -172,6 +184,22 @@ function useAutoMarquee(opts: {
     const needed = Math.max(2, Math.ceil((vw + w) / w) + 1)
     setCopies((prev) => (prev === needed ? prev : needed))
   }
+
+  // 轨道注册进共享控制器：自身 pointerenter/pointerleave 即全局悬停信号（边界事件，
+  // 命中即整体暂停，无需每帧 mousemove 命中测试）。
+  useLayoutEffect(() => {
+    const el = trackRef.current
+    if (!el) return
+    const onEnter = () => control.hovered.add(el)
+    const onLeave = () => control.hovered.delete(el)
+    el.addEventListener('pointerenter', onEnter)
+    el.addEventListener('pointerleave', onLeave)
+    return () => {
+      el.removeEventListener('pointerenter', onEnter)
+      el.removeEventListener('pointerleave', onLeave)
+      control.hovered.delete(el)
+    }
+  }, [control])
 
   useLayoutEffect(() => {
     measure.current()
@@ -195,41 +223,23 @@ function useAutoMarquee(opts: {
       return
     }
 
-    // 全局滚动暂停：本 hook 自持监听（与 rAF 同闭包），任意排滚动 → 该排暂停 1 秒后缓起。
-    const onScrollActivity = () => {
-      scrollPauseUntilRef.current = performance.now() + 1000
-    }
-    window.addEventListener('wheel', onScrollActivity, { passive: true })
-    window.addEventListener('touchmove', onScrollActivity, { passive: true })
-
-    // 悬停检测（根因修复）：轨道处在 framer-motion 的 3D 入场变换（rotateX/rotateZ）之下，
-    // 直接用 onMouseEnter/onMouseLeave 会因 3D 旋转命中测试失灵；即便改用「轨道包围盒」判定，
-    // 轨道本身是 8400px 宽、且被 3D 旋转、横移位移的超大元素，其 axis-aligned 包围盒与真实
-    // 命中区域严重错位 → 悬停判定飘忽。改用 document.elementFromPoint 做「浏览器真实命中测试」：
-    // 取光标下方最顶层元素，若它落在这一排轨道之内（.contains），则仅暂停被悬停的那一排。
-    // elementFromPoint 直接复用浏览器已完成的 3D 变换后的命中几何，天然免疫所有变换问题。
-    const onMove = (e: MouseEvent) => {
-      const track = trackRef.current
-      if (!track) {
-        hoverPausedRef.current = false
-        return
-      }
-      const el = document.elementFromPoint(e.clientX, e.clientY)
-      hoverPausedRef.current = !!(el && track.contains(el))
-    }
-    window.addEventListener('mousemove', onMove, { passive: true })
-
     const frame = (ts: number) => {
       const last = lastTsRef.current
       lastTsRef.current = ts
       const dt = last == null ? 0 : Math.min((ts - last) / 1000, 0.05)
       const W = groupWidthRef.current
-      const paused = hoverPausedRef.current || performance.now() < scrollPauseUntilRef.current
+      // 读取共享暂停信号：悬停任一排 或 全局滚动暂停窗口内 → 暂停。
+      const hoverPaused = control.hovered.size > 0
+      const scrollPaused = performance.now() < control.scrollPauseUntilRef.current
+      const paused = hoverPaused || scrollPaused
       const target = paused ? 0 : baseSpeed
-      // 惯性：当前速度向目标速度缓动。
-      // - 暂停时衰减更快（约 0.4s 到位，仍带惯性、非瞬停），确保「悬停/滚动即停住」可读；
-      // - 恢复时衰减更慢（约 0.25s 时间常数缓起），实现「缓慢恢复移动」。
-      const ease = paused ? Math.min(1, dt * 10) : Math.min(1, dt * 4)
+      // 帧率无关指数惯性，按触发源分取时距：
+      //  - 滚动暂停：τ=0.18（约 0.5s 内停住并保持静止，确保 1 秒窗口内真正暂停）；
+      //    滚动优先于悬停：滚动时用户意图是看页面，停得更快更符合预期；
+      //  - 悬停缓停：τ=0.4（约 1.5s 缓停，符合「不要立刻停止」的惯性缓冲）；
+      //  - 恢复/起步：τ=0.7（缓缓起步）。
+      const tau = paused ? (scrollPaused ? 0.18 : 0.4) : 0.7
+      const ease = 1 - Math.exp(-dt / tau)
       speedRef.current += (target - speedRef.current) * ease
       // 接近静止时直接归零，杜绝残余微动（确保悬停/滚动暂停后真正停住）
       if (paused && Math.abs(speedRef.current) < 0.5) speedRef.current = 0
@@ -245,14 +255,11 @@ function useAutoMarquee(opts: {
     }
     rafRef.current = requestAnimationFrame(frame)
     return () => {
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('wheel', onScrollActivity)
-      window.removeEventListener('touchmove', onScrollActivity)
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current)
       rafRef.current = null
       lastTsRef.current = null
     }
-  }, [reducedMotion, direction, baseSpeed, hoverPausedRef])
+  }, [reducedMotion, direction, baseSpeed, control])
 
   return { trackRef, groupRef, copies }
 }
@@ -263,6 +270,7 @@ interface ShowcaseMarqueeRowProps {
   direction: 1 | -1
   baseSpeed: number
   reducedMotion: boolean
+  control: MarqueeControl
 }
 
 function ShowcaseMarqueeRow({
@@ -271,12 +279,12 @@ function ShowcaseMarqueeRow({
   direction,
   baseSpeed,
   reducedMotion,
+  control,
 }: ShowcaseMarqueeRowProps) {
-  const hoverPausedRef = useRef(false)
   const { trackRef, groupRef, copies } = useAutoMarquee({
+    control,
     direction,
     baseSpeed,
-    hoverPausedRef,
     reducedMotion,
   })
 
@@ -285,11 +293,7 @@ function ShowcaseMarqueeRow({
       <span id={row.anchorId} className="block scroll-mt-24" aria-hidden="true">
         &nbsp;
       </span>
-      <div
-        ref={trackRef}
-        className="showcase-marquee flex"
-        style={{ width: 'max-content', willChange: 'transform' }}
-      >
+      <div ref={trackRef} className="showcase-marquee flex">
         {Array.from({ length: copies }).map((_, group) => (
           <div key={group} ref={group === 0 ? groupRef : undefined} className="flex gap-20 pr-20">
             {row.cards.map((card, cardIndex) => (
@@ -310,11 +314,31 @@ function ShowcaseMarqueeRow({
 /**
  * 作品展示区 · 移植自 12-next-spline-3d 的 HeroParallax（EXPLORING MODERN DESIGNS）。
  * 三排卡片随滚动反向横移入场（3D 透视翻入），卡片带渐变描边 + 霓虹光晕 + 悬停上浮；
- * 每排卡片由独立的 rAF 引擎做真正无缝的自动横移（见 useAutoMarquee，根因修复版）。
+ * 每排卡片由共享 rAF 引擎做真正无缝的自动横移（见 useAutoMarquee + 共享控制器，根因修复版）。
  */
 export function ShowcaseSection() {
   const reducedMotion = useReducedMotion()
   const ref = useRef<HTMLDivElement>(null)
+
+  // 全局唯一共享控制器：三排共用同一悬停集合与滚动暂停信号，实现「视为整体、一起停止、一起移动」。
+  const control = useRef<MarqueeControl>({
+    hovered: new Set<HTMLElement>(),
+    scrollPauseUntilRef: { current: 0 },
+  }).current
+
+  // 全局只挂一组滚动监听：wheel/touchmove 触发全局暂停 1 秒（悬停信号由各轨道自身边界事件注册）。
+  useEffect(() => {
+    const onScrollActivity = () => {
+      control.scrollPauseUntilRef.current = performance.now() + 1000
+    }
+    window.addEventListener('wheel', onScrollActivity, { passive: true })
+    window.addEventListener('touchmove', onScrollActivity, { passive: true })
+    return () => {
+      window.removeEventListener('wheel', onScrollActivity)
+      window.removeEventListener('touchmove', onScrollActivity)
+      control.hovered.clear()
+    }
+  }, [control])
 
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -368,6 +392,7 @@ export function ShowcaseSection() {
               direction={rowIndex % 2 === 0 ? -1 : 1}
               baseSpeed={50}
               reducedMotion={reducedMotion}
+              control={control}
             />
           ))}
         </motion.div>

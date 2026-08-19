@@ -9,6 +9,8 @@ describe('useAppStore', () => {
       commandOpen: false,
       chatOpen: false,
       aiMessages: [],
+      aiModel: 'flash',
+      aiThinking: true,
       reducedMotion: false,
       performanceMetrics: {},
       frameMetrics: { fps: 0, p95: 0, avg: 0, downgradeCount: 0, upgradeCount: 0 },
@@ -22,6 +24,16 @@ describe('useAppStore', () => {
     expect(state.commandOpen).toBe(false)
     expect(state.chatOpen).toBe(false)
     expect(state.aiMessages).toHaveLength(0)
+    expect(state.aiModel).toBe('flash')
+    expect(state.aiThinking).toBe(true)
+  })
+
+  it('should set ai model and thinking', () => {
+    const { setAiModel, setAiThinking } = useAppStore.getState()
+    setAiModel('pro')
+    setAiThinking(false)
+    expect(useAppStore.getState().aiModel).toBe('pro')
+    expect(useAppStore.getState().aiThinking).toBe(false)
   })
 
   it('should set active section', () => {
