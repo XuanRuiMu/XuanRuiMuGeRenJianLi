@@ -135,15 +135,27 @@ function ShowcaseProductCard({ card, index, reducedMotion }: ShowcaseProductCard
  * 三排的暂停状态完全独立 → 悬停一排只停一排，无法「作为一个整体一起停止、一起移动」，
  * 且 CSS animation-play-state 只能瞬停瞬起，没有惯性缓冲。
  *
- * 新实现：在 ShowcaseSection 建一个全局唯一控制器，所有排共享同一悬停集合与
- * scrollPauseUntilRef。各轨道用自身 pointerenter/pointerleave 注册悬停（边界事件，
- * 零持续开销）；wheel/touchmove 触发全局暂停 1 秒。每排 rAF 只读共享信号做
- * 帧率无关指数惯性缓动 → 三排天然同步缓停/缓起。
+ * 新实现：在 ShowcaseSection 建一个全局唯一控制器，所有排共享同一悬停集合、
+ * scrollPauseUntilRef 与 scrollYRef。各轨道用自身 pointerenter/pointerleave 注册悬停
+ * （边界事件，零持续开销）；wheel/touchmove 触发全局暂停 1 秒；scroll 事件记录最新
+ * 滚动位置供各排做滚动联动位移。每排 rAF 只读共享信号做帧率无关指数惯性缓动
+ * → 三排天然同步缓停/缓起。
  */
 interface MarqueeControl {
   hovered: Set<HTMLElement>
   scrollPauseUntilRef: React.MutableRefObject<number>
+  scrollYRef: React.MutableRefObject<number>
 }
+
+/**
+ * 滚动联动系数：页面每垂直滚动 1px，卡片沿自身方向水平位移该系数 px。
+ * 保证上下划动网页时项目框同步左右移动（而非静止），各排因 direction 不同而反向，
+ * 形成视差感。
+ */
+const SCROLL_LINK_FACTOR = 0.5
+
+/** 单帧滚动增量上限：防止 scrollIntoView/锚点跳转等瞬时大跳让轨道飞出去 */
+const SCROLL_DELTA_CLAMP = 80
 
 /**
  * 单排自动横移轨道。
@@ -153,6 +165,8 @@ interface MarqueeControl {
  *   - 滚动缓停 τ≈0.18s（快速停稳，保证 1 秒暂停窗口内真正静止）；
  *   - 恢复/启动 τ≈0.7s（缓缓起步）。
  * - 全局滚动（wheel/touchmove）→ 暂停 1 秒，随后缓缓起步。
+ * - 滚动联动：页面垂直滚动时按 SCROLL_LINK_FACTOR 叠加水平位移，划动期间卡片
+ *   始终左右移动（与自动速度的暂停规则正交，两者叠加）。
  * - 任意一排被悬停 → 三排同时缓停；全部移开 → 三排同时缓起。
  * - reduced-motion 完全静止，不注入任何 transform。
  */
@@ -172,6 +186,7 @@ function useAutoMarquee(opts: {
   const groupWidthRef = useRef(0)
   const rafRef = useRef<number | null>(null)
   const lastTsRef = useRef<number | null>(null)
+  const prevScrollYRef = useRef<number | null>(null)
 
   const measure = useRef<() => void>(() => {})
   measure.current = () => {
@@ -243,8 +258,16 @@ function useAutoMarquee(opts: {
       speedRef.current += (target - speedRef.current) * ease
       // 接近静止时直接归零，杜绝残余微动（确保悬停/滚动暂停后真正停住）
       if (paused && Math.abs(speedRef.current) < 0.5) speedRef.current = 0
-      if (W > 0 && Math.abs(speedRef.current) > 0.01) {
-        offsetRef.current += direction * speedRef.current * dt
+      // 滚动联动位移：与自动速度正交叠加——划动网页期间即使自动速度处于暂停窗口，
+      // 卡片仍随垂直滚动左右移动（根因修复：旧版滚动只触发暂停，划动期间卡片静止）
+      const scrollY = control.scrollYRef.current
+      if (prevScrollYRef.current == null) prevScrollYRef.current = scrollY
+      let scrollDelta = scrollY - prevScrollYRef.current
+      prevScrollYRef.current = scrollY
+      scrollDelta = Math.max(-SCROLL_DELTA_CLAMP, Math.min(SCROLL_DELTA_CLAMP, scrollDelta))
+      const delta = direction * speedRef.current * dt + direction * scrollDelta * SCROLL_LINK_FACTOR
+      if (W > 0 && Math.abs(delta) > 0.001) {
+        offsetRef.current += delta
         let raw = offsetRef.current % W
         if (raw < 0) raw += W
         if (trackRef.current) {
@@ -320,22 +343,29 @@ export function ShowcaseSection() {
   const reducedMotion = useReducedMotion()
   const ref = useRef<HTMLDivElement>(null)
 
-  // 全局唯一共享控制器：三排共用同一悬停集合与滚动暂停信号，实现「视为整体、一起停止、一起移动」。
+  // 全局唯一共享控制器：三排共用同一悬停集合与滚动信号，实现「视为整体、一起停止、一起移动」。
   const control = useRef<MarqueeControl>({
     hovered: new Set<HTMLElement>(),
     scrollPauseUntilRef: { current: 0 },
+    scrollYRef: { current: typeof window !== 'undefined' ? window.scrollY : 0 },
   }).current
 
-  // 全局只挂一组滚动监听：wheel/touchmove 触发全局暂停 1 秒（悬停信号由各轨道自身边界事件注册）。
+  // 全局只挂一组滚动监听：wheel/touchmove 触发全局暂停 1 秒；scroll 记录最新滚动位置
+  // 供各排做滚动联动位移（悬停信号由各轨道自身边界事件注册）。
   useEffect(() => {
     const onScrollActivity = () => {
       control.scrollPauseUntilRef.current = performance.now() + 1000
     }
+    const onScroll = () => {
+      control.scrollYRef.current = window.scrollY
+    }
     window.addEventListener('wheel', onScrollActivity, { passive: true })
     window.addEventListener('touchmove', onScrollActivity, { passive: true })
+    window.addEventListener('scroll', onScroll, { passive: true })
     return () => {
       window.removeEventListener('wheel', onScrollActivity)
       window.removeEventListener('touchmove', onScrollActivity)
+      window.removeEventListener('scroll', onScroll)
       control.hovered.clear()
     }
   }, [control])
