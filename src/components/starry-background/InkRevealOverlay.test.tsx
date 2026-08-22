@@ -58,10 +58,10 @@ describe('InkRevealOverlay 双主题', () => {
     expect(rendererMock).toHaveBeenCalledWith({ enabled: true, coverColor: '#05060f' })
   })
 
-  it('浅色模式仍挂载且遮罩为半透明偏黄宣纸雾', () => {
+  it('浅色模式挂载且遮罩与深色同为满不透明实色', () => {
     hookState.isDark = false
     render(<InkRevealOverlay />)
-    expect(rendererMock).toHaveBeenCalledWith({ enabled: true, coverColor: '#f2e9cf', coverAlpha: 0.55 })
+    expect(rendererMock).toHaveBeenCalledWith({ enabled: true, coverColor: '#f2e9cf' })
   })
 
   it('非 hover 设备不挂载渲染器', () => {

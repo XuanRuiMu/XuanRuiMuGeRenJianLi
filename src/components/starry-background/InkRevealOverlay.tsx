@@ -7,8 +7,8 @@ interface InkRevealOverlayProps {
   enabled?: boolean
 }
 
-// 水墨遮罩双主题：深色=不透明墨色与星空底色一致（擦开见星）；
-// 浅色=半透明偏黄宣纸雾（壁纸透出可见，划过处更清晰——遮罩若满屏实色会盖死壁纸）
+// 水墨遮罩双主题均为满不透明实色：深色=墨黑与星空底色一致（擦开见星）；
+// 浅色=宣纸米色盖住壁纸（擦开见内容）
 const 墨色深 = '#05060f'
 const 墨色浅 = '#f2e9cf'
 
@@ -23,9 +23,10 @@ export function InkRevealOverlay({ enabled: enabledProp }: InkRevealOverlayProps
     if (!window.matchMedia('(hover: hover)').matches) return
 
     // 主题切换时经依赖数组整体重建渲染器，覆盖色随主题换色并重涂遮罩
-    const renderer = new InkRevealRenderer(
-      isDark ? { enabled, coverColor: 墨色深 } : { enabled, coverColor: 墨色浅, coverAlpha: 0.55 }
-    )
+    const renderer = new InkRevealRenderer({
+      enabled,
+      coverColor: isDark ? 墨色深 : 墨色浅,
+    })
     rendererRef.current = renderer
     renderer.mount(document.body)
 

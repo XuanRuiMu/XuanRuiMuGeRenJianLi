@@ -85,21 +85,11 @@ export function Card({ children, header, footer, glass: _glass, hover = false, t
 
   const tiltEnabled = tilt && !reducedMotion
 
-  const resetGlow = useCallback((element: HTMLDivElement) => {
-    element.style.setProperty('--tilt-glow-x', '50%')
-    element.style.setProperty('--tilt-glow-y', '50%')
-  }, [])
-
   const applyTransform = useCallback(() => {
     const element = cardRef.current
     if (!element) return
     const { rotateX, rotateY, scale, translateX, translateY, translateZ } = currentRef.current
     element.style.transform = `perspective(${TILT_PERSPECTIVE}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${scale}) translate3d(${translateX}px, ${translateY}px, ${translateZ}px)`
-  }, [])
-
-  const updateGlow = useCallback((element: HTMLDivElement, mouse: MousePosition) => {
-    element.style.setProperty('--tilt-glow-x', `${mouse.x * 100}%`)
-    element.style.setProperty('--tilt-glow-y', `${mouse.y * 100}%`)
   }, [])
 
   const tick = useCallback(() => {
@@ -149,15 +139,13 @@ export function Card({ children, header, footer, glass: _glass, hover = false, t
   const handleMouseMove = useCallback(
     (event: MouseEvent<HTMLDivElement>) => {
       if (!tiltEnabled || !cardRef.current || !isHoveringRef.current) return
-      const element = cardRef.current
-      const rect = rectRef.current ?? element.getBoundingClientRect()
+      const rect = rectRef.current ?? cardRef.current.getBoundingClientRect()
       const x = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width))
       const y = Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height))
       mouseRef.current = { x, y }
-      updateGlow(element, mouseRef.current)
       startLoop()
     },
-    [tiltEnabled, startLoop, updateGlow]
+    [tiltEnabled, startLoop]
   )
 
   const handleMouseEnter = useCallback(() => {
@@ -166,22 +154,16 @@ export function Card({ children, header, footer, glass: _glass, hover = false, t
     const element = cardRef.current
     if (!element) return
     rectRef.current = element.getBoundingClientRect()
-    element.classList.add('is-tilt-active')
     mouseRef.current = { ...CENTER_MOUSE }
-    updateGlow(element, mouseRef.current)
     startLoop()
-  }, [tiltEnabled, startLoop, updateGlow])
+  }, [tiltEnabled, startLoop])
 
   const handleMouseLeave = useCallback(() => {
     isHoveringRef.current = false
     mouseRef.current = { ...CENTER_MOUSE }
     rectRef.current = null
-    const element = cardRef.current
-    if (!element) return
-    element.classList.remove('is-tilt-active')
-    resetGlow(element)
     startLoop()
-  }, [startLoop, resetGlow])
+  }, [startLoop])
 
   useEffect(() => {
     return () => {
@@ -194,14 +176,12 @@ export function Card({ children, header, footer, glass: _glass, hover = false, t
     const element = cardRef.current
     if (!element) return
     element.style.transform = ''
-    element.classList.remove('is-tilt-active')
-    resetGlow(element)
     targetRef.current = { ...NEUTRAL_STATE }
     currentRef.current = { ...NEUTRAL_STATE }
     mouseRef.current = { ...CENTER_MOUSE }
     rectRef.current = null
     stopLoop()
-  }, [tiltEnabled, resetGlow, stopLoop])
+  }, [tiltEnabled, stopLoop])
 
   return (
     <div
@@ -209,7 +189,6 @@ export function Card({ children, header, footer, glass: _glass, hover = false, t
       onMouseMove={tiltEnabled ? handleMouseMove : undefined}
       onMouseEnter={tiltEnabled ? handleMouseEnter : undefined}
       onMouseLeave={tiltEnabled ? handleMouseLeave : undefined}
-      style={{ '--tilt-glow-x': '50%', '--tilt-glow-y': '50%' } as React.CSSProperties}
       className={cn(
         'card-container relative overflow-hidden rounded-2xl border border-border bg-transparent p-6',
         hover && !tiltEnabled && 'transition-transform duration-300 hover:-translate-y-1',
@@ -218,25 +197,6 @@ export function Card({ children, header, footer, glass: _glass, hover = false, t
         className
       )}
     >
-      {tiltEnabled && (
-        <>
-          <div
-            className="tilt-card-glow pointer-events-none absolute inset-0 z-10"
-            style={{
-              background:
-                'radial-gradient(circle at var(--tilt-glow-x) var(--tilt-glow-y), rgba(255,255,255,0.16) 0%, transparent 55%)',
-            }}
-            aria-hidden="true"
-          />
-          <div
-            className="tilt-card-border pointer-events-none absolute inset-0 z-0 rounded-2xl"
-            style={{
-              boxShadow: 'inset 0 0 0 1px rgba(0,217,255,0.25), 0 0 32px rgba(0,217,255,0.12)',
-            }}
-            aria-hidden="true"
-          />
-        </>
-      )}
       {header && <div className="card-header mb-4">{header}</div>}
       <div className="card-body">{children}</div>
       {footer && <div className="card-footer mt-4 border-t border-border pt-4">{footer}</div>}

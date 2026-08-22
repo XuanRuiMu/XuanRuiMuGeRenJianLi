@@ -80,54 +80,29 @@ describe('Card', () => {
     expect(container.firstChild).not.toHaveClass('hover:-translate-y-1')
   })
 
-  it('adds active tilt class on mouse enter', () => {
+  it('engages tilt animation on mouse enter', async () => {
     const { container } = render(<Card tilt>content</Card>)
     const card = container.firstChild as HTMLElement
+    const rect = {
+      left: 0,
+      top: 0,
+      width: 200,
+      height: 100,
+      right: 200,
+      bottom: 100,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    }
+    card.getBoundingClientRect = vi.fn(() => rect)
     fireEvent.mouseEnter(card)
-    expect(card).toHaveClass('is-tilt-active')
-  })
-
-  it('removes active tilt class on mouse leave', () => {
-    const { container } = render(<Card tilt>content</Card>)
-    const card = container.firstChild as HTMLElement
-    fireEvent.mouseEnter(card)
-    fireEvent.mouseLeave(card)
-    expect(card).not.toHaveClass('is-tilt-active')
-  })
-
-  it('updates glow position on mouse move', async () => {
-    const { container } = render(<Card tilt>content</Card>)
-    const card = container.firstChild as HTMLElement
-    fireEvent.mouseEnter(card)
-    fireEvent.mouseMove(card, { clientX: 100, clientY: 50 })
     await waitFor(() => {
-      const glowX = card.style.getPropertyValue('--tilt-glow-x')
-      const glowY = card.style.getPropertyValue('--tilt-glow-y')
-      expect(glowX).not.toBe('50%')
-      expect(glowY).not.toBe('50%')
+      expect(card.style.transform).toContain('perspective(1000px)')
+      expect(parseFloat(card.style.transform.match(/scale\(([\d.]+)\)/)?.[1] ?? '1')).toBeGreaterThan(1.02)
     })
   })
 
-  it('resets glow position on mouse leave', async () => {
-    const { container } = render(<Card tilt>content</Card>)
-    const card = container.firstChild as HTMLElement
-    fireEvent.mouseEnter(card)
-    fireEvent.mouseMove(card, { clientX: 100, clientY: 50 })
-    fireEvent.mouseLeave(card)
-    await waitFor(() => {
-      expect(card.style.getPropertyValue('--tilt-glow-x')).toBe('50%')
-      expect(card.style.getPropertyValue('--tilt-glow-y')).toBe('50%')
-    })
-  })
-
-  it('disables tilt when reduced motion is preferred', () => {
-    reducedMotionMatches = true
-    const { container } = render(<Card tilt>content</Card>)
-    expect(container.firstChild).not.toHaveClass('tilt-card')
-    expect(container.firstChild).not.toHaveClass('will-change-transform')
-  })
-
-  it('continuously tracks glow position across multiple mouse moves', async () => {
+  it('returns toward rest on mouse leave', async () => {
     const { container } = render(<Card tilt>content</Card>)
     const card = container.firstChild as HTMLElement
     const rect = {
@@ -143,18 +118,30 @@ describe('Card', () => {
     }
     card.getBoundingClientRect = vi.fn(() => rect)
 
+    const getRotateX = (transform: string) => {
+      const match = transform.match(/rotateX\((-?[\d.]+)deg\)/)
+      return match ? parseFloat(match[1]) : 0
+    }
+
     fireEvent.mouseEnter(card)
-    fireEvent.mouseMove(card, { clientX: 50, clientY: 25 })
+    fireEvent.mouseMove(card, { clientX: 200, clientY: 100 })
+
     await waitFor(() => {
-      expect(card.style.getPropertyValue('--tilt-glow-x')).toBe('25%')
-      expect(card.style.getPropertyValue('--tilt-glow-y')).toBe('25%')
+      expect(getRotateX(card.style.transform)).toBeLessThan(-5)
     })
 
-    fireEvent.mouseMove(card, { clientX: 150, clientY: 75 })
+    fireEvent.mouseLeave(card)
+
     await waitFor(() => {
-      expect(card.style.getPropertyValue('--tilt-glow-x')).toBe('75%')
-      expect(card.style.getPropertyValue('--tilt-glow-y')).toBe('75%')
+      expect(Math.abs(getRotateX(card.style.transform))).toBeLessThan(2)
     })
+  })
+
+  it('disables tilt when reduced motion is preferred', () => {
+    reducedMotionMatches = true
+    const { container } = render(<Card tilt>content</Card>)
+    expect(container.firstChild).not.toHaveClass('tilt-card')
+    expect(container.firstChild).not.toHaveClass('will-change-transform')
   })
 
   it('continuously updates tilt transform on repeated mouse moves', async () => {

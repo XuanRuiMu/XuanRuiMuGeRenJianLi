@@ -212,7 +212,7 @@ export function ContactSection() {
                 type="text"
                 value={values.name}
                 onChange={(event) => handleChange('name', event.target.value)}
-                className="w-full rounded-md border border-border bg-black/40 px-3 py-2.5 text-text-primary outline-none transition-colors focus:border-primary"
+                className="w-full rounded-md border border-border bg-black/40 px-3 py-2.5 text-text-primary outline-none transition-colors focus:border-primary light:bg-black/[0.04]"
                 aria-invalid={errors.name ? 'true' : 'false'}
                 aria-describedby={errors.name ? 'contact-name-error' : undefined}
               />
@@ -230,7 +230,7 @@ export function ContactSection() {
                 type="email"
                 value={values.email}
                 onChange={(event) => handleChange('email', event.target.value)}
-                className="w-full rounded-md border border-border bg-black/40 px-3 py-2.5 text-text-primary outline-none transition-colors focus:border-primary"
+                className="w-full rounded-md border border-border bg-black/40 px-3 py-2.5 text-text-primary outline-none transition-colors focus:border-primary light:bg-black/[0.04]"
                 aria-invalid={errors.email ? 'true' : 'false'}
                 aria-describedby={errors.email ? 'contact-email-error' : undefined}
               />
@@ -248,7 +248,7 @@ export function ContactSection() {
                 rows={8}
                 value={values.message}
                 onChange={(event) => handleChange('message', event.target.value)}
-                className="w-full resize-none rounded-md border border-border bg-black/40 px-3 py-2.5 text-text-primary outline-none transition-colors focus:border-primary"
+                className="w-full resize-none rounded-md border border-border bg-black/40 px-3 py-2.5 text-text-primary outline-none transition-colors focus:border-primary light:bg-black/[0.04]"
                 aria-invalid={errors.message ? 'true' : 'false'}
                 aria-describedby={errors.message ? 'contact-message-error' : undefined}
               />

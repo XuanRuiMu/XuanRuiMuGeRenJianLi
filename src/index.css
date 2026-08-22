@@ -1,5 +1,10 @@
 @import 'tailwindcss';
 
+/* 主题变体与 useThemeSystem 的 class 切换体系对齐（documentElement .light/.dark），
+   覆盖 Tailwind v4 默认的 prefers-color-scheme 媒体查询语义 */
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant light (&:where(.light, .light *));
+
 @theme {
   --color-bg: #0b0c15;
   --color-surface: #11131e;
@@ -128,43 +133,49 @@ body,
   position: relative;
 }
 
-::placeholder {
-  color: var(--color-muted) !important;
-  opacity: 1 !important;
-}
+/* 表单控件基线样式：必须位于 @layer base 内。
+   若为裸全局规则（无 layer），按 Cascade Layers 规则会战胜 @layer utilities 中的
+   Tailwind utilities（bg-transparent/bg-black/40/text-* 等全部失效），导致组件级
+   样式控制权被剥夺（浅色模式 AI 聊天输入框被刷成 var(--color-surface) 的根因）。 */
+@layer base {
+  ::placeholder {
+    color: var(--color-muted);
+    opacity: 1;
+  }
 
-input,
-textarea,
-select {
-  border-color: var(--color-border);
-  color: var(--color-text-primary);
-  background-color: var(--color-surface);
-}
+  input,
+  textarea,
+  select {
+    border-color: var(--color-border);
+    color: var(--color-text-primary);
+    background-color: var(--color-surface);
+  }
 
-input:focus,
-textarea:focus,
-select:focus {
-  border-color: var(--color-primary);
-}
+  input:focus,
+  textarea:focus,
+  select:focus {
+    border-color: var(--color-primary);
+  }
 
-.light input,
-.light textarea,
-.light select {
-  border-color: rgba(0, 0, 0, 0.18);
-}
-
-@supports (color: oklch(from #000000 l c h)) {
   .light input,
   .light textarea,
   .light select {
-    border-color: oklch(from #000000 l c h / 0.18);
+    border-color: rgba(0, 0, 0, 0.18);
   }
-}
 
-.light input:focus,
-.light textarea:focus,
-.light select:focus {
-  border-color: var(--color-primary);
+  @supports (color: oklch(from #000000 l c h)) {
+    .light input,
+    .light textarea,
+    .light select {
+      border-color: oklch(from #000000 l c h / 0.18);
+    }
+  }
+
+  .light input:focus,
+  .light textarea:focus,
+  .light select:focus {
+    border-color: var(--color-primary);
+  }
 }
 
 .text-shadow-readable {
@@ -521,37 +532,14 @@ html.circular-reveal-active::view-transition-old(root) {
   transform-style: preserve-3d;
 }
 
-.tilt-card-glow,
-.tilt-card-border {
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.tilt-card.is-tilt-active .tilt-card-glow,
-.tilt-card.is-tilt-active .tilt-card-border {
-  opacity: 1;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .tilt-card {
     transform: none !important;
-  }
-
-  .tilt-card-glow,
-  .tilt-card-border {
-    opacity: 0 !important;
-    transition: none;
   }
 }
 
 .reduced-motion .tilt-card {
   transform: none !important;
-}
-
-.reduced-motion .tilt-card-glow,
-.reduced-motion .tilt-card-border {
-  opacity: 0 !important;
-  transition: none;
 }
 
 /* Experience Timeline */

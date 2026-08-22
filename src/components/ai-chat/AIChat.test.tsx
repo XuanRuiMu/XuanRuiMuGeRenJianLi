@@ -11,6 +11,16 @@ const mutationReset = vi.fn()
 const mockCompact = vi.fn()
 const setAiThinking = vi.fn()
 
+// jsdom 未内置 Blob objectURL：stub 供预览与泄漏断言使用，afterEach 还原原生实现
+let objectUrlCounter = 0
+const createObjectURLMock = vi.fn(() => {
+  objectUrlCounter += 1
+  return `blob:mock-${objectUrlCounter}`
+})
+const revokeObjectURLMock = vi.fn()
+const 原生CreateObjectURL = URL.createObjectURL
+const 原生RevokeObjectURL = URL.revokeObjectURL
+
 let mockAiMessages: Array<{ role: 'user' | 'assistant'; content: string }> = []
 
 // 模拟真实运行时的响应式：zustand store 变更与 react-query isPending 翻转都会触发重渲染，
@@ -73,6 +83,9 @@ describe('AIChat', () => {
     vi.clearAllMocks()
     mockAiMessages = []
     mockRuntime.isPending = false
+    objectUrlCounter = 0
+    URL.createObjectURL = createObjectURLMock as unknown as typeof URL.createObjectURL
+    URL.revokeObjectURL = revokeObjectURLMock as unknown as typeof URL.revokeObjectURL
     if (!Element.prototype.scrollIntoView) {
       Element.prototype.scrollIntoView = vi.fn()
     }
@@ -81,6 +94,8 @@ describe('AIChat', () => {
 
   afterEach(() => {
     cleanup()
+    URL.createObjectURL = 原生CreateObjectURL
+    URL.revokeObjectURL = 原生RevokeObjectURL
     vi.restoreAllMocks()
   })
 
@@ -160,7 +175,8 @@ describe('AIChat', () => {
     expect(screen.queryByTestId('pending-images')).not.toBeInTheDocument()
   })
 
-  it('超过单张大小上限的图片被忽略并提示上传失败', async () => {
+  it('超过单张大小上限的图片显示红字上传失败缩略图且不发送', async () => {
+    mutateAsync.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
     mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
       selector(createMockState({ chatOpen: true }))
     )
@@ -170,8 +186,196 @@ describe('AIChat', () => {
     Object.defineProperty(fileInput, 'files', { value: [创建图片文件('image/png', 17 * 1024 * 1024)] })
     fireEvent.change(fileInput)
 
-    expect(screen.getByText(t('ai.imageUploadFailed'))).toBeInTheDocument()
+    const 失败标记 = await screen.findByTestId('pending-images-failed')
+    expect(失败标记).toHaveTextContent(t('ai.imageRejected'))
+    expect(screen.queryByText(t('ai.imageUploadFailed'))).not.toBeInTheDocument()
+
+    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    fireEvent.change(input, { target: { value: '带一张坏图' } })
+    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    await waitFor(() => {
+      expect(mutateAsync).toHaveBeenCalledWith({
+        messages: [{ role: 'user', content: '带一张坏图' }],
+        signal: expect.any(AbortSignal),
+      })
+    })
+  })
+
+  it('粘贴合法 PNG 进入待发区并可随消息发出', async () => {
+    mutateAsync.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(createMockState({ chatOpen: true }))
+    )
+
+    render(<AIChat />)
+    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLInputElement
+    fireEvent.paste(input, { clipboardData: { files: [创建图片文件()] } })
+    await waitFor(() => {
+      expect(screen.getByTestId('pending-images')).toBeInTheDocument()
+    })
+
+    fireEvent.change(input, { target: { value: '看这张截图' } })
+    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    await waitFor(() => {
+      expect(mutateAsync).toHaveBeenCalledWith({
+        messages: [
+          {
+            role: 'user',
+            content: '看这张截图',
+            images: [expect.stringMatching(/^data:image\/png;base64,/)],
+          },
+        ],
+        signal: expect.any(AbortSignal),
+      })
+    })
+    // 发送消费后清空待发区并释放预览 objectURL
+    await waitFor(() => {
+      expect(screen.queryByTestId('pending-images')).not.toBeInTheDocument()
+    })
+    expect(revokeObjectURLMock).toHaveBeenCalledWith('blob:mock-1')
+  })
+
+  it('粘贴文本不触发上传且不影响正常输入', () => {
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(createMockState({ chatOpen: true }))
+    )
+
+    render(<AIChat />)
+    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLInputElement
+    fireEvent.paste(input, { clipboardData: { files: [] } })
+
+    expect(createObjectURLMock).not.toHaveBeenCalled()
     expect(screen.queryByTestId('pending-images')).not.toBeInTheDocument()
+  })
+
+  it('粘贴 BMP 显示红字「上传失败」且不随消息发出', async () => {
+    mutateAsync.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(createMockState({ chatOpen: true }))
+    )
+
+    render(<AIChat />)
+    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLInputElement
+    fireEvent.paste(input, { clipboardData: { files: [创建图片文件('image/bmp')] } })
+
+    const 失败标记 = await screen.findByTestId('pending-images-failed')
+    expect(失败标记).toHaveTextContent(t('ai.imageRejected'))
+
+    fireEvent.change(input, { target: { value: '描述一下' } })
+    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    await waitFor(() => {
+      expect(mutateAsync).toHaveBeenCalledWith({
+        messages: [{ role: 'user', content: '描述一下' }],
+        signal: expect.any(AbortSignal),
+      })
+    })
+    await waitFor(() => {
+      expect(screen.queryByTestId('pending-images')).not.toBeInTheDocument()
+    })
+  })
+
+  it('待发区上限4张对合格与失败图片一并计数，超出提示上传失败', async () => {
+    mutateAsync.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(createMockState({ chatOpen: true }))
+    )
+
+    render(<AIChat />)
+    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLInputElement
+    fireEvent.paste(input, { clipboardData: { files: [创建图片文件(), 创建图片文件('image/bmp'), 创建图片文件()] } })
+    await waitFor(() => {
+      expect(screen.getByTestId('pending-images').children.length).toBe(3)
+    })
+
+    fireEvent.paste(input, { clipboardData: { files: [创建图片文件(), 创建图片文件()] } })
+    await waitFor(() => {
+      expect(screen.getByText(t('ai.imageUploadFailed'))).toBeInTheDocument()
+    })
+    expect(screen.getByTestId('pending-images').children.length).toBe(4)
+    expect(screen.getAllByTestId('pending-images-failed').length).toBe(1)
+
+    fireEvent.change(input, { target: { value: '混排发送' } })
+    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    await waitFor(() => {
+      expect(mutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          messages: [
+            expect.objectContaining({
+              role: 'user',
+              content: '混排发送',
+              images: [expect.stringMatching(/^data:image\/png;base64,/), expect.stringMatching(/^data:image\/png;base64,/), expect.stringMatching(/^data:image\/png;base64,/)],
+            }),
+          ],
+        })
+      )
+    })
+  })
+
+  it('移除与重置清空时对不再使用的预览调用 revokeObjectURL', async () => {
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(createMockState({ chatOpen: true }))
+    )
+
+    const { container } = render(<AIChat />)
+    const fileInput = 获取文件输入(container)
+    Object.defineProperty(fileInput, 'files', { value: [创建图片文件(), 创建图片文件()] })
+    fireEvent.change(fileInput)
+    await waitFor(() => {
+      expect(screen.getByTestId('pending-images').children.length).toBe(2)
+    })
+    expect(createObjectURLMock).toHaveBeenCalledTimes(2)
+
+    // 移除第一张：仅释放其 objectURL
+    fireEvent.click(screen.getAllByRole('button', { name: t('ai.removeImage') })[0])
+    expect(revokeObjectURLMock).toHaveBeenCalledTimes(1)
+    expect(revokeObjectURLMock).toHaveBeenCalledWith('blob:mock-1')
+
+    // 重置清空其余：释放剩余 objectURL
+    fireEvent.click(screen.getByRole('button', { name: t('ai.reset') }))
+    expect(revokeObjectURLMock).toHaveBeenCalledTimes(2)
+    expect(revokeObjectURLMock).toHaveBeenCalledWith('blob:mock-2')
+  })
+
+  it('两次粘贴读取交错完成时待发图 key 不冲突，移除互不影响', async () => {
+    // 手动放行式 FileReader 假体：控制两批粘贴的读取完成顺序（后发起的先完成），
+    // 复现「await 期间计数器被另一批前移」的交错场景；key 冲突时按 key 移除会误删两张。
+    const 待放行: Array<() => void> = []
+    class 手动FileReader {
+      onload: (() => void) | null = null
+      onerror: (() => void) | null = null
+      result: string | null = null
+      readAsDataURL() {
+        待放行.push(() => {
+          this.result = 'data:image/png;base64,QUJD'
+          this.onload?.()
+        })
+      }
+    }
+    const 原生FileReader = window.FileReader
+    window.FileReader = 手动FileReader as unknown as typeof FileReader
+
+    try {
+      mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+        selector(createMockState({ chatOpen: true }))
+      )
+
+      render(<AIChat />)
+      const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLInputElement
+      fireEvent.paste(input, { clipboardData: { files: [创建图片文件()] } })
+      fireEvent.paste(input, { clipboardData: { files: [创建图片文件()] } })
+      expect(待放行.length).toBe(2)
+
+      待放行[1]()
+      待放行[0]()
+      await waitFor(() => {
+        expect(screen.getByTestId('pending-images').children.length).toBe(2)
+      })
+
+      fireEvent.click(screen.getAllByRole('button', { name: t('ai.removeImage') })[0])
+      expect(screen.getByTestId('pending-images').children.length).toBe(1)
+    } finally {
+      window.FileReader = 原生FileReader
+    }
   })
 
   it('合法图片进入待发区，随消息一起发送且发送后清空', async () => {

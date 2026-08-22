@@ -354,6 +354,7 @@
     "attachImage": "添加图片",
     "removeImage": "移除图片",
     "imageUploadFailed": "图片上传失败：仅支持 JPEG/PNG/GIF/WebP，且单张不超过 16MiB",
+    "imageRejected": "上传失败",
     "thinkOn": "✻ 思考模式：开（/think 关闭）",
     "thinkOff": "○ 思考模式：关（/think 开启）",
     "queue": {

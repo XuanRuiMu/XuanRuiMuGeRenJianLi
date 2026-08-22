@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback, useOptimistic, startTransition } from 'react'
+﻿import { useRef, useState, useEffect, useCallback, useOptimistic, startTransition } from 'react'
 import { X, Loader2, RefreshCw, ImagePlus } from 'lucide-react'
 import { useAppStore } from '../../store/useAppStore'
 import { cn } from '../../lib/utils'
@@ -22,6 +22,14 @@ const 每条消息图片上限 = 4
 interface QueuedItem {
   content: string
   images?: string[]
+}
+
+/** 待发区图片：所有图统一用 objectURL 做缩略图（避免大 dataURL 双份内存），合格图另存 dataURL 供发送 */
+interface 待发图片 {
+  key: string
+  previewUrl: string
+  dataUrl?: string
+  ok: boolean
 }
 
 function 是合法图片(file: File): boolean {
@@ -98,12 +106,13 @@ export function AIChat({ className }: AIChatProps) {
   // 消息队列（对齐 Claude Code）：忙时发送的消息排队，当前回合结束后依次发出。
   const [queued, setQueued] = useState<QueuedItem[]>([])
   const [compacting, setCompacting] = useState(false)
-  // 待发送图片（data URL）：随下一条用户消息一起发出
-  const [pendingImages, setPendingImages] = useState<string[]>([])
+  // 待发送图片：随下一条用户消息一起发出；不合格图仅作红字标记展示，永不入发送队列
+  const [pendingImages, setPendingImages] = useState<待发图片[]>([])
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
-  // 同步最新待发图片到 ref：顺序读取循环中取实时长度，避免闭包过期
+  // 同步最新待发图片到 ref：顺序读取循环中取实时长度，避免闭包过期；卸载清理也读它
   const pendingImagesRef = useRef(pendingImages)
   pendingImagesRef.current = pendingImages
+  const 图片序号Ref = useRef(0)
   const abortRef = useRef<AbortController | null>(null)
   // 排队泄放与手动发送共用同一闸门，防止 isPending 翻转间隙双发。
   const sendingRef = useRef(false)
@@ -195,7 +204,8 @@ export function AIChat({ className }: AIChatProps) {
           setSystemLines([])
           setSendError(null)
           setCompacting(false)
-          // 新会话不残留上一轮待发图片（与 handleReset 同一语义）
+          // 新会话不残留上一轮待发图片（与 handleReset 同一语义），预览 objectURL 一并释放
+          for (const 图片 of pendingImagesRef.current) URL.revokeObjectURL(图片.previewUrl)
           setPendingImages([])
           break
         }
@@ -255,7 +265,7 @@ export function AIChat({ className }: AIChatProps) {
     [aiThinking, isPending, compacting, clearAiMessages, addAiMessage, chatMutation, setAiThinking]
   )
 
-  /** 输入提交统一入口：指令分流；忙时排队；空闲时发送。图片随本次消息一并发出并清空待发区 */
+  /** 输入提交统一入口：指令分流；忙时排队；空闲时发送。仅合格图随消息发出；待发区（含失败图）消费后整体清空 */
   const submitInput = useCallback(
     (raw: string) => {
       const content = raw.trim()
@@ -265,17 +275,19 @@ export function AIChat({ className }: AIChatProps) {
         void runCommand(content)
         return
       }
-      const images = pendingImages.length > 0 ? [...pendingImages] : undefined
+      const images = pendingImages.filter((图片) => 图片.ok && typeof 图片.dataUrl === 'string').map((图片) => 图片.dataUrl as string)
+      // 排队项带走的是独立 dataURL 字符串，释放 objectURL 不影响已入队消息
+      for (const 图片 of pendingImages) URL.revokeObjectURL(图片.previewUrl)
       setPendingImages([])
       // 新动作即清除指令输出（瞬态语义：不滞留在消息流）
       setSystemLines([])
       if (isPending || sendingRef.current || compacting) {
-        setQueued((prev) => [...prev, { content, images }])
+        setQueued((prev) => [...prev, { content, images: images.length > 0 ? images : undefined }])
         return
       }
       sendingRef.current = true
       startTransition(() => {
-        void sendMessage(content, images).finally(() => {
+        void sendMessage(content, images.length > 0 ? images : undefined).finally(() => {
           sendingRef.current = false
         })
       })
@@ -283,28 +295,56 @@ export function AIChat({ className }: AIChatProps) {
     [isPending, compacting, runCommand, sendMessage, pendingImages]
   )
 
-  /** 文件选取 → 校验 → 转 dataURL 进待发区；任一不合格即整体提示上传失败（不合格文件被忽略） */
-  const 接收图片文件 = useCallback(async (files: FileList | null) => {
-    if (!files || files.length === 0) return
+  /**
+   * 文件统一入口（按钮选取与剪贴板粘贴共用）：合格图转 dataURL 进待发区；
+   * image/* 不支持格式或无 MIME 的截图流仍生成缩略图并标红（ok:false），不入发送队列；
+   * 非 image 文件与读取失败维持系统行提示。上限 4 张对合格与失败图一并计数。
+   */
+  const 接收图片文件 = useCallback(async (files: FileList | File[] | null) => {
+    const 文件数组 = Array.from(files ?? [])
+    if (文件数组.length === 0) return
     let rejected = false
-    const accepted: string[] = []
-    for (const file of Array.from(files)) {
-      if (!是合法图片(file) || pendingImagesRef.current.length + accepted.length >= 每条消息图片上限) {
+    const 新增: 待发图片[] = []
+    for (const file of 文件数组) {
+      if (pendingImagesRef.current.length + 新增.length >= 每条消息图片上限) {
         rejected = true
         continue
       }
+      // key 在自增时立刻固化：await 期间若另一批文件进入，计数器已前移，读 ref 会撞 key
+      const 图片key = `pending-img-${(图片序号Ref.current += 1)}`
+      if (!是合法图片(file)) {
+        if (file.type === '' || file.type.startsWith('image/')) {
+          新增.push({ key: 图片key, previewUrl: URL.createObjectURL(file), ok: false })
+        } else {
+          rejected = true
+        }
+        continue
+      }
       try {
-        accepted.push(await 读取为DataUrl(file))
+        const dataUrl = await 读取为DataUrl(file)
+        新增.push({
+          key: 图片key,
+          previewUrl: URL.createObjectURL(file),
+          dataUrl,
+          ok: true,
+        })
       } catch {
         rejected = true
       }
     }
-    if (accepted.length > 0) {
-      setPendingImages((prev) => [...prev, ...accepted])
+    if (新增.length > 0) {
+      setPendingImages((prev) => [...prev, ...新增])
     }
     if (rejected) {
       setSystemLines([t('ai.imageUploadFailed')])
     }
+  }, [])
+
+  /** 移除单张待发图：先释放其预览 objectURL 再出列，防内存泄漏 */
+  const 移除待发图片 = useCallback((key: string) => {
+    const 目标 = pendingImagesRef.current.find((图片) => 图片.key === key)
+    if (目标) URL.revokeObjectURL(目标.previewUrl)
+    setPendingImages((prev) => prev.filter((图片) => 图片.key !== key))
   }, [])
 
   const scrollToBottom = useCallback(() => {
@@ -336,9 +376,17 @@ export function AIChat({ className }: AIChatProps) {
     setSystemLines([])
     setSendError(null)
     setCompacting(false)
+    for (const 图片 of pendingImagesRef.current) URL.revokeObjectURL(图片.previewUrl)
     setPendingImages([])
     setLightboxSrc(null)
   }, [clearAiMessages, chatMutation])
+
+  // 卸载兜底：释放所有未消费的预览 objectURL，防内存泄漏（发送/移除路径已各自释放）
+  useEffect(() => {
+    return () => {
+      for (const 图片 of pendingImagesRef.current) URL.revokeObjectURL(图片.previewUrl)
+    }
+  }, [])
 
   // 灯箱打开时：Esc 仅关灯箱（capture 阶段拦截，避免同时触发面板 Esc 关闭/中断语义）
   useEffect(() => {
@@ -547,12 +595,27 @@ export function AIChat({ className }: AIChatProps) {
       >
         {pendingImages.length > 0 && (
           <div className="mb-1.5 flex flex-wrap gap-1.5" data-testid="pending-images">
-            {pendingImages.map((src, imageIndex) => (
-              <span key={`${imageIndex}-${src.slice(-12)}`} className="relative inline-block">
-                <img src={src} alt="" className="h-12 w-12 rounded object-cover ring-1 ring-[#2a2a2a]" />
+            {pendingImages.map((图片) => (
+              <span key={图片.key} className="relative inline-block">
+                <img
+                  src={图片.previewUrl}
+                  alt=""
+                  className={cn(
+                    'h-12 w-12 rounded object-cover',
+                    图片.ok ? 'ring-1 ring-[#2a2a2a]' : 'ring-2 ring-red-500'
+                  )}
+                />
+                {!图片.ok && (
+                  <span
+                    data-testid="pending-images-failed"
+                    className="absolute inset-0 flex items-center justify-center rounded bg-black/60 p-0.5 text-center text-[10px] font-semibold leading-tight text-red-500"
+                  >
+                    {t('ai.imageRejected')}
+                  </span>
+                )}
                 <button
                   type="button"
-                  onClick={() => setPendingImages((prev) => prev.filter((_, i) => i !== imageIndex))}
+                  onClick={() => 移除待发图片(图片.key)}
                   aria-label={t('ai.removeImage')}
                   className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#333] text-[10px] leading-none text-[#eee] hover:bg-[#d97757]"
                 >
@@ -573,6 +636,18 @@ export function AIChat({ className }: AIChatProps) {
             value={input}
             onChange={(event) => setInput(event.target.value)}
             onKeyDown={handleKeyDown}
+            onPaste={(event) => {
+              // 剪贴板含图片文件时走统一上传入口并阻止默认插入；纯文本粘贴不受影响
+              const 剪贴板文件 = event.clipboardData?.files
+              if (!剪贴板文件 || 剪贴板文件.length === 0) return
+              const 图片文件 = Array.from(剪贴板文件).filter(
+                (file) => file.type.startsWith('image/') || file.type === ''
+              )
+              if (图片文件.length > 0) {
+                event.preventDefault()
+                void 接收图片文件(图片文件)
+              }
+            }}
             placeholder={t('ai.placeholder')}
             className="flex-1 bg-transparent text-[13px] text-[#e6e6e6] outline-none placeholder:text-[#555]"
             maxLength={200}
