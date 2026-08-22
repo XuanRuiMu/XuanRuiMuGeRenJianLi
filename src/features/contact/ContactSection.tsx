@@ -245,7 +245,7 @@ export function ContactSection() {
               {promptLabel('contact-message', t('contact.form.message'))}
               <textarea
                 id="contact-message"
-                rows={4}
+                rows={8}
                 value={values.message}
                 onChange={(event) => handleChange('message', event.target.value)}
                 className="w-full resize-none rounded-md border border-border bg-black/40 px-3 py-2.5 text-text-primary outline-none transition-colors focus:border-primary"

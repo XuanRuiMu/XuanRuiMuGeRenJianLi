@@ -11,6 +11,8 @@ export type AppSection =
 export interface AiMessage {
   role: 'user' | 'assistant'
   content: string
+  /** vision 输入：用户随消息携带的图片（data URL）；仅在 user 消息中有效（API 限制） */
+  images?: string[]
   component?: UiComponent
 }
 
@@ -20,7 +22,6 @@ export interface AppState {
   commandOpen: boolean
   chatOpen: boolean
   aiMessages: AiMessage[]
-  aiModel: 'flash' | 'pro'
   aiThinking: boolean
   reducedMotion: boolean
   isOffline: boolean
@@ -39,7 +40,6 @@ export interface AppState {
   setChatOpen: (open: boolean) => void
   addAiMessage: (message: AiMessage) => void
   clearAiMessages: () => void
-  setAiModel: (model: 'flash' | 'pro') => void
   setAiThinking: (enabled: boolean) => void
   setReducedMotion: (enabled: boolean) => void
   setOffline: (offline: boolean) => void
@@ -81,7 +81,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   commandOpen: false,
   chatOpen: false,
   aiMessages: [],
-  aiModel: 'flash',
   aiThinking: true,
   reducedMotion: false,
   isOffline: false,
@@ -100,7 +99,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   setChatOpen: (open) => set({ chatOpen: open }),
   addAiMessage: (message) => set((state) => ({ aiMessages: [...state.aiMessages, message] })),
   clearAiMessages: () => set({ aiMessages: [] }),
-  setAiModel: (model) => set({ aiModel: model }),
   setAiThinking: (enabled) => set({ aiThinking: enabled }),
   setReducedMotion: (enabled) => set({ reducedMotion: enabled }),
   setOffline: (offline) => set({ isOffline: offline }),

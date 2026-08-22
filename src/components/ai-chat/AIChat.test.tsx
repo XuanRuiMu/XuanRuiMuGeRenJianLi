@@ -9,6 +9,7 @@ const clearAiMessages = vi.fn()
 const mutateAsync = vi.fn()
 const mutationReset = vi.fn()
 const mockCompact = vi.fn()
+const setAiThinking = vi.fn()
 
 let mockAiMessages: Array<{ role: 'user' | 'assistant'; content: string }> = []
 
@@ -56,15 +57,13 @@ function createMockState(overrides: Record<string, unknown> = {}) {
     chatOpen: false,
     setChatOpen,
     aiMessages: mockAiMessages,
-    aiModel: 'flash',
     aiThinking: true,
     addAiMessage: vi.fn((message) => {
       mockAiMessages.push(message)
       notifyMockState()
     }),
     clearAiMessages,
-    setAiModel: vi.fn(),
-    setAiThinking: vi.fn(),
+    setAiThinking,
     ...overrides,
   }
 }
@@ -112,30 +111,104 @@ describe('AIChat', () => {
     }
   })
 
-  it('shows default deepseek-v4-flash with thinking on in status bar when open', () => {
+  it('shows deepseek-v4-flash-vision-exp with thinking on in status bar when open', async () => {
     mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
       selector(createMockState({ chatOpen: true }))
     )
 
     render(<AIChat />)
-    expect(screen.getByText('deepseek-v4-flash · think on · CTX 1M')).toBeInTheDocument()
+    expect(await screen.findByText('deepseek-v4-flash-vision-exp · think on · CTX 1M')).toBeInTheDocument()
   })
 
-  it('shows flash selected and Think On by default in the /model panel', async () => {
+  it('/think 切换思考开关并输出状态行', () => {
     mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
       selector(createMockState({ chatOpen: true }))
     )
 
     render(<AIChat />)
     const input = screen.getByPlaceholderText(t('ai.placeholder'))
-    fireEvent.change(input, { target: { value: '/model' } })
+    fireEvent.change(input, { target: { value: '/think' } })
+    fireEvent.submit(input.closest('form') as HTMLFormElement)
+
+    expect(setAiThinking).toHaveBeenCalledWith(false)
+  })
+
+  /** 造一个指定大小的 File（jsdom 中 File.size 由内容长度决定，用 defineProperty 覆写） */
+  function 创建图片文件(type = 'image/png', size = 8): File {
+    const file = new File([new Uint8Array(8)], '测试图片.png', { type })
+    if (size !== 8) {
+      Object.defineProperty(file, 'size', { value: size })
+    }
+    return file
+  }
+
+  function 获取文件输入(container: HTMLElement): HTMLInputElement {
+    return container.querySelector('input[type="file"]') as HTMLInputElement
+  }
+
+  it('非法类型的图片被忽略并提示上传失败', async () => {
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(createMockState({ chatOpen: true }))
+    )
+
+    const { container } = render(<AIChat />)
+    const fileInput = 获取文件输入(container)
+    Object.defineProperty(fileInput, 'files', { value: [创建图片文件('text/plain')] })
+    fireEvent.change(fileInput)
+
+    expect(screen.getByText(t('ai.imageUploadFailed'))).toBeInTheDocument()
+    expect(screen.queryByTestId('pending-images')).not.toBeInTheDocument()
+  })
+
+  it('超过单张大小上限的图片被忽略并提示上传失败', async () => {
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(createMockState({ chatOpen: true }))
+    )
+
+    const { container } = render(<AIChat />)
+    const fileInput = 获取文件输入(container)
+    Object.defineProperty(fileInput, 'files', { value: [创建图片文件('image/png', 17 * 1024 * 1024)] })
+    fireEvent.change(fileInput)
+
+    expect(screen.getByText(t('ai.imageUploadFailed'))).toBeInTheDocument()
+    expect(screen.queryByTestId('pending-images')).not.toBeInTheDocument()
+  })
+
+  it('合法图片进入待发区，随消息一起发送且发送后清空', async () => {
+    mutateAsync.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(createMockState({ chatOpen: true }))
+    )
+
+    const { container } = render(<AIChat />)
+    const fileInput = 获取文件输入(container)
+    Object.defineProperty(fileInput, 'files', { value: [创建图片文件()] })
+    // 根因：fireEvent 不得包进 act——FileReader.load 是宏任务，act 退出后其回调触发的
+    // 状态更新不会被提交；裸 fireEvent + waitFor（真定时器轮询）才能等到落地。
+    fireEvent.change(fileInput)
+    await waitFor(() => {
+      expect(screen.getByTestId('pending-images')).toBeInTheDocument()
+    })
+
+    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    fireEvent.change(input, { target: { value: '图里有什么' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
     await waitFor(() => {
-      expect(screen.getAllByText('● On')).not.toHaveLength(0)
+      expect(mutateAsync).toHaveBeenCalledWith({
+        messages: [
+          {
+            role: 'user',
+            content: '图里有什么',
+            images: [expect.stringMatching(/^data:image\/png;base64,/)],
+          },
+        ],
+        signal: expect.any(AbortSignal),
+      })
     })
-    const flashLines = screen.getAllByText(/deepseek-v4-flash/)
-    expect(flashLines.some((el) => (el.textContent ?? '').includes('◉'))).toBe(true)
+    await waitFor(() => {
+      expect(screen.queryByTestId('pending-images')).not.toBeInTheDocument()
+    })
   })
 
   it('does not send message when input is empty', async () => {
@@ -402,6 +475,28 @@ describe('AIChat', () => {
     render(<AIChat />)
     expect(screen.getByText('问题')).toBeInTheDocument()
     expect(screen.getByText('答案')).toBeInTheDocument()
+  })
+
+  it('用户消息图片渲染缩略图，点击开灯箱，Esc 关灯箱且不关面板', () => {
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(
+        createMockState({
+          chatOpen: true,
+          aiMessages: [{ role: 'user', content: '看图', images: ['data:image/png;base64,QUJD'] }],
+        })
+      )
+    )
+
+    render(<AIChat />)
+    const 缩略图 = screen.getByTestId('message-images').querySelector('button') as HTMLButtonElement
+    fireEvent.click(缩略图)
+
+    const 灯箱 = screen.getByTestId('chat-lightbox')
+    expect(灯箱).toBeInTheDocument()
+
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(screen.queryByTestId('chat-lightbox')).not.toBeInTheDocument()
+    expect(setChatOpen).not.toHaveBeenCalledWith(false)
   })
 
   it('clears messages when reset button clicked', () => {

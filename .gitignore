@@ -46,3 +46,6 @@ screenshots
 preview-lab/
 redesign-lab/
 references/
+
+# dev 数据接口落盘目录（留言/访问计数）
+data/

@@ -22,6 +22,8 @@ describe('HeroSection', () => {
   it('renders name, rotating role typewriter and tech stack', () => {
     render(<HeroSection />)
     expect(screen.getByRole('heading', { name: personalInfo.name })).toBeInTheDocument()
+    // 主页标题已替换为签字图（透明底），alt 承载姓名
+    expect(screen.getByTestId('hero-signature')).toHaveAttribute('src', '/images/主页签字-alpha.png')
     expect(screen.getByTestId('role-typewriter')).toBeInTheDocument()
     expect(screen.getAllByText('Docker').length).toBeGreaterThanOrEqual(1)
   })

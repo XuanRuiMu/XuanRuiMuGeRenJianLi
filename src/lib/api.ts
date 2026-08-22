@@ -26,7 +26,7 @@ export interface ContactResponse {
   error?: string
 }
 
-const ANALYTICS_ENABLED = import.meta.env.VITE_ENABLE_ANALYTICS === 'true'
+export const ANALYTICS_ENABLED = import.meta.env.VITE_ENABLE_ANALYTICS === 'true'
 
 const ANALYTICS_KEY = ['analytics'] as const
 

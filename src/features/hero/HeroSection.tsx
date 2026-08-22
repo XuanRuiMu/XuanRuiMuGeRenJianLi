@@ -20,8 +20,14 @@ export function HeroSection() {
     >
       <div className="relative z-10 mx-auto grid w-full max-w-6xl gap-12 py-16 md:grid-cols-2 md:py-24">
         <div className="flex flex-col justify-center">
-          <h1 className="mb-4 font-display text-4xl font-semibold tracking-tight text-text-primary sm:text-5xl lg:text-6xl">
-            {personalInfo.name}
+          {/* 主页标题：手写签字图（透明底衍生资产，深浅两主题共用）；h1+img.alt 保持标题语义与无障碍名 */}
+          <h1 className="mb-4">
+            <img
+              src="/images/主页签字-alpha.png"
+              alt={personalInfo.name}
+              className="h-20 w-auto object-contain drop-shadow-[0_2px_10px_rgba(60,30,15,0.35)] sm:h-24 lg:h-28 dark:drop-shadow-none"
+              data-testid="hero-signature"
+            />
           </h1>
           <RoleTicker />
           <div className="flex flex-wrap gap-3">

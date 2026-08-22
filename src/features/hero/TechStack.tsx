@@ -146,7 +146,7 @@ export function TechStack() {
                 alt=""
                 aria-hidden="true"
                 className="h-8 w-8 object-contain"
-                loading="lazy"
+                loading="eager"
               />
             </div>
             <span className="rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-medium text-[#dfe6f2] whitespace-nowrap">

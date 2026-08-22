@@ -7,6 +7,7 @@ import { visualizer } from 'rollup-plugin-visualizer'
 import path from 'node:path'
 import fs from 'node:fs'
 import { observabilityPlugin } from './src/observability/vite-plugin-observability'
+import 开发数据接口插件 from './scripts/dev-api-plugin.js'
 
 const isAnalyze = process.env.ANALYZE === 'true'
 
@@ -49,6 +50,8 @@ function preloadCSSPlugin() {
 export default defineConfig({
   plugins: [
     observabilityPlugin(),
+    // dev 环境本地数据接口：/api/contact、/api/analytics 落盘到 data/（生产走 functions/）
+    开发数据接口插件({ dataDir: path.resolve(__dirname, 'data') }),
     // Serve /test-starry/ 目录索引
     {
       name: 'test-starry-index',

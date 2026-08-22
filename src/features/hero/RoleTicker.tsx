@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '../../lib/utils'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
+import { 字符渐变色 } from './roleGradient'
 
 /**
  * 角色行：1:1 复刻 02-react-three-fiber 的 typed.js 打字机语义。
@@ -17,6 +18,8 @@ interface RoleTickerProps {
   backDelay?: number
 }
 
+/** 渐变三锚点：与旧 bg-gradient-to-r 视觉一致（teal → indigo → fuchsia）——定义移至 roleGradient.ts */
+
 export function RoleTicker({
   roles = ROLES,
   // 用户要求整体放缓为原来的 1/2：逐字/删字/停顿时长全部翻倍（60→120 / 40→80 / 1500→3000）
@@ -25,7 +28,11 @@ export function RoleTicker({
   backDelay = 3000,
 }: RoleTickerProps) {
   const reducedMotion = useReducedMotion()
-  const [text, setText] = useState(reducedMotion ? roles[0] : '')
+  // 词与文本必须成对更新：渲染期需要「当前完整词长」为字符预分配最终颜色
+  const [打字, set打字] = useState(() => ({
+    词: roles[0],
+    文本: reducedMotion ? roles[0] : '',
+  }))
   const roleRef = useRef(0)
   const charRef = useRef(0)
   const deletingRef = useRef(false)
@@ -38,9 +45,10 @@ export function RoleTicker({
     const tick = () => {
       if (cancelled) return
       const current = roles[roleRef.current]
+      let nextText: string
       if (!deletingRef.current) {
         charRef.current += 1
-        setText(current.slice(0, charRef.current))
+        nextText = current.slice(0, charRef.current)
         if (charRef.current >= current.length) {
           deletingRef.current = true
           timerRef.current = window.setTimeout(tick, backDelay)
@@ -49,7 +57,7 @@ export function RoleTicker({
         }
       } else {
         charRef.current -= 1
-        setText(current.slice(0, charRef.current))
+        nextText = current.slice(0, charRef.current)
         if (charRef.current <= 0) {
           deletingRef.current = false
           roleRef.current = (roleRef.current + 1) % roles.length
@@ -58,6 +66,7 @@ export function RoleTicker({
           timerRef.current = window.setTimeout(tick, backSpeed)
         }
       }
+      set打字({ 词: current, 文本: nextText })
     }
 
     timerRef.current = window.setTimeout(tick, typeSpeed)
@@ -77,9 +86,12 @@ export function RoleTicker({
         {'>'}
       </span>
       <span className="inline-flex items-end font-mono" role="status" aria-live="off">
-        <span className="bg-gradient-to-r from-[#5eead4] via-[#818cf8] to-[#f0abfc] bg-clip-text font-semibold text-transparent">
-          {text}
-        </span>
+        {/* 逐字定色：颜色由该字符在完整词中的位置决定，与当前打字进度无关 */}
+        {打字.文本.split('').map((char, index) => (
+          <span key={`${index}-${char}`} style={{ color: 字符渐变色(index, 打字.词.length) }}>
+            {char}
+          </span>
+        ))}
         <span
           aria-hidden="true"
           className={cn('ml-0.5 text-[#f0abfc]', !reducedMotion && 'caret-blink')}

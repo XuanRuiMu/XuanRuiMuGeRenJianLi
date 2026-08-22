@@ -1,4 +1,4 @@
-import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
+import { createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
 import { NavigationRoute, registerRoute, setCatchHandler } from 'workbox-routing'
 import { NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies'
 import { ExpirationPlugin } from 'workbox-expiration'
@@ -20,14 +20,13 @@ self.addEventListener('install', (event) => {
 })
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    (async () => {
-      await self.clients.claim()
-      cleanupOutdatedCaches()
-      await checkStorageQuota()
-    })()
-  )
+  event.waitUntil(activateHandler())
 })
+
+async function activateHandler(): Promise<void> {
+  await self.clients.claim()
+  await checkStorageQuota()
+}
 
 precacheAndRoute(self.__WB_MANIFEST)
 

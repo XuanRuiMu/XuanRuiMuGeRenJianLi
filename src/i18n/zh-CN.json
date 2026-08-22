@@ -22,7 +22,7 @@
     "enabled": "启用",
     "display": "显示",
     "inkScreen": "水墨遮罩",
-    "hideStarry": "彻底隐藏星空",
+    "hideStarry": "彻底隐藏星空背景和壁纸",
     "panelTrigger": "特效面板",
     "viewAngle": "视角角度",
     "centerDim": "中心暗化",
@@ -88,7 +88,8 @@
   },
   "footer": {
     "copyright": "© 2026 玄锐暮. 保留所有权利。",
-    "status": "玄锐暮 · 在线简历 · 离线可用"
+    "status": "玄锐暮 · 在线简历 · 离线可用",
+    "visitorsLabel": "访问人数"
   },
   "hero": {
     "hint": "按 ⌘K 打开命令面板，或用顶部导航切换模块。",
@@ -349,13 +350,18 @@
     "busyHint": "esc 中断 · ⏎ 排队发送",
     "idleHint": "esc 关闭 · ⏎ 发送",
     "thinking": "✻ 思考中…",
-    "emptyCommands": "/help 查看全部指令（对齐 Claude Code）",
+    "emptyCommands": "/help 查看全部指令",
+    "attachImage": "添加图片",
+    "removeImage": "移除图片",
+    "imageUploadFailed": "图片上传失败：仅支持 JPEG/PNG/GIF/WebP，且单张不超过 16MiB",
+    "thinkOn": "✻ 思考模式：开（/think 关闭）",
+    "thinkOff": "○ 思考模式：关（/think 开启）",
     "queue": {
       "label": "已排队",
       "hint": "当前回复结束后依次发送 · esc 可中断当前回复"
     },
     "commands": {
-      "help": "可用指令（对齐 Claude Code）：\n  /clear    清空对话历史，开始新会话\n  /new      /clear 的别名\n  /compact  压缩对话历史，保留语义\n  /model    切换模型与思考开关\n  /status   查看面板状态\n  /help     查看指令列表",
+      "help": "可用指令（对齐 Claude Code）：\n  /clear    清空对话历史，开始新会话\n  /new      /clear 的别名\n  /compact  压缩对话历史，保留语义\n  /think    切换思考模式\n  /status   查看面板状态\n  /help     查看指令列表",
       "unknownPrefix": "未知指令：",
       "unknownSuffix": "。输入 /help 查看可用指令",
       "compacting": "✻ 正在压缩对话…",

@@ -7,11 +7,17 @@ const { hookState, settings, createMock, panelMock } = vi.hoisted(() => {
     loading: false,
     reducedMotion: false,
     isDark: true,
+    starryHidden: false,
   }
   const createMock = vi.fn()
   const panelMock = vi.fn()
   return { hookState, settings, createMock, panelMock }
 })
+
+vi.mock('../../store/useStarryUiStore', () => ({
+  useStarryUiStore: (selector: (state: { starryHidden: boolean }) => unknown) =>
+    selector({ starryHidden: hookState.starryHidden }),
+}))
 
 vi.mock('./StarryGalaxyScene', () => ({
   createStarryGalaxyScene: createMock,
@@ -42,6 +48,7 @@ describe('StarryGalaxyBackground', () => {
     hookState.loading = false
     hookState.reducedMotion = false
     hookState.isDark = true
+    hookState.starryHidden = false
     createMock.mockReset()
     createMock.mockReturnValue({ destroy: vi.fn(), getFps: () => 60 })
     panelMock.mockReset()
@@ -55,12 +62,29 @@ describe('StarryGalaxyBackground', () => {
     expect(createStarryGalaxyScene).toHaveBeenCalledWith(expect.any(HTMLElement), { dpr: 1.5 })
   })
 
-  it('浅色模式不创建场景并渲染降级背景', () => {
+  it('浅色模式不创建场景并渲染壁纸层', () => {
     hookState.isDark = false
     render(<StarryGalaxyBackground />)
 
     expect(screen.getByTestId('starry-background-fallback')).toBeInTheDocument()
+    expect(screen.getByTestId('light-wallpaper')).toBeInTheDocument()
     expect(createStarryGalaxyScene).not.toHaveBeenCalled()
+  })
+
+  it('浅色模式 reducedMotion 下壁纸保持静止（data-static）', () => {
+    hookState.isDark = false
+    hookState.reducedMotion = true
+    render(<StarryGalaxyBackground />)
+
+    expect(screen.getByTestId('light-wallpaper')).toHaveAttribute('data-static', 'true')
+  })
+
+  it('浅色模式下彻底隐藏星空背景和壁纸开关同时隐藏壁纸', () => {
+    hookState.isDark = false
+    hookState.starryHidden = true
+    render(<StarryGalaxyBackground />)
+
+    expect(screen.queryByTestId('light-wallpaper')).not.toBeInTheDocument()
   })
 
   it('reducedMotion 时不创建场景并渲染降级背景', () => {

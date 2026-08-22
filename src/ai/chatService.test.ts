@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { sendChatMessage, compactConversation } from './chatService'
 import { personalInfo } from '../data/personalInfo'
-import { DEEPSEEK_MODELS, DEEPSEEK_ENDPOINT } from './deepseekConfig'
+import { DEEPSEEK_MODEL, DEEPSEEK_ENDPOINT } from './deepseekConfig'
 import { useAppStore } from '../store/useAppStore'
 
 const mockFetch = vi.fn()
@@ -9,8 +9,8 @@ const mockFetch = vi.fn()
 describe('chatService', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', mockFetch)
-    // 锁定默认模型与思考开关（flash + 思考开），避免跨用例状态污染
-    useAppStore.setState({ aiModel: 'flash', aiThinking: true })
+    // 锁定思考开关（默认开），避免跨用例状态污染
+    useAppStore.setState({ aiThinking: true })
   })
 
   afterEach(() => {
@@ -70,11 +70,65 @@ describe('chatService', () => {
     expect(callArgs[0]).toBe(DEEPSEEK_ENDPOINT)
     expect((callArgs[1].headers as Record<string, string>).Authorization).toBe('Bearer sk-test')
     const body = JSON.parse((callArgs[1].body as string) ?? '{}')
-    expect(body.model).toBe(DEEPSEEK_MODELS.flash)
+    expect(body.model).toBe(DEEPSEEK_MODEL)
     expect(body.thinking).toEqual({ type: 'enabled' })
     expect(body).not.toHaveProperty('reasoning_effort')
     expect(body.response_format).toEqual({ type: 'json_object' })
     expect(result.message.content).toBe('DeepSeek 回答')
+  })
+
+  it('sends user images as vision content blocks（图片消息按官方块数组格式）', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: '{"text":"图里是一只猫"}' } }] }),
+    })
+
+    const result = await sendChatMessage(
+      [
+        {
+          role: 'user',
+          content: '这张图里有什么？',
+          images: ['data:image/png;base64,QUJD', 'data:image/jpeg;base64,REVG'],
+        },
+      ],
+      { deepseekApiKey: 'sk-test' }
+    )
+
+    const callArgs = mockFetch.mock.calls[0] as [string, RequestInit]
+    const body = JSON.parse((callArgs[1].body as string) ?? '{}')
+    expect(body.model).toBe(DEEPSEEK_MODEL)
+    // 第一条是 system，第二条才是带图的用户消息
+    const apiUserMessage = body.messages[1]
+    expect(apiUserMessage.role).toBe('user')
+    expect(apiUserMessage.content[0]).toEqual({ type: 'text', text: '这张图里有什么？' })
+    expect(apiUserMessage.content[1]).toEqual({ type: 'image_url', image_url: { url: 'data:image/png;base64,QUJD' } })
+    expect(apiUserMessage.content[2]).toEqual({
+      type: 'image_url',
+      image_url: { url: 'data:image/jpeg;base64,REVG' },
+    })
+    expect(result.message.content).toBe('图里是一只猫')
+  })
+
+  it('keeps plain string content for messages without images and for assistant history', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: '{"text":"回答"}' } }] }),
+    })
+
+    await sendChatMessage(
+      [
+        { role: 'user', content: '问题一' },
+        { role: 'assistant', content: '回答一' },
+        { role: 'user', content: '问题二' },
+      ],
+      { deepseekApiKey: 'sk-test' }
+    )
+
+    const callArgs = mockFetch.mock.calls[0] as [string, RequestInit]
+    const body = JSON.parse((callArgs[1].body as string) ?? '{}')
+    expect(body.messages[1].content).toBe('问题一')
+    expect(body.messages[2].content).toBe('回答一')
+    expect(body.messages[3].content).toBe('问题二')
   })
 
   it('parses structured JSON response from DeepSeek', async () => {
@@ -187,7 +241,7 @@ describe('chatService', () => {
 describe('compactConversation（/compact 语义压缩）', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', mockFetch)
-    useAppStore.setState({ aiModel: 'flash', aiThinking: true })
+    useAppStore.setState({ aiThinking: true })
   })
 
   afterEach(() => {

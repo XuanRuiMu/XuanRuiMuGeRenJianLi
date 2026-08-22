@@ -4,6 +4,7 @@ import { CommandPalette } from '../components/command-palette/CommandPalette'
 import { AIChat } from '../components/ai-chat/AIChat'
 import { PWAStatusIndicator } from '../components/PWAStatusIndicator'
 import { StarryGalaxyBackground, InkRevealOverlay } from '../components/starry-background'
+import { VisitorCounter } from '../components/visitor-counter/VisitorCounter'
 import { t } from '../i18n/translations'
 
 interface LayoutProps {
@@ -25,6 +26,8 @@ export function Layout({ children }: LayoutProps) {
           <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 text-xs text-muted text-shadow-readable sm:flex-row">
             <span>{t('footer.copyright')}</span>
             <span>{t('footer.status')}</span>
+            {/* 网页最底部：访问人数统计（对接 /api/analytics，dev 落盘 data/，生产走 CF KV） */}
+            <VisitorCounter />
           </div>
         </footer>
 

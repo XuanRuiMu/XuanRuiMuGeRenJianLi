@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+﻿import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { cn } from '../../lib/utils'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { usePerformanceProfile } from '../../hooks/usePerformanceProfile'
@@ -10,6 +10,50 @@ import { useStarryUiStore } from '../../store/useStarryUiStore'
 interface StarryGalaxyBackgroundProps {
   className?: string
   children?: ReactNode
+}
+
+// LightWallpaper滚动系数：每垂直滚动 1px，壁纸下移该系数 px（与星空视差同款"轻微呼吸感"）
+const 壁纸滚动系数 = 0.06
+// 位移上限 < CSS 溢出预留（320px），任何页面长度下都不会露底
+const 壁纸位移上限 = 280
+
+/**
+ * 浅色模式壁纸层：fixed 铺满（CSS 纵向各溢出 320px 预留位移空间），
+ * 滚动时 rAF 合帧后轻微下移，模拟星空背景的滚动视差；reduced-motion 保持静止。
+ */
+function LightWallpaper({ reducedMotion }: { reducedMotion: boolean }) {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (reducedMotion) return
+    let raf = 0
+    const 应用位移 = () => {
+      raf = 0
+      const el = ref.current
+      if (!el) return
+      const shift = Math.min(window.scrollY * 壁纸滚动系数, 壁纸位移上限)
+      el.style.transform = `translate3d(0, ${shift}px, 0)`
+    }
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(应用位移)
+    }
+    应用位移()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [reducedMotion])
+
+  return (
+    <div
+      ref={ref}
+      className="light-wallpaper"
+      aria-hidden="true"
+      data-testid="light-wallpaper"
+      data-static={reducedMotion ? 'true' : 'false'}
+    />
+  )
 }
 
 export function StarryGalaxyBackground({ className, children }: StarryGalaxyBackgroundProps) {
@@ -46,6 +90,8 @@ export function StarryGalaxyBackground({ className, children }: StarryGalaxyBack
   }, [settings, reducedMotion, isDark, starryHidden])
 
   const showCanvas = isDark && !loading && !reducedMotion && !starryHidden
+  // 浅色模式壁纸：星空隐藏开关同时管住壁纸（控制面板文案"彻底隐藏星空背景和壁纸"）
+  const showWallpaper = !isDark && !starryHidden
 
   // starryHidden 开启时使用简单纯色背景（深黑/浅白）；关闭时维持原有回退样式
   const fallbackClass = starryHidden
@@ -63,7 +109,9 @@ export function StarryGalaxyBackground({ className, children }: StarryGalaxyBack
       aria-hidden="true"
       data-testid={showCanvas ? 'starry-background-canvas' : 'starry-background-fallback'}
     >
+      {showWallpaper && <LightWallpaper reducedMotion={reducedMotion} />}
       {children}
     </div>
   )
 }
+

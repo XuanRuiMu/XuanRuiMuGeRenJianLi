@@ -8,8 +8,8 @@
  */
 export const DEEPSEEK_API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY ?? ''
 
-/** v4 模型可选：flash（快）/ pro（旗舰），均为 1M 上下文、384K 输出、MIT 许可。 */
-export const DEEPSEEK_MODELS = { flash: 'deepseek-v4-flash', pro: 'deepseek-v4-pro' } as const
+/** 唯一模型：vision 实验版，支持文本+图片输入（官方文档：JPEG/PNG/GIF/WebP，仅 user 消息可带图）。 */
+export const DEEPSEEK_MODEL = 'deepseek-v4-flash-vision-exp'
 
 /** v4 上下文上限（token），状态栏「上下文默认最大」指示用。 */
 export const DEEPSEEK_CONTEXT_MAX = 1_000_000

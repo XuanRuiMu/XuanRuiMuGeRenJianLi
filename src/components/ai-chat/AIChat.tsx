@@ -1,9 +1,10 @@
 import { useRef, useState, useEffect, useCallback, useOptimistic, startTransition } from 'react'
-import { X, Loader2, RefreshCw } from 'lucide-react'
+import { X, Loader2, RefreshCw, ImagePlus } from 'lucide-react'
 import { useAppStore } from '../../store/useAppStore'
 import { cn } from '../../lib/utils'
 import { t, ta } from '../../i18n/translations'
 import { useChatService, compactConversation, 是否中断错误 } from '../../ai/chatService'
+import { DEEPSEEK_MODEL } from '../../ai/deepseekConfig'
 import { UiComponentRenderer } from './UiComponentRegistry'
 import type { AiMessage } from '../../store/useAppStore'
 
@@ -11,10 +12,30 @@ interface AIChatProps {
   className?: string
 }
 
-// /model 指令：仅 deepseek-v4-flash / deepseek-v4-pro 两个模型。
-// 模块级常量：避免组件内声明导致依赖它的 useCallback 每次渲染都重建。
-type ModelValue = 'flash' | 'pro'
-const MODEL_ORDER: ModelValue[] = ['flash', 'pro']
+// vision 输入约束（对齐官方文档）：格式按内容判定，此处前端按 MIME 预过滤；
+// 单张 ≤16MiB（API 上限 32MiB，留足请求体余量），每条消息 ≤4 张。
+const 图片MIME白名单 = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+const 单图上限字节 = 16 * 1024 * 1024
+const 每条消息图片上限 = 4
+
+/** 排队项（对齐 Claude Code 的 queued 语义）：忙时发送的消息连同其图片一起排队 */
+interface QueuedItem {
+  content: string
+  images?: string[]
+}
+
+function 是合法图片(file: File): boolean {
+  return file.size > 0 && file.size <= 单图上限字节 && 图片MIME白名单.includes(file.type)
+}
+
+function 读取为DataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+}
 
 function escapeHtml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -64,22 +85,25 @@ export function AIChat({ className }: AIChatProps) {
   const [sendError, setSendError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const chatMutation = useChatService()
   const isPending = chatMutation.isPending
 
-  const aiModel = useAppStore((state) => state.aiModel)
   const aiThinking = useAppStore((state) => state.aiThinking)
-  const setAiModel = useAppStore((state) => state.setAiModel)
   const setAiThinking = useAppStore((state) => state.setAiThinking)
-  const [modelMenuOpen, setModelMenuOpen] = useState(false)
-  const [menuCursor, setMenuCursor] = useState(0)
 
   // 指令输出（/help /status /compact /未知指令）：瞬态本地状态，不进对话历史，
   // 避免污染发给模型的上下文（Claude Code 的指令输出同样不属于会话历史）。
   const [systemLines, setSystemLines] = useState<string[]>([])
   // 消息队列（对齐 Claude Code）：忙时发送的消息排队，当前回合结束后依次发出。
-  const [queued, setQueued] = useState<string[]>([])
+  const [queued, setQueued] = useState<QueuedItem[]>([])
   const [compacting, setCompacting] = useState(false)
+  // 待发送图片（data URL）：随下一条用户消息一起发出
+  const [pendingImages, setPendingImages] = useState<string[]>([])
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
+  // 同步最新待发图片到 ref：顺序读取循环中取实时长度，避免闭包过期
+  const pendingImagesRef = useRef(pendingImages)
+  pendingImagesRef.current = pendingImages
   const abortRef = useRef<AbortController | null>(null)
   // 排队泄放与手动发送共用同一闸门，防止 isPending 翻转间隙双发。
   const sendingRef = useRef(false)
@@ -102,9 +126,13 @@ export function AIChat({ className }: AIChatProps) {
    * 其他错误走错误栏。
    */
   const sendMessage = useCallback(
-    async (content: string) => {
+    async (content: string, images?: string[]) => {
       const gen = generationRef.current
-      const userMessage: AiMessage = { role: 'user', content }
+      const userMessage: AiMessage = {
+        role: 'user',
+        content,
+        ...(images && images.length > 0 ? { images } : {}),
+      }
       addOptimisticMessage(userMessage)
       setSendError(null)
       const controller = new AbortController()
@@ -141,13 +169,13 @@ export function AIChat({ className }: AIChatProps) {
     const [next, ...rest] = queued
     setQueued(rest)
     startTransition(() => {
-      void sendMessage(next).finally(() => {
+      void sendMessage(next.content, next.images).finally(() => {
         sendingRef.current = false
       })
     })
   }, [isPending, compacting, queued, sendMessage])
 
-  /** 指令分发（对齐 Claude Code 语义）：/clear 新会话、/compact 语义压缩、/help /status /model、未知指令报错 */
+  /** 指令分发（对齐 Claude Code 语义）：/clear 新会话、/compact 语义压缩、/think /help /status、未知指令报错 */
   const runCommand = useCallback(
     async (raw: string) => {
       const cmd = raw.split(/\s+/)[0].toLowerCase()
@@ -167,22 +195,27 @@ export function AIChat({ className }: AIChatProps) {
           setSystemLines([])
           setSendError(null)
           setCompacting(false)
+          // 新会话不残留上一轮待发图片（与 handleReset 同一语义）
+          setPendingImages([])
           break
         }
         case '/status': {
           const 历史数 = aiMessagesRef.current.length
           setSystemLines([
-            `${t('ai.commands.statusModel')}：${aiModel === 'pro' ? 'deepseek-v4-pro' : 'deepseek-v4-flash'}`,
+            `${t('ai.commands.statusModel')}：${DEEPSEEK_MODEL}`,
             `${t('ai.commands.statusThinking')}：${aiThinking ? 'on' : 'off'}`,
             `${t('ai.commands.statusMessages')}：${历史数}`,
             `${t('ai.commands.statusContext')}：1M`,
           ])
           break
         }
-        case '/model':
-          setModelMenuOpen(true)
-          setMenuCursor(0)
+        case '/think': {
+          // 思考模式开关（唯一模型下 /model 已移除，思考开关由 /think 承接）
+          const 下一个 = !aiThinking
+          setAiThinking(下一个)
+          setSystemLines([t(下一个 ? 'ai.thinkOn' : 'ai.thinkOff')])
           break
+        }
         case '/compact': {
           if (isPending || sendingRef.current || compacting) {
             // 在途回合未被序列化前不得压缩，否则旧回合会在压缩后复活，语义压缩名存实亡
@@ -219,10 +252,10 @@ export function AIChat({ className }: AIChatProps) {
           setSystemLines([`${t('ai.commands.unknownPrefix')}${cmd}${t('ai.commands.unknownSuffix')}`])
       }
     },
-    [aiModel, aiThinking, isPending, compacting, clearAiMessages, addAiMessage, chatMutation]
+    [aiThinking, isPending, compacting, clearAiMessages, addAiMessage, chatMutation, setAiThinking]
   )
 
-  /** 输入提交统一入口：指令分流；忙时排队；空闲时发送 */
+  /** 输入提交统一入口：指令分流；忙时排队；空闲时发送。图片随本次消息一并发出并清空待发区 */
   const submitInput = useCallback(
     (raw: string) => {
       const content = raw.trim()
@@ -232,21 +265,47 @@ export function AIChat({ className }: AIChatProps) {
         void runCommand(content)
         return
       }
+      const images = pendingImages.length > 0 ? [...pendingImages] : undefined
+      setPendingImages([])
       // 新动作即清除指令输出（瞬态语义：不滞留在消息流）
       setSystemLines([])
       if (isPending || sendingRef.current || compacting) {
-        setQueued((prev) => [...prev, content])
+        setQueued((prev) => [...prev, { content, images }])
         return
       }
       sendingRef.current = true
       startTransition(() => {
-        void sendMessage(content).finally(() => {
+        void sendMessage(content, images).finally(() => {
           sendingRef.current = false
         })
       })
     },
-    [isPending, compacting, runCommand, sendMessage]
+    [isPending, compacting, runCommand, sendMessage, pendingImages]
   )
+
+  /** 文件选取 → 校验 → 转 dataURL 进待发区；任一不合格即整体提示上传失败（不合格文件被忽略） */
+  const 接收图片文件 = useCallback(async (files: FileList | null) => {
+    if (!files || files.length === 0) return
+    let rejected = false
+    const accepted: string[] = []
+    for (const file of Array.from(files)) {
+      if (!是合法图片(file) || pendingImagesRef.current.length + accepted.length >= 每条消息图片上限) {
+        rejected = true
+        continue
+      }
+      try {
+        accepted.push(await 读取为DataUrl(file))
+      } catch {
+        rejected = true
+      }
+    }
+    if (accepted.length > 0) {
+      setPendingImages((prev) => [...prev, ...accepted])
+    }
+    if (rejected) {
+      setSystemLines([t('ai.imageUploadFailed')])
+    }
+  }, [])
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -277,45 +336,27 @@ export function AIChat({ className }: AIChatProps) {
     setSystemLines([])
     setSendError(null)
     setCompacting(false)
+    setPendingImages([])
+    setLightboxSrc(null)
   }, [clearAiMessages, chatMutation])
 
-  // /model 面板交互约束（用户硬性要求）：模型只能 ↑↓ 切换；思考开关只能 ←→ 切换；不再有思考强度。
-  const activateMenuItem = useCallback(
-    (item: { kind: 'model'; value: ModelValue }) => {
-      setAiModel(item.value)
-      setModelMenuOpen(false)
-      setMenuCursor(0)
-    },
-    [setAiModel]
-  )
+  // 灯箱打开时：Esc 仅关灯箱（capture 阶段拦截，避免同时触发面板 Esc 关闭/中断语义）
+  useEffect(() => {
+    if (!lightboxSrc) return
+    const 关闭灯箱 = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        event.stopImmediatePropagation()
+        setLightboxSrc(null)
+      }
+    }
+    window.addEventListener('keydown', 关闭灯箱, true)
+    return () => window.removeEventListener('keydown', 关闭灯箱, true)
+  }, [lightboxSrc])
 
-  // 终端习惯：Esc 关闭面板（中断会话）；/model 面板打开时：
-  // ↑↓ 切换模型（实时生效）、←→ 切换思考开关、⏎ 选择并关闭、Esc 退出。
+  // 终端习惯：Esc 关闭面板（中断会话）；忙时 Esc 中断当前请求（对齐 Claude Code）。
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
-      if (modelMenuOpen) {
-        if (event.key === 'ArrowDown') {
-          event.preventDefault()
-          setMenuCursor((c) => (c + 1) % MODEL_ORDER.length)
-          setAiModel(MODEL_ORDER[(menuCursor + 1) % MODEL_ORDER.length])
-        } else if (event.key === 'ArrowUp') {
-          event.preventDefault()
-          setMenuCursor((c) => (c - 1 + MODEL_ORDER.length) % MODEL_ORDER.length)
-          setAiModel(MODEL_ORDER[(menuCursor - 1 + MODEL_ORDER.length) % MODEL_ORDER.length])
-        } else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-          event.preventDefault()
-          setAiThinking(!aiThinking)
-        } else if (event.key === 'Enter') {
-          event.preventDefault()
-          setModelMenuOpen(false)
-        } else if (event.key === 'Escape') {
-          event.preventDefault()
-          setModelMenuOpen(false)
-        }
-        return
-      }
-      // 终端习惯：忙时 Esc 中断当前请求（对齐 Claude Code）；闲时 Esc 关闭面板。
-      // /model 面板打开时：↑↓ 切模型、←→ 切思考、⏎/Esc 关闭。
       if (event.key === 'Escape') {
         if (isPending || compacting) {
           event.preventDefault()
@@ -325,7 +366,7 @@ export function AIChat({ className }: AIChatProps) {
         }
       }
     },
-    [modelMenuOpen, menuCursor, aiThinking, setAiModel, setAiThinking, setChatOpen, isPending, compacting]
+    [setChatOpen, isPending, compacting]
   )
 
   if (!chatOpen) {
@@ -421,7 +462,25 @@ export function AIChat({ className }: AIChatProps) {
                   <span className="select-none text-[#d97757]" aria-hidden="true">
                     ❯
                   </span>
-                  <span className="whitespace-pre-wrap break-words">{message.content}</span>
+                  <div className="min-w-0 flex-1">
+                    {message.images && message.images.length > 0 && (
+                      <div className="mb-1.5 flex flex-wrap gap-1.5" data-testid="message-images">
+                        {message.images.map((src, imageIndex) => (
+                          <button
+                            key={`${imageIndex}-${src.slice(-12)}`}
+                            type="button"
+                            onClick={() => setLightboxSrc(src)}
+                            className="overflow-hidden rounded border border-[#2a2a2a] transition-colors hover:border-[#d97757]"
+                          >
+                            <img src={src} alt="" className="h-16 w-16 object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {message.content && (
+                      <span className="whitespace-pre-wrap break-words">{message.content}</span>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div key={`${message.role}-${index}`} className="flex gap-2 text-[13px] leading-relaxed text-[#e6e6e6]">
@@ -459,59 +518,6 @@ export function AIChat({ className }: AIChatProps) {
         )}
       </div>
 
-      {modelMenuOpen &&
-        (() => {
-          const thinkLabel = (
-            <span className={aiThinking ? 'text-[#4ade80]' : 'text-[#9aa0aa]'}>
-              {aiThinking ? '● On' : '○ Off'}
-            </span>
-          )
-          return (
-            <div className="mx-1 mb-1 rounded-md border border-[#2a2a2a] bg-[#0b0b0b] p-2 font-mono text-[11px]">
-              <div className="mb-1 flex items-center gap-2 text-[#d97757]">
-                <span>╭─</span>
-                <span>/model</span>
-                <span className="h-px flex-1 bg-[#d97757]/40" />
-                <span>╮</span>
-              </div>
-              <div className="mb-1 px-1 text-[#666]">
-                ↑↓ 模型 · ←→ 思考开关 · ⏎ 确认 · esc 退出
-              </div>
-              {MODEL_ORDER.map((value, i) => {
-                const active = i === menuCursor
-                const sel = aiModel === value
-                const name = value === 'pro' ? 'deepseek-v4-pro' : 'deepseek-v4-flash'
-                const hint = value === 'pro' ? '旗舰 · 1M 上下文' : '极速响应'
-                return (
-                  <div
-                    key={value}
-                    className={cn(
-                      'flex cursor-pointer items-center gap-1 rounded px-1 py-0.5',
-                      active ? 'bg-[#d97757] text-black' : 'text-[#cfcfcf]'
-                    )}
-                    onMouseEnter={() => {
-                      setMenuCursor(i)
-                      setAiModel(value)
-                    }}
-                    onClick={() => activateMenuItem({ kind: 'model', value })}
-                  >
-                    <span className="select-none">{active ? '❯' : ' '}</span>
-                    <span className="flex-1">
-                      {sel ? '◉' : '○'} {name} <span className="text-[#666]">{hint}</span>
-                    </span>
-                    <span>Think: {thinkLabel}</span>
-                  </div>
-                )
-              })}
-              <div className="mt-1 flex items-center gap-2 text-[#d97757]">
-                <span>╰</span>
-                <span className="h-px flex-1 bg-[#d97757]/40" />
-                <span>╯</span>
-              </div>
-            </div>
-          )
-        })()}
-
       {sendError && (
         <div className="border-t border-[#2a2a2a] bg-[#3b1d1d] px-3 py-2 text-xs text-[#f0a0a0]" role="alert">
           {sendError}
@@ -521,9 +527,10 @@ export function AIChat({ className }: AIChatProps) {
       {/* 消息队列（对齐 Claude Code）：忙时发送的消息显示在输入框上方，回复结束后依次发出 */}
       {queued.length > 0 && (
         <div className="border-t border-[#1f1f1f] bg-[#0d0d0d] px-3 py-1.5 font-mono text-[11px] text-[#9aa0aa]">
-          {queued.map((message, index) => (
-            <div key={`${index}-${message.slice(0, 8)}`} className="truncate">
-              ⏳ {t('ai.queue.label')} {index + 1}：{message}
+          {queued.map((item, index) => (
+            <div key={`${index}-${item.content.slice(0, 8)}`} className="truncate">
+              ⏳ {t('ai.queue.label')} {index + 1}：{item.content}
+              {item.images && item.images.length > 0 ? ` [${item.images.length} img]` : ''}
             </div>
           ))}
           <div className="text-[#666]">{t('ai.queue.hint')}</div>
@@ -538,6 +545,23 @@ export function AIChat({ className }: AIChatProps) {
         }}
         className="border-t border-[#1f1f1f] bg-[#0a0a0a] p-2.5"
       >
+        {pendingImages.length > 0 && (
+          <div className="mb-1.5 flex flex-wrap gap-1.5" data-testid="pending-images">
+            {pendingImages.map((src, imageIndex) => (
+              <span key={`${imageIndex}-${src.slice(-12)}`} className="relative inline-block">
+                <img src={src} alt="" className="h-12 w-12 rounded object-cover ring-1 ring-[#2a2a2a]" />
+                <button
+                  type="button"
+                  onClick={() => setPendingImages((prev) => prev.filter((_, i) => i !== imageIndex))}
+                  aria-label={t('ai.removeImage')}
+                  className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#333] text-[10px] leading-none text-[#eee] hover:bg-[#d97757]"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
         <div className="flex items-center gap-2 rounded border border-[#2a2a2a] bg-[#121212] px-2.5 py-2 transition-colors focus-within:border-[#d97757]">
           <span className="select-none text-[#d97757]" aria-hidden="true">
             ❯
@@ -553,6 +577,26 @@ export function AIChat({ className }: AIChatProps) {
             className="flex-1 bg-transparent text-[13px] text-[#e6e6e6] outline-none placeholder:text-[#555]"
             maxLength={200}
           />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="text-[#666] transition-colors hover:text-[#d97757]"
+            aria-label={t('ai.attachImage')}
+            title={t('ai.attachImage')}
+          >
+            <ImagePlus size={16} />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            className="hidden"
+            onChange={(event) => {
+              void 接收图片文件(event.target.files)
+              event.target.value = ''
+            }}
+          />
           <span
             aria-hidden="true"
             className={cn(
@@ -565,10 +609,29 @@ export function AIChat({ className }: AIChatProps) {
           <span>{isPending || compacting ? t('ai.busyHint') : t('ai.idleHint')}</span>
           <span className="flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-[#4ade80]" aria-hidden="true" />
-            {`${aiModel === 'pro' ? 'deepseek-v4-pro' : 'deepseek-v4-flash'} · ${aiThinking ? 'think on' : 'think off'} · CTX 1M`}
+            {`${DEEPSEEK_MODEL} · ${aiThinking ? 'think on' : 'think off'} · CTX 1M`}
           </span>
         </div>
       </form>
+
+      {/* 灯箱：点击缩略图全屏查看原图，点遮罩或 Esc 关闭 */}
+      {lightboxSrc && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('ai.title')}
+          data-testid="chat-lightbox"
+          onClick={() => setLightboxSrc(null)}
+          className="fixed inset-0 z-[80] flex cursor-zoom-out items-center justify-center bg-black/85 p-6"
+        >
+          <img
+            src={lightboxSrc}
+            alt=""
+            onClick={(event) => event.stopPropagation()}
+            className="max-h-full max-w-full cursor-default rounded-lg shadow-2xl"
+          />
+        </div>
+      )}
     </div>
   )
 }

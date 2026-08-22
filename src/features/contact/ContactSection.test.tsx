@@ -49,7 +49,8 @@ describe('ContactSection', () => {
     render(<ContactSection />, { wrapper: createWrapper() })
     expect(screen.getByLabelText(t('contact.form.name'))).toBeInTheDocument()
     expect(screen.getByLabelText(t('contact.form.email'))).toBeInTheDocument()
-    expect(screen.getByLabelText(t('contact.form.message'))).toBeInTheDocument()
+    // 留言框扩容为原来的两倍（rows 4→8）
+    expect(screen.getByLabelText(t('contact.form.message'))).toHaveAttribute('rows', '8')
     expect(screen.getByRole('button', { name: t('contact.form.submit') })).toBeInTheDocument()
   })
 

@@ -83,13 +83,32 @@ interface ShowcaseProductCardProps {
   card: ShowcaseCard
   index: number
   reducedMotion: boolean
+  control?: MarqueeControl
 }
 
-function ShowcaseProductCard({ card, index, reducedMotion }: ShowcaseProductCardProps) {
+function ShowcaseProductCard({ card, index, reducedMotion, control }: ShowcaseProductCardProps) {
   const gradient = GRADIENTS[index % GRADIENTS.length]
   const neonShadow = NEON_SHADOWS[index % NEON_SHADOWS.length]
   const iconColor = ICON_COLORS[index % ICON_COLORS.length]
   const Icon = CARD_ICONS[card.id] ?? Shapes
+  const cardRef = useRef<HTMLDivElement>(null)
+
+  // 悬停判定（根因修复）：注册在「每张卡片」而非整条轨道——
+  // 旧实现挂在轨道元素上，指针落在两张卡之间的缝隙也会被判为悬停而暂停；
+  // 现在只有真正命中卡片方框（含抬起后的视觉范围）才计入共享悬停集合。
+  useLayoutEffect(() => {
+    const el = cardRef.current
+    if (!el || !control || reducedMotion) return
+    const onEnter = () => control.hovered.add(el)
+    const onLeave = () => control.hovered.delete(el)
+    el.addEventListener('pointerenter', onEnter)
+    el.addEventListener('pointerleave', onLeave)
+    return () => {
+      el.removeEventListener('pointerenter', onEnter)
+      el.removeEventListener('pointerleave', onLeave)
+      control.hovered.delete(el)
+    }
+  }, [control, reducedMotion])
 
   const inner = (
     <div className="flex h-full w-full flex-col justify-between rounded-xl bg-black p-5 md:p-6">
@@ -102,7 +121,10 @@ function ShowcaseProductCard({ card, index, reducedMotion }: ShowcaseProductCard
   )
 
   return (
-    <div className="group/card h-32 w-[11rem] shrink-0 md:h-[26.75rem] md:w-[22rem] lg:h-96 lg:w-[30rem]">
+    <div ref={cardRef} className="group/card relative h-32 w-[11rem] shrink-0 md:h-[26.75rem] md:w-[22rem] lg:h-96 lg:w-[30rem]">
+      {/* 命中补偿带：向下延伸 24px 覆盖 whileHover 抬起位移，
+          防止光标停在原底缘时「抬起→离开→回落→再抬起」的振荡；水平方向不扩宽，缝隙仍不受判定 */}
+      <span aria-hidden="true" className="absolute inset-x-0 -bottom-6 h-6" />
       <motion.div
         whileHover={reducedMotion ? undefined : { y: -20 }}
         className="h-full w-full"
@@ -200,22 +222,8 @@ function useAutoMarquee(opts: {
     setCopies((prev) => (prev === needed ? prev : needed))
   }
 
-  // 轨道注册进共享控制器：自身 pointerenter/pointerleave 即全局悬停信号（边界事件，
-  // 命中即整体暂停，无需每帧 mousemove 命中测试）。
-  useLayoutEffect(() => {
-    const el = trackRef.current
-    if (!el) return
-    const onEnter = () => control.hovered.add(el)
-    const onLeave = () => control.hovered.delete(el)
-    el.addEventListener('pointerenter', onEnter)
-    el.addEventListener('pointerleave', onLeave)
-    return () => {
-      el.removeEventListener('pointerenter', onEnter)
-      el.removeEventListener('pointerleave', onLeave)
-      control.hovered.delete(el)
-    }
-  }, [control])
-
+  // 轨道不再注册悬停（根因修复）：悬停信号改由每张卡片自身向共享控制器注册，
+  // 缝隙位置不触发暂停；此处只负责测量与副本数计算。
   useLayoutEffect(() => {
     measure.current()
     const onResize = () => measure.current()
@@ -325,6 +333,7 @@ function ShowcaseMarqueeRow({
                 card={card}
                 index={rowIndex * 5 + cardIndex}
                 reducedMotion={reducedMotion}
+                control={control}
               />
             ))}
           </div>

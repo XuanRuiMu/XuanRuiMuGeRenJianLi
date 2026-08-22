@@ -13,6 +13,8 @@
 export interface InkRevealOptions {
   enabled?: boolean
   coverColor?: string
+  /** 遮罩不透明度：1=满屏实色（深色语义）；<1=半透明色雾（浅色：壁纸透出、划过更清晰） */
+  coverAlpha?: number
 }
 
 interface Stamp {
@@ -37,6 +39,7 @@ export class InkRevealRenderer {
   private enabled: boolean
   private readonly coverColor: string
   private readonly coverRgb: string
+  private readonly coverAlpha: number
   private dpr = 1
   private w = 0
   private h = 0
@@ -49,6 +52,7 @@ export class InkRevealRenderer {
     this.enabled = options.enabled ?? true
     this.coverColor = options.coverColor ?? '#05060f'
     this.coverRgb = this.hexToRgb(this.coverColor)
+    this.coverAlpha = Math.min(Math.max(options.coverAlpha ?? 1, 0), 1)
 
     this.canvas = document.createElement('canvas')
     this.canvas.className = 'ink-reveal-overlay'
@@ -127,9 +131,12 @@ export class InkRevealRenderer {
   private fillMask() {
     if (!this.enabled) return
     this.ctx.globalCompositeOperation = 'source-over'
-    this.ctx.globalAlpha = 1
+    // 半透明遮罩必须先清屏再铺色：否则每帧 fillRect 会让雾反复叠加直至不透明
+    this.ctx.clearRect(0, 0, this.w, this.h)
+    this.ctx.globalAlpha = this.coverAlpha
     this.ctx.fillStyle = 'rgb(' + this.coverRgb + ')'
     this.ctx.fillRect(0, 0, this.w, this.h)
+    this.ctx.globalAlpha = 1
   }
 
   private resize = () => {
@@ -156,8 +163,12 @@ export class InkRevealRenderer {
     let hasStamps = false
 
     this.ctx.globalCompositeOperation = 'source-over'
+    // 半透明遮罩每帧重涂前先清屏，避免色雾逐帧叠加变浓（coverAlpha=1 时行为与原实现等价）
+    this.ctx.clearRect(0, 0, this.w, this.h)
+    this.ctx.globalAlpha = this.coverAlpha
     this.ctx.fillStyle = 'rgb(' + this.coverRgb + ')'
     this.ctx.fillRect(0, 0, this.w, this.h)
+    this.ctx.globalAlpha = 1
 
     this.ctx.globalCompositeOperation = 'destination-out'
     for (let i = this.stamps.length - 1; i >= 0; i--) {
