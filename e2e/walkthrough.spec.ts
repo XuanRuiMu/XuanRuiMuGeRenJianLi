@@ -58,16 +58,25 @@ test('全站用户视角走查（双主题/签字/壁纸/AI面板/留言落盘/�
   await page.getByRole('button', { name: '选择主题' }).first().click()
   await page.getByRole('option', { name: /浅色/ }).click()
   await page.waitForTimeout(1500)
-  // 需求4新契约：浅色背景为程序化 Canvas「燃烧的泰达希尔」动态动画（静态 background-image 已移除）
-  const 燃烧壁纸已挂载 = await page.evaluate(() => {
-    const el = document.querySelector('[data-testid="light-wallpaper"]')
-    if (!el) return false
-    const canvas = el.querySelector('canvas')
-    if (!canvas) return false
-    return canvas.width > 0 && canvas.height > 0
-  })
-  expect(燃烧壁纸已挂载, '浅色模式燃烧泰达希尔 Canvas 背景应已挂载且有尺寸').toBe(true)
-  摘要.push(`浅色燃烧泰达希尔Canvas已挂载: ${燃烧壁纸已挂载}`)
+  // 需求4新契约：浅色背景为真实素材视频「燃烧的泰达希尔」循环播放（禁静态图/手绘，动态性为用户红线）
+  const 壁纸视频 = page.locator('[data-testid="light-wallpaper"] video')
+  await expect(壁纸视频, '浅色壁纸内应有 video 元素').toHaveCount(1)
+  await expect
+    .poll(async () => 壁纸视频.evaluate((el) => (el as HTMLVideoElement).readyState), { timeout: 10_000 })
+    .toBeGreaterThanOrEqual(1)
+  const 视频起始时间 = await 壁纸视频.evaluate((el) => (el as HTMLVideoElement).currentTime)
+  await page.waitForTimeout(1000)
+  const 视频推进时间 = await 壁纸视频.evaluate((el) => (el as HTMLVideoElement).currentTime)
+  // 回绕感知增量：8.52s 循环源在两次读取间可能跨过循环点，裸减法会假失败
+  const 视频周期 = await 壁纸视频.evaluate((el) => (el as HTMLVideoElement).duration)
+  const 播放增量 = (((视频推进时间 - 视频起始时间) % 视频周期) + 视频周期) % 视频周期
+  expect(
+    播放增量,
+    `视频 currentTime 应在 1 秒间隔内推进（实际 ${视频起始时间} → ${视频推进时间}，周期 ${视频周期}）`
+  ).toBeGreaterThan(0)
+  摘要.push(
+    `浅色燃烧泰达希尔视频已挂载并播放: currentTime ${视频起始时间.toFixed(2)}→${视频推进时间.toFixed(2)}`
+  )
   await 截图(page, '02-hero-light')
 
   // 滚动后壁纸位移

@@ -177,7 +177,6 @@ export default defineConfig({
       '@react-three/fiber',
       '@react-three/drei',
       'framer-motion',
-      'recharts',
       'matter-js',
       'lenis',
       '@tanstack/react-query',

@@ -1298,11 +1298,11 @@ html.circular-reveal-active::view-transition-old(root) {
   z-index: 1;
 }
 
-/* ============ 浅色模式壁纸 · 燃烧的泰达希尔（程序化 Canvas 动态场景） ============ */
+/* ============ 浅色模式壁纸 · 燃烧的泰达希尔（真实素材视频循环） ============ */
 
 /* 纵向上下各溢出 320px：预留滚动位移空间（位移上限 280px），任何页面长度下不露底。
-   画面由 TeldrassilFireScene 注入的 canvas 程序化绘制（天空渐变+树剪影静态层缓存，
-   火焰/余烬/光晕/烟霭动态层），此处仅保留定位与溢出预留。 */
+   画面由组件内挂的 <video autoplay muted loop> 播放真实素材视频
+   （object-cover 铺满并裁掉 2.35:1 遮幅黑边），此处仅保留定位与溢出预留。 */
 .light-wallpaper {
   position: fixed;
   left: 0;

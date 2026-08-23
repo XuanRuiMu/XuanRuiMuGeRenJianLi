@@ -3,7 +3,6 @@ import { cn } from '../../lib/utils'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { usePerformanceProfile } from '../../hooks/usePerformanceProfile'
 import { createStarryControlPanel, createStarryGalaxyScene, type StarryGalaxySceneApi } from './StarryGalaxyScene'
-import { TeldrassilFireScene } from './TeldrassilFireScene'
 import { useIsDarkMode } from './useIsDarkMode'
 import { starrySceneRef } from '../../lib/starrySceneRef'
 import { useStarryUiStore } from '../../store/useStarryUiStore'
@@ -20,21 +19,20 @@ const 壁纸位移上限 = 280
 
 /**
  * 浅色模式壁纸层：fixed 铺满（CSS 纵向各溢出 320px 预留位移空间），
- * 内挂程序化 Canvas「燃烧的泰达希尔」动态场景；
- * 滚动时 rAF 合帧后轻微下移，模拟星空背景的滚动视差；reduced-motion 场景仅绘静态单帧。
+ * 内挂真实素材视频「燃烧的泰达希尔」（autoplay+muted+loop 循环播放，object-cover 铺满裁掉遮幅黑边）；
+ * 滚动时 rAF 合帧后轻微下移，模拟星空背景的滚动视差；reduced-motion 不自动播放并暂停在首帧。
  */
 function LightWallpaper({ reducedMotion }: { reducedMotion: boolean }) {
   const ref = useRef<HTMLDivElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
-  // 挂载/销毁燃烧泰达希尔场景（canvas 由场景创建并注入本层）
+  // reduced-motion 兜底：autoPlay 属性已条件移除，此处再暂停归零，覆盖运行中动态开启的场景
   useEffect(() => {
-    const el = ref.current
-    if (!el || typeof window === 'undefined') return
-    const 场景 = new TeldrassilFireScene({ reducedMotion })
-    场景.mount(el)
-    return () => {
-      场景.destroy()
-    }
+    if (!reducedMotion) return
+    const video = videoRef.current
+    if (!video) return
+    if (!video.paused) video.pause()
+    video.currentTime = 0
   }, [reducedMotion])
 
   useEffect(() => {
@@ -65,7 +63,18 @@ function LightWallpaper({ reducedMotion }: { reducedMotion: boolean }) {
       aria-hidden="true"
       data-testid="light-wallpaper"
       data-static={reducedMotion ? 'true' : 'false'}
-    />
+    >
+      <video
+        ref={videoRef}
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+        src="/videos/teldrassil-burning.mp4"
+        autoPlay={!reducedMotion}
+        muted
+        loop
+        playsInline
+        preload="auto"
+      />
+    </div>
   )
 }
 
