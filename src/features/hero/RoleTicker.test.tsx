@@ -62,14 +62,18 @@ describe('RoleTicker 组件渲染', () => {
       const 取当前颜色 = (): string[] =>
         Array.from(container.querySelectorAll('span[style]')).map((el) => el.getAttribute('style') ?? '')
 
-      // 推进若干帧，每次校验：新序列必须以旧序列为前缀（旧字符颜色不变）
+      // 推进若干帧，每次校验公共前缀不变性（打字阶段序列增长、删字阶段缩短，
+      // shouldAdvanceTime 会把真实时间灌入 fake timer，故两种阶段都必须兼容）：
+      // 较短序列必须是较长序列的前缀——即已显字符的颜色永不随进度变化
       for (let 帧 = 0; 帧 < 6; 帧++) {
         await act(async () => {
           await vi.advanceTimersByTimeAsync(15)
         })
         const 当前 = 取当前颜色()
         if (上次颜色序列) {
-          expect(当前.slice(0, 上次颜色序列.length)).toEqual(上次颜色序列)
+          const [较短, 较长] =
+            当前.length <= 上次颜色序列.length ? [当前, 上次颜色序列] : [上次颜色序列, 当前]
+          expect(较长.slice(0, 较短.length)).toEqual(较短)
         }
         当前.forEach((style, i) => expect(style).toContain(期望色(i)))
         上次颜色序列 = 当前

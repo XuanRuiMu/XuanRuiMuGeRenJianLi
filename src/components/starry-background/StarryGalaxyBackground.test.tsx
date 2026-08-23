@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 
-const { hookState, settings, createMock, panelMock } = vi.hoisted(() => {
+const { hookState, settings, createMock, panelMock, fireSceneCtorMock } = vi.hoisted(() => {
   const settings = { dpr: 1.5 }
   const hookState = {
     loading: false,
@@ -11,7 +11,8 @@ const { hookState, settings, createMock, panelMock } = vi.hoisted(() => {
   }
   const createMock = vi.fn()
   const panelMock = vi.fn()
-  return { hookState, settings, createMock, panelMock }
+  const fireSceneCtorMock = vi.fn()
+  return { hookState, settings, createMock, panelMock, fireSceneCtorMock }
 })
 
 vi.mock('../../store/useStarryUiStore', () => ({
@@ -40,6 +41,16 @@ vi.mock('./useIsDarkMode', () => ({
   useIsDarkMode: () => hookState.isDark,
 }))
 
+vi.mock('./TeldrassilFireScene', () => ({
+  TeldrassilFireScene: class {
+    constructor(options: unknown) {
+      fireSceneCtorMock(options)
+    }
+    mount = vi.fn()
+    destroy = vi.fn()
+  },
+}))
+
 import { StarryGalaxyBackground } from './StarryGalaxyBackground'
 import { createStarryGalaxyScene } from './StarryGalaxyScene'
 
@@ -52,6 +63,7 @@ describe('StarryGalaxyBackground', () => {
     createMock.mockReset()
     createMock.mockReturnValue({ destroy: vi.fn(), getFps: () => 60 })
     panelMock.mockReset()
+    fireSceneCtorMock.mockReset()
   })
 
   it('深色模式挂载画布并创建场景', () => {
@@ -71,12 +83,22 @@ describe('StarryGalaxyBackground', () => {
     expect(createStarryGalaxyScene).not.toHaveBeenCalled()
   })
 
-  it('浅色模式 reducedMotion 下壁纸保持静止（data-static）', () => {
+  it('浅色模式壁纸层挂载燃烧泰达希尔场景（动画参数随 reducedMotion）', () => {
+    hookState.isDark = false
+    const { unmount } = render(<StarryGalaxyBackground />)
+
+    expect(fireSceneCtorMock).toHaveBeenCalledWith({ reducedMotion: false })
+    unmount()
+    expect(fireSceneCtorMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('浅色模式 reducedMotion 下场景收到静态帧选项且 data-static', () => {
     hookState.isDark = false
     hookState.reducedMotion = true
     render(<StarryGalaxyBackground />)
 
     expect(screen.getByTestId('light-wallpaper')).toHaveAttribute('data-static', 'true')
+    expect(fireSceneCtorMock).toHaveBeenCalledWith({ reducedMotion: true })
   })
 
   it('浅色模式下彻底隐藏星空背景和壁纸开关同时隐藏壁纸', () => {

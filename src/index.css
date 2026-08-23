@@ -176,6 +176,54 @@ body,
   .light select:focus {
     border-color: var(--color-primary);
   }
+
+  /* ============ 自动填充态根治（需求3：Edge/Chrome「保存的信息」刷白输入框） ============ */
+  /* 根因：Chromium 系 UA stylesheet 对 autofill 态（:-webkit-autofill）施加不透明内阴影
+     （-webkit-box-shadow: 0 0 0 1000px <填充色> inset）与 -webkit-text-fill-color，
+     盖住输入框自身的深色背景与浅色文字；任意字符输入后 autofill 态解除、样式恢复。
+     autocomplete=off 被浏览器普遍无视，根治只能由项目 CSS 显式覆盖。
+     变量语义：
+     - --autofill-overlay：autofill 态内阴影铺底实色（box-shadow 无法半透明，只能取实色）
+     - --autofill-text：autofill 态文字与光标颜色 */
+  :root {
+    --autofill-overlay: #121212;
+    --autofill-text: #e6e6e6;
+  }
+
+  /* 浅色对近似 ContactSection 表单底（bg-black/[0.04] 叠白卡片 ≈ 96% 白），取纯白铺底
+     允许轻微差异；同时覆盖 UiComponentRegistry 表单（bg-bg 双主题跟随） */
+  .light {
+    --autofill-overlay: #ffffff;
+    --autofill-text: #0b0c15;
+  }
+
+  /* 锚点例外：AIChat 输入框为终端风组件，容器 bg-[#121212]/文字 text-[#e6e6e6]
+     写死于 JSX 不随主题切换，浅色主题下若沿用白色铺底会在深色终端框内出现白块——
+     正是本需求要根除的缺陷。name="message" 为全站唯一锚点（AIChat.tsx），
+     元素级重声明变量优先于 .light 的继承值，使该框双主题恒用终端深色配对 */
+  input[name='message'],
+  textarea[name='message'],
+  select[name='message'] {
+    --autofill-overlay: #121212;
+    --autofill-text: #e6e6e6;
+  }
+
+  /* 覆盖规则：hover/focus 变体防部分版本 UA 分态加强；transition 超长过渡是经典对策——
+     UA 以 background-color 过渡动画刷入填充底色，令其永不完成 */
+  input:-webkit-autofill,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  textarea:-webkit-autofill:hover,
+  select:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill:focus,
+  select:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px var(--autofill-overlay) inset;
+    -webkit-text-fill-color: var(--autofill-text);
+    caret-color: var(--autofill-text);
+    transition: background-color 9999s ease-in-out 0s;
+  }
 }
 
 .text-shadow-readable {
@@ -1250,19 +1298,17 @@ html.circular-reveal-active::view-transition-old(root) {
   z-index: 1;
 }
 
-/* ============ 浅色模式壁纸 · 随滚动轻微下移（对应星空滚动视差） ============ */
+/* ============ 浅色模式壁纸 · 燃烧的泰达希尔（程序化 Canvas 动态场景） ============ */
 
 /* 纵向上下各溢出 320px：预留滚动位移空间（位移上限 280px），任何页面长度下不露底。
-   图片以 cover 居中铺满，浅色主题下替代透明回退背景。 */
+   画面由 TeldrassilFireScene 注入的 canvas 程序化绘制（天空渐变+树剪影静态层缓存，
+   火焰/余烬/光晕/烟霭动态层），此处仅保留定位与溢出预留。 */
 .light-wallpaper {
   position: fixed;
   left: 0;
   right: 0;
   top: -320px;
   bottom: -320px;
-  background-image: url('/images/浅色模式背景.png');
-  background-size: cover;
-  background-position: center;
   will-change: transform;
 }
 

@@ -58,14 +58,16 @@ test('全站用户视角走查（双主题/签字/壁纸/AI面板/留言落盘/�
   await page.getByRole('button', { name: '选择主题' }).first().click()
   await page.getByRole('option', { name: /浅色/ }).click()
   await page.waitForTimeout(1500)
-  const 壁纸可见 = await page.evaluate(() => {
-    const el = document.querySelector('[data-testid="light-wallpaper"]') as HTMLElement | null
+  // 需求4新契约：浅色背景为程序化 Canvas「燃烧的泰达希尔」动态动画（静态 background-image 已移除）
+  const 燃烧壁纸已挂载 = await page.evaluate(() => {
+    const el = document.querySelector('[data-testid="light-wallpaper"]')
     if (!el) return false
-    const bg = getComputedStyle(el).backgroundImage
-    return bg !== 'none' && bg.includes('url')
+    const canvas = el.querySelector('canvas')
+    if (!canvas) return false
+    return canvas.width > 0 && canvas.height > 0
   })
-  expect(壁纸可见, '浅色壁纸背景图应已应用').toBe(true)
-  摘要.push(`浅色壁纸已应用: ${壁纸可见}`)
+  expect(燃烧壁纸已挂载, '浅色模式燃烧泰达希尔 Canvas 背景应已挂载且有尺寸').toBe(true)
+  摘要.push(`浅色燃烧泰达希尔Canvas已挂载: ${燃烧壁纸已挂载}`)
   await 截图(page, '02-hero-light')
 
   // 滚动后壁纸位移

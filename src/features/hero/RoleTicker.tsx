@@ -78,7 +78,7 @@ export function RoleTicker({
 
   return (
     <p
-      className="mb-4 flex items-center gap-2 text-lg font-medium text-shadow-readable sm:text-xl"
+      className="mb-4 flex items-center gap-2 text-3xl font-medium text-shadow-readable sm:text-4xl"
       aria-label={`多重身份：${roles.join('、')}`}
       data-testid="role-typewriter"
     >

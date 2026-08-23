@@ -25,13 +25,18 @@ export function HeroSection() {
             <img
               src="/images/主页签字-alpha.png"
               alt={personalInfo.name}
-              className="h-20 w-auto object-contain drop-shadow-[0_2px_10px_rgba(60,30,15,0.35)] sm:h-24 lg:h-28 dark:drop-shadow-none light:invert light:drop-shadow-none"
+              className="h-40 w-auto object-contain drop-shadow-[0_2px_10px_rgba(60,30,15,0.35)] sm:h-48 lg:h-56 dark:drop-shadow-none light:invert light:drop-shadow-none"
               data-testid="hero-signature"
             />
           </h1>
           <RoleTicker />
           <div className="flex flex-wrap gap-3">
-            <Button variant="secondary" onClick={handleDownloadResume} icon={<Download size={18} />}>
+            <Button
+              variant="secondary"
+              onClick={handleDownloadResume}
+              icon={<Download size={32} />}
+              className="h-16 px-10 text-lg"
+            >
               {t('hero.cta.downloadResume')}
             </Button>
           </div>
