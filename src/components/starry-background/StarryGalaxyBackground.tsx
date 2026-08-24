@@ -6,7 +6,6 @@ import { createStarryControlPanel, createStarryGalaxyScene, type StarryGalaxySce
 import { useIsDarkMode } from './useIsDarkMode'
 import { starrySceneRef } from '../../lib/starrySceneRef'
 import { useStarryUiStore } from '../../store/useStarryUiStore'
-import { TeldrassilFireRenderer } from './TeldrassilFireRenderer'
 
 interface StarryGalaxyBackgroundProps {
   className?: string
@@ -17,21 +16,17 @@ interface StarryGalaxyBackgroundProps {
 const 壁纸滚动系数 = 0.06
 // 位移上限 < CSS 溢出预留（320px），任何页面长度下都不会露底
 const 壁纸位移上限 = 280
-// 静态底图（真实 CG 帧）固有像素尺寸，粒子层据此做 object-cover 对齐
-const 底图固有宽 = 1920
-const 底图固有高 = 810
 
 /**
  * 浅色模式壁纸层：fixed 铺满（CSS 纵向各溢出 320px 预留位移空间）。
- * 画面 = 真实 CG 静态底图「燃烧的泰达希尔」（object-cover 铺满）
- * + Canvas 火焰粒子动效层（火星/余烬/火光闪烁，见 TeldrassilFireRenderer）。
- * 底图绝对静止——只有粒子动，严格满足"禁止镜头移动"要求；
+ * 画面 = 真实 CG 视频「燃烧的泰达希尔」无缝循环（官方 CG 大全景镜头经
+ * 逐帧稳像处理：树干/地面/希尔瓦娜斯等静态元素残差 ≤1px，只有火焰/余烬/烟动）。
+ * 底图 <img> 作为视频加载前的占位与 reduced-motion 降级；
  * 滚动时 rAF 合帧后整层轻微下移（与星空背景同款滚动视差）；
- * reduced-motion 时不挂载粒子层，仅显示静态底图。
+ * reduced-motion 时不挂载视频，仅显示静态底图。
  */
 function LightWallpaper({ reducedMotion }: { reducedMotion: boolean }) {
   const ref = useRef<HTMLDivElement>(null)
-  const 动效层ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (reducedMotion) return
@@ -54,23 +49,6 @@ function LightWallpaper({ reducedMotion }: { reducedMotion: boolean }) {
     }
   }, [reducedMotion])
 
-  useEffect(() => {
-    if (reducedMotion) return
-    const container = 动效层ref.current
-    if (!container) return
-    let renderer: TeldrassilFireRenderer | null = null
-    try {
-      renderer = new TeldrassilFireRenderer({ imageWidth: 底图固有宽, imageHeight: 底图固有高 })
-    } catch {
-      return
-    }
-    const 已建渲染器 = renderer
-    已建渲染器.mount(container)
-    return () => {
-      已建渲染器.unmount()
-    }
-  }, [reducedMotion])
-
   return (
     <div
       ref={ref}
@@ -79,14 +57,24 @@ function LightWallpaper({ reducedMotion }: { reducedMotion: boolean }) {
       data-testid="light-wallpaper"
       data-static={reducedMotion ? 'true' : 'false'}
     >
-      <div ref={动效层ref} className="absolute inset-0" data-testid="fire-layer">
-        <img
-          src="/images/teldrassil-burning-base.webp"
-          alt=""
+      <img
+        src="/images/teldrassil-burning-base.webp"
+        alt=""
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+        data-testid="teldrassil-base"
+      />
+      {!reducedMotion && (
+        <video
+          src="/videos/teldrassil-burning-loop.mp4"
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-          data-testid="teldrassil-base"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          data-testid="teldrassil-video"
         />
-      </div>
+      )}
     </div>
   )
 }

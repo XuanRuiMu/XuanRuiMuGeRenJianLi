@@ -58,10 +58,11 @@ test('全站用户视角走查（双主题/签字/壁纸/AI面板/留言落盘/�
   await page.getByRole('button', { name: '选择主题' }).first().click()
   await page.getByRole('option', { name: /浅色/ }).click()
   await page.waitForTimeout(1500)
-  // 契约更新（用户 2026-08-24 确认）：浅色背景 = 真实 CG 静态底图「燃烧的泰达希尔」
-  // （从官方 CG 提取的真实画面，禁手绘/程序生成）+ Canvas 火焰粒子动效层
-  // （交接文档要求：只有火焰粒子、余烬、火光闪烁是动的，静态元素绝对静止）。
-  // 底图必须真实存在且完整加载；粒子 canvas 必须持续重绘（动态性为用户红线）。
+  // 契约更新（用户 2026-08-24 确认红线）：浅色背景 = 真实 CG 画面「燃烧的泰达希尔」，
+  // 禁止手绘/程序生成。动态部分为官方 CG 大全景镜头经逐帧稳像的真实视频无缝循环
+  // （树干/地面/人物等静态元素残差 ≤1px，只有火焰/余烬/烟在动，禁止镜头移动）。
+  // 底图必须真实存在且完整加载（视频加载前占位 + reduced-motion 降级）；
+  // 视频必须自动循环播放（动态性为用户红线）。
   const 壁纸底图 = page.locator('[data-testid="light-wallpaper"] img')
   await expect(壁纸底图, '浅色壁纸内应有静态底图').toHaveCount(1)
   await expect(壁纸底图).toHaveAttribute('src', '/images/teldrassil-burning-base.webp')
@@ -70,13 +71,18 @@ test('全站用户视角走查（双主题/签字/壁纸/AI面板/留言落盘/�
     .toBe(1920)
   摘要.push('浅色燃烧泰达希尔真实底图已加载: 1920x810')
 
-  const 粒子画布 = page.locator('[data-testid="light-wallpaper"] canvas')
-  await expect(粒子画布, '浅色壁纸内应有火焰粒子 canvas').toHaveCount(1)
-  const 粒子帧一 = await 粒子画布.evaluate((el) => (el as HTMLCanvasElement).toDataURL())
-  await page.waitForTimeout(600)
-  const 粒子帧二 = await 粒子画布.evaluate((el) => (el as HTMLCanvasElement).toDataURL())
-  expect(粒子帧一, '火焰粒子 canvas 应持续重绘（两帧内容不同）').not.toBe(粒子帧二)
-  摘要.push('火焰粒子动画持续重绘: ok')
+  const 壁纸视频 = page.locator('[data-testid="light-wallpaper"] video')
+  await expect(壁纸视频, '浅色壁纸内应有真实 CG 循环视频').toHaveCount(1)
+  await expect(壁纸视频).toHaveAttribute('src', '/videos/teldrassil-burning-loop.mp4')
+  await expect(壁纸视频).toHaveAttribute('loop')
+  await expect
+    .poll(async () => 壁纸视频.evaluate((el) => (el as HTMLVideoElement).readyState), { timeout: 15_000 })
+    .toBeGreaterThanOrEqual(2)
+  const 视频帧一 = await 壁纸视频.evaluate((el) => (el as HTMLVideoElement).currentTime)
+  await page.waitForTimeout(700)
+  const 视频帧二 = await 壁纸视频.evaluate((el) => (el as HTMLVideoElement).currentTime)
+  expect(视频帧二, '真实 CG 视频应自动循环播放（currentTime 前进）').toBeGreaterThan(视频帧一)
+  摘要.push(`真实 CG 视频循环播放: ok (${视频帧一.toFixed(2)}s → ${视频帧二.toFixed(2)}s)`)
   await 截图(page, '02-hero-light')
 
   // 滚动后壁纸位移

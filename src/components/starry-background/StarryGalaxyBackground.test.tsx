@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 
-const { hookState, settings, createMock, panelMock, fireRendererCtor } = vi.hoisted(() => {
+const { hookState, settings, createMock, panelMock } = vi.hoisted(() => {
   const settings = { dpr: 1.5 }
   const hookState = {
     loading: false,
@@ -11,8 +11,7 @@ const { hookState, settings, createMock, panelMock, fireRendererCtor } = vi.hois
   }
   const createMock = vi.fn()
   const panelMock = vi.fn()
-  const fireRendererCtor = vi.fn()
-  return { hookState, settings, createMock, panelMock, fireRendererCtor }
+  return { hookState, settings, createMock, panelMock }
 })
 
 vi.mock('../../store/useStarryUiStore', () => ({
@@ -23,10 +22,6 @@ vi.mock('../../store/useStarryUiStore', () => ({
 vi.mock('./StarryGalaxyScene', () => ({
   createStarryGalaxyScene: createMock,
   createStarryControlPanel: panelMock,
-}))
-
-vi.mock('./TeldrassilFireRenderer', () => ({
-  TeldrassilFireRenderer: fireRendererCtor,
 }))
 
 vi.mock('../../hooks/usePerformanceProfile', () => ({
@@ -57,12 +52,6 @@ describe('StarryGalaxyBackground', () => {
     createMock.mockReset()
     createMock.mockReturnValue({ destroy: vi.fn(), getFps: () => 60 })
     panelMock.mockReset()
-    fireRendererCtor.mockReset()
-    fireRendererCtor.mockImplementation(() => ({
-      element: document.createElement('canvas'),
-      mount: vi.fn(),
-      unmount: vi.fn(),
-    }))
   })
 
   it('深色模式挂载画布并创建场景', () => {
@@ -82,19 +71,22 @@ describe('StarryGalaxyBackground', () => {
     expect(createStarryGalaxyScene).not.toHaveBeenCalled()
   })
 
-  it('浅色模式渲染真实 CG 静态底图且挂载火焰粒子渲染器', () => {
+  it('浅色模式渲染真实 CG 底图与无缝循环视频', () => {
     hookState.isDark = false
     render(<StarryGalaxyBackground />)
 
     const base = screen.getByTestId('teldrassil-base')
     expect(base).toHaveAttribute('src', '/images/teldrassil-burning-base.webp')
-    expect(fireRendererCtor).toHaveBeenCalledTimes(1)
-    expect(fireRendererCtor).toHaveBeenCalledWith({ imageWidth: 1920, imageHeight: 810 })
-    const renderer = fireRendererCtor.mock.results[0].value
-    expect(renderer.mount).toHaveBeenCalledTimes(1)
+    const 视频 = screen.getByTestId('teldrassil-video')
+    expect(视频).toHaveAttribute('src', '/videos/teldrassil-burning-loop.mp4')
+    expect(视频).toHaveAttribute('loop')
+    expect(视频).toHaveAttribute('autoplay')
+    // React 的 muted 仅反映为 DOM property 而非 attribute
+    expect(视频).toHaveProperty('muted', true)
+    expect(视频).toHaveAttribute('playsinline')
   })
 
-  it('浅色模式 reducedMotion 下不挂载粒子渲染器且 data-static', () => {
+  it('浅色模式 reducedMotion 下不挂载视频且 data-static', () => {
     hookState.isDark = false
     hookState.reducedMotion = true
     render(<StarryGalaxyBackground />)
@@ -104,17 +96,7 @@ describe('StarryGalaxyBackground', () => {
       'src',
       '/images/teldrassil-burning-base.webp'
     )
-    expect(fireRendererCtor).not.toHaveBeenCalled()
-  })
-
-  it('卸载时销毁火焰粒子渲染器', () => {
-    hookState.isDark = false
-    const { unmount } = render(<StarryGalaxyBackground />)
-    const renderer = fireRendererCtor.mock.results[0].value
-
-    unmount()
-
-    expect(renderer.unmount).toHaveBeenCalledTimes(1)
+    expect(screen.queryByTestId('teldrassil-video')).not.toBeInTheDocument()
   })
 
   it('浅色模式下彻底隐藏星空背景和壁纸开关同时隐藏壁纸', () => {
