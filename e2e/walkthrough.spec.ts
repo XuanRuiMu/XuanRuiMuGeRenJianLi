@@ -58,25 +58,25 @@ test('全站用户视角走查（双主题/签字/壁纸/AI面板/留言落盘/�
   await page.getByRole('button', { name: '选择主题' }).first().click()
   await page.getByRole('option', { name: /浅色/ }).click()
   await page.waitForTimeout(1500)
-  // 需求4新契约：浅色背景为真实素材视频「燃烧的泰达希尔」循环播放（禁静态图/手绘，动态性为用户红线）
-  const 壁纸视频 = page.locator('[data-testid="light-wallpaper"] video')
-  await expect(壁纸视频, '浅色壁纸内应有 video 元素').toHaveCount(1)
+  // 契约更新（用户 2026-08-24 确认）：浅色背景 = 真实 CG 静态底图「燃烧的泰达希尔」
+  // （从官方 CG 提取的真实画面，禁手绘/程序生成）+ Canvas 火焰粒子动效层
+  // （交接文档要求：只有火焰粒子、余烬、火光闪烁是动的，静态元素绝对静止）。
+  // 底图必须真实存在且完整加载；粒子 canvas 必须持续重绘（动态性为用户红线）。
+  const 壁纸底图 = page.locator('[data-testid="light-wallpaper"] img')
+  await expect(壁纸底图, '浅色壁纸内应有静态底图').toHaveCount(1)
+  await expect(壁纸底图).toHaveAttribute('src', '/images/teldrassil-burning-base.webp')
   await expect
-    .poll(async () => 壁纸视频.evaluate((el) => (el as HTMLVideoElement).readyState), { timeout: 10_000 })
-    .toBeGreaterThanOrEqual(1)
-  const 视频起始时间 = await 壁纸视频.evaluate((el) => (el as HTMLVideoElement).currentTime)
-  await page.waitForTimeout(1000)
-  const 视频推进时间 = await 壁纸视频.evaluate((el) => (el as HTMLVideoElement).currentTime)
-  // 回绕感知增量：8.52s 循环源在两次读取间可能跨过循环点，裸减法会假失败
-  const 视频周期 = await 壁纸视频.evaluate((el) => (el as HTMLVideoElement).duration)
-  const 播放增量 = (((视频推进时间 - 视频起始时间) % 视频周期) + 视频周期) % 视频周期
-  expect(
-    播放增量,
-    `视频 currentTime 应在 1 秒间隔内推进（实际 ${视频起始时间} → ${视频推进时间}，周期 ${视频周期}）`
-  ).toBeGreaterThan(0)
-  摘要.push(
-    `浅色燃烧泰达希尔视频已挂载并播放: currentTime ${视频起始时间.toFixed(2)}→${视频推进时间.toFixed(2)}`
-  )
+    .poll(async () => 壁纸底图.evaluate((el) => (el as HTMLImageElement).naturalWidth), { timeout: 10_000 })
+    .toBe(1920)
+  摘要.push('浅色燃烧泰达希尔真实底图已加载: 1920x810')
+
+  const 粒子画布 = page.locator('[data-testid="light-wallpaper"] canvas')
+  await expect(粒子画布, '浅色壁纸内应有火焰粒子 canvas').toHaveCount(1)
+  const 粒子帧一 = await 粒子画布.evaluate((el) => (el as HTMLCanvasElement).toDataURL())
+  await page.waitForTimeout(600)
+  const 粒子帧二 = await 粒子画布.evaluate((el) => (el as HTMLCanvasElement).toDataURL())
+  expect(粒子帧一, '火焰粒子 canvas 应持续重绘（两帧内容不同）').not.toBe(粒子帧二)
+  摘要.push('火焰粒子动画持续重绘: ok')
   await 截图(page, '02-hero-light')
 
   // 滚动后壁纸位移
