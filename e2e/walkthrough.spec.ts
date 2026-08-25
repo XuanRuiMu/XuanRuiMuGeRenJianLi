@@ -58,22 +58,22 @@ test('全站用户视角走查（双主题/签字/壁纸/AI面板/留言落盘/�
   await page.getByRole('button', { name: '选择主题' }).first().click()
   await page.getByRole('option', { name: /浅色/ }).click()
   await page.waitForTimeout(1500)
-  // 契约更新（用户 2026-08-24 确认红线）：浅色背景 = 真实 CG 画面「燃烧的泰达希尔」，
-  // 禁止手绘/程序生成。动态部分为官方 CG 大全景镜头经逐帧稳像的真实视频无缝循环
-  // （树干/地面/人物等静态元素残差 ≤1px，只有火焰/余烬/烟在动，禁止镜头移动）。
+  // 契约更新（用户 2026-08-25 拍板）：浅色背景 = 公有领域名画《神奈川冲浪里》
+  // （北斋，大都会美术馆 CC0 扫描件）微动循环，画面来自真实画作扫描，禁 AI 生成；
+  // 纯周期位移构造保证循环零跳变。
   // 底图必须真实存在且完整加载（视频加载前占位 + reduced-motion 降级）；
   // 视频必须自动循环播放（动态性为用户红线）。
   const 壁纸底图 = page.locator('[data-testid="light-wallpaper"] img')
   await expect(壁纸底图, '浅色壁纸内应有静态底图').toHaveCount(1)
-  await expect(壁纸底图).toHaveAttribute('src', '/images/teldrassil-burning-base.webp')
+  await expect(壁纸底图).toHaveAttribute('src', '/images/kanagawa-wave-base.webp')
   await expect
     .poll(async () => 壁纸底图.evaluate((el) => (el as HTMLImageElement).naturalWidth), { timeout: 10_000 })
-    .toBe(1920)
-  摘要.push('浅色燃烧泰达希尔真实底图已加载: 1920x810')
+    .toBe(1280)
+  摘要.push('浅色冲浪里名画底图已加载: 1280x720')
 
   const 壁纸视频 = page.locator('[data-testid="light-wallpaper"] video')
-  await expect(壁纸视频, '浅色壁纸内应有真实 CG 循环视频').toHaveCount(1)
-  await expect(壁纸视频).toHaveAttribute('src', '/videos/teldrassil-burning-loop.mp4')
+  await expect(壁纸视频, '浅色壁纸内应有名画微动循环视频').toHaveCount(1)
+  await expect(壁纸视频).toHaveAttribute('src', '/videos/kanagawa-wave-loop.mp4')
   await expect(壁纸视频).toHaveAttribute('loop')
   await expect
     .poll(async () => 壁纸视频.evaluate((el) => (el as HTMLVideoElement).readyState), { timeout: 15_000 })

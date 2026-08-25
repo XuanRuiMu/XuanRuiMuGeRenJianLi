@@ -71,14 +71,14 @@ describe('StarryGalaxyBackground', () => {
     expect(createStarryGalaxyScene).not.toHaveBeenCalled()
   })
 
-  it('浅色模式渲染真实 CG 底图与无缝循环视频', () => {
+  it('浅色模式渲染名画底图与无缝循环视频', () => {
     hookState.isDark = false
     render(<StarryGalaxyBackground />)
 
-    const base = screen.getByTestId('teldrassil-base')
-    expect(base).toHaveAttribute('src', '/images/teldrassil-burning-base.webp')
-    const 视频 = screen.getByTestId('teldrassil-video')
-    expect(视频).toHaveAttribute('src', '/videos/teldrassil-burning-loop.mp4')
+    const base = screen.getByTestId('kanagawa-base')
+    expect(base).toHaveAttribute('src', '/images/kanagawa-wave-base.webp')
+    const 视频 = screen.getByTestId('kanagawa-video')
+    expect(视频).toHaveAttribute('src', '/videos/kanagawa-wave-loop.mp4')
     expect(视频).toHaveAttribute('loop')
     expect(视频).toHaveAttribute('autoplay')
     // React 的 muted 仅反映为 DOM property 而非 attribute
@@ -92,11 +92,11 @@ describe('StarryGalaxyBackground', () => {
     render(<StarryGalaxyBackground />)
 
     expect(screen.getByTestId('light-wallpaper')).toHaveAttribute('data-static', 'true')
-    expect(screen.getByTestId('teldrassil-base')).toHaveAttribute(
+    expect(screen.getByTestId('kanagawa-base')).toHaveAttribute(
       'src',
-      '/images/teldrassil-burning-base.webp'
+      '/images/kanagawa-wave-base.webp'
     )
-    expect(screen.queryByTestId('teldrassil-video')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('kanagawa-video')).not.toBeInTheDocument()
   })
 
   it('浅色模式下彻底隐藏星空背景和壁纸开关同时隐藏壁纸', () => {

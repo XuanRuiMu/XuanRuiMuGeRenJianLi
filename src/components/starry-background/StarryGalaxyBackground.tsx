@@ -16,11 +16,14 @@ interface StarryGalaxyBackgroundProps {
 const 壁纸滚动系数 = 0.06
 // 位移上限 < CSS 溢出预留（320px），任何页面长度下都不会露底
 const 壁纸位移上限 = 280
+// 用户 2026-08-25 参数网页实调回传的《神奈川冲浪里》最终调色参数（提亮 + 降反差 + 抬白）
+const 壁纸滤镜 = 'brightness(1.13) contrast(0.61)'
+const 壁纸抬白浓度 = 0.61
 
 /**
  * 浅色模式壁纸层：fixed 铺满（CSS 纵向各溢出 320px 预留位移空间）。
- * 画面 = 真实 CG 视频「燃烧的泰达希尔」无缝循环（官方 CG 大全景镜头经
- * 逐帧稳像处理：树干/地面/希尔瓦娜斯等静态元素残差 ≤1px，只有火焰/余烬/烟动）。
+ * 画面 = 公有领域名画《神奈川冲浪里》（北斋，大都会美术馆 CC0 扫描件）微动循环，
+ * 纯周期位移构造保证零跳变无缝循环；整层应用实调滤镜 + 抬白叠加实现"整体偏白"。
  * 底图 <img> 作为视频加载前的占位与 reduced-motion 降级；
  * 滚动时 rAF 合帧后整层轻微下移（与星空背景同款滚动视差）；
  * reduced-motion 时不挂载视频，仅显示静态底图。
@@ -58,23 +61,29 @@ function LightWallpaper({ reducedMotion }: { reducedMotion: boolean }) {
       data-static={reducedMotion ? 'true' : 'false'}
     >
       <img
-        src="/images/teldrassil-burning-base.webp"
+        src="/images/kanagawa-wave-base.webp"
         alt=""
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-        data-testid="teldrassil-base"
+        style={{ filter: 壁纸滤镜 }}
+        data-testid="kanagawa-base"
       />
       {!reducedMotion && (
         <video
-          src="/videos/teldrassil-burning-loop.mp4"
+          src="/videos/kanagawa-wave-loop.mp4"
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+          style={{ filter: 壁纸滤镜 }}
           autoPlay
           muted
           loop
           playsInline
           preload="auto"
-          data-testid="teldrassil-video"
+          data-testid="kanagawa-video"
         />
       )}
+      <div
+        className="pointer-events-none absolute inset-0 bg-white"
+        style={{ opacity: 壁纸抬白浓度 }}
+      />
     </div>
   )
 }
