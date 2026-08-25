@@ -12,12 +12,11 @@ export const projects: Project[] = [
     links: [{ labelKey: 'projects.link.github', url: personalInfo.github }],
   },
   {
-    id: 'admin',
-    nameKey: 'data.projects.admin.name',
-    descKey: 'data.projects.admin.desc',
-    tags: ta('data.projects.admin.tags'),
-    metricKeys: ['data.projects.admin.metrics.tables', 'data.projects.admin.metrics.auth'],
-    links: [{ labelKey: 'projects.link.github', url: personalInfo.github }],
+    id: 'lovewithme',
+    nameKey: 'data.projects.lovewithme.name',
+    descKey: 'data.projects.lovewithme.desc',
+    tags: ta('data.projects.lovewithme.tags'),
+    metricKeys: ['data.projects.lovewithme.metrics.services', 'data.projects.lovewithme.metrics.security'],
   },
   {
     id: 'aiConsole',
@@ -25,14 +24,6 @@ export const projects: Project[] = [
     descKey: 'data.projects.aiConsole.desc',
     tags: ta('data.projects.aiConsole.tags'),
     metricKeys: ['data.projects.aiConsole.metrics.lines', 'data.projects.aiConsole.metrics.sources'],
-    links: [{ labelKey: 'projects.link.github', url: personalInfo.github }],
-  },
-  {
-    id: 'slimefun',
-    nameKey: 'data.projects.slimefun.name',
-    descKey: 'data.projects.slimefun.desc',
-    tags: ta('data.projects.slimefun.tags'),
-    metricKeys: ['data.projects.slimefun.metrics.databases', 'data.projects.slimefun.metrics.contribution'],
-    links: [{ labelKey: 'projects.link.github', url: 'https://github.com/Slimefun/Slimefun4' }],
+    links: [{ labelKey: 'projects.link.github', url: 'https://github.com/XuanRuiMu/loop-engineering' }],
   },
 ]

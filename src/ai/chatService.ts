@@ -41,7 +41,7 @@ function buildSystemPrompt(context: string): string {
   "text": "回复文本（必填）",
   "component": {
     "type": "ProjectCard" | "Timeline" | "ContactForm"
-    // ProjectCard 额外字段：projectId: "xrm" | "admin" | "aiConsole" | "slimefun"
+    // ProjectCard 额外字段：projectId: "xrm" | "lovewithme" | "aiConsole"
     // Timeline 额外字段：scope?: "experience" | "media" | "education"
   }
 }

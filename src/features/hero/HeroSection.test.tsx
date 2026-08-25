@@ -66,9 +66,9 @@ describe('HeroSection', () => {
     document.createElement = originalCreateElement
   })
 
-  it('renders the tech stack (TECH STACK marquee with docker/cloudinary)', () => {
+  it('renders the tech stack orb (docker/vite)', () => {
     render(<HeroSection />)
     expect(screen.getAllByText('Docker').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getAllByText('Cloudinary').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Vite').length).toBeGreaterThanOrEqual(1)
   })
 })

@@ -35,6 +35,6 @@ describe('resumeKnowledgeBase', () => {
   it('includes project-specific chunks', () => {
     const chunks = buildResumeKnowledgeBase()
     const projectChunks = chunks.filter((chunk) => chunk.metadata.category === 'projects')
-    expect(projectChunks.length).toBeGreaterThanOrEqual(4)
+    expect(projectChunks.length).toBeGreaterThanOrEqual(3)
   })
 })

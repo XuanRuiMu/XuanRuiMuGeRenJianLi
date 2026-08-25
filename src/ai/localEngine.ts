@@ -24,9 +24,8 @@ function formatAnswer(key: LocalRule['key']): string {
 function detectProject(input: string): ProjectCardComponent['projectId'] | undefined {
   const text = input.toLowerCase()
   if (/已删除的经历|xrm|mmorpg|服务端/.test(text)) return 'xrm'
-  if (/管理后台|admin|spring/.test(text)) return 'admin'
-  if (/控制台|console|ai.*总控|python.*2435/.test(text)) return 'aiConsole'
-  if (/slimefun|开源|贡献/.test(text)) return 'slimefun'
+  if (/恋爱|lovewithme|聊天应用|全栈应用/.test(text)) return 'lovewithme'
+  if (/控制台|console|总控/.test(text)) return 'aiConsole'
   return undefined
 }
 

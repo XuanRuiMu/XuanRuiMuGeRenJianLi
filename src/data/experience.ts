@@ -14,15 +14,15 @@ export const experiences: ExperienceEntry[] = [
     ],
   },
   {
-    id: 'openSource',
-    titleKey: 'data.experience.entries.openSource.title',
-    organizationKey: 'data.experience.entries.openSource.organization',
-    periodKey: 'data.experience.entries.openSource.period',
-    descriptionKeys: ['data.experience.entries.openSource.description'],
+    id: 'lovewithme',
+    titleKey: 'data.experience.entries.lovewithme.title',
+    organizationKey: 'data.experience.entries.lovewithme.organization',
+    periodKey: 'data.experience.entries.lovewithme.period',
+    descriptionKeys: ['data.experience.entries.lovewithme.description'],
     achievementKeys: [
-      'data.experience.entries.openSource.achievement1',
-      'data.experience.entries.openSource.achievement2',
-      'data.experience.entries.openSource.achievement3',
+      'data.experience.entries.lovewithme.achievement1',
+      'data.experience.entries.lovewithme.achievement2',
+      'data.experience.entries.lovewithme.achievement3',
     ],
   },
   {

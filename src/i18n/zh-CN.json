@@ -286,12 +286,12 @@
         "description": "写 Java 后端和 React 前端，也拿 Python 写脚本；最近在看 AI Agent 和 MCP。",
         "tags": [
           "Java 后端架构",
-          "Spring Boot / JPA / JWT",
+          "Spring Boot / Node.js",
           "AI Agent 工具链",
           "Python 自动化",
           "React + Three.js",
-          "MySQL / Redis",
-          "Docker / K8s / CI/CD",
+          "MySQL / Redis / PostgreSQL",
+          "Docker / docker-compose",
           "RESTful API 设计"
         ]
       },
@@ -330,10 +330,10 @@
       "name": "我叫{name}，主写 Java 后端，也写 Python 脚本和 React 前端。",
       "target": "想找个 Java 后端、AI 工具开发或全栈的岗位。",
       "contact": "邮箱是 {email}，电话是 {phone}。",
-      "projects": "做过已删除的经历 MMORPG 服务端、Spring Boot 管理后台、AI 总控制台，也给 Slimefun4 提过 PR。",
-      "skills": "主要用 Java/Spring Boot、Python、React，也玩 MySQL、Redis，最近在折腾 AI Agent 和 MCP。",
+      "projects": "做过已删除的经历 MMORPG 服务端、和我恋爱吧 AI 全栈应用、AI 总控制台。",
+      "skills": "主要用 Java 和 Node.js/Express，也写 Python 脚本和 React 前端，MySQL、Redis、PostgreSQL 都在项目里用过，最近在折腾 AI Agent 和 MCP。",
       "education": "我就读于{school}，{major}专业{degree}，预计 {period} 毕业。",
-      "experience": "独立开发已删除的经历、给 Slimefun4 提 PR、在 B站 录课、帮毕业生改论文。",
+      "experience": "独立开发已删除的经历和和我恋爱吧全栈应用、在 B站 录课、帮毕业生改论文。",
       "fallback": "这个问题我本地没准备答案，你可以发邮件 {email} 问我。"
     }
   },
@@ -400,53 +400,44 @@
     "projects": {
       "xrm": {
         "name": "已删除的经历",
-        "desc": " 1.21.4 整合包，融合魔法、科技与冒险，深度自定义世界生成与剧情线。",
-        "tags": ["Java", "Spigot", "MySQL", "Redis"],
+        "desc": " MMORPG 服务端：自研 Java 插件 400+ 类，6 阶段伤害管线、树形天赋、任务与组队系统；HikariCP + MySQL 持久化，Gradle Kotlin DSL 多模块构建。",
+        "tags": ["Java 25", "Gradle Kotlin DSL", "HikariCP + MySQL", "Guice"],
         "metrics": {
-          "classes": "120+ Java 类",
+          "classes": "400+ Java 类",
           "systems": "8 世界 / 32 职业"
         }
       },
-      "admin": {
-        "name": "Spring Boot 管理后台",
-        "desc": "给已删除的经历做的管理后台，8 张 MySQL 表管玩家、物品和日志；JWT 鉴权、Redis 缓存，接口文档用 Swagger。",
-        "tags": ["Spring Boot", "JPA", "JWT", "Swagger"],
+      "lovewithme": {
+        "name": "和我恋爱吧",
+        "desc": "已上线的 AI 恋爱聊天全栈应用：Express + TypeScript 后端、PostgreSQL + Redis、Socket.io 实时对话、DeepSeek 接入；JWT 鉴权、短信验证码、限流与审计日志。",
+        "tags": ["Node.js", "TypeScript", "Express", "PostgreSQL", "Redis", "Docker"],
         "metrics": {
-          "tables": "8 张数据表",
-          "auth": "JWT + Redis 缓存"
+          "services": "6 服务容器编排",
+          "security": "JWT + HTTPS + 审计日志"
         }
       },
       "aiConsole": {
         "name": "AI 总控制台",
-        "desc": "用 Python 写的 AI 工具管理台，2435 行代码，能批量拉仓库、管多家 API Key、定时更新数据源，也拿来做 MCP 测试。",
+        "desc": "用 Python 写的 AI 工具管理台，2600+ 行代码，能批量拉仓库、管多家 API Key、定时更新数据源，也拿来做 MCP 测试。",
         "tags": ["Python", "Git 自动化", "MCP", "API 集成"],
         "metrics": {
-          "lines": "2435 行 Python",
+          "lines": "2681 行 Python",
           "sources": "8 源数据更新"
-        }
-      },
-      "slimefun": {
-        "name": "Slimefun4 开源贡献",
-        "desc": "Fork Slimefun4 后修了几个多数据库兼容的 Bug，PR 已经合进主分支。",
-        "tags": ["开源", "MySQL/PostgreSQL/SQLite"],
-        "metrics": {
-          "databases": "MySQL / PostgreSQL / SQLite",
-          "contribution": "PR 已合并"
         }
       }
     },
     "skills": {
       "it": {
         "headline": "工程开发",
-        "intro": "后端主要写 Java/Spring Boot，前端用 React，平时拿 Python 写脚本；最近在折腾 AI Agent 工具链和 MCP。",
+        "intro": "后端主要写 Java 和 Node.js/Express，前端用 React，平时拿 Python 写脚本；最近在折腾 AI Agent 工具链和 MCP。",
         "items": {
           "javaBackend": "Java 后端架构",
-          "springBoot": "Spring Boot / JPA / JWT",
+          "springBoot": "Spring Boot / Node.js",
           "aiAgent": "AI Agent 工具链",
           "pythonAutomation": "Python 自动化",
           "reactThree": "React + Three.js",
-          "database": "MySQL / Redis",
-          "devOps": "Docker / K8s / CI/CD",
+          "database": "MySQL / Redis / PostgreSQL",
+          "devOps": "Docker / docker-compose",
           "apiDesign": "RESTful API 设计"
         },
         "cards": {
@@ -456,7 +447,7 @@
           },
           "coder": {
             "title": "Coder",
-            "items": ["Java 25 / Spring Boot 3.4", "Python 自动化", "React + Three.js", "RESTful API 设计"]
+            "items": ["Java 25 / GraalVM", "Node.js + TypeScript", "React + Three.js", "RESTful API 设计"]
           },
           "reviewer": {
             "title": "Reviewer",
@@ -590,19 +581,19 @@
           "title": "独立开发者 · 已删除的经历 MMORPG",
           "organization": "个人项目",
           "period": "2022 - 至今",
-          "description": "一个人做已删除的经历服务端，从一个插件写到 120 多个类，搭出 8 世界 32 职业的 MMORPG 框架。",
-          "achievement1": "主导 9 个核心模块从 0 到 1，支撑 800+ 并发玩家稳定运行",
+          "description": "一个人做已删除的经历服务端，从一个插件写到 400 多个类，搭出 8 世界 32 职业的 MMORPG 框架。",
+          "achievement1": "主导战斗、属性、天赋、任务等核心模块从 0 到 1",
           "achievement2": "设计 8 世界 32 职业框架，热更新逻辑不重启服务端",
-          "achievement3": "用 Redis 缓存会话与排行榜，平均延迟压到 30ms 以内"
+          "achievement3": "HikariCP 连接池 + 缓存批量写入，登录加载/退出保存数据不丢"
         },
-        "openSource": {
-          "title": "开源贡献者 · Slimefun4",
-          "organization": "开源社区",
-          "period": "2024",
-          "description": "在 Slimefun4 里修了几个 MySQL/PostgreSQL/SQLite 兼容的 Bug，PR 已经合进主分支。",
-          "achievement1": "修复 MySQL/PostgreSQL/SQLite 多库兼容的 3 个关键 Bug",
-          "achievement2": "提交 PR 通过 CI 与代码评审，已合进主分支",
-          "achievement3": "为社区补充可复现的数据库测试样例与文档"
+        "lovewithme": {
+          "title": "独立开发者 · 和我恋爱吧",
+          "organization": "个人项目（已上线）",
+          "period": "2026.07 - 至今",
+          "description": "从零开发并部署 AI 恋爱聊天全栈应用：TypeScript + Express 后端、PostgreSQL + Redis、Socket.io 实时对话、DeepSeek AI 接入。",
+          "achievement1": "docker-compose 编排 6 个服务上线，Nginx 反代 + Let's Encrypt HTTPS 自动续期",
+          "achievement2": "JWT 鉴权 + 阿里云短信验证码 + 接口限流 + 审计日志，敏感配置全走环境变量注入",
+          "achievement3": "接入 OpenTelemetry 链路追踪与 Prometheus 指标，异常自动 SMTP 告警"
         },
         "teacher": {
           "title": "教育内容创作者",
@@ -677,7 +668,7 @@
         },
         "devops": {
           "label": "DevOps",
-          "description": "Docker、CI/CD 和运维脚本"
+          "description": "Docker/docker-compose 部署、Git 自动化和运维脚本"
         },
         "techTeaching": {
           "label": "技术教学",

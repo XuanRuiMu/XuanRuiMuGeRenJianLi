@@ -130,7 +130,7 @@ describe('ProjectsSection', () => {
       expect(notes.length).toBe(projects.length)
     })
 
-    it('每张静态卡片包含标题、描述与可见链接', () => {
+    it('每张静态卡片包含标题与描述，有链接的项目展示可见链接', () => {
       const { container } = render(<ProjectsSection />)
       const notes = container.querySelectorAll('.clothesline-static-note')
       for (const [index, note] of Array.from(notes).entries()) {
@@ -138,8 +138,12 @@ describe('ProjectsSection', () => {
         expect(note.querySelector('.clothesline-note-title')?.textContent).toBe(t(project.nameKey))
         expect(note.querySelector('.clothesline-note-desc')?.textContent).toBe(t(project.descKey))
         const link = note.querySelector('.clothesline-note-link')
-        expect(link).not.toBeNull()
-        expect(link?.getAttribute('href')).toBe(project.links?.[0]?.url)
+        if (project.links?.length) {
+          expect(link).not.toBeNull()
+          expect(link?.getAttribute('href')).toBe(project.links[0].url)
+        } else {
+          expect(link).toBeNull()
+        }
       }
     })
 

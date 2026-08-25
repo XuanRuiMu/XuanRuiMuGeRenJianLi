@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const PROJECT_IDS = ['xrm', 'admin', 'aiConsole', 'slimefun'] as const
+export const PROJECT_IDS = ['xrm', 'lovewithme', 'aiConsole'] as const
 export const TIMELINE_SCOPES = ['experience', 'media', 'education'] as const
 
 export const projectCardComponentSchema = z.object({

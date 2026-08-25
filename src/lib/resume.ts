@@ -5,7 +5,7 @@ export function buildResumeMarkdown(): string {
   return `# ${personalInfo.name}
 
 ## ${t('resume.target')}
-全栈开发 / AI 工具开发 / 游戏服务端架构
+Java 后端开发 / AI 应用开发 / 全栈开发 / 软件工程师
 
 ## ${t('resume.contact')}
 - ${t('contact.info.email')}：${personalInfo.email}

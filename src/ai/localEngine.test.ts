@@ -21,19 +21,14 @@ describe('localEngine', () => {
     expect(result.component).toEqual({ type: 'ProjectCard', projectId: 'xrm' })
   })
 
-  it('detects admin project from input', () => {
-    const result = getLocalAnswer('管理后台项目')
-    expect(result.component).toEqual({ type: 'ProjectCard', projectId: 'admin' })
+  it('detects lovewithme project from input', () => {
+    const result = getLocalAnswer('介绍一下和我恋爱吧')
+    expect(result.component).toEqual({ type: 'ProjectCard', projectId: 'lovewithme' })
   })
 
   it('detects aiConsole project from input', () => {
     const result = getLocalAnswer('AI 总控制台')
     expect(result.component).toEqual({ type: 'ProjectCard', projectId: 'aiConsole' })
-  })
-
-  it('detects slimefun project from input', () => {
-    const result = getLocalAnswer('Slimefun 开源贡献')
-    expect(result.component).toEqual({ type: 'ProjectCard', projectId: 'slimefun' })
   })
 
   it('returns skills text answer (no component) for skill question', () => {
