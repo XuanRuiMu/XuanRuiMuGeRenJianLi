@@ -1,0 +1,268 @@
+﻿---
+import BasicLayout from "../layouts/BasicLayout.astro";
+import { SITE } from "../site-config";
+import "../styles/game.css";
+---
+
+<BasicLayout
+  description="于翔堃的游戏世界 - NEON CYBER 霓虹游戏终端"
+  title={`${SITE.author.fullName} - 游戏世界`}
+>
+  <main class="game-main">
+    <canvas id="particles"></canvas>
+    <div class="scanline"></div>
+    <div class="crt"></div>
+
+    <div class="container">
+
+      <section class="view active" id="view-lobby" aria-label="游戏大厅">
+        <div class="marquee" id="lobbyMarquee" aria-label="公告">
+          <span class="marquee-tag" data-i18n="announceTag">// 公告 //</span>
+          <div class="marquee-viewport">
+            <div class="marquee-track" id="marqueeTrack"></div>
+          </div>
+        </div>
+        <div class="hero" aria-label="主视觉">
+          <img class="hero-img" src="/images/games/Cinematic_futuristic_cyberpunk_2026-08-07T00-50-21.png" alt="霓虹赛博城市背景" loading="eager" />
+          <div class="hero-overlay"></div>
+          <div class="hero-content">
+            <h1 class="glitch-title" data-text="NEON CYBER" data-i18n="header.title" tabindex="-1">NEON CYBER</h1>
+            <div class="subtitle"><span class="typing" id="typingText"></span></div>
+          </div>
+          <div class="hero-corner hero-corner-tl" aria-hidden="true"></div>
+          <div class="hero-corner hero-corner-tr" aria-hidden="true"></div>
+          <div class="hero-corner hero-corner-bl" aria-hidden="true"></div>
+          <div class="hero-corner hero-corner-br" aria-hidden="true"></div>
+          <div class="hero-scroll" aria-hidden="true"><span class="hero-scroll-dot"></span>滚动</div>
+        </div>
+
+        <div class="warning-bar" data-i18n="warningBar">// SYSTEM ONLINE // 霓虹游戏终端已启动 // 准备进入虚拟世界 //</div>
+
+        <section class="profile" id="profilePanel" aria-label="玩家战绩总览">
+          <div class="profile-head">
+            <div class="profile-avatar" id="profileAvatarWrap" aria-hidden="true"></div>
+            <div class="profile-meta">
+              <div class="profile-name" id="profileName" data-i18n="profile.name">NEON 特工</div>
+              <div class="profile-rank" id="profileRank" data-i18n="profile.rankNewbie">// 新兵 //</div>
+            </div>
+            <button class="profile-edit-btn" id="btnEditProfile" data-i18n="profile.editBtn" type="button">✎ 编辑资料</button>
+            <div class="profile-level">
+              <div class="level-ring"><span id="profileLevel">1</span></div>
+              <div class="level-cap" data-i18n="profile.level">等级</div>
+            </div>
+          </div>
+
+          <div class="profile-stats">
+            <div class="pstat">
+              <span class="pstat-num" id="profileScore" data-target="0">0</span>
+              <span class="pstat-label" data-i18n="profile.totalScore">平台总分</span>
+            </div>
+            <div class="pstat">
+              <span class="pstat-num" id="profilePlays" data-target="0">0</span>
+              <span class="pstat-label" data-i18n="profile.totalPlays">总游玩</span>
+            </div>
+            <div class="pstat">
+              <span class="pstat-num" id="profileTime" data-target="0">0</span>
+              <span class="pstat-label" data-i18n="profile.playTime">累计时长</span>
+            </div>
+            <div class="pstat">
+              <span class="pstat-num" id="profileAch" data-target="0">0/0</span>
+              <span class="pstat-label" data-i18n="profile.achievements">成就徽章</span>
+            </div>
+          </div>
+
+          <div class="profile-achievements">
+            <div class="section-kicker" data-i18n="profile.achTitle">// 成就徽章 //</div>
+            <div class="achievements-grid" id="profileAchievements"></div>
+          </div>
+
+          <div class="profile-extra">
+            <div class="profile-recent">
+              <div class="section-kicker" data-i18n="profile.recentTitle">// 最近游玩 //</div>
+              <div class="recent-list" id="recentList"></div>
+            </div>
+            <div class="profile-leaderboard">
+              <div class="section-kicker" data-i18n="profile.leaderboardTitle">// 最高分榜 //</div>
+              <div class="lb-list" id="leaderboard"></div>
+            </div>
+          </div>
+        </section>
+
+        <div class="featured" id="featured"></div>
+
+        <aside class="side-panel" id="sidePanel" aria-label="赛季与任务">
+          <button class="side-toggle" id="sideToggle" aria-label="收起侧边条" data-i18n="side.toggle">‹</button>
+          <div class="side-inner">
+            <section class="season">
+              <div class="side-kicker" data-i18n="side.seasonTitle">// 赛季通行证 //</div>
+              <div class="season-head">
+                <span class="season-name" id="seasonName" data-i18n="side.seasonName">霓虹黎明 · S3</span>
+                <span class="season-level">Lv.<b id="seasonLevel">1</b></span>
+              </div>
+              <div class="season-bar"><div class="season-fill" id="seasonFill"></div></div>
+              <div class="season-xp" id="seasonXp"></div>
+              <div class="season-rewards" id="seasonRewards"></div>
+            </section>
+
+            <section class="dailies">
+              <div class="side-kicker" data-i18n="side.dailiesTitle">// 每日任务 //</div>
+              <div class="daily-list" id="dailyList"></div>
+            </section>
+          </div>
+        </aside>
+
+        <div class="section-head"><span class="section-kicker" data-i18n="sections.platform">// 平台数据 //</span></div>
+        <div class="platform-stats" id="platformStats">
+          <div class="pstat">
+            <span class="pstat-num" data-target="12480">0</span>
+            <span class="pstat-label" data-i18n="platform.players">在线玩家</span>
+          </div>
+          <div class="pstat">
+            <span class="pstat-num" data-target="7">0</span>
+            <span class="pstat-label" data-i18n="platform.games">游戏总数</span>
+          </div>
+          <div class="pstat">
+            <span class="pstat-num" data-target="892400">0</span>
+            <span class="pstat-label" data-i18n="platform.battles">累计对战</span>
+          </div>
+          <div class="pstat">
+            <span class="pstat-num" data-target="6">0</span>
+            <span class="pstat-label" data-i18n="platform.achievements">成就总数</span>
+          </div>
+        </div>
+
+        <div class="section-head"><span class="section-kicker" data-i18n="sections.games">// 热门游戏 //</span></div>
+        <div class="cards" id="cards"></div>
+
+        <div class="section-head"><span class="section-kicker" data-i18n="sections.features">// 核心特性 //</span></div>
+        <div class="features" id="features"></div>
+
+        <div class="control-panel">
+          <h2 class="panel-title" data-i18n="controlPanel.title">// 控制面板 //</h2>
+          <div class="controls">
+            <button class="neon-btn" id="btnCyan" data-i18n="controlPanel.buttons.cyan">青色模式</button>
+            <button class="neon-btn pink" id="btnPink" data-i18n="controlPanel.buttons.pink">粉色模式</button>
+            <button class="neon-btn purple" id="btnPurple" data-i18n="controlPanel.buttons.purple">紫色模式</button>
+            <button class="neon-btn" id="btnGrid" data-i18n="controlPanel.buttons.grid">切换网格</button>
+            <button class="neon-btn pink" id="btnTime" data-i18n="controlPanel.buttons.time">显示时间</button>
+            <button class="neon-btn" id="btnCursor" data-i18n="controlPanel.buttons.cursor">光标开关</button>
+            <button class="neon-btn purple" id="btnReducedMotion" data-i18n="controlPanel.buttons.reducedMotion">减少动画</button>
+          </div>
+          <div class="theme-row">
+            <span class="theme-label" data-i18n="controlPanel.themeMode">明暗</span>
+            <button class="neon-btn small" id="btnTheme" data-i18n="controlPanel.buttons.themeLight">浅色主题</button>
+            <span class="theme-label" data-i18n="controlPanel.themeAccent">霓虹色</span>
+            <span class="swatch" data-color="#00f0ff" style="--sw:#00f0ff" title="青"></span>
+            <span class="swatch" data-color="#ff2a9d" style="--sw:#ff2a9d" title="粉"></span>
+            <span class="swatch" data-color="#a855ff" style="--sw:#a855ff" title="紫"></span>
+            <span class="swatch" data-color="#faff00" style="--sw:#faff00" title="黄"></span>
+            <label class="accent-picker" title="自定义霓虹色">
+              <input type="color" id="accentPicker" value="#ff2a9d" aria-label="自定义霓虹色" />
+            </label>
+          </div>
+          <div class="status-display" id="statusDisplay" data-i18n="status.waiting">// 等待指令... //</div>
+        </div>
+
+        <footer>
+          <div class="contact">
+            <span data-i18n="footer.contact">遇到问题联系我们：</span>
+            <a href="mailto:3062949899@qq.com" data-i18n="footer.email">3062949899@qq.com</a>
+          </div>
+          <div class="copy" data-i18n="footer.copy">// © 2026 NEON CYBER // ALL RIGHTS RESERVED //</div>
+        </footer>
+      </section>
+
+      <section class="view" id="view-game" aria-label="游戏视图">
+        <div class="game-header">
+          <button class="neon-btn" id="btnBackToLobby" data-i18n="game.backToLobby">返回大厅</button>
+          <button class="hud-profile" id="hudProfileBtn" type="button" aria-label="个人资料"></button>
+          <h2 class="game-title-hud" id="game-title" data-i18n="game.title">// 游戏 //</h2>
+          <div class="game-hud">
+            <span class="hud-score" id="game-score">分数：0</span>
+            <span class="hud-high-score" id="game-high-score">最高记录：0</span>
+          </div>
+        </div>
+
+        <div class="game-container" id="game-container"></div>
+
+        <div class="game-controls">
+          <button class="neon-btn pink" id="btnPause" data-i18n="game.pause">暂停</button>
+          <button class="neon-btn purple" id="btnRestart" data-i18n="game.restart">重新开始</button>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="modal-overlay" id="announceModal" aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="announceModalTitle">
+        <button class="modal-close" id="announceModalClose" aria-label="关闭">✕</button>
+        <h3 class="modal-title" id="announceModalTitle" data-i18n="announceModal.title">// 公告详情 //</h3>
+        <div class="modal-body">
+          <div class="modal-announce-title" id="announceModalHead"></div>
+          <p class="modal-announce-body" id="announceModalText"></p>
+        </div>
+        <div class="modal-hint" data-i18n="announceModal.hint">点击空白处或按 ESC 关闭</div>
+      </div>
+    </div>
+  </main>
+</BasicLayout>
+
+<script>
+  import { 霓虹终端 } from "../lib/game/main.js";
+
+  document.addEventListener("astro:page-load", () => {
+    const 宿主 = window as unknown as { __neonArcade终端?: unknown };
+    // 仅在游戏页创建终端；离开游戏（含返回简历）时彻底销毁，避免全局副作用泄漏
+    const 是游戏页 = window.location.pathname.startsWith("/game");
+    if (!是游戏页) {
+      const 旧实例 = 宿主.__neonArcade终端 as
+        | { 销毁?: () => void }
+        | null
+        | undefined;
+      if (旧实例 && typeof 旧实例.销毁 === "function") 旧实例.销毁();
+      宿主.__neonArcade终端 = null;
+      return;
+    }
+    const 旧实例 = 宿主.__neonArcade终端 as
+      | {
+          射击层?: { 容器?: Element | null };
+          粒子?: { 画布?: Element | null };
+        }
+      | null
+      | undefined;
+    const 容器仍在 =
+      旧实例?.射击层?.容器?.isConnected ?? 旧实例?.粒子?.画布?.isConnected ?? false;
+    if (旧实例 && !容器仍在) {
+      宿主.__neonArcade终端 = null;
+    }
+    if (!宿主.__neonArcade终端) {
+      宿主.__neonArcade终端 = new 霓虹终端();
+    }
+  });
+
+  // 路由切换前销毁终端，确保个人资料弹窗 / 子弹音效 / 自定义光标等全局副作用不残留在简历页
+  document.addEventListener("astro:before-swap", () => {
+    const 宿主 = window as unknown as { __neonArcade终端?: unknown };
+    const 旧实例 = 宿主.__neonArcade终端 as
+      | { 销毁?: () => void }
+      | null
+      | undefined;
+    if (旧实例 && typeof 旧实例.销毁 === "function") 旧实例.销毁();
+    宿主.__neonArcade终端 = null;
+  });
+</script>
+
+<style>
+  .game-main {
+    min-height: 100vh;
+    width: 100%;
+  }
+  
+  .game-main .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+</style>

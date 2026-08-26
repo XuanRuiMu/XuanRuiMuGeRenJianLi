@@ -1,0 +1,83 @@
+import eslintPluginAstro from "eslint-plugin-astro";
+import jsxA11y from "eslint-plugin-jsx-a11y";
+
+const 浏览器全局 = {
+  window: "readonly",
+  document: "readonly",
+  navigator: "readonly",
+  localStorage: "readonly",
+  sessionStorage: "readonly",
+  location: "readonly",
+  history: "readonly",
+  console: "readonly",
+  setTimeout: "readonly",
+  clearTimeout: "readonly",
+  setInterval: "readonly",
+  clearInterval: "readonly",
+  requestAnimationFrame: "readonly",
+  cancelAnimationFrame: "readonly",
+  requestIdleCallback: "readonly",
+  cancelIdleCallback: "readonly",
+  fetch: "readonly",
+  AbortController: "readonly",
+  Event: "readonly",
+  CustomEvent: "readonly",
+  Node: "readonly",
+  Element: "readonly",
+  HTMLElement: "readonly",
+  SVGElement: "readonly",
+  HTMLCanvasElement: "readonly",
+  CanvasRenderingContext2D: "readonly",
+  Image: "readonly",
+  AudioContext: "readonly",
+  webkitAudioContext: "readonly",
+  OfflineAudioContext: "readonly",
+  MediaRecorder: "readonly",
+  ResizeObserver: "readonly",
+  IntersectionObserver: "readonly",
+  MutationObserver: "readonly",
+  PerformanceObserver: "readonly",
+  performance: "readonly",
+  screen: "readonly",
+  getComputedStyle: "readonly",
+  matchMedia: "readonly",
+  URL: "readonly",
+  URLSearchParams: "readonly",
+  FormData: "readonly",
+  WebSocket: "readonly",
+  Worker: "readonly",
+  devicePixelRatio: "writable",
+  innerWidth: "writable",
+  innerHeight: "writable",
+  outerWidth: "writable",
+  outerHeight: "writable",
+};
+
+export default [
+  ...eslintPluginAstro.configs.base,
+  ...eslintPluginAstro.configs.recommended,
+  {
+    files: ["**/*.{js,astro}"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: {
+        ...浏览器全局,
+      },
+    },
+    plugins: {
+      "jsx-a11y": jsxA11y,
+    },
+    rules: {
+      "no-unused-vars": "warn",
+      "no-undef": "error",
+      "no-console": ["warn", { allow: ["warn", "error"] }],
+      "no-debugger": "error",
+
+      "astro/no-unused-define-vars-in-style": "error",
+      "astro/valid-compile": "error",
+
+      ...jsxA11y.configs.recommended.rules,
+    },
+  },
+];

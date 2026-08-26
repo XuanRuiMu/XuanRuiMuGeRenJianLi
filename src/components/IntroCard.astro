@@ -1,0 +1,66 @@
+---
+import Card from "./Card/index.astro";
+import Button from "./Button.astro";
+import { Icon } from "astro-icon/components";
+import Tooltip from "./Tooltip/index";
+import { SITE } from "../site-config";
+---
+
+<Card colSpan="md:col-span-3" rowSpan="md:row-span-4" class="pad-lg">
+  <div class="flex w-full h-full items-center">
+    <div class="flex flex-col justify-between gap-4">
+      <div class="flex flex-col h-full">
+        <h6 class="text-sm font-light m-0 text-darkslate-300">欢迎</h6>
+
+        <p class="sr-only">
+          你好，我是{SITE.author.fullName}，一名刚刚毕业的应届生。我唯一的核心能力是用
+          AI Agent 解决问题、完成工作——工作区里我用 AI Agent
+          搭建的所有项目（已删除的经历、游戏世界、智能体工坊、这份简历）都是证明。我现在正在寻找一份计算机相关的工作，希望把
+          AI Agent 真正用起来。
+        </p>
+        <p aria-hidden="true" class="m-0 font-light text-base">
+          <span>
+            你好，我是 <b class="font-bold">{SITE.author.fullName}</b>，一名刚毕业的应届生。
+          </span>
+          <br />
+          <span class="block mt-2">
+            我唯一的核心能力是用 AI Agent 解决问题、完成工作。
+          </span>
+          <span class="block mt-2">
+            工作区里我用 AI Agent
+            搭建的所有项目（已删除的经历、游戏世界、智能体工坊、这份简历）都是证明。
+          </span>
+          <span class="block mt-2">
+            我正在寻找一份计算机相关的工作，希望把 AI Agent 真正用起来。
+          </span>
+        </p>
+      </div>
+      <div class="flex flex-col lg:flex-row gap-2 lg:gap-4">
+        <div class="flex gap-2 lg:gap-4">
+          <a
+            href={SITE.links.github}
+            aria-label="GitHub 主页"
+            target="_blank"
+          >
+            <Button aria-label="GitHub 主页">
+              <Icon name="ri:github-fill" />
+              <span class="sr-only">GitHub 主页</span>
+            </Button>
+          </a>
+          <a href={`mailto:${SITE.links.email}`} aria-label="发送邮件">
+            <Button aria-label="发送邮件">
+              <Icon name="ri:mail-fill" />
+              <span class="sr-only">发送邮件</span>
+            </Button>
+          </a>
+          <Tooltip client:visible>
+            <Button aria-label="彩蛋按钮">
+              <Icon name="ri:emotion-laugh-line" />
+              <span class="sr-only">彩蛋按钮</span>
+            </Button>
+          </Tooltip>
+        </div>
+      </div>
+    </div>
+  </div>
+</Card>

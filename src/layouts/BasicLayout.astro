@@ -1,0 +1,280 @@
+﻿---
+import "../style.css";
+import { ClientRouter } from "astro:transitions";
+import { Font } from "astro:assets";
+import { SITE } from "../site-config";
+import GridTransition from "../components/GridTransition.astro";
+import StylePanel from "../components/StylePanel.astro";
+import { BUTTON_FRAME, cssVars } from "../lib/nine-slice";
+
+const buttonFrameVars = `:root{${cssVars(BUTTON_FRAME)}}`;
+
+const headBootstrap = `
+  try {
+    if ((localStorage.getItem("cardBorder") ?? "custom") === "custom")
+      document.documentElement.classList.add("cards-custom");
+  } catch {}
+`;
+
+interface Props {
+  title: string;
+  description: string;
+  hideSoundToggle?: boolean;
+}
+
+const {
+  title,
+  description,
+  hideSoundToggle,
+} = Astro.props;
+const image = `${Astro.url.origin}/og-image.png`;
+
+const schema = {
+  "@context": "https://schema.org",
+        "@type": "Person",
+        name: SITE.author.fullName,
+        url: Astro.url.origin,
+        sameAs: [SITE.links.github],
+        image: `${Astro.url.origin}/og-image.png`,
+        jobTitle: SITE.author.jobTitle,
+        email: `mailto:${SITE.links.email}`,
+        knowsAbout: [
+          "AI Agent",
+          "Skill 开发",
+          "Agent 工作流",
+          "TypeScript",
+          "Python",
+          "React",
+          "Astro",
+          "Node.js",
+          "MySQL",
+        ],
+      };
+---
+
+<!doctype html>
+<html
+  lang="zh-CN"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <Font cssVariable="--font-cabinet-grotesk" preload />
+    <Font cssVariable="--font-satoshi" preload />
+    <script is:inline set:html={headBootstrap} />
+    <ClientRouter />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="于翔堃" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta content={Astro.generator} name="generator" />
+    <title>{title}</title>
+    <meta content={description} name="description" />
+    <meta content="index, follow" name="robots" />
+    <meta name="theme-color" content="#171717" />
+    <meta name="author" content={SITE.author.fullName} />
+    <meta
+      name="keywords"
+      content={`AI Agent, 智能体, ${SITE.author.fullName}, React, Astro, TypeScript, Python, MySQL, RAG, MCP, 求职`}
+    />
+    <meta
+      content="website"
+      property="og:type"
+    />
+    <meta content={title} property="og:title" />
+    <meta content={description} property="og:description" />
+    <meta content={Astro.url.origin} property="og:url" />
+    <meta property="og:site_name" content={SITE.author.fullName} />
+    <meta property="og:locale" content="zh_CN" />
+    <meta
+      content={image || `${Astro.url.origin}/og-image.png`}
+      property="og:image"
+    />
+    <meta property="og:image:alt" content={description} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta content="summary_large_image" name="twitter:card" />
+    <meta content={title} name="twitter:title" />
+    <meta content={description} name="twitter:description" />
+    <meta
+      content={image || `${Astro.url.origin}/og-image.png`}
+      name="twitter:image"
+    />
+
+    <link href={Astro.url.href} rel="canonical" />
+    <script
+      is:inline
+      set:html={JSON.stringify(schema)}
+      type="application/ld+json"
+    />
+
+    <style is:inline set:html={buttonFrameVars}></style>
+  </head>
+  <body class="bg-darkslate-700 flex flex-col justify-center items-center">
+    <script is:inline>
+      try {
+        var b = document.body;
+        var t = localStorage.getItem("theme");
+        if (t && t !== "default") b.classList.add(t);
+        if ((localStorage.getItem("cardBorder") ?? "custom") !== "custom") {
+          var s = localStorage.getItem("portfolioStyle");
+          if (s && s !== "default") b.classList.add(s);
+        }
+      } catch {}
+    </script>
+    <GridTransition />
+    <slot />
+    {
+      !hideSoundToggle && (
+        <div class="fixed bottom-4 right-4 md:bottom-6 z-50 flex flex-col items-center gap-2">
+          {!hideSoundToggle && <StylePanel />}
+          {!hideSoundToggle && (
+            <button
+              id="sound-toggle"
+              aria-label="切换音效"
+              title="切换音效"
+              class="chrome--ns w-9 h-9 flex items-center justify-center rounded-lg bg-darkslate-500 border border-darkslate-400 hover:border-primary-500 transition-all duration-200 text-white shadow-lg"
+            >
+              <svg
+                id="sound-icon-on"
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+              </svg>
+              <svg
+                id="sound-icon-off"
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="hidden"
+              >
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                <line x1="23" y1="9" x2="17" y2="15" />
+                <line x1="17" y1="9" x2="23" y2="15" />
+              </svg>
+            </button>
+          )}
+        </div>
+      )
+    }
+  </body>
+</html>
+
+<script>
+  import { initNineSliceFallback } from "../lib/nine-slice-fallback";
+  import { CARD_HOVER, play } from "../lib/sound";
+  import "../lib/global-cursor";
+
+  let disposeNineSlice: (() => void) | null = null;
+  let soundEnabled = localStorage.getItem("soundEnabled") !== "false";
+
+  const playCardHover = () => play(CARD_HOVER);
+
+  function updateToggleIcon() {
+    document
+      .getElementById("sound-icon-on")
+      ?.classList.toggle("hidden", !soundEnabled);
+    document
+      .getElementById("sound-icon-off")
+      ?.classList.toggle("hidden", soundEnabled);
+  }
+
+  function attachCardSounds() {
+    document.querySelectorAll<HTMLElement>(".card").forEach((card) => {
+      card.removeEventListener("mouseenter", playCardHover);
+      card.addEventListener("mouseenter", playCardHover);
+    });
+
+    document.getElementById("sound-toggle")?.addEventListener("click", () => {
+      soundEnabled = !soundEnabled;
+      localStorage.setItem("soundEnabled", String(soundEnabled));
+      updateToggleIcon();
+    });
+  }
+
+  document.addEventListener("astro:page-load", () => {
+    soundEnabled = localStorage.getItem("soundEnabled") !== "false";
+    updateToggleIcon();
+    attachCardSounds();
+    disposeNineSlice?.();
+    disposeNineSlice = initNineSliceFallback();
+  });
+
+  document.addEventListener("astro:before-swap", () => {
+    disposeNineSlice?.();
+    disposeNineSlice = null;
+  });
+</script>
+
+<script>
+  import {
+    PORTFOLIO_HAS_VISITED_NON_HOME_KEY,
+    PORTFOLIO_LAST_PATH_KEY,
+    normalizePathname,
+  } from "../lib/nav-path";
+
+  if (typeof document !== "undefined") {
+    document.addEventListener("astro:page-load", () => {
+      const path = normalizePathname(window.location.pathname);
+      if (path !== "/") {
+        sessionStorage.setItem(PORTFOLIO_HAS_VISITED_NON_HOME_KEY, "1");
+      }
+
+      queueMicrotask(() => {
+        sessionStorage.setItem(PORTFOLIO_LAST_PATH_KEY, path);
+      });
+    });
+  }
+</script>
+
+<style is:global>
+  body {
+    margin: 0;
+    font-family: var(--font-satoshi);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-cabinet-grotesk);
+  }
+  p {
+    font-family: var(--font-satoshi);
+  }
+
+  b {
+    font-weight: 700 !important;
+  }
+
+  @supports (view-transition-name: none) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation-duration: 320ms;
+      animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+  }
+</style>
+

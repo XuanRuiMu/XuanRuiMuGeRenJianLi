@@ -1,0 +1,35 @@
+---
+import Card from "./Card/index.astro";
+import { SITE } from "../site-config";
+
+const socialLinkClass =
+  "inline-block w-fit text-darkslate-100 hover:text-primary-400 hover:translate-x-0.5 transition-all duration-150";
+---
+
+<Card colSpan="md:col-span-1" rowSpan="md:row-span-4" class="pad-lg">
+  <div class="h-full">
+    <header class="flex items-center">
+      <h2 class="text-white text-xl font-bold">欢迎与我共事！</h2>
+    </header>
+    <address class="flex flex-col mt-4 not-italic">
+      <h2 class="text-darkslate-300">联系方式</h2>
+      <p class="text-sm break-words">{SITE.links.email}</p>
+      <p>{SITE.location.countryName}</p>
+    </address>
+    <div class="flex flex-col mt-4 w-fit">
+      <h2 class="text-darkslate-300">在这些平台找到我</h2>
+      <ul>
+        <li>
+          <a href={SITE.links.github} target="_blank" class={socialLinkClass}
+            >GitHub</a
+          >
+        </li>
+        <li>
+          <a href={`mailto:${SITE.links.email}`} class={socialLinkClass}
+            >邮件</a
+          >
+        </li>
+      </ul>
+    </div>
+  </div>
+</Card>
