@@ -1,5 +1,10 @@
 import { 配置 } from '../config.js';
+import { 封面图 } from '../covers.js';
 import { 获取数组 } from '../i18n.js';
+
+/** 只有登记了封面图才追加图层，否则只保留渐变底，避免发出无谓的 404 请求 */
+const 背景图 = (游戏标识) =>
+  封面图[游戏标识] ? `, url('${封面图[游戏标识]}')` : '';
 
 const 游戏主题色 = {
   reaction: '#ff2a9d',
@@ -53,13 +58,19 @@ export class ViewSwitcher {
       this.重新开始按钮.addEventListener('click', () => {
         const 游戏 = this.游戏管理器.获取当前游戏();
         if (!游戏) return;
+        // 结算遮罩必须移除，否则重开后旧结算层仍盖在画面上
+        this.游戏管理器.移除结算遮罩();
+        // 游戏尚未结束就手动重开时，把本局得分计入统计，避免丢分
+        if (游戏.运行中 && (游戏.分数 ?? 0) > 0) {
+          this.游戏管理器.状态管理器.记录游戏结束(游戏.标识, 游戏.分数 ?? 0);
+        }
         游戏.停止();
         游戏.重置分数();
         游戏.启动();
       });
     }
 
-    document.addEventListener('visibilitychange', () => {
+    this.可见性处理器 = () => {
       const 游戏 = this.游戏管理器.获取当前游戏();
       if (!游戏 || !游戏.运行中) return;
       if (document.hidden) {
@@ -67,7 +78,15 @@ export class ViewSwitcher {
       } else {
         游戏.恢复();
       }
-    });
+    };
+    document.addEventListener('visibilitychange', this.可见性处理器);
+  }
+
+  销毁() {
+    if (this.可见性处理器) {
+      document.removeEventListener('visibilitychange', this.可见性处理器);
+      this.可见性处理器 = null;
+    }
   }
 
   获取文本(键, 变量 = {}) {
@@ -122,7 +141,7 @@ export class ViewSwitcher {
 
     const 背景 = document.createElement('div');
     背景.className = 'game-bg';
-    背景.style.backgroundImage = `linear-gradient(180deg, rgba(5, 3, 15, 0.72) 0%, rgba(5, 3, 15, 0.9) 100%), url('/images/games/${游戏标识}.png')`;
+    背景.style.backgroundImage = `linear-gradient(180deg, rgba(5, 3, 15, 0.72) 0%, rgba(5, 3, 15, 0.9) 100%)${背景图(游戏标识)}`;
     视图.insertBefore(背景, 视图.firstChild);
 
     const 卡片 = (获取数组('cards') || []).find((c) => c.id === 游戏标识);

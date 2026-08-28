@@ -1,0 +1,77 @@
+---
+import BasicLayout from "../layouts/BasicLayout.astro";
+import { SITE } from "../site-config";
+import "../styles/projects.css";
+import "../styles/audit.css";
+import { 自检台文案 } from "../lib/locales/audit";
+---
+
+<BasicLayout
+  description="站点质量自检台 - 在浏览器里真实运行对比度、图片可访问性、站内链接、键盘可达性、标题层级与主题覆盖检查"
+  title={`${自检台文案.标题} - ${SITE.author.fullName}`}
+>
+  <main class="pj-main">
+    <div class="pj-shell">
+      <header class="pj-head">
+        <div>
+          <h1>{自检台文案.标题}</h1>
+          <p class="pj-sub">{自检台文案.副标题}</p>
+        </div>
+        <a class="back-home" href="/">← 返回简历</a>
+      </header>
+
+      <section class="au-summary" aria-label="自检汇总">
+        <div class="au-score">
+          <span class="au-score-num" id="auSummaryText">—</span>
+          <span class="au-score-label" id="auStatus">{自检台文案.状态.进行中}</span>
+        </div>
+        <div class="au-legend">
+          <span class="au-pill pass" id="auPass">通过 0</span>
+          <span class="au-pill warn" id="auWarn">警告 0</span>
+          <span class="au-pill fail" id="auFail">失败 0</span>
+        </div>
+        <button class="au-rerun" id="auRerun" type="button">
+          {自检台文案.重新自检}
+        </button>
+      </section>
+
+      <div class="au-list" id="auList"></div>
+
+      <section class="pj-block" aria-label="实现说明">
+        <div class="pj-block-head">
+          <span class="pj-index">i</span>
+          <div>
+            <h2>这些结果是怎么算出来的</h2>
+            <p class="pj-oneliner">全部来自真实的浏览器运行时，没有任何写死的数字。</p>
+          </div>
+        </div>
+        <ul class="au-notes">
+          {自检台文案.说明.map((条目) => <li>{条目}</li>)}
+        </ul>
+      </section>
+    </div>
+  </main>
+</BasicLayout>
+
+<script>
+  import { 创建自检台 } from "../lib/audit-client";
+
+  const 初始化 = (): void => {
+    const 容器 = document.getElementById("auList");
+    if (!容器 || 容器.dataset.auditReady === "1") return;
+    容器.dataset.auditReady = "1";
+
+    创建自检台({
+      列表: 容器,
+      汇总文本: document.getElementById("auSummaryText") as HTMLElement,
+      状态: document.getElementById("auStatus") as HTMLElement,
+      通过: document.getElementById("auPass") as HTMLElement,
+      警告: document.getElementById("auWarn") as HTMLElement,
+      失败: document.getElementById("auFail") as HTMLElement,
+      重新自检: document.getElementById("auRerun") as HTMLButtonElement,
+    });
+  };
+
+  初始化();
+  document.addEventListener("astro:page-load", 初始化);
+</script>

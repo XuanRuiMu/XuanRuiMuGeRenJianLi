@@ -88,6 +88,27 @@ const SKILLS: Skill[] = [
     desc: "面向求职场景的纯前端匹配分析器与对话式助手设计能力。",
   },
   {
+    id: "java",
+    name: "Java",
+    category: "编程语言",
+    level: 75,
+    desc: "Java 17 生态：Spring Boot 后端开发主力语言，AI 简历匹配平台的实现语言。",
+  },
+  {
+    id: "springboot",
+    name: "Spring Boot",
+    category: "工具链",
+    level: 74,
+    desc: "Spring Boot 3.5：REST API、Bean Validation、Data JPA，构建生产级后端服务。",
+  },
+  {
+    id: "redis",
+    name: "Redis",
+    category: "工具链",
+    level: 70,
+    desc: "缓存与限流：结果缓存 + 固定窗口限流，配合 Caffeine 实现双模式降级。",
+  },
+  {
     id: "mysql",
     name: "MySQL",
     category: "工具链",

@@ -1,71 +1,45 @@
 import { useState, type ReactNode } from "react";
+import { 古诗词, 取随机序号 } from "../../lib/locales/poems";
 
 type Props = {
   children?: ReactNode;
   class?: string;
 };
 
-const MESSAGES = [
-  "Hi there!",
-  "Clicked again?",
-  "Still here?",
-  "Persistent, aren't you?",
-  "What's up?",
-  "Again? Really?",
-  "You're curious!",
-  "Not cool!",
-  "Give it a break!",
-  "That's annoying!",
-  "Hands off!",
-  "No more clicks!",
-  "Seriously?!",
-  "Ouch! That hurts!",
-  "You're persistent!",
-  "Why the curiosity?",
-  "I'm getting tired!",
-  "I'm bored!",
-  "Enough's enough!",
-  "Find another hobby!",
-  "Stop, please!",
-  "Okay, last one!",
-  "That's it, I'm done!",
-];
-
 export default function Tooltip(props: Props) {
-  const [isVisible, setIsVisible] = useState(false);
-  const [clickCount, setClickCount] = useState(0);
+  const [序号, 设置序号] = useState(() => 取随机序号(-1));
+  const [是否显示, 设置是否显示] = useState(false);
 
-  const currentMessage = () => {
-    const count = clickCount;
-    if (count >= MESSAGES.length) {
-      return MESSAGES[MESSAGES.length - 1];
-    }
-    return MESSAGES[count];
+  const 诗句 = 古诗词[序号];
+
+  // 每次按下都重新抽取，并与当前这一句不同，避免“点了却没变”的观感
+  const 按下 = () => {
+    设置序号((旧序号) => 取随机序号(旧序号));
+    设置是否显示(true);
   };
 
-  const handlePressStart = () => {
-    setIsVisible((v) => !v);
-    if (isVisible) {
-      setClickCount((c) => c + 1);
-    }
-  };
+  const 抬起 = () => 设置是否显示(false);
 
   return (
     <div className={`h-full relative inline-block ${props.class ?? ""}`}>
       <div
         className="h-full"
-        onMouseDown={handlePressStart}
-        onMouseUp={() => setIsVisible(false)}
-        onTouchStart={handlePressStart}
-        onTouchEnd={() => setIsVisible(false)}
+        onMouseDown={按下}
+        onMouseUp={抬起}
+        onMouseLeave={抬起}
+        onTouchStart={按下}
+        onTouchEnd={抬起}
       >
         {props.children}
       </div>
 
-      {isVisible && (
+      {是否显示 && (
         <div className="tt-shell absolute left-1/2 -translate-x-1/2 -translate-y-26 mt-1 z-10">
-          <div className="tt--ns w-auto max-h-[70px] p-2 bg-black text-white text-center rounded-lg shadow-custom shadow-primary-500 border border-primary-500 whitespace-normal after:content-[''] after:block after:rotate-45 after:w-4 after:h-4 after:shadow-custom after:shadow-primary-500 after:absolute after:-bottom-2 after:-translate-x-1/2 after:left-1/2 after:bg-black after:z-20">
-            <p className="w-max">{currentMessage()}</p>
+          <div className="tt--ns w-auto max-w-[19rem] p-2 bg-black text-white text-center rounded-lg shadow-custom shadow-primary-500 border border-primary-500 whitespace-normal after:content-[''] after:block after:rotate-45 after:w-4 after:h-4 after:shadow-custom after:shadow-primary-500 after:absolute after:-bottom-2 after:-translate-x-1/2 after:left-1/2 after:bg-black after:z-20">
+            <p className="text-sm leading-relaxed">{诗句.正文}</p>
+            <p className="mt-1 text-3xs text-darkslate-300">
+              —— {诗句.作者}《{诗句.篇名}》
+            </p>
           </div>
         </div>
       )}

@@ -175,8 +175,6 @@ class DeepSeek提供者(LLM提供者):
                     "model": self.模型,
                     "messages": 消息体,
                     "temperature": 0.2,
-                    "thinking": {"type": "enabled"},
-                    "reasoning_effort": 读取设置().思考强度,
                 },
             )
             响应.raise_for_status()

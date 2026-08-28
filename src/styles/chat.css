@@ -1,0 +1,247 @@
+/* 会解压的外星人 · 聊天页样式
+   版式沿用 agent.css 的 .agent-main / .agent-shell / .agent-head / .bubble，
+   这里只补充聊天页特有的部分。 */
+
+.chat-shell {
+  max-width: 900px;
+}
+
+/* ---------- 账号区 ---------- */
+.chat-account {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: rgba(10, 8, 22, 0.6);
+  border: 1px solid rgba(0, 240, 255, 0.22);
+  border-radius: 12px;
+}
+
+.account-guest,
+.account-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.account-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 240, 255, 0.28);
+  border-radius: 8px;
+  color: #eaffff;
+  font-size: 13px;
+  padding: 7px 11px;
+  min-width: 120px;
+  font-family: inherit;
+  outline: none;
+}
+
+.account-input::placeholder {
+  color: rgba(234, 255, 255, 0.4);
+}
+
+.account-input:focus {
+  border-color: rgba(0, 240, 255, 0.65);
+}
+
+.account-btn {
+  background: rgba(0, 240, 255, 0.12);
+  border: 1px solid rgba(0, 240, 255, 0.45);
+  color: #eaffff;
+  border-radius: 8px;
+  font-size: 12.5px;
+  padding: 7px 14px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s ease;
+}
+
+.account-btn:hover {
+  background: rgba(0, 240, 255, 0.22);
+}
+
+.account-btn.ghost {
+  background: transparent;
+  border-color: rgba(168, 85, 255, 0.4);
+}
+
+.account-btn.ghost:hover {
+  background: rgba(168, 85, 255, 0.14);
+}
+
+.account-hint,
+.account-name {
+  font-size: 12px;
+  color: var(--darkslate-300, #9a9a9a);
+}
+
+.account-error {
+  margin: 0;
+  font-size: 12px;
+  color: #ff8a8a;
+}
+
+/* ---------- 提示条 ---------- */
+.chat-notice {
+  margin: 0;
+  padding: 9px 13px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  color: #ffe9a8;
+  background: rgba(250, 255, 0, 0.06);
+  border: 1px solid rgba(250, 255, 0, 0.3);
+}
+
+/* ---------- 对话面板 ---------- */
+.chat-round {
+  border-radius: 14px;
+}
+
+.chat-round .chat-scroll {
+  height: 58vh;
+  min-height: 340px;
+}
+
+/* 输入中：三点跳动 */
+.bubble.typing {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start;
+  min-height: 40px;
+}
+
+.bubble.typing span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--neon-purple, #a855ff);
+  animation: chatTyping 1.2s infinite ease-in-out;
+}
+
+.bubble.typing span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.bubble.typing span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes chatTyping {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-7px);
+    opacity: 1;
+  }
+}
+
+/* 情绪标签 */
+.emotion-chip {
+  display: inline-block;
+  margin-top: 7px;
+  font-size: 11px;
+  color: var(--neon-yellow, #faff00);
+  border: 1px dashed rgba(250, 255, 0, 0.45);
+  border-radius: 6px;
+  padding: 1px 8px;
+}
+
+/* ---------- 输入行 ---------- */
+.chat-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 12px 14px;
+  border-top: 1px solid rgba(168, 85, 255, 0.25);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.chat-input-row textarea {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  border-radius: 10px;
+  color: #eaffff;
+  font-size: 13.5px;
+  line-height: 1.7;
+  padding: 9px 12px;
+  resize: none;
+  max-height: 140px;
+  font-family: inherit;
+  outline: none;
+}
+
+.chat-input-row textarea::placeholder {
+  color: rgba(234, 255, 255, 0.35);
+}
+
+.chat-input-row textarea:focus {
+  border-color: rgba(0, 240, 255, 0.6);
+}
+
+.chat-input-row textarea:disabled {
+  opacity: 0.55;
+}
+
+.chat-send {
+  flex-shrink: 0;
+  background: rgba(0, 240, 255, 0.14);
+  border: 1px solid rgba(0, 240, 255, 0.5);
+  color: #eaffff;
+  border-radius: 10px;
+  font-size: 13px;
+  padding: 9px 18px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s ease;
+}
+
+.chat-send:hover {
+  background: rgba(0, 240, 255, 0.26);
+}
+
+.chat-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chat-send.stop {
+  background: rgba(255, 90, 120, 0.14);
+  border-color: rgba(255, 90, 120, 0.5);
+}
+
+/* ---------- 说明区 ---------- */
+.chat-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chat-meta-line {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--darkslate-300, #9a9a9a);
+}
+
+@media (max-width: 640px) {
+  .chat-round .chat-scroll {
+    height: 52vh;
+    min-height: 280px;
+  }
+
+  .account-input {
+    flex: 1 1 100%;
+  }
+}
+
+/* 尊重系统「减少动态效果」偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .bubble.typing span {
+    animation: none;
+  }
+}

@@ -2,6 +2,9 @@ export default {
   meta: {
     title: 'NEON CYBER // 霓虹游戏厅'
   },
+  nav: {
+    backToResume: '← 返回简历'
+  },
   header: {
     title: 'NEON CYBER',
     typing: [

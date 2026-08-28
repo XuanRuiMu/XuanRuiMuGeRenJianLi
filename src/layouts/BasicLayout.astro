@@ -198,17 +198,21 @@ const schema = {
       ?.classList.toggle("hidden", soundEnabled);
   }
 
+  function onToggleClick() {
+    soundEnabled = !soundEnabled;
+    localStorage.setItem("soundEnabled", String(soundEnabled));
+    updateToggleIcon();
+  }
+
   function attachCardSounds() {
     document.querySelectorAll<HTMLElement>(".card").forEach((card) => {
       card.removeEventListener("mouseenter", playCardHover);
       card.addEventListener("mouseenter", playCardHover);
     });
 
-    document.getElementById("sound-toggle")?.addEventListener("click", () => {
-      soundEnabled = !soundEnabled;
-      localStorage.setItem("soundEnabled", String(soundEnabled));
-      updateToggleIcon();
-    });
+    const toggle = document.getElementById("sound-toggle");
+    toggle?.removeEventListener("click", onToggleClick);
+    toggle?.addEventListener("click", onToggleClick);
   }
 
   document.addEventListener("astro:page-load", () => {
@@ -223,27 +227,6 @@ const schema = {
     disposeNineSlice?.();
     disposeNineSlice = null;
   });
-</script>
-
-<script>
-  import {
-    PORTFOLIO_HAS_VISITED_NON_HOME_KEY,
-    PORTFOLIO_LAST_PATH_KEY,
-    normalizePathname,
-  } from "../lib/nav-path";
-
-  if (typeof document !== "undefined") {
-    document.addEventListener("astro:page-load", () => {
-      const path = normalizePathname(window.location.pathname);
-      if (path !== "/") {
-        sessionStorage.setItem(PORTFOLIO_HAS_VISITED_NON_HOME_KEY, "1");
-      }
-
-      queueMicrotask(() => {
-        sessionStorage.setItem(PORTFOLIO_LAST_PATH_KEY, path);
-      });
-    });
-  }
 </script>
 
 <style is:global>

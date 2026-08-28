@@ -21,7 +21,9 @@ export const SITE = {
     github: "https://github.com/mo-faa",
     email: "3062949899@qq.com",
     game: "/game",
-    agent: "/agent",
+    chat: "/chat",
+    audit: "/audit",
+    projects: "/projects",
   },
   status: {
     now: "找工作ing...",

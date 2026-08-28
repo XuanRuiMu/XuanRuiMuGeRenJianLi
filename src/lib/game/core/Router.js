@@ -16,10 +16,18 @@ export class Router {
   }
 
   绑定事件() {
-    window.addEventListener('popstate', () => {
+    this.popstate处理器 = () => {
       this.当前路径 = this.解析路径();
       this.触发('routechange', this.获取路由信息());
-    });
+    };
+    window.addEventListener('popstate', this.popstate处理器);
+  }
+
+  销毁() {
+    if (this.popstate处理器) {
+      window.removeEventListener('popstate', this.popstate处理器);
+      this.popstate处理器 = null;
+    }
   }
 
   解析路径(路径) {

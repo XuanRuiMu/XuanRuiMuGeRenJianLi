@@ -9,10 +9,12 @@ export const SPRITE = {
   CELL_H: 390,
 };
 
+// 数组顺序即主题切换按钮的排列顺序。
+// `default` 表示不挂任何主题类，此时生效的是 :root 里的调色板（蓝色）。
 export const AVATAR_THEMES = [
-  { theme: "default", name: "red" },
+  { theme: "default", name: "blue" },
   { theme: "yellow-theme", name: "yellow" },
-  { theme: "blue-theme", name: "blue" },
+  { theme: "red-theme", name: "red" },
   { theme: "purple-theme", name: "purple" },
   { theme: "green-theme", name: "green" },
 ].map((t) => ({ ...t, sheet: `/avatar-spin-${t.name}.webp` }));

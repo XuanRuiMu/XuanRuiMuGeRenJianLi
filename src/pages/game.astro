@@ -9,6 +9,7 @@ import "../styles/game.css";
   title={`${SITE.author.fullName} - 游戏世界`}
 >
   <main class="game-main">
+    <a class="back-to-resume" href="/" data-i18n="nav.backToResume">← 返回简历</a>
     <canvas id="particles"></canvas>
     <div class="scanline"></div>
     <div class="crt"></div>
@@ -212,8 +213,13 @@ import "../styles/game.css";
 <script>
   import { 霓虹终端 } from "../lib/game/main.js";
 
-  document.addEventListener("astro:page-load", () => {
-    const 宿主 = window as unknown as { __neonArcade终端?: unknown };
+  // 防止 Astro 视图切换重复执行脚本时累积监听器：同一文档只绑定一次
+  const 宿主 = window as unknown as {
+    __neonArcade终端?: unknown;
+    __neonArcade监听已绑定?: boolean;
+  };
+
+  const onPageLoad = () => {
     // 仅在游戏页创建终端；离开游戏（含返回简历）时彻底销毁，避免全局副作用泄漏
     const 是游戏页 = window.location.pathname.startsWith("/game");
     if (!是游戏页) {
@@ -240,18 +246,23 @@ import "../styles/game.css";
     if (!宿主.__neonArcade终端) {
       宿主.__neonArcade终端 = new 霓虹终端();
     }
-  });
+  };
 
-  // 路由切换前销毁终端，确保个人资料弹窗 / 子弹音效 / 自定义光标等全局副作用不残留在简历页
-  document.addEventListener("astro:before-swap", () => {
-    const 宿主 = window as unknown as { __neonArcade终端?: unknown };
+  const onBeforeSwap = () => {
+    // 路由切换前销毁终端，确保个人资料弹窗 / 子弹音效 / 自定义光标等全局副作用不残留在简历页
     const 旧实例 = 宿主.__neonArcade终端 as
       | { 销毁?: () => void }
       | null
       | undefined;
     if (旧实例 && typeof 旧实例.销毁 === "function") 旧实例.销毁();
     宿主.__neonArcade终端 = null;
-  });
+  };
+
+  if (!宿主.__neonArcade监听已绑定) {
+    宿主.__neonArcade监听已绑定 = true;
+    document.addEventListener("astro:page-load", onPageLoad);
+    document.addEventListener("astro:before-swap", onBeforeSwap);
+  }
 </script>
 
 <style>
@@ -264,5 +275,32 @@ import "../styles/game.css";
     max-width: 1200px;
     margin: 0 auto;
     padding: 40px 20px;
+  }
+
+  .back-to-resume {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 999;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-family: var(--font-satoshi, sans-serif);
+    letter-spacing: 1px;
+    color: var(--neon, #00f0ff);
+    background: rgba(10, 12, 24, 0.75);
+    border: 1px solid currentColor;
+    border-radius: 8px;
+    text-decoration: none;
+    box-shadow: 0 0 12px color-mix(in srgb, currentColor 45%, transparent);
+    backdrop-filter: blur(4px);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .back-to-resume:hover {
+    transform: translateX(-2px);
+    box-shadow: 0 0 20px color-mix(in srgb, currentColor 70%, transparent);
   }
 </style>

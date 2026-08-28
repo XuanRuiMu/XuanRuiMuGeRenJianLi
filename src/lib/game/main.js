@@ -1,4 +1,16 @@
 import { 配置 } from './config.js';
+import { 封面样式 } from './covers.js';
+
+/** 每款游戏的封面底色；封面图是叠加层，见 covers.js */
+const 封面渐变 = {
+  reaction: 'linear-gradient(135deg, rgba(0,240,255,0.25), rgba(255,42,157,0.18))',
+  'neon-arena': 'linear-gradient(135deg, rgba(255,42,157,0.28), rgba(168,85,255,0.22))',
+  'lightning-shooter': 'linear-gradient(135deg, rgba(250,255,0,0.2), rgba(0,240,255,0.22))',
+  'star-ocean': 'linear-gradient(135deg, rgba(168,85,255,0.26), rgba(0,240,255,0.2))',
+  'mech-battle': 'linear-gradient(135deg, rgba(255,42,157,0.26), rgba(250,255,0,0.12))',
+  'dimension-maze': 'linear-gradient(135deg, rgba(0,240,255,0.24), rgba(168,85,255,0.22))',
+  'neon-defense': 'linear-gradient(135deg, rgba(168,85,255,0.28), rgba(255,42,157,0.16))'
+};
 import { GameManager } from './core/GameManager.js';
 import { ProfileManager, 头像框预设, 头像预设 } from './core/ProfileManager.js';
 import { Router } from './core/Router.js';
@@ -82,15 +94,6 @@ class 霓虹终端 {
     if (!容器) return;
     const 卡片数据 = 获取数组('cards');
     容器.innerHTML = '';
-    const 封面渐变 = {
-      reaction: 'linear-gradient(135deg, rgba(0,240,255,0.25), rgba(255,42,157,0.18))',
-      'neon-arena': 'linear-gradient(135deg, rgba(255,42,157,0.28), rgba(168,85,255,0.22))',
-      'lightning-shooter': 'linear-gradient(135deg, rgba(250,255,0,0.2), rgba(0,240,255,0.22))',
-      'star-ocean': 'linear-gradient(135deg, rgba(168,85,255,0.26), rgba(0,240,255,0.2))',
-      'mech-battle': 'linear-gradient(135deg, rgba(255,42,157,0.26), rgba(250,255,0,0.12))',
-      'dimension-maze': 'linear-gradient(135deg, rgba(0,240,255,0.24), rgba(168,85,255,0.22))',
-      'neon-defense': 'linear-gradient(135deg, rgba(168,85,255,0.28), rgba(255,42,157,0.16))'
-    };
     const 难度文本 = { EASY: '简单', NORMAL: '普通', HARD: '困难' };
     卡片数据.forEach((卡片, 索引) => {
       const 卡片元素 = 创建元素('div', {
@@ -110,7 +113,7 @@ class 霓虹终端 {
       const 封面色 = 封面渐变[卡片.id] || 封面渐变.reaction;
       封面.setAttribute(
         'style',
-        `background:${封面色};background-image:url('images/games/${卡片.id}.png');background-size:cover;background-position:center;`
+        `background:${封面色};${封面样式(卡片.id)}`
       );
       媒体.appendChild(封面);
       媒体.appendChild(创建元素('span', { class: 'card-badge', text: 卡片.icon }));
@@ -157,7 +160,7 @@ class 霓虹终端 {
 
     const 媒体 = 创建元素('div', { class: 'featured-media' });
     const 精选图 = 创建元素('div', { class: 'featured-img' });
-    精选图.setAttribute('style', `background-image:url('images/games/${卡片.id}.png')`);
+    精选图.setAttribute('style', `background:${封面渐变[卡片.id] || 封面渐变.reaction};${封面样式(卡片.id)}`);
     媒体.appendChild(精选图);
     媒体.appendChild(创建元素('div', { class: 'featured-scrim' }));
     媒体.appendChild(创建元素('span', { class: 'featured-badge', text: t('featured.badge') }));
@@ -1343,6 +1346,13 @@ class 霓虹终端 {
     try {
       this.游戏管理器?.卸载当前游戏?.();
     } catch {}
+    // 移除 Router / ViewSwitcher 挂在 window/document 上的全局监听
+    try {
+      this.路由?.销毁?.();
+    } catch {}
+    try {
+      this.视图切换器?.销毁?.();
+    } catch {}
     // 停止粒子系统（含 rAF 与全局监听）
     try {
       this.粒子?.销毁?.();
@@ -1388,7 +1398,3 @@ class 霓虹终端 {
 }
 
 export { 霓虹终端 };
-
-document.addEventListener('DOMContentLoaded', () => {
-  new 霓虹终端();
-});

@@ -1,0 +1,129 @@
+---
+import BasicLayout from "../layouts/BasicLayout.astro";
+import { SITE } from "../site-config";
+import "../styles/agent.css";
+import "../styles/chat.css";
+import { 界面文案 } from "../lib/chat/ui-text";
+---
+
+<BasicLayout
+  description="会解压的外星人 · AI 陪伴聊天：SSE 流式回复、情绪识别、登录后可跨设备留存"
+  title={`${界面文案.标题} - ${SITE.author.fullName}`}
+>
+  <main class="agent-main">
+    <div class="agent-shell chat-shell">
+      <header class="agent-head">
+        <div>
+          <h1>{界面文案.标题}</h1>
+          <p class="agent-sub">{界面文案.副标题}</p>
+        </div>
+        <a class="back-home" href="/">← 返回简历</a>
+      </header>
+
+      <section class="chat-account" aria-label="账号">
+        <div class="account-guest" id="accountGuest">
+          <input
+            id="usernameInput"
+            class="account-input"
+            type="text"
+            autocomplete="username"
+            maxlength="20"
+            placeholder={界面文案.昵称}
+            aria-label={界面文案.昵称}
+          />
+          <input
+            id="passwordInput"
+            class="account-input"
+            type="password"
+            autocomplete="current-password"
+            placeholder={界面文案.密码}
+            aria-label={界面文案.密码}
+          />
+          <button id="loginBtn" class="account-btn" type="button">
+            {界面文案.登录}
+          </button>
+          <button id="registerBtn" class="account-btn ghost" type="button">
+            {界面文案.注册}
+          </button>
+          <span class="account-hint">不登录也能直接聊</span>
+        </div>
+
+        <div class="account-user" id="accountUser" hidden>
+          <span id="accountName" class="account-name"></span>
+          <button id="clearBtn" class="account-btn ghost" type="button">
+            {界面文案.清空记录}
+          </button>
+          <button id="logoutBtn" class="account-btn ghost" type="button">
+            {界面文案.退出}
+          </button>
+        </div>
+
+        <p class="account-error" id="accountError" role="alert" hidden></p>
+      </section>
+
+      <p class="chat-notice" id="notice" role="status" hidden></p>
+
+      <section class="chat-panel chat-round">
+        <div class="chat-scroll" id="chatScroll" role="log" aria-live="polite">
+          <div class="bubble assistant">
+            <div class="content">{界面文案.问候}</div>
+          </div>
+        </div>
+
+        <form class="chat-input-row" id="chatForm">
+          <textarea
+            id="chatInput"
+            rows="1"
+            placeholder={界面文案.输入框提示}
+            aria-label={界面文案.输入框提示}></textarea>
+          <button id="stopBtn" class="chat-send stop" type="button" hidden>
+            {界面文案.停止}
+          </button>
+          <button id="sendBtn" class="chat-send" type="submit">
+            {界面文案.发送}
+          </button>
+        </form>
+      </section>
+
+      <section class="chat-meta" aria-label="实现说明">
+        {
+          界面文案.说明.map((条目) => (
+            <p class="chat-meta-line">{条目}</p>
+          ))
+        }
+      </section>
+    </div>
+  </main>
+</BasicLayout>
+
+<script>
+  import { 创建聊天 } from "../lib/chat/client";
+
+  const 初始化 = (): void => {
+    const 容器 = document.getElementById("chatScroll");
+    if (!容器 || 容器.dataset.chatReady === "1") return;
+    容器.dataset.chatReady = "1";
+
+    创建聊天({
+      对话容器: 容器,
+      表单: document.getElementById("chatForm") as HTMLFormElement,
+      输入框: document.getElementById("chatInput") as HTMLTextAreaElement,
+      发送按钮: document.getElementById("sendBtn") as HTMLButtonElement,
+      停止按钮: document.getElementById("stopBtn") as HTMLButtonElement,
+      提示条: document.getElementById("notice") as HTMLParagraphElement,
+      游客区: document.getElementById("accountGuest") as HTMLDivElement,
+      用户区: document.getElementById("accountUser") as HTMLDivElement,
+      昵称输入: document.getElementById("usernameInput") as HTMLInputElement,
+      密码输入: document.getElementById("passwordInput") as HTMLInputElement,
+      登录按钮: document.getElementById("loginBtn") as HTMLButtonElement,
+      注册按钮: document.getElementById("registerBtn") as HTMLButtonElement,
+      退出按钮: document.getElementById("logoutBtn") as HTMLButtonElement,
+      清空按钮: document.getElementById("clearBtn") as HTMLButtonElement,
+      账号名: document.getElementById("accountName") as HTMLSpanElement,
+      账号错误: document.getElementById("accountError") as HTMLParagraphElement,
+    });
+  };
+
+  初始化();
+  document.addEventListener("astro:page-load", 初始化);
+</script>

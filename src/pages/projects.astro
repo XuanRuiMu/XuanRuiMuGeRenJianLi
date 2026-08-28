@@ -1,12 +1,13 @@
 ---
 import BasicLayout from "../layouts/BasicLayout.astro";
-import SkillMatrix from "../components/react/SkillMatrix";
 import { SITE } from "../site-config";
 import "../styles/projects.css";
+
+export const prerender = true;
 ---
 
 <BasicLayout
-  description="技术栈工坊 - 为契合 2026 招聘市场而补充的项目集合：真实 React 项目 / 纯前端 AI 工具 / 全栈后端工程"
+  description="技术栈工坊 - 每一个项目都对应一个真实存在的问题，并且都能在前端直接跑起来验证"
   title={`技术栈工坊 - ${SITE.author.fullName}`}
 >
   <main class="pj-main">
@@ -15,98 +16,189 @@ import "../styles/projects.css";
         <div>
           <h1>技术栈工坊</h1>
           <p class="pj-sub">
-            为契合 2026 招聘市场缺口而补充的能力证明集合 · 全部基于本简历站点同一工程
+            每一条都回答两件事：它解决了什么真实问题，以及你能在哪里亲手验证
           </p>
         </div>
         <a class="back-home" href="/">← 返回简历</a>
       </header>
 
       <p class="pj-intro">
-        这里集中展示为了贴合市场需求而新增的项目：一个用 React 18 + TypeScript 写的真实可交互组件、
-        一个去掉后端依赖可离线运行的纯前端 AI 求职工具、以及一个真实存在的 Python 全栈 AI Agent 后端工程。
-        它们都服务于同一个目标——让简历里的每一项技术声明，都能在代码里找到对应实现。
+        下面每个项目都先写清楚「现实里碰到了什么问题」，再写「用什么方案解决的」，最后给出一个
+        <b>现在就能点开、能真实跑出结果的前端入口</b>。没有纯描述、没有占位——点进去就能验证。
       </p>
 
-      <!-- a. 真实 React 项目 -->
-      <section class="pj-block" aria-label="真实 React 项目">
+      <!-- 01 AI 陪伴聊天 -->
+      <section class="pj-block" aria-label="全栈 AI 陪伴聊天">
         <div class="pj-block-head">
           <span class="pj-index">01</span>
           <div>
-            <h2>真实 React 项目 · 技能矩阵</h2>
+            <h2>会解压的外星人 · 全栈 AI 陪伴聊天</h2>
             <p class="pj-oneliner">
-              用 React 18 + TypeScript + Hooks 实现的可交互组件，直接嵌入本页作为活体演示。
+              真实问题：想找人倾诉时，商业 AI 产品要先注册、要付费，换台设备聊天记录就没了，而且回复要憋一整段才吐出来。
             </p>
           </div>
         </div>
         <div class="pj-chips">
-          <span class="chip">React</span>
-          <span class="chip">TypeScript</span>
-          <span class="chip">Astro island</span>
-          <span class="chip">Hooks</span>
+          <span class="chip">Astro 混合渲染</span>
+          <span class="chip">SSE 流式</span>
+          <span class="chip">JWT + CSRF</span>
+          <span class="chip">scrypt 加盐哈希</span>
+          <span class="chip">SQLite</span>
+          <span class="chip">IP 限流</span>
         </div>
         <p class="pj-desc">
-          组件使用 <code>useState</code> 管理分类筛选与选中状态，<code>useEffect</code> 驱动
-          打字流动画与进度条增长，<code>useMemo</code> 做派生计算，<code>useRef</code> 操作 DOM 触发过渡。
-          它是本站“真实会写 React”的实证，下方即为真实运行实例（滚动可见时自动加载）。
+          解法是把「门槛」和「留存」拆开处理：<b>不注册也能聊</b>（免登录按 IP 固定窗口限流，15 次/分钟），
+          想让记录跟着自己走再注册（JWT 鉴权 + 写接口 CSRF 校验 + scrypt 加盐哈希存口令）。
+          回复走 <code>SSE</code> 逐字推送，不用干等；每次回复后由模型标注情绪并落库，可回放。
+          架构上用 Astro 混合渲染：整站静态预渲染，只有 <code>/api/*</code> 走按需渲染，
+          因此一个进程、一个端口就能跑起来，模型密钥只留在服务端 <code>.env</code>。
         </p>
-        <div class="pj-demo">
-          <SkillMatrix client:visible />
-        </div>
+        <a class="pj-action" href="/chat">打开聊天页，直接说一句话 →</a>
       </section>
 
-      <!-- b. 纯前端 AI 求职助手 -->
-      <section class="pj-block" aria-label="纯前端 AI 求职助手">
+      <!-- 02 JD 匹配分析器 -->
+      <section class="pj-block" aria-label="纯前端 JD 匹配分析器">
         <div class="pj-block-head">
           <span class="pj-index">02</span>
           <div>
-            <h2>纯前端 AI 求职助手 · JD 匹配分析器</h2>
+            <h2>JD 匹配分析器 · 隐私零外传</h2>
             <p class="pj-oneliner">
-              去掉后端依赖、可离线运行的简历 × JD 匹配工具，所有计算在浏览器内完成。
+              真实问题：想知道自己和一份 JD 差在哪，就得把简历传到第三方网站，隐私拿不回来；公司内网、断网场景下更是完全用不了。
             </p>
           </div>
         </div>
         <div class="pj-chips">
           <span class="chip">TypeScript</span>
           <span class="chip">纯前端算法</span>
-          <span class="chip">本地 NLP 匹配</span>
+          <span class="chip">零网络请求</span>
+          <span class="chip">中英文别名词典</span>
         </div>
         <p class="pj-desc">
-          算法在客户端完成：技能词典（含中英文别名）关键词抽取 → 简历画像比对 → 匹配度评分与差距分析。
-          无需联网、无需密钥、不调用任何后端，打开即用。可跳转到独立页面体验完整分析流程。
+          把匹配做成纯浏览器端计算：技能词典（含中英文别名）做关键词抽取 → 与候选人画像比对 →
+          输出匹配度评分、已命中技能、差距技能与针对性建议。
+          <b>整个过程不发一个网络请求</b>，简历原文不会离开你的电脑，断网也能用。
         </p>
-        <a class="pj-action" href="/agent">打开 JD 匹配分析器 →</a>
+        <a class="pj-action" href="/agent">粘贴一段 JD，看匹配报告 →</a>
       </section>
 
-      <!-- c. 全栈 AI Agent 后端 -->
-      <section class="pj-block" aria-label="全栈 AI Agent 后端">
+      <!-- 03 游戏世界 -->
+      <section class="pj-block" aria-label="自研游戏引擎与游戏世界">
         <div class="pj-block-head">
           <span class="pj-index">03</span>
           <div>
-            <h2>全栈 AI Agent 后端 · FastAPI + MySQL + RAG + MCP</h2>
+            <h2>NEON CYBER 游戏世界 · 自研前端游戏引擎</h2>
             <p class="pj-oneliner">
-              真实存在的 Python 后端工程（位于 server/ 目录），为 AI Agent 提供完整运行时。
+              真实问题：简历上写「熟悉前端工程」没有说服力——文字谁都会写，但一个能真的玩起来、状态不崩、存档不丢的东西骗不了人。
+            </p>
+          </div>
+        </div>
+        <div class="pj-chips">
+          <span class="chip">原生 JS 引擎</span>
+          <span class="chip">状态机</span>
+          <span class="chip">路由与视图切换</span>
+          <span class="chip">Canvas 粒子</span>
+          <span class="chip">本地存档</span>
+          <span class="chip">7 款游戏</span>
+        </div>
+        <p class="pj-desc">
+          没有用游戏框架，而是自己搭了 <code>GameBase / StateManager / Router / ViewSwitcher / ProfileManager</code>
+          这一层：游戏只管玩法，生命周期、状态流转、存档读写由引擎统一负责，
+          因此 7 款游戏可以共用同一套启动、暂停、结算与积分持久化逻辑。
+          这是最直接的工程能力实证——点进去玩一局，崩不崩、卡不卡、分数存没存住，一眼就知道。
+        </p>
+        <a class="pj-action" href="/game">进游戏厅玩一局 →</a>
+      </section>
+
+      <!-- 04 Spring Boot 简历匹配平台 -->
+      <section class="pj-block" aria-label="Spring Boot 简历匹配平台">
+        <div class="pj-block-head">
+          <span class="pj-index">04</span>
+          <div>
+            <h2>AI 简历匹配平台 · Spring Boot + MySQL + 缓存降级</h2>
+            <p class="pj-oneliner">
+              真实问题：纯前端匹配器算完就没了——没有缓存，同样的 JD 要重复烧钱调 LLM；没有限流，一个接口能被刷爆；结果不落库，事后无法追溯。
+            </p>
+          </div>
+        </div>
+        <div class="pj-chips">
+          <span class="chip">Java 17</span>
+          <span class="chip">Spring Boot 3.5</span>
+          <span class="chip">MySQL 8.4</span>
+          <span class="chip">Redis / Caffeine</span>
+          <span class="chip">LLM 降级</span>
+          <span class="chip">固定窗口限流</span>
+          <span class="chip">JUnit 5</span>
+        </div>
+        <p class="pj-desc">
+          请求链路：参数校验 → 固定窗口限流（20 次/分钟/IP）→ 按 JD 内容哈希查缓存 →
+          未命中才调 LLM 做结构化分析 → 结果落 MySQL。
+          缓存层优先 Redis，Redis 不可用时<b>自动降级为 Caffeine 本地缓存</b>；
+          LLM 无 key 或超时时<b>自动降级为本地规则引擎</b>——响应里的 <code>engine</code>
+          字段会如实告诉你这次答案是哪个引擎算的，不会把降级结果冒充成模型输出。
+          本页下方的实测结果就是真实请求后端得到的。
+        </p>
+        <a class="pj-action" href="/matcher">打开匹配平台，粘贴 JD 实测 →</a>
+      </section>
+
+      <!-- 05 AI Agent 运行时 -->
+      <section class="pj-block" aria-label="AI Agent 运行时观测台">
+        <div class="pj-block-head">
+          <span class="pj-index">05</span>
+          <div>
+            <h2>AI Agent 运行时观测台 · ReAct + RAG + MCP</h2>
+            <p class="pj-oneliner">
+              真实问题：Agent 的回答是个黑盒——它为什么调这个工具、检索到了什么、哪一步慢了，全靠猜；一旦答错，根本没法复盘。
             </p>
           </div>
         </div>
         <div class="pj-chips">
           <span class="chip">Python</span>
           <span class="chip">FastAPI</span>
-          <span class="chip">SQLAlchemy</span>
-          <span class="chip">MySQL</span>
-          <span class="chip">RAG</span>
-          <span class="chip">MCP</span>
+          <span class="chip">ReAct 循环</span>
+          <span class="chip">RAG 检索</span>
+          <span class="chip">MCP 工具端点</span>
           <span class="chip">SSE</span>
+          <span class="chip">MySQL 轨迹落库</span>
         </div>
         <p class="pj-desc">
-          架构与能力：基于 <code>ReAct</code> 运行时调度思考—行动循环；通过工具调用接入外部能力；
-          以 <code>RAG</code> 检索增强私有知识，用 <code>MCP</code> 暴露标准化工具/数据源端点；
-          经 <code>SSE</code> 流式推送中间过程，并由 MySQL（SQLAlchemy 异步）做持久化与轨迹回放。
-          该工程为简历中“AI Agent 应用开发”提供后端实证，此处仅作展示说明，源码保持不变。
+          后端实现了一个 ReAct 运行时：思考 → 调用工具 → 观察 → 再思考，最多 8 步、单步 20 秒超时；
+          工具侧接入 RAG 私有知识检索，并以 MCP 暴露标准化工具端点。
+          关键在于<b>每一步的思考、工具名、入参、观察与耗时都会写进 MySQL</b>，
+          前端不仅能实时看到 SSE 事件流，还能在跑完后拉取完整轨迹逐帧回放——黑盒被摊开成了时间线。
         </p>
+        <a class="pj-action" href="/trace">问一句，看 Agent 一步步怎么想 →</a>
+      </section>
+
+      <!-- 06 站点质量自检台 -->
+      <section class="pj-block" aria-label="站点质量自检台">
+        <div class="pj-block-head">
+          <span class="pj-index">06</span>
+          <div>
+            <h2>站点质量自检台 · 多主题回归自检</h2>
+            <p class="pj-oneliner">
+              真实问题：这个站有 5 套主题 × 5 套外观，改一次 CSS 变量，可能在某个组合下某段文字就糊成一片——人不可能把 25 种组合全点一遍。
+            </p>
+          </div>
+        </div>
+        <div class="pj-chips">
+          <span class="chip">WCAG 对比度</span>
+          <span class="chip">键盘可达性</span>
+          <span class="chip">链接可达性</span>
+          <span class="chip">标题层级</span>
+          <span class="chip">25 种主题组合</span>
+        </div>
+        <p class="pj-desc">
+          把人工回归变成浏览器里的自动检查：按 WCAG 相对亮度公式逐个算可见文字与<b>其实效背景</b>的对比度
+          （会沿祖先链找到第一个不透明背景，并对半透明前景做 alpha 合成），
+          再检查图片 alt、站内链接真实可达性、可聚焦元素的可访问名称、h1 唯一性与标题跳级，
+          最后遍历 25 种主题 × 外观组合验证关键容器仍能渲染——<b>且会在结束后完整还原你当前的主题</b>。
+          解析不了的颜色（如 <code>color-mix</code>、渐变）会被计为「跳过」，绝不冒充通过。
+        </p>
+        <a class="pj-action" href="/audit">对本页跑一遍真实自检 →</a>
       </section>
 
       <footer class="pj-foot">
-        <span>// 技术栈工坊 · 同一工程内的市场向项目集合 //</span>
+        <span>// 技术栈工坊 · 六条，全部可在前端当场验证 //</span>
       </footer>
     </div>
   </main>

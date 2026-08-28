@@ -22,6 +22,9 @@ pnpm-debug.log*
 
 # local database
 .data/
+data/*.sqlite
+data/*.sqlite-wal
+data/*.sqlite-shm
 
 # macOS-specific files
 .DS_Store
@@ -40,3 +43,16 @@ tmp/
 # editor / logs
 *.log
 *.swp
+
+# java build output
+server-java/target/
+
+# browser test artifacts (process files)
+.browser-test/
+
+# progress tracking (循环工程)
+PROGRESS.md
+
+# process logs
+.spring.log
+uvicorn.log

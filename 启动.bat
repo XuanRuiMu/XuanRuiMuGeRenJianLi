@@ -2,11 +2,11 @@
 title YuXiangKun Resume Site
 
 echo Starting resume site on http://localhost:4321 ...
-echo (This opens a new window running "npm run dev". Do not close it.)
+echo (This opens a new window running "pnpm dev". Do not close it.)
 echo.
 
 pushd "%~dp0"
-start "AstroSite-4321" cmd /k "npm run dev"
+start "AstroSite-4321" cmd /k "pnpm dev"
 popd
 
 timeout /t 6 /nobreak >nul
