@@ -20,6 +20,12 @@ import { 自检台文案 } from "../lib/locales/audit";
         <a class="back-home" href="/">← 返回简历</a>
       </header>
 
+      {/* 本页没有卡片容器，而「主题 × 外观 组合覆盖」需要 .card 才能观测。
+          放一个移出视口的探测卡，让 25 种组合能在这一页当场验证，而不是永远报「跳过」。 */}
+      <div class="au-probe" aria-hidden="true">
+        <div class="card"><span>主题覆盖探测卡</span></div>
+      </div>
+
       <section class="au-summary" aria-label="自检汇总">
         <div class="au-score">
           <span class="au-score-num" id="auSummaryText">—</span>

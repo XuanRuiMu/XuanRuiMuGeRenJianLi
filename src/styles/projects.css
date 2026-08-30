@@ -151,5 +151,22 @@
 .pj-foot {
   text-align: center;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  /* 0.4 在深色底上只有 3.8:1，低于 AA；提到 0.5 后约 5.6:1，仍保持次要信息的弱化层次 */
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* 说明列表由 audit 与 trace 两个页面共用，因此放在二者都引入的 projects.css 里；
+   若留在 audit.css，只引入 trace.css 的页面会退回浏览器默认黑字，在深色底上等于隐形 */
+.au-notes {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.au-notes li {
+  font-size: 12.5px;
+  color: var(--darkslate-300, #9a9a9a);
+  line-height: 1.7;
 }

@@ -91,6 +91,9 @@
 .au-item.pass {
   border-color: rgba(110, 231, 168, 0.35);
 }
+.au-item.skip {
+  border-color: rgba(154, 154, 154, 0.4);
+}
 
 .au-item-head {
   width: 100%;
@@ -176,6 +179,9 @@
 .au-detail-row.warn {
   background: rgba(255, 209, 102, 0.07);
 }
+.au-detail-row.skip {
+  background: rgba(154, 154, 154, 0.08);
+}
 
 .au-detail-desc {
   color: #dcdcdc;
@@ -194,18 +200,15 @@
   color: #6ee7a8;
 }
 
-.au-notes {
-  margin: 0;
-  padding-left: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.au-notes li {
-  font-size: 12.5px;
-  color: var(--darkslate-300, #9a9a9a);
-  line-height: 1.7;
+/* 主题 × 外观 组合检查需要本页存在 .card 作为观测目标，否则这一项永远只能报「跳过」。
+   不能用 display:none / visibility:hidden —— 那样 getComputedStyle 量不到尺寸，
+   检查会退化成假通过；所以移出视口，保留完整布局尺寸。 */
+.au-probe {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  width: 320px;
+  pointer-events: none;
 }
 
 @media (max-width: 720px) {

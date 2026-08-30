@@ -77,22 +77,103 @@ function 对比度(前景: 颜色, 背景: 颜色): number {
   return (大 + 0.05) / (小 + 0.05);
 }
 
-/** 沿祖先链找到第一个不透明背景色；找不到就返回 null（该元素跳过） */
-function 找实际背景(元素: Element): 颜色 | null {
+/** 单个渐变最多取多少个色停参与计算 */
+const 色停上限 = 8;
+/** 多层渐变展开后的候选色上限，防止组合爆炸 */
+const 候选上限 = 48;
+
+function 均匀取样<项>(数组: 项[], 上限: number): 项[] {
+  if (数组.length <= 上限) return 数组;
+  const 步长 = 数组.length / 上限;
+  const 结果: 项[] = [];
+  for (let 位 = 0; 位 < 上限; 位 += 1) 结果.push(数组[Math.floor(位 * 步长)]);
+  return 结果;
+}
+
+/**
+ * 从 background-image 里取出全部渐变色停。
+ * 返回 null 表示遇到了无法解析的颜色写法（hex / hsl / 颜色关键字），交给上游如实跳过。
+ *
+ * 只取色停而不沿渐变插值采样是有依据的：sRGB 空间里相邻色停之间每个通道随参数线性变化，
+ * 而 WCAG 相对亮度对每个通道单调递增，所以亮度的极值必然落在色停上。
+ */
+function 提取渐变色(背景图: string): 颜色[] | null {
+  const 规范 = 背景图.toLowerCase();
+  if (/(^|[\s,(])#[\da-f]{3,8}\b/.test(规范) || /hsla?\(/.test(规范)) return null;
+
+  const 匹配 = 背景图.match(/rgba?\([^)]*\)/gi);
+  if (匹配 === null) return null;
+
+  const 色组: 颜色[] = [];
+  for (const 串 of 匹配) {
+    const 色 = 解析颜色(串);
+    if (色 === null) return null;
+    色组.push(色);
+  }
+  return 色组.length === 0 ? null : 均匀取样(色组, 色停上限);
+}
+
+interface 背景信息 {
+  /** 实效背景的全部候选色；渐变按色停展开，多层按合成关系展开 */
+  候选: 颜色[];
+  /** 存在 url() 背景图或无法解析的颜色写法时，像素内容不可判定 */
+  有图片: boolean;
+}
+
+/**
+ * 沿祖先链合成出实效背景的全部候选色。
+ * 渐变按色停展开成多个候选，多层渐变由远及近逐层合成，最后取最差值判定。
+ */
+function 找实际背景(
+  元素: Element,
+  选项: { 跳过自身背景: boolean } = { 跳过自身背景: false },
+): 背景信息 {
+  const 渐变层: 颜色[][] = [];
+  const 实心层: 颜色[] = [];
   let 当前: Element | null = 元素;
+  let 有图片 = false;
+  let 找到不透明底 = false;
+
   while (当前 !== null) {
     const 样式 = getComputedStyle(当前);
+    const 图 = 样式.backgroundImage;
+
+    // background-clip:text 时元素自身的渐变是文字填充色，不是背景
+    if (图 !== "none" && !(选项.跳过自身背景 && 当前 === 元素)) {
+      if (/url\(/i.test(图)) {
+        有图片 = true;
+      } else {
+        const 色组 = 提取渐变色(图);
+        if (色组 === null) 有图片 = true;
+        else 渐变层.push(色组);
+      }
+    }
+
     const 背景 = 解析颜色(样式.backgroundColor);
     if (背景 !== null && 背景.透明 > 0) {
-      // 半透明背景需要继续往下垫，这里简单地继续往祖先找不透明底色
-      if (背景.透明 === 1) return 背景;
-      const 更底层 = 当前.parentElement === null ? null : 找实际背景(当前.parentElement);
-      if (更底层 === null) return null;
-      return 合成(背景, 更底层);
+      实心层.push(背景);
+      if (背景.透明 === 1) {
+        找到不透明底 = true;
+        break;
+      }
     }
     当前 = 当前.parentElement;
   }
-  return null;
+
+  // 一路没找到不透明底色，说明底下是什么取决于浏览器默认画布，不予判定
+  if (!找到不透明底) return { 候选: [], 有图片 };
+
+  let 候选: 颜色[] = [实心层[实心层.length - 1]];
+  for (let 位 = 实心层.length - 2; 位 >= 0; 位 -= 1) {
+    候选 = 候选.map((底) => 合成(实心层[位], 底));
+  }
+  for (let 位 = 渐变层.length - 1; 位 >= 0; 位 -= 1) {
+    const 展开: 颜色[] = [];
+    for (const 底 of 候选) for (const 停 of 渐变层[位]) 展开.push(合成(停, 底));
+    候选 = 均匀取样(展开, 候选上限);
+  }
+
+  return { 候选, 有图片 };
 }
 
 function 元素路径(元素: Element): string {
@@ -124,42 +205,86 @@ function 收集文本元素(根: ParentNode): HTMLElement[] {
 
 export function 检查对比度(根: ParentNode = document): 检查结果 {
   const 明细: 明细项[] = [];
+  const 文本元素 = 收集文本元素(根);
   let 跳过 = 0;
 
-  for (const 元素 of 收集文本元素(根)) {
+  for (const 元素 of 文本元素) {
     const 样式 = getComputedStyle(元素);
     const 前景 = 解析颜色(样式.color);
-    const 背景 = 找实际背景(元素);
 
-    if (前景 === null || 背景 === null) {
+    // 渐变填充文字：元素自身的渐变是文字填充色而非背景，取背景时要跳过它
+    const 裁剪到文字 =
+      样式.getPropertyValue("-webkit-background-clip") === "text" ||
+      样式.backgroundClip === "text";
+    const 背景信息 = 找实际背景(元素, { 跳过自身背景: 裁剪到文字 });
+
+    if (前景 === null || 背景信息.候选.length === 0 || 背景信息.有图片) {
       跳过 += 1;
       continue;
     }
 
-    const 实际前景 = 合成(前景, 背景);
+    let 前景候选: 颜色[] = [前景];
+    if (裁剪到文字) {
+      const 色组 = 提取渐变色(样式.backgroundImage);
+      if (色组 === null) {
+        跳过 += 1;
+        continue;
+      }
+      前景候选 = 色组;
+    }
+
+    // 元素自身的 opacity 会让文字向背景衰减，不纳入合成就会高估对比度
+    const 元素不透明度 = Number.parseFloat(样式.opacity);
     const 字号 = Number.parseFloat(样式.fontSize) || 16;
     const 粗细 = Number.parseInt(样式.fontWeight, 10) || 400;
     // WCAG AA：大号字（>=18.66px 且加粗，或 >=24px）阈值降到 3.0
     const 是大号 = 字号 >= 24 || (字号 >= 18.66 && 粗细 >= 700);
     const 阈值 = 是大号 ? 3 : 4.5;
-    const 比值 = 对比度(实际前景, 背景);
 
-    if (比值 < 阈值) {
+    // 渐变会铺出一段亮度范围，只要其中任何一处不达标，读者就有可能看不清
+    let 最差比值 = Number.POSITIVE_INFINITY;
+    for (const 前 of 前景候选) {
+      const 衰减前 =
+        Number.isFinite(元素不透明度) && 元素不透明度 < 1
+          ? { ...前, 透明: 前.透明 * 元素不透明度 }
+          : 前;
+      for (const 背 of 背景信息.候选) {
+        const 比值 = 对比度(合成(衰减前, 背), 背);
+        if (比值 < 最差比值) 最差比值 = 比值;
+      }
+    }
+
+    if (最差比值 < 阈值) {
       明细.push({
         说明: `${元素路径(元素)}：${(元素.textContent ?? "").trim().slice(0, 24)}`,
-        结论: 比值 < 阈值 * 0.7 ? "失败" : "警告",
-        数值: `${比值.toFixed(2)}:1（要求 ${阈值}:1）`,
+        结论: 最差比值 < 阈值 * 0.7 ? "失败" : "警告",
+        数值: `${最差比值.toFixed(2)}:1（要求 ${阈值}:1）`,
       });
     }
   }
 
   const 失败数 = 明细.filter((项) => 项.结论 === "失败").length;
+  const 跳过占比 = 文本元素.length === 0 ? 0 : 跳过 / 文本元素.length;
+  // 大面积无法解析时不能断言通过，否则「跳过」就成了变相的假通过
+  const 最终结论: 结论 =
+    失败数 > 0
+      ? "失败"
+      : 明细.length > 0
+        ? "警告"
+        : 跳过占比 > 0.3
+          ? "跳过"
+          : "通过";
+
   return {
     编号: "01",
     名称: "文字对比度（WCAG AA）",
-    说明: "逐个计算可见文字与其实效背景色的对比度，低于 AA 阈值即列出。",
-    结论: 失败数 > 0 ? "失败" : 明细.length > 0 ? "警告" : "通过",
-    汇总: `不达标 ${明细.length} 处（其中严重 ${失败数} 处），无法解析而跳过 ${跳过} 处`,
+    说明:
+      "逐个计算可见文字与其实效背景的对比度，含 alpha 合成、元素自身 opacity，以及祖先链上的渐变背景与渐变填充文字——渐变按色停展开后取最差的一处，低于 AA 阈值即列出。",
+    结论: 最终结论,
+    汇总:
+      最终结论 === "跳过"
+        ? `${文本元素.length} 个文本元素中 ${跳过} 个颜色无法解析（${Math.round(跳过占比 * 100)}%），覆盖率不足，不予判定`
+        : `检查 ${文本元素.length} 处，不达标 ${明细.length} 处（其中严重 ${失败数} 处），无法解析而跳过 ${跳过} 处`,
     明细,
   };
 }
@@ -282,11 +407,14 @@ export function 检查键盘可达(根: ParentNode = document): 检查结果 {
     if (样式.display === "none" || 样式.visibility === "hidden") continue;
 
     const 索引 = 元素.getAttribute("tabindex");
-    if (索引 !== null && Number(索引) < 0) {
+    const 索引值 = 索引 === null ? null : Number(索引);
+    // 负 tabindex 是标准的「可编程聚焦但不进 Tab 序列」模式（跳过链接目标、对话框初始焦点），
+    // 属于正确用法；真正有害的是正数，它会把元素强行插到自然焦点顺序之前
+    if (索引值 !== null && 索引值 > 0) {
       明细.push({
         说明: `${元素路径(元素)}`,
         结论: "警告",
-        数值: `tabindex=${索引}，键盘无法聚焦`,
+        数值: `tabindex=${索引} 为正数，会打乱自然焦点顺序`,
       });
     }
 
@@ -371,23 +499,59 @@ export const 外观类 = [
 ];
 
 export function 检查主题覆盖(): 检查结果 {
+  const 组合数 = 主题类.length * 外观类.length;
+  const 基础说明 = `遍历 ${组合数} 种组合，检查关键卡片容器仍能正常渲染且主题变量确实生效（检查后会还原当前主题）。`;
+
+  // 没有可观测的卡片容器时，这一项在此页无法验证，必须如实报「跳过」而不是冒充通过
+  if (document.querySelector(".card") === null) {
+    return {
+      编号: "06",
+      名称: "主题 × 外观 组合覆盖",
+      说明: 基础说明,
+      结论: "跳过",
+      汇总: `本页没有 .card 容器，${组合数} 种组合均未验证`,
+      明细: [
+        {
+          说明: "缺少观测目标",
+          结论: "跳过",
+          数值: "请在首页等含卡片的页面运行本项",
+        },
+      ],
+    };
+  }
+
   const 明细: 明细项[] = [];
-  const 原始 = document.body.className;
+  // 只增删主题与外观类，保留 body 原有的布局类，否则测到的是错误布局下的尺寸
+  const 原有类 = Array.from(document.body.classList);
+  const 保留类 = 原有类.filter(
+    (值) => !主题类.includes(值) && !外观类.includes(值),
+  );
+  const 主题主色 = new Map<string, string>();
 
   try {
     for (const 主题 of 主题类) {
       for (const 外观 of 外观类) {
-        document.body.className =
-          [主题 === "default" ? "" : 主题, 外观 === "default" ? "" : 外观]
-            .filter((值) => 值.length > 0)
-            .join(" ");
+        document.body.className = [
+          ...保留类,
+          主题 === "default" ? "" : 主题,
+          外观 === "default" ? "" : 外观,
+        ]
+          .filter((值) => 值.length > 0)
+          .join(" ");
 
         const 卡片 = document.querySelector<HTMLElement>(".card");
-        if (卡片 === null) continue;
+        const 矩形 = 卡片?.getBoundingClientRect();
+        const 主色 = getComputedStyle(document.body)
+          .getPropertyValue("--primary-500")
+          .trim();
 
-        const 矩形 = 卡片.getBoundingClientRect();
-        const 主色 = getComputedStyle(document.body).getPropertyValue("--primary-500").trim();
-        if (矩形.width === 0 || 矩形.height === 0) {
+        if (卡片 === null) {
+          明细.push({
+            说明: `${主题} × ${外观}`,
+            结论: "失败",
+            数值: "卡片在切换后消失",
+          });
+        } else if (矩形 !== undefined && (矩形.width === 0 || 矩形.height === 0)) {
           明细.push({
             说明: `${主题} × ${外观}`,
             结论: "失败",
@@ -399,21 +563,35 @@ export function 检查主题覆盖(): 检查结果 {
             结论: "失败",
             数值: "未取到 --primary-500",
           });
+        } else {
+          主题主色.set(主题, 主色);
         }
       }
     }
   } finally {
     // 无论中途是否抛错，都必须把用户原本的主题与外观还原回去
-    document.body.className = 原始;
+    document.body.className = 原有类.join(" ");
   }
 
-  const 组合数 = 主题类.length * 外观类.length;
+  // 主题变量必须随主题切换而变化，否则说明某套主题根本没生效
+  const 唯一主色 = new Set(主题主色.values());
+  if (唯一主色.size < 主题类.length) {
+    明细.push({
+      说明: "主题变量区分度",
+      结论: "失败",
+      数值: `${主题类.length} 套主题只解析出 ${唯一主色.size} 种 --primary-500`,
+    });
+  }
+
   return {
     编号: "06",
     名称: "主题 × 外观 组合覆盖",
-    说明: `遍历 ${组合数} 种组合，检查关键卡片容器仍能正常渲染（检查后会还原当前主题）。`,
+    说明: 基础说明,
     结论: 明细.length > 0 ? "失败" : "通过",
-    汇总: `${组合数} 种组合，异常 ${明细.length} 种`,
+    汇总:
+      明细.length === 0
+        ? `${组合数} 种组合全部正常，且 ${主题类.length} 套主题主色互不相同`
+        : `${组合数} 种组合，异常 ${明细.length} 种`,
     明细,
   };
 }

@@ -135,7 +135,7 @@ export const prerender = true;
           缓存层优先 Redis，Redis 不可用时<b>自动降级为 Caffeine 本地缓存</b>；
           LLM 无 key 或超时时<b>自动降级为本地规则引擎</b>——响应里的 <code>engine</code>
           字段会如实告诉你这次答案是哪个引擎算的，不会把降级结果冒充成模型输出。
-          本页下方的实测结果就是真实请求后端得到的。
+          点开下面的入口粘贴一段 JD，看到的就是真实请求后端得到的响应。
         </p>
         <a class="pj-action" href="/matcher">打开匹配平台，粘贴 JD 实测 →</a>
       </section>
@@ -194,7 +194,7 @@ export const prerender = true;
           最后遍历 25 种主题 × 外观组合验证关键容器仍能渲染——<b>且会在结束后完整还原你当前的主题</b>。
           解析不了的颜色（如 <code>color-mix</code>、渐变）会被计为「跳过」，绝不冒充通过。
         </p>
-        <a class="pj-action" href="/audit">对本页跑一遍真实自检 →</a>
+        <a class="pj-action" href="/audit">打开自检台，当场跑一遍真实自检 →</a>
       </section>
 
       <footer class="pj-foot">

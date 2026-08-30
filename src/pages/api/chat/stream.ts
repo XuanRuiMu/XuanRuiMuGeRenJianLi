@@ -23,7 +23,7 @@ const 取客串上下文 = (原始: unknown): { role: "user" | "assistant"; cont
         typeof 轮 === "object" &&
         typeof (轮 as { content?: unknown }).content === "string",
     )
-    .map((轮) => ({
+    .map((轮): { role: "user" | "assistant"; content: string } => ({
       role: 轮.role === "assistant" ? "assistant" : "user",
       content: 轮.content.slice(0, 聊天配置.单条消息上限),
     }))

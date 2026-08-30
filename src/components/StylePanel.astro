@@ -67,7 +67,10 @@ const BTN = `style-btn ${BTN_BASE}`;
           title={label}
         >
           <StyleGlyph index={i} />
-          <span class="absolute top-1 right-1.5 text-4xs opacity-40 leading-none">
+          <span
+            class="absolute top-1 right-1.5 text-4xs opacity-40 leading-none"
+            aria-hidden="true"
+          >
             {i + 1}
           </span>
         </button>
@@ -90,12 +93,15 @@ const BTN = `style-btn ${BTN_BASE}`;
         stroke="currentColor"
         stroke-width="2"
         stroke-linejoin="round"
+        aria-hidden="true"
       >
         <path
           d="M7 4h10a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z"
         ></path>
       </svg>
-      <span class="absolute top-1 right-1.5 text-4xs opacity-40 leading-none"
+      <span
+        class="absolute top-1 right-1.5 text-4xs opacity-40 leading-none"
+        aria-hidden="true"
         >B</span
       >
     </button>

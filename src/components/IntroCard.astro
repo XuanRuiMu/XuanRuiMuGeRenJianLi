@@ -10,7 +10,12 @@ import { SITE } from "../site-config";
   <div class="flex w-full h-full items-center">
     <div class="flex flex-col justify-between gap-4">
       <div class="flex flex-col h-full">
-        <h6 class="text-sm font-light m-0 text-darkslate-300">欢迎</h6>
+        {/* 首页原本没有任何 h1，对 SEO 与读屏导航都是硬伤；
+            这里补一个只给读屏与搜索引擎的 h1，视觉上完全不改动版式 */}
+        <h1 class="sr-only">
+          {SITE.author.fullName} — {SITE.author.jobTitle}
+        </h1>
+        <h2 class="text-sm font-light m-0 text-darkslate-300">欢迎</h2>
 
         <p class="sr-only">
           你好，我是{SITE.author.fullName}，一名刚刚毕业的应届生。我唯一的核心能力是用

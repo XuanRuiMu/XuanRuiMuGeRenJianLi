@@ -98,6 +98,7 @@ import { 界面文案 } from "../lib/chat/ui-text";
 
 <script>
   import { 创建聊天 } from "../lib/chat/client";
+  import { 启动花瓣背景, 停止花瓣背景 } from "../lib/chat/petals";
 
   const 初始化 = (): void => {
     const 容器 = document.getElementById("chatScroll");
@@ -122,8 +123,12 @@ import { 界面文案 } from "../lib/chat/ui-text";
       账号名: document.getElementById("accountName") as HTMLSpanElement,
       账号错误: document.getElementById("accountError") as HTMLParagraphElement,
     });
+
+    启动花瓣背景();
   };
 
   初始化();
   document.addEventListener("astro:page-load", 初始化);
+  // 路由切换前销毁花瓣容器，避免全局副作用残留在简历页
+  document.addEventListener("astro:before-swap", 停止花瓣背景);
 </script>

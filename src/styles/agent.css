@@ -174,6 +174,30 @@
   box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.15);
 }
 
+/* 按钮必须显式给定前景色：UnoCSS reset 只把 button 背景重置为透明，
+   不设 color 就会沿用浏览器默认的黑字，在深色面板上等于隐形 */
+.input-row button {
+  flex-shrink: 0;
+  background: rgba(168, 85, 255, 0.16);
+  border: 1px solid rgba(168, 85, 255, 0.45);
+  border-radius: 9px;
+  color: #f2eeff;
+  padding: 11px 18px;
+  font-size: 13.5px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.input-row button:hover {
+  background: rgba(168, 85, 255, 0.28);
+}
+
+.input-row button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .side-panel {
   display: flex;
   flex-direction: column;

@@ -28,6 +28,14 @@ const 结论类名: Record<结论, string> = {
   跳过: "skip",
 };
 
+/** 自检台自身要守住输出安全：所有文本一律走 textContent，绝不拼 innerHTML */
+function 建片段(类名: string, 文本: string): HTMLSpanElement {
+  const 元素 = document.createElement("span");
+  元素.className = 类名;
+  元素.textContent = 文本;
+  return 元素;
+}
+
 function 渲染分组(结果: 检查结果): HTMLElement {
   const 分组 = document.createElement("section");
   分组.className = `au-item ${结论类名[结果.结论]}`;
@@ -36,13 +44,13 @@ function 渲染分组(结果: 检查结果): HTMLElement {
   头部.type = "button";
   头部.className = "au-item-head";
   头部.setAttribute("aria-expanded", "false");
-  头部.innerHTML = `
-    <span class="au-item-index">${结果.编号}</span>
-    <span class="au-item-name">${结果.名称}</span>
-    <span class="au-item-tag ${结论类名[结果.结论]}">${结果.结论}</span>
-    <span class="au-item-summary">${结果.汇总}</span>
-    <span class="au-item-caret">▾</span>
-  `;
+  头部.append(
+    建片段("au-item-index", 结果.编号),
+    建片段("au-item-name", 结果.名称),
+    建片段(`au-item-tag ${结论类名[结果.结论]}`, 结果.结论),
+    建片段("au-item-summary", 结果.汇总),
+    建片段("au-item-caret", "▾"),
+  );
 
   const 明细 = document.createElement("div");
   明细.className = "au-item-detail";
