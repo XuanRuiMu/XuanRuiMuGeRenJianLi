@@ -26,4 +26,11 @@ export const projects: Project[] = [
     metricKeys: ['data.projects.aiConsole.metrics.lines', 'data.projects.aiConsole.metrics.sources'],
     links: [{ labelKey: 'projects.link.github', url: 'https://github.com/XuanRuiMu/loop-engineering' }],
   },
+  {
+    id: 'analytics',
+    nameKey: 'data.projects.analytics.name',
+    descKey: 'data.projects.analytics.desc',
+    tags: ta('data.projects.analytics.tags'),
+    metricKeys: ['data.projects.analytics.metrics.stack', 'data.projects.analytics.metrics.tests'],
+  },
 ]

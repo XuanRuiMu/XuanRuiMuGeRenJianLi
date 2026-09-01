@@ -26,10 +26,13 @@ export function Layout({ children }: LayoutProps) {
           <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 text-xs text-muted text-shadow-readable sm:flex-row">
             <span>{t('footer.copyright')}</span>
             <span>{t('footer.status')}</span>
-            {/* 网页最底部：访问人数统计（对接 /api/analytics，dev 落盘 data/，生产走 CF KV） */}
-            <VisitorCounter />
           </div>
         </footer>
+
+        {/* 访问人数固定居中显示 */}
+        <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center">
+          <VisitorCounter />
+        </div>
 
         <CommandPalette />
         <AIChat />

@@ -10,7 +10,7 @@ interface InkRevealOverlayProps {
 // 水墨遮罩双主题均为满不透明实色：深色=墨黑与星空底色一致（擦开见星）；
 // 浅色=偏白砂黄，拨开轻纱般的沙色雾霭，露出烈焰中的世界树
 const 墨色深 = '#05060f'
-const 墨色浅 = '#f0e5c5'
+const 墨色浅 = '#F5D0C5'
 
 export function InkRevealOverlay({ enabled: enabledProp }: InkRevealOverlayProps) {
   const rendererRef = useRef<InkRevealRenderer | null>(null)

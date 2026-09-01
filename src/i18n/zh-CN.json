@@ -424,6 +424,15 @@
           "lines": "2681 行 Python",
           "sources": "8 源数据更新"
         }
+      },
+      "analytics": {
+        "name": "恋爱吧数据中心",
+        "desc": "给「和我恋爱吧」自建的运营数据平台：Spring Boot 3 通过 Kafka 异步同步聚合数据，Redis 实现缓存穿透/击穿/雪崩三防；FastAPI + LangGraph 编排 ReAct Agent，接入 RAG 知识库并暴露 MCP Server；React + ECharts 运营大屏。",
+        "tags": ["Spring Boot 3", "Kafka", "Redis", "LangGraph", "RAG", "FastAPI", "MCP", "ECharts"],
+        "metrics": {
+          "stack": "Java + Python 双栈",
+          "tests": "80+ 自动化测试"
+        }
       }
     },
     "skills": {

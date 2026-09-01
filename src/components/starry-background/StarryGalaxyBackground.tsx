@@ -16,9 +16,9 @@ interface StarryGalaxyBackgroundProps {
 const 壁纸滚动系数 = 0.06
 // 位移上限 < CSS 溢出预留（320px），任何页面长度下都不会露底
 const 壁纸位移上限 = 280
-// 用户 2026-08-25 参数网页实调回传的《神奈川冲浪里》最终调色参数（提亮 + 降反差 + 抬白）
-const 壁纸滤镜 = 'brightness(1.13) contrast(0.61)'
-const 壁纸抬白浓度 = 0.61
+// 用户 2026-08-25 参数网页实调回传的《神奈川冲浪里》调色参数（提亮 + 适中反差 + 轻抬白）
+const 壁纸滤镜 = 'brightness(1.15) contrast(0.88)'
+const 壁纸抬白浓度 = 0.38
 
 /**
  * 浅色模式壁纸层：fixed 铺满（CSS 纵向各溢出 320px 预留位移空间）。
@@ -71,7 +71,10 @@ function LightWallpaper({ reducedMotion }: { reducedMotion: boolean }) {
         <video
           src="/videos/kanagawa-wave-loop.mp4"
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-          style={{ filter: 壁纸滤镜 }}
+          style={{
+            filter: 壁纸滤镜,
+            animation: 'wallpaper-pulse 8s ease-in-out infinite',
+          }}
           autoPlay
           muted
           loop

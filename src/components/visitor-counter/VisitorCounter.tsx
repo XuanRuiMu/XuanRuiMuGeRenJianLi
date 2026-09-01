@@ -27,10 +27,12 @@ function VisitorCounterCore() {
 
   const total = stats.data?.total
   return (
-    <span className="inline-flex items-center gap-1" data-testid="visitor-counter">
-      <span aria-hidden="true">◈</span>
-      {t('footer.visitorsLabel')}：{typeof total === 'number' ? total.toLocaleString('zh-CN') : '…'}
-    </span>
+    <div className="visitor-counter-card" data-testid="visitor-counter-card">
+      <span className="inline-flex items-center gap-1" data-testid="visitor-counter">
+        <span aria-hidden="true">◈</span>
+        {t('footer.visitorsLabel')}：{typeof total === 'number' ? total.toLocaleString('zh-CN') : '…'}
+      </span>
+    </div>
   )
 }
 
