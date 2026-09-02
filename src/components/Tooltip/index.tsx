@@ -34,9 +34,23 @@ export default function Tooltip(props: Props) {
       </div>
 
       {是否显示 && (
-        <div className="tt-shell absolute left-1/2 -translate-x-1/2 -translate-y-26 mt-1 z-10">
-          <div className="tt--ns w-auto max-w-[19rem] p-2 bg-black text-white text-center rounded-lg shadow-custom shadow-primary-500 border border-primary-500 whitespace-normal after:content-[''] after:block after:rotate-45 after:w-4 after:h-4 after:shadow-custom after:shadow-primary-500 after:absolute after:-bottom-2 after:-translate-x-1/2 after:left-1/2 after:bg-black after:z-20">
-            <p className="text-sm leading-relaxed">{诗句.正文}</p>
+        <div
+          className="tt-shell absolute z-10"
+          style={{ width: "max-content" }}
+        >
+          <div
+            className="tt--ns max-w-[19rem] p-2 bg-black text-white text-center rounded-lg shadow-custom shadow-primary-500 border border-primary-500 whitespace-normal after:content-[''] after:block after:rotate-45 after:w-4 after:h-4 after:shadow-custom after:shadow-primary-500 after:absolute after:-bottom-2 after:-translate-x-1/2 after:left-1/2 after:bg-black after:z-20"
+            style={{ minWidth: "max-content" }}
+          >
+            <div className="text-sm leading-relaxed text-center">
+              {诗句.正文
+                .split(/(?<=[，。；、！？])/)
+                .map((句, i) => (
+                  <span key={i} className="block">
+                    {句}
+                  </span>
+                ))}
+            </div>
             <p className="mt-1 text-3xs text-darkslate-300">
               —— {诗句.作者}《{诗句.篇名}》
             </p>

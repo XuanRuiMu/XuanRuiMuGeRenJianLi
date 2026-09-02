@@ -52,12 +52,23 @@ import { SITE } from "../site-config";
               <span class="sr-only">GitHub 主页</span>
             </Button>
           </a>
-          <a href={`mailto:${SITE.links.email}`} aria-label="发送邮件">
-            <Button aria-label="发送邮件">
+          <span class="btn-shell relative inline-flex w-fit h-full">
+            <button
+              type="button"
+              id="homeEmailBtn"
+              data-email={SITE.links.email}
+              aria-label="复制并显示邮箱"
+              class="btn--ns btn-chrome h-full w-fit text-xl max-h-[50px] px-5 py-2 cursor-pointer rounded-lg"
+            >
               <Icon name="ri:mail-fill" />
-              <span class="sr-only">发送邮件</span>
-            </Button>
-          </a>
+              <span class="sr-only">复制并显示邮箱</span>
+            </button>
+            <div class="tt-shell email-bubble absolute" id="homeEmailBubble" hidden>
+              <div class="tt--ns max-w-[19rem] p-2 bg-black text-white text-center rounded-lg shadow-custom shadow-primary-500 border border-primary-500">
+                <span class="text-sm leading-relaxed">{SITE.links.email}</span>
+              </div>
+            </div>
+          </span>
           <Tooltip client:visible>
             <Button aria-label="彩蛋按钮">
               <Icon name="ri:emotion-laugh-line" />
@@ -65,7 +76,54 @@ import { SITE } from "../site-config";
             </Button>
           </Tooltip>
         </div>
+        <span class="email-toast" id="homeEmailToast" hidden>已复制到剪贴板 ✓</span>
       </div>
     </div>
   </div>
 </Card>
+
+<style>
+  /* 邮箱气泡定位复用全局 .tt-shell 权威规则（按钮正上方 8px、水平居中），
+     这里只放本气泡的差异样式；显示/隐藏一律由 hidden 属性控制，禁止用 display 覆盖。 */
+  .email-bubble {
+    min-width: max-content;
+  }
+  .email-toast {
+    margin-top: 4px;
+    font-size: 0.72rem;
+    color: #9affc4;
+  }
+</style>
+
+<script>
+  // 站点全局启用 Astro View Transitions（ClientRouter）。
+  // 旧写法在加载时一次性缓存元素引用，导航回到首页后节点已被换走，监听器随之失效。
+  // 改为 document 级委托，点击时动态解析各元素，规避失效问题。
+  document.addEventListener("click", (e: Event) => {
+    const 目标 = e.target as HTMLElement | null;
+    if (!目标) return;
+    const 按钮 = 目标.closest<HTMLButtonElement>("#homeEmailBtn");
+    if (!按钮) return;
+
+    const 邮箱 = 按钮.dataset.email ?? "";
+    const 气泡 = document.getElementById("homeEmailBubble") as HTMLDivElement | null;
+    const 提示 = document.getElementById("homeEmailToast") as HTMLSpanElement | null;
+    if (!气泡 || !提示) return;
+
+    void (async () => {
+      try {
+        await navigator.clipboard.writeText(邮箱);
+      } catch {
+        /* 剪贴板不可用时静默忽略 */
+      }
+
+      // 再次点击收起（toggle），显示/隐藏一律用 hidden 属性
+      气泡.hidden = !气泡.hidden;
+
+      提示.hidden = false;
+      window.setTimeout(() => {
+        提示.hidden = true;
+      }, 2000);
+    })();
+  });
+</script>

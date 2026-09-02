@@ -3,33 +3,124 @@ import Card from "./Card/index.astro";
 import { SITE } from "../site-config";
 
 const socialLinkClass =
-  "inline-block w-fit text-darkslate-100 hover:text-primary-400 hover:translate-x-0.5 transition-all duration-150";
+  "copyable-link inline-block w-fit text-darkslate-100 hover:text-primary-400 hover:translate-x-0.5 transition-all duration-150";
 ---
 
-<Card colSpan="md:col-span-1" rowSpan="md:row-span-4" class="pad-lg">
+<Card colSpan="md:col-span-1" rowSpan="md:row-span-3" class="pad-lg">
   <div class="h-full">
     <header class="flex items-center">
       <h2 class="text-white text-xl font-bold">欢迎与我共事！</h2>
     </header>
-    <address class="flex flex-col mt-4 not-italic">
-      <h2 class="text-darkslate-300">联系方式</h2>
-      <p class="text-sm break-words">{SITE.links.email}</p>
-      <p>{SITE.location.countryName}</p>
-    </address>
+
+    <div class="flex flex-col mt-4">
+      <p class="text-darkslate-300 m-0">{SITE.location.countryName}</p>
+    </div>
+
     <div class="flex flex-col mt-4 w-fit">
       <h2 class="text-darkslate-300">在这些平台找到我</h2>
-      <ul>
+      <ul class="platform-list">
         <li>
-          <a href={SITE.links.github} target="_blank" class={socialLinkClass}
-            >GitHub</a
-          >
+          <a href={SITE.links.github} target="_blank" class={socialLinkClass}>
+            GitHub
+          </a>
         </li>
         <li>
-          <a href={`mailto:${SITE.links.email}`} class={socialLinkClass}
-            >邮件</a
+          <button
+            type="button"
+            class={`${socialLinkClass} tracking-tighter`}
+            data-copy={SITE.links.email}
           >
+            邮箱：{SITE.links.email}
+          </button>
+        </li>
+        <li>
+          <button type="button" class={socialLinkClass} data-copy="3062949899">
+            QQ：3062949899
+          </button>
+        </li>
+        <li>
+          <button type="button" class={socialLinkClass} data-copy="13312137630">
+            手机：13312137630
+          </button>
+        </li>
+        <li>
+          <button type="button" class={socialLinkClass} data-copy="yu040307">
+            微信：yu040307
+          </button>
         </li>
       </ul>
+      <span class="copy-toast" id="contactCopyToast" hidden>已复制到剪贴板 ✓</span>
     </div>
   </div>
 </Card>
+
+<style>
+  .platform-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .copyable-link {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    cursor: pointer;
+    text-align: left;
+  }
+  .copy-toast {
+    margin-top: 6px;
+    font-size: 0.72rem;
+    color: #9affc4;
+  }
+</style>
+
+<script>
+  // 站点全局启用了 Astro View Transitions（ClientRouter）。
+  // 旧写法在模块脚本加载时一次性查询 .platform-list / #contactCopyToast 并绑定，
+  // 但 View Transitions 下模块脚本仅在初次加载执行一次，导航回到首页后
+  // 旧 DOM 节点已被换走，绑在旧节点上的监听器随之失效 —— 这正是
+  // “用完 AI 助手后邮件/QQ/手机/微信点不动”的根因。
+  // 改为 document 级委托：document 在视图切换间始终存活，且每次点击都
+  // 动态解析目标节点与提示元素，从而对任意一次注入的节点都生效。
+  document.addEventListener("click", (e: Event) => {
+    const 目标 = e.target as HTMLElement | null;
+    if (!目标) return;
+    const 按钮 = 目标.closest<HTMLElement>(".copyable-link[data-copy]");
+    if (!按钮) return;
+
+    const 文本 = 按钮.dataset.copy ?? "";
+    if (!文本) return;
+
+    const 提示 = document.getElementById("contactCopyToast") as HTMLSpanElement | null;
+    void (async () => {
+      try {
+        await navigator.clipboard.writeText(文本);
+      } catch {
+        // 非安全上下文（http）或权限受限时回退到 execCommand
+        try {
+          const 临时 = document.createElement("textarea");
+          临时.value = 文本;
+          临时.style.position = "fixed";
+          临时.style.top = "-9999px";
+          document.body.appendChild(临时);
+          临时.select();
+          document.execCommand("copy");
+          document.body.removeChild(临时);
+        } catch {
+          /* 静默忽略 */
+        }
+      }
+      if (提示) {
+        提示.hidden = false;
+        window.setTimeout(() => {
+          提示.hidden = true;
+        }, 2000);
+      }
+    })();
+  });
+</script>

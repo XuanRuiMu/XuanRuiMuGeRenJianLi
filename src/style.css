@@ -732,10 +732,6 @@ body.ns-js-shape .card--ns::before {
     transform: none !important;
   }
 
-  .cards-custom .tt-shell {
-    transform: translate(-50%, -7.5rem);
-  }
-
   .cards-custom .tt-shell::before,
   .cards-custom .tt-shell::after {
     content: "";
@@ -759,6 +755,14 @@ body.ns-js-shape .card--ns::before {
     bottom: -26px;
     transform: translateX(-140%);
   }
+}
+
+/* 气泡唯一权威定位（@supports 块外，保证 Firefox 等同样生效）：
+   底边锚定在宿主元素上方 8px，水平居中；内容变高时向上生长，不会下压遮挡按钮。 */
+.cards-custom .tt-shell {
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
 }
 
 @keyframes heart-pulse {
