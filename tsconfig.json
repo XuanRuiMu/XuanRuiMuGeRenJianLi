@@ -23,6 +23,7 @@
     "paths": {
       "@/*": ["src/*"]
     },
+    "ignoreDeprecations": "6.0",
     "types": ["vitest/globals", "@testing-library/jest-dom", "node", "vite-plugin-pwa/client"]
   },
   "include": ["src/**/*", "scripts/**/*", "functions/**/*", "tests/e2e/**/*", "e2e/**/*", "*.config.js", "*.config.ts"],

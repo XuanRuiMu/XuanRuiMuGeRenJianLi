@@ -13,7 +13,7 @@ interface GPUAdapterStub {
   readonly features: any
 }
 
-interface NavigatorWithGPU extends Navigator {
+interface NavigatorWithGPU {
   gpu?: {
     requestAdapter(): Promise<GPUAdapterStub | null>
   }
