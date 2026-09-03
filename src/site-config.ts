@@ -22,8 +22,6 @@ export const SITE = {
     email: "3062949899@qq.com",
     game: "/game",
     chat: "/chat",
-    audit: "/audit",
-    projects: "/projects",
   },
   status: {
     now: "找工作ing...",

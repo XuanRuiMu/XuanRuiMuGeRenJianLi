@@ -118,6 +118,16 @@ class 工具箱:
     def 注册表() -> list[工具定义]:
         return [
             工具定义(
+                名称="query_skills",
+                描述="查询于翔堃掌握的技能清单、掌握深度及佐证项目；适用于'会什么技能/AI技能/IT优势/擅长什么'类问题",
+                参数模式={
+                    "type": "object",
+                    "properties": {"query": {"type": "string", "description": "可选方向关键词，如 AI/前端/后端"}},
+                    "required": [],
+                },
+                执行函数=_查技能,
+            ),
+            工具定义(
                 名称="search_projects",
                 描述="在项目知识库中混合检索（BM25+向量），返回带引用来源的项目事实",
                 参数模式={
@@ -172,6 +182,32 @@ class 工具箱:
                 执行函数=_查询统计,
             ),
         ]
+
+
+async def _查技能(query: str = "") -> 工具结果:
+    """返回于翔堃的技能清单；query 仅作可选过滤提示，目前返回全量。"""
+    关键词 = query.lower().strip() if isinstance(query, str) else ""
+    已掌握 = [s for s in 技能图谱 if s["掌握"]]
+    未掌握 = [s for s in 技能图谱 if not s["掌握"]]
+    if 关键词:
+        已掌握 = [s for s in 已掌握 if any(关键词 in str(v).lower() for v in [s["名称"], *s["别名"], s["深度"], s["佐证"]])]
+        未掌握 = [s for s in 未掌握 if any(关键词 in str(v).lower() for v in [s["名称"], *s["别名"]])]
+
+    行: list[str] = []
+    if 已掌握:
+        行.append("于翔堃已掌握的技能：")
+        for s in 已掌握:
+            行.append(f"  · {s['名称']}（{s['深度']}）— {s['佐证']}")
+    else:
+        行.append("资料中未检索到相关技能记录。")
+
+    if 未掌握:
+        行.append("")
+        行.append("暂未掌握但可快速学习的技能：")
+        for s in 未掌握:
+            行.append(f"  · {s['名称']}")
+
+    return 工具结果(成功=True, 输出="\n".join(行), 数据={"已掌握": 已掌握, "未掌握": 未掌握})
 
 
 async def _查项目(query: str) -> 工具结果:

@@ -4,16 +4,14 @@ import BasicLayout from "./BasicLayout.astro";
 interface Props {
   title: string;
   description: string;
-  hideSoundToggle?: boolean;
 }
 
-const { title, description, hideSoundToggle } = Astro.props;
+const { title, description } = Astro.props;
 ---
 
 <BasicLayout
   description={description}
   title={title}
-  hideSoundToggle={hideSoundToggle}
 >
   <slot />
 </BasicLayout>

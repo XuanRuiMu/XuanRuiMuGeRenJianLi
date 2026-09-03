@@ -2,6 +2,8 @@ fastapi>=0.115
 uvicorn[standard]>=0.32
 sqlalchemy[asyncio]>=2.0.36
 aiomysql>=0.2.0
+# MySQL 26.7 使用 caching_sha2_password 认证，aiomysql 必须依赖 cryptography 才能连接
+cryptography>=43.0
 pydantic>=2.9
 pydantic-settings>=2.6
 python-dotenv>=1.0

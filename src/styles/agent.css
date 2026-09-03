@@ -28,12 +28,6 @@
   text-shadow: 0 0 18px rgba(0, 240, 255, 0.5);
 }
 
-.agent-sub {
-  margin: 6px 0 0;
-  font-size: 12.5px;
-  color: var(--darkslate-300, #9a9a9a);
-}
-
 .back-home {
   font-size: 13px;
   color: var(--neon-cyan, #00f0ff);

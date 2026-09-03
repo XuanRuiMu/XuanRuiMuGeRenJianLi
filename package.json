@@ -11,7 +11,6 @@
     "site-setup": "node scripts/setup.mjs",
     "eslint": "eslint 'src/**/*.{js,astro}'",
     "check": "astro check",
-    "audit:all": "node scripts/audit-all.cjs",
     "format": "prettier --write \"src/**/*.{astro,ts,tsx,js,jsx,css,md}\"",
     "serve:dist": "python3 -m http.server 4322 --directory dist",
     "preview:netlify": "netlify dev"

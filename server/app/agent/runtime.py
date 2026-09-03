@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 import time
 from dataclasses import dataclass
 from typing import Any, AsyncGenerator
@@ -9,6 +10,16 @@ from typing import Any, AsyncGenerator
 from app.agent.provider import 创建提供者
 from app.agent.tools import 工具注册表
 from app.core.config import 读取设置
+
+
+# 用于识别"只写引导词却不展开"的残缺答案
+_不完整答案模式 = re.compile(
+    r"(?:具体包括|以下几点|如下|核心能力|主要方面|主要技能|优势|内容|条目|项目)[：:]\s*$|…$|\.\.\.$|等$"
+)
+
+
+def _答案是否完整(答案: str) -> bool:
+    return not _不完整答案模式.search(答案.strip())
 
 
 @dataclass
@@ -52,6 +63,10 @@ class Agent运行时:
 
             if 回复.完成 or not 回复.动作:
                 耗时 = round((time.perf_counter() - 开始) * 1000, 2)
+                总步数 = 步
+                # 兜底：若模型只写了"具体包括："等引导词却不展开，把最近一次工具观察追加进答案
+                if 观察 and not _答案是否完整(回复.答案):
+                    回复.答案 = f"{回复.答案.rstrip(' ：:\n')}\n\n{观察[-1]}"
                 await 落盘(步, 回复.思考, None, None, 回复.答案, "finish", 耗时)
                 yield 步骤事件("answer", {"answer": 回复.答案, "thought": 回复.思考, "step": 步})
                 break

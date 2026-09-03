@@ -215,17 +215,53 @@
   border-color: rgba(255, 90, 120, 0.5);
 }
 
-/* ---------- 说明区 ---------- */
-.chat-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+/* ---------- 示例问题 ---------- */
+.chat-examples {
+  padding: 10px 14px;
+  border-top: 1px solid rgba(0, 240, 255, 0.12);
+  background: rgba(255, 255, 255, 0.02);
 }
 
-.chat-meta-line {
-  margin: 0;
+.chat-examples-hint {
+  margin: 0 0 8px;
   font-size: 11.5px;
   color: var(--darkslate-300, #9a9a9a);
+}
+
+.chat-examples-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.example-q {
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  color: #eaffff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, filter 0.15s ease;
+  text-align: left;
+  line-height: 1.45;
+}
+
+.example-q:hover:not(:disabled) {
+  background: rgba(0, 240, 255, 0.18);
+  filter: brightness(1.15);
+}
+
+.example-q:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------- 清空操作区 ---------- */
+.chat-clear-row {
+  display: flex;
+  justify-content: flex-end;
 }
 
 @media (max-width: 640px) {

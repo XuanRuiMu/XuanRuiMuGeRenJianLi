@@ -19,7 +19,7 @@ class 应用设置(BaseSettings):
 
     DeepSeek接口地址: str = "https://api.deepseek.com"
     DeepSeek密钥: str = ""
-    DeepSeek模型: str = "deepseek-chat"
+    DeepSeek模型: str = "DeepSeek-V4-Flash-Vision-Exp"
     思考强度: str = "max"
 
     Agent最大步数: int = 8

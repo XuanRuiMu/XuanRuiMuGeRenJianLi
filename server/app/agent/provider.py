@@ -1,10 +1,31 @@
 ﻿from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+import json
 import re
 
 import httpx
 
 from app.core.config import 读取设置
+
+
+def _解析工具入参(文本: str) -> dict:
+    """把模型「输入:」行的文本解析为工具参数字典。
+
+    兼容两种写法：直接 JSON 对象，或偶发的 {"query": "<json字符串>"} 双重包装。
+    """
+    原始 = 文本.strip()
+    try:
+        解析 = json.loads(原始)
+    except Exception:
+        return {"query": 原始}
+    if isinstance(解析, dict) and set(解析.keys()) == {"query"} and isinstance(解析["query"], str):
+        try:
+            内层 = json.loads(解析["query"])
+            if isinstance(内层, dict):
+                return 内层
+        except Exception:
+            pass
+    return 解析
 
 
 @dataclass
@@ -104,36 +125,53 @@ class DeepSeek提供者(LLM提供者):
 
     @staticmethod
     def _解析文本(文本: str) -> 模型回复:
+        """解析 ReAct 格式文本。
+
+        支持多行内容：``完成:`` 后的换行列表/段落会全部归入 ``答案``，
+        避免模型把答案写成 ``具体包括：`` 后换行列举时被截断。
+        """
         回复 = 模型回复()
-        当前段落: list[str] = []
-        段落列表: list[str] = []
+        缓冲行: list[str] = []
+        当前标记: str | None = None
 
-        def 冲刷段落() -> None:
-            nonlocal 当前段落
-            if 当前段落:
-                段落列表.append("\n".join(当前段落))
-                当前段落 = []
-
-        for 行 in 文本.splitlines():
-            匹配 = DeepSeek提供者._标记模式.match(行.strip())
-            if not 匹配:
-                if 行.strip():
-                    当前段落.append(行.strip())
-                continue
-            标记, 内容 = 匹配.group(1), 匹配.group(2).strip()
-            冲刷段落()
-            if 标记 == "思考":
+        def 刷新标记(新标记: str | None = None) -> None:
+            nonlocal 当前标记
+            if 当前标记 is None:
+                # 第一个标记前的无关文本直接丢弃
+                缓冲行.clear()
+                当前标记 = 新标记
+                return
+            if not 缓冲行:
+                当前标记 = 新标记
+                return
+            内容 = "\n".join(缓冲行).strip()
+            缓冲行.clear()
+            if 当前标记 == "思考":
                 回复.思考 = 内容
-            elif 标记 == "行动":
+            elif 当前标记 == "行动":
                 回复.动作 = 内容
-            elif 标记 == "输入":
-                回复.动作输入 = {"query": 内容}
-            elif 标记 == "完成":
+            elif 当前标记 == "输入":
+                回复.动作输入 = _解析工具入参(内容)
+            elif 当前标记 == "完成":
                 回复.完成 = True
                 回复.答案 = 内容
-        冲刷段落()
-        if 回复.完成 and not 回复.答案 and 段落列表:
-            回复.答案 = "\n".join(段落列表)
+            当前标记 = 新标记
+
+        for 原始行 in 文本.splitlines():
+            行 = 原始行.strip()
+            if not 行:
+                continue
+            匹配 = DeepSeek提供者._标记模式.match(行)
+            if 匹配:
+                标记, 内容 = 匹配.group(1), 匹配.group(2).strip()
+                刷新标记(标记)
+                if 内容:
+                    缓冲行.append(内容)
+            else:
+                缓冲行.append(行)
+
+        刷新标记()
+
         if not 回复.完成 and not 回复.动作:
             回复.完成 = True
             回复.答案 = 文本.strip()
@@ -141,6 +179,22 @@ class DeepSeek提供者(LLM提供者):
 
     async def 决策(self, 问题: str, 历史: list[dict], 观察: list[str]) -> 模型回复:
         from app.agent.tools import 工具注册表
+
+        # 规则前置：flash 模型对工具选择提示词遵循不稳定，对高频意图直接选定工具
+        小写 = 问题.lower()
+        if not 观察:
+            if any(k in 小写 for k in ("技能", "优势", "擅长", "会什么", "掌握什么", "ai技能", "it优势")):
+                return 模型回复(
+                    思考="用户询问技能或优势，直接调用 query_skills 获取清单",
+                    动作="query_skills",
+                    动作输入={},
+                )
+            if any(k in 小写 for k in ("项目", "作品", "做过", "搭建过", "开发过", "介绍")):
+                return 模型回复(
+                    思考="用户询问项目经历，直接调用 search_projects 检索知识库",
+                    动作="search_projects",
+                    动作输入={"query": 问题},
+                )
 
         工具说明 = "\n".join(f"- {t.名称}: {t.描述}" for t in 工具注册表.全部())
         if 观察:
@@ -151,18 +205,36 @@ class DeepSeek提供者(LLM提供者):
                 "观察已经足够。现在禁止再调用任何工具，必须立即基于以上观察向用户给出最终回答。\n"
                 "严格按此格式回答:\n"
                 "思考: <一句话总结依据>\n"
-                "完成: <面向用户的完整、结构化中文回答>"
+                "完成: <面向用户的完整、结构化中文回答>\n"
+                "最终答案质量要求：\n"
+                "- 必须完整、有实质内容，禁止以冒号、省略号或'等'字结尾而不展开\n"
+                "- 若使用'具体包括'/'以下几点'/'如下'等引导词，必须在其后立即列出至少一项具体内容\n"
+                "- 对于资料未明确记录的问题，直接回答'现有资料未明确记录'，不要追加无内容的引导词"
             )
         else:
             提示词 = (
                 "你是 ReAct 智能体。可用工具:\n"
                 f"{工具说明}\n"
                 "工具选择规则:\n"
+                "- 若用户询问于翔堃会什么技能、AI技能、IT优势、擅长什么，必须使用 query_skills 获取技能清单后再组织答案\n"
                 "- 若用户消息本身是一段完整的职位描述（包含岗位职责/任职要求/技能清单等），必须使用 analyze_jd，并把 JD 全文原样放入 jd_text 参数\n"
                 "- 若用户只是询问岗位方向（如「我适合什么岗位」），才使用 match_job\n"
-                "请严格按以下格式之一回答:\n"
-                "思考: <分析>\n行动: <工具名>\n输入: <参数>\n"
-                "或\n思考: <分析>\n完成: <最终答案>"
+                "- 若用户询问做过哪些项目、项目细节，使用 search_projects\n"
+                "请严格按以下格式之一回答（注意：无论是否调用工具，都必须【先】输出 思考: 行）:\n"
+                "思考: <分析>\n行动: <工具名>\n输入: <参数JSON>\n"
+                "或\n思考: <分析>\n完成: <最终答案>\n"
+                "输入参数必须是该工具对应的 JSON 对象，严禁嵌套：\n"
+                "- query_skills: {\"query\": \"<可选方向关键词，如 AI/前端/后端>\"}\n"
+                "- analyze_jd: {\"jd_text\": \"<职位描述全文>\"}\n"
+                "- search_projects: {\"query\": \"<关键词>\"}\n"
+                "- match_job: {\"role\": \"<岗位方向>\"}\n"
+                "- calculator: {\"expression\": \"<表达式>\"}\n"
+                "- current_time / query_stats: {}\n"
+                "最终答案质量要求：\n"
+                "- 必须完整、有实质内容，禁止以冒号、省略号或'等'字结尾而不展开\n"
+                "- 若使用'具体包括'/'以下几点'/'如下'等引导词，必须在其后立即列出至少一项具体内容\n"
+                "- 对于资料未明确记录的问题，直接回答'现有资料未明确记录'，不要追加无内容的引导词\n"
+                "- 每次回答都必须先输出 思考: 行（即使是直接回答，也要写明判断依据），禁止只写 完成: 而省略 思考:"
             )
         消息体 = [{"role": "system", "content": 提示词}, *历史]
         if not any(m.get("role") == "user" for m in 历史[-1:]):

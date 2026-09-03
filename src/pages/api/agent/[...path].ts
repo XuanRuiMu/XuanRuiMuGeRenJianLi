@@ -1,9 +1,30 @@
 import type { APIRoute } from "astro";
 import { 智能体后端, 后端离线 } from "../../../lib/agent-backend";
-import { json响应, 流式响应头, 兜底错误 } from "../../../lib/chat/http";
-import { 观测台文案 } from "../../../lib/locales/trace";
 
 export const prerender = false;
+
+const 后端离线文案 = "AI 后端未启动，请先启动 Python 智能体服务（uvicorn）。";
+
+function json响应(数据: unknown, 状态 = 200): Response {
+  return new Response(JSON.stringify(数据), {
+    status: 状态,
+    headers: { "Content-Type": "application/json; charset=utf-8" },
+  });
+}
+
+function 兜底错误(来源: string, 错误: unknown): Response {
+  const 消息 = 错误 instanceof Error ? 错误.message : String(错误);
+  return json响应({ error: `${来源} 代理失败：${消息}` }, 502);
+}
+
+function 流式响应头(): Headers {
+  return new Headers({
+    "Content-Type": "text/event-stream; charset=utf-8",
+    "Cache-Control": "no-cache",
+    Connection: "keep-alive",
+    "X-Accel-Buffering": "no",
+  });
+}
 
 /** 轨迹回放、会话列表这类非流式接口 */
 export const GET: APIRoute = async ({ params, url }) => {
@@ -12,7 +33,7 @@ export const GET: APIRoute = async ({ params, url }) => {
   try {
     return await 转发(查询.length > 0 ? `${路径}?${查询}` : 路径, "GET", null);
   } catch {
-    return json响应({ error: 观测台文案.状态.后端离线 }, 503);
+    return json响应({ error: 后端离线文案 }, 503);
   }
 };
 
@@ -27,7 +48,7 @@ export const POST: APIRoute = async ({ params, request }) => {
       : await 转发(路径, "POST", await request.text());
   } catch (错误) {
     if (错误 instanceof 后端离线) {
-      return json响应({ error: 观测台文案.状态.后端离线 }, 503);
+      return json响应({ error: 后端离线文案 }, 503);
     }
     return 兜底错误("agent-proxy", 错误);
   }
@@ -52,7 +73,7 @@ async function 转发(
       signal: AbortSignal.timeout(智能体后端.超时毫秒),
     });
   } catch {
-    throw new 后端离线(观测台文案.状态.后端离线);
+    throw new 后端离线(后端离线文案);
   }
 
   const 文本 = await 上游.text();
@@ -74,10 +95,10 @@ async function 流式转发(路径: string, 请求体: string): Promise<Response
       signal: AbortSignal.timeout(智能体后端.超时毫秒),
     });
   } catch {
-    throw new 后端离线(观测台文案.状态.后端离线);
+    throw new 后端离线(后端离线文案);
   }
 
-  if (上游.body === null) throw new 后端离线(观测台文案.状态.后端离线);
+  if (上游.body === null) throw new 后端离线(后端离线文案);
 
   return new Response(上游.body, {
     status: 上游.status,

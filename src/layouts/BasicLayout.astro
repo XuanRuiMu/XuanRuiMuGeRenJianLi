@@ -19,13 +19,11 @@ const headBootstrap = `
 interface Props {
   title: string;
   description: string;
-  hideSoundToggle?: boolean;
 }
 
 const {
   title,
   description,
-  hideSoundToggle,
 } = Astro.props;
 const image = `${Astro.url.origin}/og-image.png`;
 
@@ -127,17 +125,14 @@ const schema = {
     </script>
     <GridTransition />
     <slot />
-    {
-      !hideSoundToggle && (
-        <div class="fixed bottom-4 right-4 md:bottom-6 z-50 flex flex-col items-center gap-2">
-          {!hideSoundToggle && <StylePanel />}
-          {!hideSoundToggle && (
-            <button
-              id="sound-toggle"
-              aria-label="切换音效"
-              title="切换音效"
-              class="chrome--ns w-9 h-9 flex items-center justify-center rounded-lg bg-darkslate-500 border border-darkslate-400 hover:border-primary-500 transition-all duration-200 text-white shadow-lg"
-            >
+    <div class="fixed bottom-4 right-4 md:bottom-6 z-50 flex flex-col items-center gap-2">
+      <StylePanel />
+      <button
+        id="sound-toggle"
+        aria-label="切换音效"
+        title="切换音效"
+        class="chrome--ns w-9 h-9 flex items-center justify-center rounded-lg bg-darkslate-500 border border-darkslate-400 hover:border-primary-500 transition-all duration-200 text-white shadow-lg"
+      >
               <svg
                 id="sound-icon-on"
                 xmlns="http://www.w3.org/2000/svg"
@@ -172,10 +167,7 @@ const schema = {
                 <line x1="17" y1="9" x2="23" y2="15" />
               </svg>
             </button>
-          )}
-        </div>
-      )
-    }
+          </div>
   </body>
 </html>
 
