@@ -7,7 +7,7 @@ import time
 from dataclasses import dataclass
 from typing import Any, AsyncGenerator
 
-from app.agent.provider import 创建提供者
+from app.agent.provider import 创建提供者, 规则引擎提供者, 模型回复
 from app.agent.tools import 工具注册表
 from app.core.config import 读取设置
 
@@ -35,6 +35,27 @@ class Agent运行时:
     def __init__(self) -> None:
         self.设置 = 读取设置()
         self.提供者 = 创建提供者()
+        # 远程 LLM 一旦失败（典型：DeepSeek 402 余额不足）就记住，
+        # 后续步骤直接走规则引擎，避免每步都重发必然失败的网络请求（单步最长 20s）。
+        self._降级引擎: 规则引擎提供者 | None = None
+        self._远程已失败 = False
+
+    def _降级(self) -> 规则引擎提供者:
+        if self._降级引擎 is None:
+            self._降级引擎 = 规则引擎提供者()
+        return self._降级引擎
+
+    async def _决策一步(
+        self, 问题: str, 对话历史: list[dict], 观察: list[str]
+    ) -> 模型回复:
+        """优先用配置的远程 LLM；若已确认其不可用，则直接用内置规则引擎。"""
+        if self._远程已失败:
+            return await self._降级().决策(问题, 对话历史, 观察)
+        try:
+            return await self.提供者.决策(问题, 对话历史, 观察)
+        except Exception:
+            self._远程已失败 = True
+            return await self._降级().决策(问题, 对话历史, 观察)
 
     async def 流式运行(
         self, 会话id: int, 问题: str, 历史: list[dict], 落盘
@@ -49,14 +70,24 @@ class Agent运行时:
             开始 = time.perf_counter()
             try:
                 回复 = await asyncio.wait_for(
-                    self.提供者.决策(问题, 对话历史, 观察),
+                    self._决策一步(问题, 对话历史, 观察),
                     timeout=self.设置.Agent单步超时秒,
                 )
             except asyncio.TimeoutError:
-                yield 步骤事件("error", {"message": f"第 {步} 步决策超时，已终止"})
-                await 落盘(步, "决策超时", None, None, "", "error", (time.perf_counter() - 开始) * 1000)
-                return
+                # 超时同样视为远程 LLM 不可用：标记后用规则引擎再试一次，仍失败才终止。
+                # 避免把 402/网络异常等原始错误抛给用户。
+                self._远程已失败 = True
+                try:
+                    回复 = await asyncio.wait_for(
+                        self._降级().决策(问题, 对话历史, 观察),
+                        timeout=self.设置.Agent单步超时秒,
+                    )
+                except Exception:
+                    yield 步骤事件("error", {"message": f"第 {步} 步决策超时，已终止"})
+                    await 落盘(步, "决策超时", None, None, "", "error", (time.perf_counter() - 开始) * 1000)
+                    return
             except Exception as 错误:
+                # 能走到这里说明规则引擎自身也出错，此时才向用户报错
                 yield 步骤事件("error", {"message": f"提供者异常降级: {错误}"})
                 await 落盘(步, "提供者异常", None, None, str(错误), "error", (time.perf_counter() - 开始) * 1000)
                 return

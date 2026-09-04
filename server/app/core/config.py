@@ -19,7 +19,9 @@ class 应用设置(BaseSettings):
 
     DeepSeek接口地址: str = "https://api.deepseek.com"
     DeepSeek密钥: str = ""
-    DeepSeek模型: str = "DeepSeek-V4-Flash-Vision-Exp"
+    # 注意：旧别名 DeepSeek-V4-Flash-Vision-Exp 已于 2026-07-24 退役（会 500/中断），
+    # 仅当 .env 未显式设置 DEEPSEEK_MODEL 时此默认值生效。
+    DeepSeek模型: str = "deepseek-v4-flash"
     思考强度: str = "max"
 
     Agent最大步数: int = 8
