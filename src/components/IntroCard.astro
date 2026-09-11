@@ -76,7 +76,7 @@ import { SITE } from "../site-config";
             </Button>
           </Tooltip>
         </div>
-        <span class="email-toast" id="homeEmailToast" hidden>已复制到剪贴板 ✓</span>
+        <span class="sr-only" id="homeEmailLive" aria-live="polite"></span>
       </div>
     </div>
   </div>
@@ -88,17 +88,17 @@ import { SITE } from "../site-config";
   .email-bubble {
     min-width: max-content;
   }
-  .email-toast {
-    margin-top: 4px;
-    font-size: 0.72rem;
-    color: #9affc4;
-  }
 </style>
 
 <script>
   // 站点全局启用 Astro View Transitions（ClientRouter）。
   // 旧写法在加载时一次性缓存元素引用，导航回到首页后节点已被换走，监听器随之失效。
   // 改为 document 级委托，点击时动态解析各元素，规避失效问题。
+  // 剪贴板写入统一走 src/lib/clipboard.ts（clipboard API → execCommand 兜底 → 失败如实报错）。
+  // 复制结果提示统一走 src/lib/copy-toast.ts（跟随点击位置的浮动 toast，一眼可见）。
+  import { 写剪贴板 } from "../lib/clipboard";
+  import { 显示复制提示 } from "../lib/copy-toast";
+
   document.addEventListener("click", (e: Event) => {
     const 目标 = e.target as HTMLElement | null;
     if (!目标) return;
@@ -107,23 +107,18 @@ import { SITE } from "../site-config";
 
     const 邮箱 = 按钮.dataset.email ?? "";
     const 气泡 = document.getElementById("homeEmailBubble") as HTMLDivElement | null;
-    const 提示 = document.getElementById("homeEmailToast") as HTMLSpanElement | null;
-    if (!气泡 || !提示) return;
+    const 读屏提示 = document.getElementById("homeEmailLive");
+    if (!气泡) return;
 
     void (async () => {
-      try {
-        await navigator.clipboard.writeText(邮箱);
-      } catch {
-        /* 剪贴板不可用时静默忽略 */
-      }
+      const 复制成功 = await 写剪贴板(邮箱);
 
       // 再次点击收起（toggle），显示/隐藏一律用 hidden 属性
       气泡.hidden = !气泡.hidden;
 
-      提示.hidden = false;
-      window.setTimeout(() => {
-        提示.hidden = true;
-      }, 2000);
+      const 鼠标 = e as MouseEvent;
+      显示复制提示(复制成功, 鼠标.clientX, 鼠标.clientY);
+      if (读屏提示) 读屏提示.textContent = 复制成功 ? "邮箱已复制到剪切板" : "复制失败，请手动复制";
     })();
   });
 </script>

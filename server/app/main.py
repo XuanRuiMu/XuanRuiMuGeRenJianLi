@@ -20,15 +20,15 @@ async def 环境自检() -> None:
     """启动前强制自检：环境差一点点都不要启动，并给出清晰报错。"""
     设置 = 读取设置()
 
-    if not 设置.DeepSeek密钥:
+    if not 设置.模型密钥:
         raise RuntimeError(
-            "❌ 启动中止：缺少 DeepSeek 密钥。\n"
-            "   请在 server/.env 中配置  DeepSeek密钥=sk-xxxx  后重试。"
+            "❌ 启动中止：缺少大模型接口密钥。\n"
+            "   请在 server/.env 中配置  模型密钥=sk-xxxx  后重试。"
         )
-    if not 设置.DeepSeek接口地址:
+    if not 设置.模型接口地址:
         raise RuntimeError(
-            "❌ 启动中止：缺少 DeepSeek 接口地址。\n"
-            "   请在 server/.env 中配置  DeepSeek接口地址=https://api.deepseek.com  后重试。"
+            "❌ 启动中止：缺少大模型接口地址。\n"
+            "   请在 server/.env 中配置  模型接口地址=https://api.siliconflow.cn/v1  后重试。"
         )
 
     引擎 = 获取引擎()
@@ -42,7 +42,9 @@ async def 环境自检() -> None:
             f"   原始错误：{错误}"
         ) from 错误
 
-    print("✅ 环境自检通过：DeepSeek 密钥 / 接口 / MySQL 均就绪。")
+    print(
+        f"✅ 环境自检通过：{设置.服务方名称} 模型接口（{设置.模型名称}）/ MySQL 均就绪。"
+    )
 
 
 @asynccontextmanager

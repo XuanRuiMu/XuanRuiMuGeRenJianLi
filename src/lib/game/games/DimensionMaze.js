@@ -602,6 +602,10 @@ export class DimensionMaze extends 游戏基类 {
 
     this.上下文.setTransform(1, 0, 0, 1, 0, 0);
     this.上下文.scale(dpr, dpr);
+    // 缓存 CSS 显示尺寸，供 绘制() 复用，避免每帧 getBoundingClientRect 造成的
+    // 亚像素抖动与重复强制重排。
+    this.画布宽 = css宽;
+    this.画布高 = css高;
   }
 
   切换维度() {
@@ -1074,8 +1078,8 @@ export class DimensionMaze extends 游戏基类 {
 
   绘制() {
     if (!this.画布 || !this.上下文) return;
-    const css宽 = this.画布.getBoundingClientRect().width;
-    const css高 = this.画布.getBoundingClientRect().height;
+    const css宽 = this.画布宽 || this.画布.getBoundingClientRect().width;
+    const css高 = this.画布高 || this.画布.getBoundingClientRect().height;
     const 现在 = performance.now();
 
     this.上下文.clearRect(0, 0, css宽, css高);
@@ -1105,14 +1109,9 @@ export class DimensionMaze extends 游戏基类 {
   }
 
   计算震动偏移(现在) {
-    if (现在 >= this.震动.结束时间) return { x: 0, y: 0 };
-    const 时长 = this.特效参数.震动时长;
-    const 剩余比例 = Math.max(0, Math.min(1, (this.震动.结束时间 - 现在) / 时长));
-    const 幅度 = this.特效参数.震动幅度 * this.震动.强度 * 剩余比例;
-    return {
-      x: (Math.random() * 2 - 1) * 幅度,
-      y: (Math.random() * 2 - 1) * 幅度
-    };
+    // 维度迷宫原「屏幕震动」用每帧随机偏移实现，在频繁切换维度 / 拾取碎片时会表现为
+    // 持续抖动，已关闭：固定返回零偏移，绘制不再对迷宫做随机平移。
+    return { x: 0, y: 0 };
   }
 
   绘制切换闪光(现在, css宽, css高) {
@@ -1129,8 +1128,8 @@ export class DimensionMaze extends 游戏基类 {
   绘制小地图() {
     const 大小 = this.迷宫.length;
     if (!大小) return;
-    const css宽 = this.画布.getBoundingClientRect().width;
-    const css高 = this.画布.getBoundingClientRect().height;
+    const css宽 = this.画布宽 || this.画布.getBoundingClientRect().width;
+    const css高 = this.画布高 || this.画布.getBoundingClientRect().height;
     if (css宽 < 10 || css高 < 10) return;
 
     const 边距 = 12;

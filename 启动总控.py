@@ -4,7 +4,7 @@
 启动总控 — 统一拉起简历网站所需全部环境
 
 职责：
-1. 前置检查：.env / 依赖 / MySQL 可达性 / DeepSeek 配置
+1. 前置检查：.env / 依赖 / MySQL 可达性 / 大模型接口配置
 2. 按需启动：MySQL（若未运行）→ Python AI 后端 → Astro 前端
 3. 进程守护：任一子进程退出 / 启动失败 / Ctrl+C，立刻停止所有服务
 
@@ -129,13 +129,13 @@ def 前置检查() -> None:
 
     # .env
     if not 环境文件.exists():
-        错误列表.append(f"后端环境文件不存在：{环境文件}\n   请复制 server/.env.example 为 server/.env 并填写 DeepSeek 密钥与 MySQL 密码")
+        错误列表.append(f"后端环境文件不存在：{环境文件}\n   请复制 server/.env.example 为 server/.env 并填写 模型密钥 与 MySQL 密码")
 
-    # DeepSeek 配置
-    if not 读取环境变量("DeepSeek密钥"):
-        错误列表.append("缺少 DeepSeek 密钥（DeepSeek密钥），请在 server/.env 中配置")
-    if not 读取环境变量("DeepSeek接口地址"):
-        错误列表.append("缺少 DeepSeek 接口地址（DeepSeek接口地址），请在 server/.env 中配置")
+    # 大模型接口配置（当前为硅基流动 OpenAI 兼容接口）
+    if not 读取环境变量("模型密钥"):
+        错误列表.append("缺少大模型接口密钥（模型密钥），请在 server/.env 中配置")
+    if not 读取环境变量("模型接口地址"):
+        错误列表.append("缺少大模型接口地址（模型接口地址），请在 server/.env 中配置")
 
     if 错误列表:
         打印("=" * 60)

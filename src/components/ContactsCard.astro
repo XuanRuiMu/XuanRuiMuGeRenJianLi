@@ -49,7 +49,7 @@ const socialLinkClass =
           </button>
         </li>
       </ul>
-      <span class="copy-toast" id="contactCopyToast" hidden>已复制到剪贴板 ✓</span>
+      <span class="sr-only" id="contactCopyLive" aria-live="polite"></span>
     </div>
   </div>
 </Card>
@@ -72,21 +72,19 @@ const socialLinkClass =
     cursor: pointer;
     text-align: left;
   }
-  .copy-toast {
-    margin-top: 6px;
-    font-size: 0.72rem;
-    color: #9affc4;
-  }
 </style>
 
 <script>
   // 站点全局启用了 Astro View Transitions（ClientRouter）。
-  // 旧写法在模块脚本加载时一次性查询 .platform-list / #contactCopyToast 并绑定，
-  // 但 View Transitions 下模块脚本仅在初次加载执行一次，导航回到首页后
-  // 旧 DOM 节点已被换走，绑在旧节点上的监听器随之失效 —— 这正是
-  // “用完 AI 助手后邮件/QQ/手机/微信点不动”的根因。
-  // 改为 document 级委托：document 在视图切换间始终存活，且每次点击都
-  // 动态解析目标节点与提示元素，从而对任意一次注入的节点都生效。
+  // 旧写法在模块脚本加载时一次性查询 .platform-list 并绑定，但 View Transitions 下
+  // 模块脚本仅在初次加载执行一次，导航回到首页后旧 DOM 节点已被换走，绑在旧节点上的
+  // 监听器随之失效。改为 document 级委托：document 在视图切换间始终存活，且每次点击都
+  // 动态解析目标节点，从而对任意一次注入的节点都生效。
+  // 剪贴板写入统一走 src/lib/clipboard.ts（clipboard API → execCommand 兜底 → 失败如实报错）。
+  // 复制结果提示统一走 src/lib/copy-toast.ts（跟随点击位置的浮动 toast，一眼可见）。
+  import { 写剪贴板 } from "../lib/clipboard";
+  import { 显示复制提示 } from "../lib/copy-toast";
+
   document.addEventListener("click", (e: Event) => {
     const 目标 = e.target as HTMLElement | null;
     if (!目标) return;
@@ -96,31 +94,13 @@ const socialLinkClass =
     const 文本 = 按钮.dataset.copy ?? "";
     if (!文本) return;
 
-    const 提示 = document.getElementById("contactCopyToast") as HTMLSpanElement | null;
+    const 读屏提示 = document.getElementById("contactCopyLive");
+    // 剪贴板写入统一走 src/lib/clipboard.ts（clipboard API → execCommand 兜底 → 失败如实报错）。
     void (async () => {
-      try {
-        await navigator.clipboard.writeText(文本);
-      } catch {
-        // 非安全上下文（http）或权限受限时回退到 execCommand
-        try {
-          const 临时 = document.createElement("textarea");
-          临时.value = 文本;
-          临时.style.position = "fixed";
-          临时.style.top = "-9999px";
-          document.body.appendChild(临时);
-          临时.select();
-          document.execCommand("copy");
-          document.body.removeChild(临时);
-        } catch {
-          /* 静默忽略 */
-        }
-      }
-      if (提示) {
-        提示.hidden = false;
-        window.setTimeout(() => {
-          提示.hidden = true;
-        }, 2000);
-      }
+      const 复制成功 = await 写剪贴板(文本);
+      const 鼠标 = e as MouseEvent;
+      显示复制提示(复制成功, 鼠标.clientX, 鼠标.clientY);
+      if (读屏提示) 读屏提示.textContent = 复制成功 ? "已复制到剪切板" : "复制失败，请手动复制";
     })();
   });
 </script>

@@ -949,7 +949,6 @@ class 霓虹终端 {
       const 索引 = Number.parseInt(卡片.dataset.cardIndex, 10);
       const 数据 = 卡片数据[索引];
       if (!数据 || !数据.id) return;
-      this.粒子.生成爆炸(e.clientX, e.clientY);
       this.路由.导航到(`/game/${数据.id}`);
     });
 
@@ -969,7 +968,6 @@ class 霓虹终端 {
         const 索引 = Number.parseInt(按钮.dataset.cardIndex, 10);
         const 数据 = 获取数组('cards')[索引];
         if (!数据 || !数据.id) return;
-        this.粒子.生成爆炸(e.clientX, e.clientY);
         this.路由.导航到(`/game/${数据.id}`);
       });
     }

@@ -9,7 +9,7 @@
 - Java 17 + Spring Boot 3.5（Web、Validation、Data JPA）
 - MySQL 8：匹配记录持久化（本地开发默认 H2 内存库，零依赖运行；docker-compose 启用真 MySQL）
 - Redis：JD 内容哈希缓存 + 每 IP 固定窗口限流；无 Redis 时自动降级 Caffeine 内存缓存，接口语义一致
-- LLM 集成：DeepSeek Chat API，要求结构化 JSON 输出并容错解析；无 key / 超时 / 报错时自动降级本地规则匹配引擎，响应中 engine 字段标记本次分析来源（llm/rule）
+- LLM 集成：硅基流动（SiliconFlow）OpenAI 兼容 Chat API，要求结构化 JSON 输出并容错解析；无 key / 超时 / 报错时自动降级本地规则匹配引擎，响应中 engine 字段标记本次分析来源（llm/rule）
 - 测试：JUnit 5 单元测试 + MockMvc 集成测试，覆盖参数校验、限流（429）、降级路径
 - 部署：Dockerfile 多阶段构建（Maven 构建 → JRE 运行）+ docker-compose 一键编排 app/MySQL/Redis
 

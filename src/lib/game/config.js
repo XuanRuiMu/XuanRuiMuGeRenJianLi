@@ -3,7 +3,7 @@ export const 配置 = {
 
   功能: {
     自定义光标: true,
-    点击射击: true,
+    点击射击: false,
     减少动画: false,
     粒子: true,
     扫描线: true

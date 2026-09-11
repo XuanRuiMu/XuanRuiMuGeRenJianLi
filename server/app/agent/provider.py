@@ -186,14 +186,20 @@ class 规则引擎提供者(LLM提供者):
         )
 
 
-class DeepSeek提供者(LLM提供者):
-    名称 = "deepseek"
+class OpenAI兼容提供者(LLM提供者):
+    """OpenAI 兼容 /chat/completions 接口的实现。
+
+    当前对接硅基流动（https://api.siliconflow.cn/v1），
+    也可通过 .env 的 模型接口地址 / 模型密钥 / 模型名称 换成任意兼容服务。
+    """
+
+    名称 = "openai-compatible"
 
     def __init__(self) -> None:
         设置 = 读取设置()
-        self.接口地址 = (设置.DeepSeek接口地址 or "https://api.deepseek.com").rstrip("/")
-        self.密钥 = 设置.DeepSeek密钥
-        self.模型 = 设置.DeepSeek模型
+        self.接口地址 = (设置.模型接口地址 or "https://api.siliconflow.cn/v1").rstrip("/")
+        self.密钥 = 设置.模型密钥
+        self.模型 = 设置.模型名称
 
     _标记模式 = re.compile(r"^\*{0,2}(思考|行动|输入|完成)\*{0,2}\s*[：:]\s*(.*)$")
 
@@ -235,7 +241,7 @@ class DeepSeek提供者(LLM提供者):
             行 = 原始行.strip()
             if not 行:
                 continue
-            匹配 = DeepSeek提供者._标记模式.match(行)
+            匹配 = OpenAI兼容提供者._标记模式.match(行)
             if 匹配:
                 标记, 内容 = 匹配.group(1), 匹配.group(2).strip()
                 刷新标记(标记)
@@ -321,18 +327,24 @@ class DeepSeek提供者(LLM提供者):
                     "model": self.模型,
                     "messages": 消息体,
                     "temperature": 0.2,
+                    "max_tokens": 2048,
                 },
             )
-            响应.raise_for_status()
-            内容 = 响应.json()["choices"][0]["message"]["content"]
+            if 响应.status_code >= 400:
+                # 带上响应体，方便定位余额不足(402)/鉴权失败(401)/模型不存在(404)等问题
+                raise RuntimeError(f"LLM 接口返回 {响应.status_code}: {响应.text[:300]}")
+            内容 = 响应.json()["choices"][0]["message"]["content"] or ""
+            if not 内容.strip():
+                # 部分推理模型只把内容放进 reasoning_content
+                内容 = (响应.json()["choices"][0]["message"].get("reasoning_content") or "").strip()
         return self._解析文本(内容)
 
 
 def 创建提供者() -> LLM提供者:
     设置 = 读取设置()
-    if 设置.DeepSeek密钥:
+    if 设置.模型密钥 and 设置.模型接口地址:
         try:
-            return DeepSeek提供者()
+            return OpenAI兼容提供者()
         except Exception:
             pass
     return 规则引擎提供者()

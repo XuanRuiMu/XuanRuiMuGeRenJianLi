@@ -17,12 +17,11 @@ class 应用设置(BaseSettings):
     数据库密码: str = ""
     数据库名: str = "agentforge"
 
-    DeepSeek接口地址: str = "https://api.deepseek.com"
-    DeepSeek密钥: str = ""
-    # 注意：旧别名 DeepSeek-V4-Flash-Vision-Exp 已于 2026-07-24 退役（会 500/中断），
-    # 仅当 .env 未显式设置 DEEPSEEK_MODEL 时此默认值生效。
-    DeepSeek模型: str = "deepseek-v4-flash"
-    思考强度: str = "max"
+    # LLM 走 OpenAI 兼容接口（当前为硅基流动 SiliconFlow，可换成任意兼容服务）
+    模型接口地址: str = "https://api.siliconflow.cn/v1"
+    模型密钥: str = ""
+    模型名称: str = "deepseek-ai/DeepSeek-V4-Flash"
+    服务方名称: str = "硅基流动"
 
     Agent最大步数: int = 8
     Agent单步超时秒: float = 20.0

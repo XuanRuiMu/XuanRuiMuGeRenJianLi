@@ -55,8 +55,10 @@ export default defineConfig({
     },
   ],
   site,
-  // 混合渲染：整站静态预渲染，仅标注 prerender=false 的 /api/* 走按需渲染，
-  // 这样聊天接口能与站点共用同一个进程与端口，而页面本身仍是可托管到任意 CDN 的静态产物
+  // 全站 SSR（server 模式）：Astro 7 在 output:'static' 混合模式下不会把 /api/* 这类
+  // APIRoute 交给 node 服务托管，导致线上 /api/agent 代理返回 404。改为 server 模式后，
+  // 所有路由（页面 + API）都由 node standalone 服务统一处理，AI 助手代理链路才成立。
+  // 页面仍会做静态优化，只是由同一进程按需渲染，线上本就是 node 服务，无 CDN 托管需求。
   adapter: node({ mode: "standalone" }),
   // 关闭 Astro 内置开发工具栏（底部 menu / inspect / audit / settings 悬浮条）
   devToolbar: { enabled: false },
@@ -77,7 +79,7 @@ export default defineConfig({
     prefetchAll: true,
     defaultStrategy: "hover",
   },
-  output: "static",
+  output: "server",
   vite: {
     server: {
       watch: {
