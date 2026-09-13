@@ -9,7 +9,7 @@
 ## 后端
 - Python FastAPI：全异步 API 设计、应用工厂模式、生命周期管理（lifespan）、中间件（CORS）、SSE 流式响应。
 - SQLAlchemy 2.0 async：异步 ORM 建模六张表（会话/消息/轨迹/工具调用/评测运行/知识文档）、async_sessionmaker 连接池管理。
-- MySQL 8+：库表设计、utf8mb4 字符集、外键级联、聚合统计查询；本地维护着 已删除的经历的真实 MySQL 26.7 实例（// 等多库并存）。
+- MySQL 8+：库表设计、utf8mb4 字符集、外键级联、聚合统计查询；智能体工坊 agentforge 库的六表建模与轨迹持久化。
 
 ## 前端
 - React 18 + TypeScript（strict）：函数组件、Hooks 状态机、SSE 流式渲染、AbortController 取消控制。
@@ -18,6 +18,6 @@
 - UnoCSS/Tailwind 原子化样式体系。
 
 ## 数据库与工程化
-- MySQL 真实运维经验（非玩具项目）：服务启停、凭据管理、多数据库共存的连接隔离。
+- MySQL 真实运维经验（非玩具项目）：服务启停、凭据管理、agentforge 库设计与轨迹持久化。
 - 测试：pytest 异步全链路测试（ASGITransport 直连 app、SSE 流断言、MySQL 持久化断言）；Playwright 浏览器级 E2E（截图对比、SPA 导航往返稳定性、并发压力验证）。
 - Git 版本控制、Vite 构建优化（gzip 产物 48KB 级别）。

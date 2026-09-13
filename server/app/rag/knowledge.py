@@ -32,6 +32,11 @@ async def 同步知识库() -> int:
             else:
                 会话.add(知识文档(文档标识=标识, 标题=标题, 正文=正文, 来源=str(文件.name)))
             文档数 += 1
+        # 清除磁盘上已删除文件对应的残留文档（避免旧内容永久留在库里被检索到）
+        在盘标识 = {文件.stem for 文件 in 知识目录.glob("*.md")}
+        for 行 in (await 会话.execute(select(知识文档))).scalars().all():
+            if 行.文档标识 not in 在盘标识:
+                await 会话.delete(行)
         await 会话.commit()
     return 文档数
 

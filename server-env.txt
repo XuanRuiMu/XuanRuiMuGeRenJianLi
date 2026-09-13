@@ -1,0 +1,10 @@
+数据库主机=127.0.0.1
+数据库端口=3306
+数据库用户=root
+数据库密码=040307
+数据库名=agentforge
+模型接口地址=https://api.siliconflow.cn/v1
+模型密钥=sk-xjsuoqmyzuusuoymylislhusshfintpqfmdbyvgafwhlndac
+模型名称=deepseek-ai/DeepSeek-V4-Flash
+服务方名称=硅基流动
+Agent单步超时秒=45

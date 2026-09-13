@@ -110,7 +110,7 @@ set_run(p.add_run("于翔堃"), size=18, bold=True, color=ACCENT)
 set_run(p.add_run("\t2026 届应届本科 · 意向城市：天津（优先）"), size=9, color=GRAY)
 
 p = para(doc, after=1)
-set_run(p.add_run("AI 原生全栈开发者 ｜ 用 AI Agent 独立交付 6 个可运行系统，全流程可现场演示"),
+set_run(p.add_run("AI 原生全栈开发者 ｜ 用 AI Agent 独立交付 5 个可运行系统，全流程可现场演示"),
         size=10, bold=True)
 
 p = para(doc, after=1)
@@ -128,17 +128,17 @@ set_run(p.add_run("　｜　随时到岗"), size=9, color=GRAY)
 section(doc, "教育背景")
 title_line(doc, "天津仁爱学院", "计算机科学与技术 · 本科", "2022.09 – 2026.07", before=0.5)
 bullet(doc, "主修", "数据结构、操作系统、计算机网络、数据库原理、软件工程")
-bullet(doc, "毕业设计", "《基于 SSM 框架的网上村委会业务办理系统》独立开发（Spring MVC；通知发布与角色权限模块）")
+bullet(doc, "毕业设计", "《网上村委会业务办理系统》独立开发（Java + Spring + MyBatis + H2；8 模块 12 表 88 端点，366 个测试用例，已通过答辩）")
 
 # ---------- 核心能力 ----------
 section(doc, "核心能力 · AI 原生工作流")
 p = para(doc, after=1.5)
-set_run(p.add_run("以 Claude Code / TRAE / Codex 等 AI 编程 Agent 为主要生产方式：AI 负责起草实现，我负责任务拆解、架构设计、代码审查、测试验证与上线决策，独立完成 6 个系统的全流程交付，可现场演示、可追问任意实现细节。"),
+set_run(p.add_run("以 Claude Code / TRAE / Codex 等 AI 编程 Agent 为主要生产方式：AI 负责起草实现，我负责任务拆解、架构设计、代码审查、测试验证与上线决策，独立完成 5 个系统的全流程交付，可现场演示、可追问任意实现细节。"),
         size=9, color=GRAY)
 bullet(doc, "AI Agent 工程", "ReAct 智能体闭环、Tool / Function Calling、RAG 混合检索、MCP 协议、SSE 流式输出、限流缓存与多级降级")
-bullet(doc, "后端与数据库", "Python · FastAPI（异步）、Java · Spring Boot 3、MySQL 8（建模 / 优化 /  生产实例运维）、Redis")
+bullet(doc, "后端与数据库", "Python · FastAPI（异步）、Java · Spring + MyBatis、MySQL 8（建模 / 优化 / 备份与恢复）、SQLite / H2")
 bullet(doc, "前端与交互", "TypeScript、React 18、Astro SSR、Vue 3、原生 Canvas 游戏引擎、GSAP 动效")
-bullet(doc, "部署与质量", "腾讯云、Nginx、Docker / compose、Linux、Git、pytest / JUnit 5 自动化测试、项目文档与验收自测")
+bullet(doc, "部署与质量", "腾讯云 Windows Server 部署与进程守护、Git、pytest / JUnit 5 自动化测试、项目文档与验收自测")
 
 # ---------- 项目经历 ----------
 section(doc, "项目经历（独立开发 · 可现场演示）")
@@ -148,22 +148,19 @@ bullet(doc, None, "从零实现 ReAct（推理-行动-观察）循环运行时�
 bullet(doc, None, "混合检索 RAG：BM25 + 向量检索 + RRF 融合提升长尾召回；pytest + pytest-asyncio 覆盖核心链路")
 
 title_line(doc, "AI 简历匹配平台", "Java 后端", "2026.08")
-bullet(doc, None, "Spring Boot 3.5 + MySQL + Redis：粘贴招聘 JD 即输出匹配度分析与改进建议；Docker 多阶段构建 + compose 一键编排")
-bullet(doc, None, "多级优雅降级（LLM 异常 → 规则引擎；Redis 故障 → 本地缓存）+ JD 哈希缓存 + IP 限流；JUnit 5 覆盖三条关键路径")
+bullet(doc, None, "Spring Boot + MySQL：粘贴招聘 JD 即输出匹配度分析与改进建议；本地默认 H2 内存库，零依赖即可启动")
+bullet(doc, None, "多级优雅降级（LLM 异常 → 规则引擎）+ JD 哈希缓存 + IP 限流；JUnit 5 覆盖三条关键路径")
 
 title_line(doc, "个人简历网站 + NEON CYBER 游戏平台（已上线：101.42.45.157）", "前端全栈", "2026.05 – 至今")
-bullet(doc, None, "腾讯云 Lighthouse 部署（Nginx + Node 独立服务）公网可访问；Astro + TS + React 孤岛架构，主题系统 + WCAG AA 无障碍自检")
+bullet(doc, None, "腾讯云 Windows Server 部署 + 进程守护自愈，公网可访问；Astro + TS + React 孤岛架构，主题系统 + WCAG AA 无障碍自检")
 bullet(doc, None, "原生 JS + Canvas 7 款自研小游戏（粒子系统、对象池、WebAudio 音效、存档成就）；内置 JD 匹配器与 DeepSeek 流式 AI 求职助手")
 
 title_line(doc, "会解压的外星人 —— AI 情绪陪伴应用", "Vue 全栈", "2026.04")
 bullet(doc, None, "Vue 3 + Vite + Pinia；Node.js Express + SQLite；JWT 鉴权、SSE 流式对话、情绪标签识别与多语言支持")
 
-title_line(doc, "已删除的经历  服务器集群 —— 生产环境运维实战", "", "2024.03 – 至今")
-bullet(doc, None, "长期运维  MySQL 生产实例：备份、跨版本迁移、故障恢复，多次处置线上数据异常；打通权限 / 登录 / 经济插件数据链路")
-
 # ---------- 岗位匹配 · 自我评价 ----------
 section(doc, "岗位匹配 · 自我评价")
-bullet(doc, "端到端交付", "6 个系统覆盖前后端、数据库、部署运维全链路，一人完成；项目文档齐全（做什么 / 怎么跑 / 在线演示）")
+bullet(doc, "端到端交付", "5 个系统覆盖前后端、数据库、部署运维全链路，一人完成；项目文档齐全（做什么 / 怎么跑 / 在线演示）")
 bullet(doc, "健壮性优先", "真实处置过大模型 API 余额耗尽（HTTP 402）故障，因降级链路服务未中断")
 bullet(doc, "快速上手新领域", "Astro、Three.js、Rive 等均即学即用，可借 AI 工作流快速交付新平台业务；可接受出差 / 驻场")
 
