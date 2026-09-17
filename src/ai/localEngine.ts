@@ -14,8 +14,6 @@ function formatAnswer(key: LocalRule['key']): string {
   const base = t(`chat.answers.${key}` as unknown as TranslationKey)
   return base
     .replace('{name}', personalInfo.name)
-    .replace('{email}', personalInfo.email)
-    .replace('{phone}', personalInfo.phone)
     .replace('{school}', personalInfo.education.school)
     .replace('{major}', personalInfo.education.major)
     .replace('{degree}', personalInfo.education.degree)
@@ -25,7 +23,7 @@ function formatAnswer(key: LocalRule['key']): string {
 const RULES: LocalRule[] = [
   { 意图ID: 'name', key: 'name' },
   { 意图ID: 'target', key: 'target' },
-  { 意图ID: 'contact', key: 'contact', component: { type: 'ContactForm' } },
+  { 意图ID: 'contact', key: 'contact', component: { type: 'ContactLinks' } },
   { 意图ID: 'projects-通用', key: 'projects', component: { type: 'ProjectCard', projectId: 'xrm' } },
   { 意图ID: 'tech', key: 'skills' },
   { 意图ID: 'education', key: 'education', component: { type: 'Timeline', scope: 'education' } },
@@ -41,7 +39,8 @@ function 命中意图(意图ID: string, 文本: string): boolean {
     return (
       命中共享意图('projects-通用', 文本) ||
       命中共享意图('projects-xrm', 文本) ||
-      命中共享意图('projects-爱与循环', 文本)
+      命中共享意图('projects-爱与循环', 文本) ||
+      命中共享意图('projects-蜂来', 文本)
     )
   }
   return 命中共享意图(意图ID, 文本)
@@ -70,7 +69,7 @@ export function getLocalAnswer(input: string): AiMessage {
   if (!rule) {
     return {
       role: 'assistant',
-      content: t('chat.answers.fallback' as unknown as TranslationKey).replace('{email}', personalInfo.email),
+      content: t('chat.answers.fallback' as unknown as TranslationKey),
     }
   }
 

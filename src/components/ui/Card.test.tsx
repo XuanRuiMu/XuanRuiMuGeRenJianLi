@@ -1,28 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect } from 'vitest'
+import { render, screen } from '@testing-library/react'
 import { Card } from './Card'
 
-let reducedMotionMatches = false
-
 describe('Card', () => {
-  beforeEach(() => {
-    reducedMotionMatches = false
-    Object.defineProperty(window, 'matchMedia', {
-      writable: true,
-      value: vi.fn().mockImplementation(() => ({
-        get matches() {
-          return reducedMotionMatches
-        },
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-      })),
-    })
-  })
-
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
-
   it('renders children', () => {
     render(<Card>card content</Card>)
     expect(screen.getByText('card content')).toBeInTheDocument()
@@ -43,13 +23,15 @@ describe('Card', () => {
     expect(container.firstChild).not.toHaveClass('glass-panel')
   })
 
-  it('applies border class by default', () => {
+  it('applies baseline static classes without glass leftovers', () => {
     const { container } = render(<Card>content</Card>)
-    expect(container.firstChild).toHaveClass('border')
-    expect(container.firstChild).toHaveClass('border-border')
+    expect(container.firstChild).toHaveClass('card-container')
+    expect(container.firstChild).not.toHaveClass('border')
+    expect(container.firstChild).not.toHaveClass('border-border')
+    expect(container.firstChild).not.toHaveClass('overflow-hidden')
   })
 
-  it('applies hover lift class without tilt', () => {
+  it('applies hover lift class', () => {
     const { container } = render(<Card hover>content</Card>)
     expect(container.firstChild).toHaveClass('hover:-translate-y-1')
   })
@@ -59,129 +41,11 @@ describe('Card', () => {
     expect(container.firstChild).toHaveClass('custom-card')
   })
 
-  it('applies tilt classes', () => {
-    const { container } = render(<Card tilt>content</Card>)
-    expect(container.firstChild).toHaveClass('tilt-card')
-    expect(container.firstChild).toHaveClass('will-change-transform')
-  })
-
-  it('does not apply transform transition class on tilt cards', () => {
-    const { container } = render(<Card tilt>content</Card>)
-    expect(container.firstChild).not.toHaveClass('transition-transform')
-  })
-
-  it('combines hover with tilt without lift transition', () => {
-    const { container } = render(
-      <Card hover tilt>
-        content
-      </Card>
-    )
-    expect(container.firstChild).toHaveClass('hover:shadow-2xl')
-    expect(container.firstChild).not.toHaveClass('hover:-translate-y-1')
-  })
-
-  it('engages tilt animation on mouse enter', async () => {
-    const { container } = render(<Card tilt>content</Card>)
+  it('never writes inline transform (pure static container)', () => {
+    const { container } = render(<Card hover>content</Card>)
     const card = container.firstChild as HTMLElement
-    const rect = {
-      left: 0,
-      top: 0,
-      width: 200,
-      height: 100,
-      right: 200,
-      bottom: 100,
-      x: 0,
-      y: 0,
-      toJSON: () => ({}),
-    }
-    card.getBoundingClientRect = vi.fn(() => rect)
-    fireEvent.mouseEnter(card)
-    await waitFor(() => {
-      expect(card.style.transform).toContain('perspective(1000px)')
-      expect(parseFloat(card.style.transform.match(/scale\(([\d.]+)\)/)?.[1] ?? '1')).toBeGreaterThan(1.02)
-    })
-  })
-
-  it('returns toward rest on mouse leave', async () => {
-    const { container } = render(<Card tilt>content</Card>)
-    const card = container.firstChild as HTMLElement
-    const rect = {
-      left: 0,
-      top: 0,
-      width: 200,
-      height: 100,
-      right: 200,
-      bottom: 100,
-      x: 0,
-      y: 0,
-      toJSON: () => ({}),
-    }
-    card.getBoundingClientRect = vi.fn(() => rect)
-
-    const getRotateX = (transform: string) => {
-      const match = transform.match(/rotateX\((-?[\d.]+)deg\)/)
-      return match ? parseFloat(match[1]) : 0
-    }
-
-    fireEvent.mouseEnter(card)
-    fireEvent.mouseMove(card, { clientX: 200, clientY: 100 })
-
-    await waitFor(() => {
-      expect(getRotateX(card.style.transform)).toBeLessThan(-5)
-    })
-
-    fireEvent.mouseLeave(card)
-
-    await waitFor(() => {
-      expect(Math.abs(getRotateX(card.style.transform))).toBeLessThan(2)
-    })
-  })
-
-  it('disables tilt when reduced motion is preferred', () => {
-    reducedMotionMatches = true
-    const { container } = render(<Card tilt>content</Card>)
-    expect(container.firstChild).not.toHaveClass('tilt-card')
-    expect(container.firstChild).not.toHaveClass('will-change-transform')
-  })
-
-  it('continuously updates tilt transform on repeated mouse moves', async () => {
-    const { container } = render(<Card tilt>content</Card>)
-    const card = container.firstChild as HTMLElement
-    const rect = {
-      left: 0,
-      top: 0,
-      width: 200,
-      height: 100,
-      right: 200,
-      bottom: 100,
-      x: 0,
-      y: 0,
-      toJSON: () => ({}),
-    }
-    card.getBoundingClientRect = vi.fn(() => rect)
-
-    const getRotateX = (transform: string) => {
-      const match = transform.match(/rotateX\((-?[\d.]+)deg\)/)
-      return match ? parseFloat(match[1]) : 0
-    }
-    const getRotateY = (transform: string) => {
-      const match = transform.match(/rotateY\((-?[\d.]+)deg\)/)
-      return match ? parseFloat(match[1]) : 0
-    }
-
-    fireEvent.mouseEnter(card)
-    fireEvent.mouseMove(card, { clientX: 50, clientY: 25 })
-
-    await waitFor(() => {
-      expect(getRotateX(card.style.transform)).toBeGreaterThan(0)
-      expect(getRotateY(card.style.transform)).toBeLessThan(0)
-    })
-
-    fireEvent.mouseMove(card, { clientX: 150, clientY: 75 })
-
-    await waitFor(() => {
-      expect(getRotateX(card.style.transform)).toBeLessThan(0)
-      expect(getRotateY(card.style.transform)).toBeGreaterThan(0)
-    })
+    expect(card.style.transform).toBe('')
+    expect(card).not.toHaveClass('tilt-card')
+    expect(card).not.toHaveClass('will-change-transform')
   })
 })

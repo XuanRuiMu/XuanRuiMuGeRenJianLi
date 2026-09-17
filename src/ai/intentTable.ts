@@ -35,6 +35,12 @@ export const 共享意图表: 共享意图定义[] = [
     boostSources: ['projects.ts', 'experience.ts'],
   },
   {
+    id: 'projects-蜂来',
+    关键词: ['蜂来', 'fenglai', '整蛊', '直播间', '点赞连击', '拖拽道具', '弹幕刷屏', '战报海报'],
+    boostCategories: ['projects', 'experience'],
+    boostSources: ['projects.ts', 'experience.ts'],
+  },
+  {
     id: 'projects-通用',
     关键词: ['项目', '作品', '做过什么'],
     boostCategories: ['projects'],
@@ -72,7 +78,7 @@ export const 共享意图表: 共享意图定义[] = [
   },
   {
     id: 'contact',
-    关键词: ['联系方式', '联系', '邮箱', '电话', 'github', 'bilibili', '怎么联系', '留言'],
+    关键词: ['联系方式', '联系', '怎么联系', '邮箱', '电话', '手机', 'qq', '微信'],
     boostCategories: ['personalInfo'],
     boostSources: ['personalInfo.ts'],
   },
@@ -90,6 +96,8 @@ export function 检测项目卡片(输入: string): 项目卡片标识 | undefin
     return 'xrm'
   if (文本.includes('恋爱') || 文本.includes('lovewithme') || 文本.includes('聊天应用') || 文本.includes('全栈应用'))
     return 'lovewithme'
+  if (文本.includes('蜂来') || 文本.includes('fenglai') || 文本.includes('整蛊') || 文本.includes('点赞连击'))
+    return 'fengLai'
   if (文本.includes('循环工程') || 文本.includes('loop')) return 'aiConsole'
   return undefined
 }
@@ -115,7 +123,10 @@ const 纯问候集合 = new Set([
 ])
 
 export function 是否纯问候(输入: string): boolean {
-  const 归一 = 输入.trim().toLowerCase().replace(/[\s,，.。!！?？~～、]+/g, '')
+  const 归一 = 输入
+    .trim()
+    .toLowerCase()
+    .replace(/[\s,，.。!！?？~～、]+/g, '')
   if (归一.length === 0 || 归一.length > 8) return false
   return 纯问候集合.has(归一)
 }

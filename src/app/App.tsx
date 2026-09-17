@@ -8,8 +8,14 @@ const AboutSection = lazy(() =>
 const ProjectsSection = lazy(() =>
   import('../features/projects/ProjectsSection').then((module) => ({ default: module.ProjectsSection }))
 )
+const SkillsSection = lazy(() =>
+  import('../features/skills/SkillsSection').then((module) => ({ default: module.SkillsSection }))
+)
 const ExperienceSection = lazy(() =>
   import('../features/experience/ExperienceSection').then((module) => ({ default: module.ExperienceSection }))
+)
+const TestimonialsSection = lazy(() =>
+  import('../features/testimonials/TestimonialsSection').then((module) => ({ default: module.TestimonialsSection }))
 )
 const ShowcaseSection = lazy(() =>
   import('../features/showcase/ShowcaseSection').then((module) => ({ default: module.ShowcaseSection }))
@@ -29,7 +35,9 @@ export default function App() {
       <Suspense fallback={<SectionFallback />}>
         <AboutSection />
         <ProjectsSection />
+        <SkillsSection />
         <ExperienceSection />
+        <TestimonialsSection />
         <ShowcaseSection />
         <ContactSection />
       </Suspense>

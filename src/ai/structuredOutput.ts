@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const PROJECT_IDS = ['xrm', 'lovewithme', 'aiConsole'] as const
+export const PROJECT_IDS = ['xrm', 'lovewithme', 'aiConsole', 'fengLai'] as const
 export const TIMELINE_SCOPES = ['experience', 'media', 'education'] as const
 
 export const projectCardComponentSchema = z.object({
@@ -13,14 +13,16 @@ export const timelineComponentSchema = z.object({
   scope: z.enum(TIMELINE_SCOPES).optional(),
 })
 
-export const contactFormComponentSchema = z.object({
-  type: z.literal('ContactForm'),
-})
+export const contactLinksComponentSchema = z
+  .object({
+    type: z.literal('ContactLinks'),
+  })
+  .strict()
 
 export const uiComponentSchema = z.union([
   projectCardComponentSchema,
   timelineComponentSchema,
-  contactFormComponentSchema,
+  contactLinksComponentSchema,
 ])
 
 export const assistantPayloadSchema = z.object({
@@ -30,7 +32,7 @@ export const assistantPayloadSchema = z.object({
 
 export type ProjectCardComponent = z.infer<typeof projectCardComponentSchema>
 export type TimelineComponent = z.infer<typeof timelineComponentSchema>
-export type ContactFormComponent = z.infer<typeof contactFormComponentSchema>
+export type ContactLinksComponent = z.infer<typeof contactLinksComponentSchema>
 export type UiComponent = z.infer<typeof uiComponentSchema>
 export type AssistantPayload = z.infer<typeof assistantPayloadSchema>
 

@@ -33,11 +33,12 @@ describe('chatService', () => {
     expect(result.meta.耗时毫秒).toBeGreaterThanOrEqual(0)
   })
 
-  it('falls back to the local ContactForm component for contact questions when the call fails', async () => {
+  it('falls back to the local ContactLinks component for contact questions when the call fails', async () => {
     const result = await sendChatMessage([{ role: 'user', content: '怎么联系你' }])
 
-    expect(result.message.content).toContain(personalInfo.email)
-    expect(result.message.component).toEqual({ type: 'ContactForm' })
+    expect(result.message.content).not.toContain(personalInfo.email)
+    expect(result.message.content).not.toContain(personalInfo.phone)
+    expect(result.message.component).toEqual({ type: 'ContactLinks' })
   })
 
   it('falls back to the local ProjectCard component for project questions when the call fails', async () => {
@@ -165,6 +166,32 @@ describe('chatService', () => {
     expect(result.message.component).toEqual({ type: 'ProjectCard', projectId: 'xrm' })
   })
 
+  it('LLM链路蜂来问答同样可配追问信号（组件透传不断链）', async () => {
+    const { 生成追问建议 } = await import('./followUpSuggestions')
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                text: '蜂来介绍',
+                component: { type: 'ProjectCard', projectId: 'fengLai' },
+              }),
+            },
+          },
+        ],
+      }),
+    })
+
+    const result = await sendChatMessage([{ role: 'user', content: '蜂来是做什么的' }], {
+      deepseekApiKey: 'sk-test',
+    })
+
+    expect(result.message.component).toEqual({ type: 'ProjectCard', projectId: 'fengLai' })
+    expect(生成追问建议('蜂来是做什么的', result.message)).toHaveLength(3)
+  })
+
   it('falls back to text when DeepSeek returns plain text', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -190,8 +217,8 @@ describe('chatService', () => {
 
     const result = await sendChatMessage([{ role: 'user', content: '怎么联系你' }], { deepseekApiKey: 'bad-key' })
 
-    expect(result.message.content).toContain(personalInfo.email)
-    expect(result.message.component).toEqual({ type: 'ContactForm' })
+    expect(result.message.content).not.toContain(personalInfo.email)
+    expect(result.message.component).toEqual({ type: 'ContactLinks' })
   })
 
   it('falls back to local answer when LLM response is not ok (5xx)', async () => {
@@ -342,6 +369,172 @@ describe('chatService', () => {
     const callArgs = mockFetch.mock.calls.at(-1) as [string, RequestInit]
     const body = JSON.parse((callArgs[1].body as string) ?? '{}')
     expect(JSON.stringify(body)).not.toContain('暮澜纪元')
+  })
+
+  it('联系问法发给模型的上下文过滤邮箱直给块', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        choices: [
+          { message: { content: JSON.stringify({ text: '点按钮联系', component: { type: 'ContactLinks' } }) } },
+        ],
+      }),
+    })
+    const result = await sendChatMessage([{ role: 'user', content: '怎么联系你' }], { deepseekApiKey: 'sk-test' })
+    expect(result.message.component).toEqual({ type: 'ContactLinks' })
+    const callArgs = mockFetch.mock.calls.at(-1) as [string, RequestInit]
+    const body = JSON.parse((callArgs[1].body as string) ?? '{}')
+    const 系统提示 = String(body.messages?.[0]?.content ?? '')
+    expect(系统提示).not.toContain(personalInfo.email)
+    expect(系统提示).not.toContain(personalInfo.phone)
+    expect(系统提示).toContain('ContactLinks')
+    expect(系统提示).not.toContain('ContactForm')
+  })
+
+  function 构造SSE响应(块列表: string[]): { ok: boolean; body: ReadableStream<Uint8Array> } {
+    const 编码 = new TextEncoder()
+    return {
+      ok: true,
+      body: new ReadableStream<Uint8Array>({
+        start(控制器) {
+          for (const 块 of 块列表) 控制器.enqueue(编码.encode(块))
+          控制器.close()
+        },
+      }),
+    }
+  }
+
+  function 构造SSE分片响应(块列表: string[]): { ok: boolean; body: ReadableStream<Uint8Array> } {
+    const 编码 = new TextEncoder()
+    let 下标 = 0
+    return {
+      ok: true,
+      body: new ReadableStream<Uint8Array>({
+        pull(控制器) {
+          if (下标 >= 块列表.length) {
+            控制器.close()
+            return
+          }
+          控制器.enqueue(编码.encode(块列表[下标]))
+          下标 += 1
+        },
+      }),
+    }
+  }
+
+  function sse行(增量: Record<string, string>): string {
+    return `data: ${JSON.stringify({ choices: [{ delta: 增量 }] })}\n\n`
+  }
+
+  it('请求体携带stream:true走SSE', async () => {
+    mockFetch.mockResolvedValueOnce(构造SSE响应([sse行({ content: '{"text":"流式回答"}' }), 'data: [DONE]\n\n']))
+
+    const result = await sendChatMessage([{ role: 'user', content: '你是谁' }], { deepseekApiKey: 'sk-test' })
+
+    const callArgs = mockFetch.mock.calls.at(-1) as [string, RequestInit]
+    const body = JSON.parse((callArgs[1].body as string) ?? '{}')
+    expect(body.stream).toBe(true)
+    expect(body.response_format).toEqual({ type: 'json_object' })
+    expect(result.message.content).toBe('流式回答')
+  })
+
+  it('reasoning与content先后增量到达onProgress且文本递增', async () => {
+    const 内容前半 = '{"text":"答'
+    const 内容后半 = '案"}'
+    mockFetch.mockResolvedValueOnce(
+      构造SSE分片响应([
+        sse行({ reasoning_content: '思考一' }),
+        sse行({ reasoning_content: '思考二' }),
+        sse行({ content: 内容前半 }),
+        sse行({ content: 内容后半 }),
+        'data: [DONE]\n\n',
+      ])
+    )
+
+    const 快照: Array<{ reasoning: string; content: string }> = []
+    const result = await sendChatMessage([{ role: 'user', content: '你是谁' }], {
+      deepseekApiKey: 'sk-test',
+      onProgress: (进度) => 快照.push({ ...进度 }),
+    })
+
+    expect(快照.map((帧) => `${帧.reasoning}|${帧.content}`)).toEqual([
+      '思考一|',
+      '思考一思考二|',
+      '思考一思考二|{"text":"答',
+      '思考一思考二|{"text":"答案"}',
+    ])
+    const 首个回答帧 = 快照.findIndex((帧) => 帧.content.length > 0)
+    expect(首个回答帧).toBeGreaterThan(1)
+    expect(快照[快照.length - 1].content).toContain('{"text"')
+    expect(result.message.content).toBe('答案')
+    expect(result.message.reasoning).toBe('思考一思考二')
+  })
+
+  it('同chunk双字段不丢content', async () => {
+    mockFetch.mockResolvedValueOnce(
+      构造SSE响应([sse行({ reasoning_content: 'R', content: '{"text":"AB"}' }), 'data: [DONE]\n\n'])
+    )
+
+    const 快照: Array<{ reasoning: string; content: string }> = []
+    const result = await sendChatMessage([{ role: 'user', content: '你是谁' }], {
+      deepseekApiKey: 'sk-test',
+      onProgress: (进度) => 快照.push({ ...进度 }),
+    })
+
+    expect(result.message.content).toBe('AB')
+    expect(result.message.reasoning).toBe('R')
+    expect(快照[快照.length - 1].content).toContain('AB')
+  })
+
+  it('data空行与[DONE]后usage空choices块被跳过', async () => {
+    mockFetch.mockResolvedValueOnce(
+      构造SSE响应([
+        '\n',
+        sse行({ content: '{"text":"OK"}' }),
+        '\n',
+        'data: [DONE]\n\n',
+        'data: {"choices":[],"usage":{"prompt_tokens":1}}\n\n',
+      ])
+    )
+
+    const result = await sendChatMessage([{ role: 'user', content: '你好' }], { deepseekApiKey: 'sk-test' })
+    expect(result.message.content).toBe('OK')
+  })
+
+  it('流式中断抛AbortError且已累积增量保留、不进兜底', async () => {
+    const 编码 = new TextEncoder()
+    const 中断错 = new DOMException('The operation was aborted.', 'AbortError')
+    const 控制器 = new AbortController()
+    let 读次 = 0
+    mockFetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        body: new ReadableStream<Uint8Array>({
+          pull(流控) {
+            读次 += 1
+            if (读次 === 1) {
+              流控.enqueue(编码.encode(sse行({ reasoning_content: '已累积' })))
+              return Promise.resolve()
+            }
+            return Promise.resolve().then(() => {
+              throw 中断错
+            })
+          },
+        }),
+      })
+    )
+
+    const 快照: Array<{ reasoning: string; content: string }> = []
+    await expect(
+      sendChatMessage([{ role: 'user', content: '你是谁' }], {
+        deepseekApiKey: 'sk-test',
+        signal: 控制器.signal,
+        onProgress: (进度) => 快照.push({ ...进度 }),
+      })
+    ).rejects.toMatchObject({ name: 'AbortError' })
+    expect(快照.length).toBeGreaterThanOrEqual(1)
+    expect(快照[0].reasoning).toContain('已累积')
+    expect(mockFetch).toHaveBeenCalledTimes(1)
   })
 })
 

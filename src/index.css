@@ -555,20 +555,7 @@ html.circular-reveal-active::view-transition-old(root) {
   }
 }
 
-/* 3D Tilt Card */
-.tilt-card {
-  transform-style: preserve-3d;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tilt-card {
-    transform: none !important;
-  }
-}
-
-.reduced-motion .tilt-card {
-  transform: none !important;
-}
+/* 经历卡片倾斜由外层 .experience-card 承接（data-tilt-outer），.tilt-card 仅保留兼容空壳，禁止写 transform 语义 */
 
 /* Experience Timeline */
 .timeline {
@@ -622,7 +609,7 @@ html.circular-reveal-active::view-transition-old(root) {
 /* 不设 perspective、wrapper 不设 preserve-3d：卡片倾斜由 .tilt-card 自带 perspective() 自洽；
    多层 3D 上下文嵌套会让内部链接的绘制位置与命中位置分离（经历链接点不中的根因，e2e: experience-links） */
 .timeline-card-wrapper {
-  border-radius: 20px;
+  border-radius: 16px;
   opacity: 0;
   transform: translateY(24px);
   transition:
@@ -636,27 +623,8 @@ html.circular-reveal-active::view-transition-old(root) {
   transform: translateY(0);
 }
 
-.timeline-card-wrapper::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(0, 217, 255, 0.4), rgba(165, 94, 234, 0.2) 50%, transparent 70%);
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  pointer-events: none;
-}
-
-.timeline-item:hover .timeline-card-wrapper::before,
-.timeline-item:focus-within .timeline-card-wrapper::before {
-  opacity: 1;
-}
+/* 不为 timeline-card-wrapper 绘制悬停描边：经历卡片自带 .experience-gradient-border，
+   外层 ::before 不随 is-pressed 的 scale(0.985) 缩小，会在按压后于卡外露出青色残留线。 */
 
 .timeline-node {
   transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
@@ -1307,9 +1275,32 @@ html.circular-reveal-active::view-transition-old(root) {
 
 /* ============ 经历卡片 · 02-react-three-fiber 移植 ============ */
 
-/* 绿粉渐变描边（green-pink-gradient 原样移植） */
+/* 绿粉渐变描边（green-pink-gradient 原样移植）：单层描边容器，圆角裁剪，禁止内部再套圆角容器 */
+.experience-card {
+  transform-style: flat;
+  isolation: isolate;
+  transition: box-shadow 0.25s ease;
+}
+
+/* 按压态：整卡回正并轻微下沉，消除倾斜透视下描边层与阴影层的错位重影 */
+.experience-card.is-pressed {
+  box-shadow: none;
+}
+
+.experience-card.is-pressed .experience-gradient-border {
+  box-shadow: none;
+}
+
+/* 外层卡片圆角与描边层同值，避免内外层圆角差形成底部线条错位 */
+.experience-card.rounded-2xl {
+  border-radius: 16px;
+}
+
 .experience-gradient-border {
   background: linear-gradient(90.13deg, #00cea8 1.9%, #bf61ff 97.5%);
+  border-radius: 16px;
+  overflow: hidden;
+  transform: translateZ(0);
 }
 
 /* 标签渐变文字（8102 blue/green/pink-text-gradient 原样移植） */
@@ -1335,6 +1326,63 @@ html.circular-reveal-active::view-transition-old(root) {
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
+}
+
+:root {
+  --xuan-harness-fixed-orange: #ff9500;
+  --xuan-harness-gradient-duration: 6s;
+  --xuan-harness-gradient-from: #39ff88;
+  --xuan-harness-gradient-mid: #22d3ee;
+  --xuan-harness-gradient-to: #4f8cff;
+  --xuan-harness-gradient-fallback: #5eead4;
+}
+
+.xuan-harness-fixed-orange {
+  color: var(--xuan-harness-fixed-orange);
+  -webkit-text-fill-color: var(--xuan-harness-fixed-orange);
+}
+
+.xuan-harness-rolling-gradient {
+  background: linear-gradient(
+    90deg,
+    var(--xuan-harness-gradient-from),
+    var(--xuan-harness-gradient-mid),
+    var(--xuan-harness-gradient-to),
+    var(--xuan-harness-gradient-mid),
+    var(--xuan-harness-gradient-from)
+  );
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: xuan-harness-gradient-scroll var(--xuan-harness-gradient-duration) linear infinite;
+}
+
+@keyframes xuan-harness-gradient-scroll {
+  0% {
+    background-position: 0% 0;
+  }
+
+  100% {
+    background-position: -300% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xuan-harness-rolling-gradient {
+    animation: none;
+    background: none;
+    color: var(--xuan-harness-gradient-fallback);
+    -webkit-text-fill-color: var(--xuan-harness-gradient-fallback);
+  }
+}
+
+.reduced-motion .xuan-harness-rolling-gradient {
+  animation: none;
+  background: none;
+  color: var(--xuan-harness-gradient-fallback);
+  -webkit-text-fill-color: var(--xuan-harness-gradient-fallback);
 }
 
 /* 成就列表：悬停/聚焦时浮现（8102 .Box1 hover 揭示交互） */
@@ -1637,7 +1685,13 @@ html.circular-reveal-active::view-transition-old(root) {
     box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1),
     color 0.2s;
   pointer-events: auto;
-  user-select: none;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.visitor-counter-number {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .visitor-counter-card:hover {

@@ -2,7 +2,9 @@ import type { Project } from './types'
 import { ta } from '../i18n/translations'
 
 export const lovewithmeGithubUrl = 'https://github.com/XuanRuiMu/HeWoLianAiBa'
-export const analyticsGithubUrl = 'https://github.com/XuanRuiMu/LianAiBaDataCenter'
+export const fengLaiWebUrl = 'https://xuanruimu.github.io/FengLai/index.html'
+
+export const 暮澜链接 = 'https://github.com/XuanRuiMu/XRMChaJian'
 
 export const projects: Project[] = [
   {
@@ -11,7 +13,7 @@ export const projects: Project[] = [
     descKey: 'data.projects.xrm.desc',
     tags: ta('data.projects.xrm.tags'),
     metricKeys: ['data.projects.xrm.metrics.classes', 'data.projects.xrm.metrics.systems'],
-    links: [],
+    links: [{ labelKey: 'projects.link.github', url: 暮澜链接 }],
   },
   {
     id: 'lovewithme',
@@ -30,11 +32,11 @@ export const projects: Project[] = [
     links: [{ labelKey: 'projects.link.github', url: 'https://github.com/XuanRuiMu/loop-engineering' }],
   },
   {
-    id: 'analytics',
-    nameKey: 'data.projects.analytics.name',
-    descKey: 'data.projects.analytics.desc',
-    tags: ta('data.projects.analytics.tags'),
-    metricKeys: ['data.projects.analytics.metrics.stack', 'data.projects.analytics.metrics.tests'],
-    links: [{ labelKey: 'projects.link.github', url: analyticsGithubUrl }],
+    id: 'fengLai',
+    nameKey: 'data.projects.fengLai.name',
+    descKey: 'data.projects.fengLai.desc',
+    tags: ta('data.projects.fengLai.tags'),
+    metricKeys: ['data.projects.fengLai.metrics.stack', 'data.projects.fengLai.metrics.tests'],
+    links: [{ labelKey: 'projects.link.web', url: fengLaiWebUrl }],
   },
 ]

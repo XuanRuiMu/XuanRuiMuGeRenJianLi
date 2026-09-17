@@ -1,4 +1,4 @@
-﻿import { useRef, useState, useEffect, useCallback, useMemo, useOptimistic, startTransition } from 'react'
+﻿import { useRef, useState, useEffect, useCallback, useMemo, startTransition } from 'react'
 import { X, Loader2, RefreshCw, ImagePlus } from 'lucide-react'
 import { useAppStore } from '../../store/useAppStore'
 import type { AiMessage } from '../../store/useAppStore'
@@ -7,6 +7,7 @@ import { t, ta } from '../../i18n/translations'
 import { useChatService, compactConversation, 是否中断错误 } from '../../ai/chatService'
 import { 模型列表, 循环思考强度, 步进思考强度, 思考强度顺序, type 思考强度 } from '../../ai/models'
 import { UiComponentRenderer } from './UiComponentRegistry'
+import { 生成追问建议 } from '../../ai/followUpSuggestions'
 
 interface AIChatProps {
   className?: string
@@ -75,7 +76,6 @@ function ToolBlock({ name, detail }: { name: string; detail: string }) {
   return (
     <div className="my-1 font-mono text-[12px] leading-relaxed">
       <div className="flex items-center gap-1.5 text-[#d97757]">
-        <span aria-hidden="true">⏺</span>
         <span>{name}</span>
       </div>
       <div className="flex items-center gap-1.5 pl-5 text-[#9aa0aa]">
@@ -137,6 +137,7 @@ export function AIChat({ className }: AIChatProps) {
   const setChatOpen = useAppStore((state) => state.setChatOpen)
   const aiMessages = useAppStore((state) => state.aiMessages)
   const addAiMessage = useAppStore((state) => state.addAiMessage)
+  const updateAiMessage = useAppStore((state) => state.updateAiMessage)
   const clearAiMessages = useAppStore((state) => state.clearAiMessages)
   const aiModel = useAppStore((state) => state.aiModel)
   const setAiModel = useAppStore((state) => state.setAiModel)
@@ -149,6 +150,10 @@ export function AIChat({ className }: AIChatProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  // 会话代数（根因守护）：/clear、重置等开启新会话时自增。abort 的拒绝是异步到达的，
+  // 仅靠「先 abort 后 clear」的顺序无法阻止孤儿请求写入已清空的新会话；
+  // 所有异步写入前比对代数，代数已变则丢弃。
+  const generationRef = useRef(0)
   const chatMutation = useChatService()
   const isPending = chatMutation.isPending
 
@@ -173,10 +178,6 @@ export function AIChat({ className }: AIChatProps) {
   const abortRef = useRef<AbortController | null>(null)
   // 排队泄放与手动发送共用同一闸门，防止 isPending 翻转间隙双发。
   const sendingRef = useRef(false)
-  // 会话代数（根因守护）：/clear、重置等开启新会话时自增。abort 的拒绝是异步到达的，
-  // 仅靠「先 abort 后 clear」的顺序无法阻止孤儿请求写入已清空的新会话；
-  // 所有异步写入前比对代数，代数已变则丢弃。
-  const generationRef = useRef(0)
   // 同步最新历史到 ref：排队泄放时闭包中的 aiMessages 可能已过期。
   const aiMessagesRef = useRef(aiMessages)
   useEffect(() => {
@@ -192,10 +193,9 @@ export function AIChat({ className }: AIChatProps) {
     stashedSessionRef.current = stashedSession
   }, [stashedSession])
 
-  const [optimisticMessages, addOptimisticMessage] = useOptimistic<AiMessage[], AiMessage>(
-    aiMessages,
-    (state, message) => [...state, message]
-  )
+  // 可见消息即 store 历史：占位先行后 addAiMessage 同步落盘即时回显，
+  // useOptimistic 层已冗余（再叠加会与真实消息重复），直接渲染 store。
+  const 可见消息 = aiMessages
 
   const [输入历史, set输入历史] = useState<string[]>([])
   const 历史下标Ref = useRef(-1)
@@ -290,37 +290,88 @@ export function AIChat({ className }: AIChatProps) {
   const [拖拽中, set拖拽中] = useState(false)
 
   /**
+   * JSON envelope 增量宽容抽取（下游打字机）：response_format=json_object 下 SSE content
+   * 为 `{"text":"..."}` 前缀流。逐帧对 content 累加串抽 `"text":"<已到字符>"` 片段，
+   * 未闭合也显示已到字符；reasoning 上游已是原文，直接直出；两者皆空回退空（禁闪烁）。
+   */
+  const 抽取流式回答 = (累加内容: string): string => {
+    if (累加内容.length === 0) return ''
+    const 键位 = 累加内容.indexOf('"text"')
+    if (键位 === -1) return ''
+    const 冒号位 = 累加内容.indexOf(':', 键位 + 6)
+    if (冒号位 === -1) return ''
+    const 引号位 = 累加内容.indexOf('"', 冒号位 + 1)
+    if (引号位 === -1) return ''
+    let 结果 = ''
+    let 转义中 = false
+    for (let 下标 = 引号位 + 1; 下标 < 累加内容.length; 下标 += 1) {
+      const 字符 = 累加内容[下标]
+      if (转义中) {
+        if (字符 === 'n') 结果 += '\n'
+        else if (字符 === 't') 结果 += '\t'
+        else if (字符 === 'r') 结果 += '\r'
+        else 结果 += 字符 ?? ''
+        转义中 = false
+        continue
+      }
+      if (字符 === '\\') {
+        转义中 = true
+        continue
+      }
+      if (字符 === '"') break
+      结果 += 字符
+    }
+    return 结果
+  }
+
+  /**
    * 发送单条消息（对齐 Claude Code）：发送后立即清空输入栏（由调用方 setInput('')），
    * 携带 AbortController 支持 Esc 中断；中断时保留已发消息并记一条中断提示，
-   * 其他错误走错误栏。
+   * 其他错误走错误栏。SSE 流式增量经 onProgress 落到占位助手消息，逐字显示。
    */
   const sendMessage = useCallback(
-    async (content: string, images?: string[]) => {
+    async (用户消息: AiMessage) => {
       const gen = generationRef.current
-      const userMessage: AiMessage = {
-        role: 'user',
-        content,
-        ...(images && images.length > 0 ? { images } : {}),
-      }
-      addOptimisticMessage(userMessage)
       setSendError(null)
       const controller = new AbortController()
       abortRef.current = controller
-      try {
-        const result = await chatMutation.mutateAsync({
-          messages: [...aiMessagesRef.current, userMessage],
-          signal: controller.signal,
-          ...(会话模型Ref.current ? { model: 会话模型Ref.current } : {}),
+      const mutateInput: {
+        messages: AiMessage[]
+        signal: AbortSignal
+        model?: string
+        onProgress?: (增量: { reasoning: string; content: string }) => void
+      } = {
+        messages: [...aiMessagesRef.current, 用户消息],
+        signal: controller.signal,
+        ...(会话模型Ref.current ? { model: 会话模型Ref.current } : {}),
+      }
+      // 占位先行：await 前先落用户消息与空助手占位并记下标，使 await 期间
+      // onProgress 能落屏（占位下标<0 的代数 guard 保留）。用户消息先占位符合
+      // “先显示问题回显+思考计时+Retrieve占位”既有语义；落定后仅补全结果。
+      addAiMessage(用户消息)
+      const 占位下标 = aiMessagesRef.current.length + 1
+      addAiMessage({ role: 'assistant', content: '' })
+      // 下游打字机：每帧直接 updateAiMessage（禁 setTimeout 节流），reasoning 原文
+      // 直出，content 对 JSON envelope 做增量宽容抽取。
+      mutateInput.onProgress = (增量: { reasoning: string; content: string }) => {
+        if (generationRef.current !== gen || 占位下标 < 0) return
+        const 思考文本 = 增量.reasoning
+        const 回答文本 = 抽取流式回答(增量.content)
+        if (思考文本.length === 0 && 回答文本.length === 0) return
+        updateAiMessage(占位下标, {
+          ...(思考文本.length > 0 ? { reasoning: 思考文本 } : {}),
+          ...(回答文本.length > 0 ? { content: 回答文本 } : {}),
         })
+      }
+      try {
+        const result = await chatMutation.mutateAsync(mutateInput)
         // 会话已在等待期间被切换（/clear、重置）：丢弃写入，不让孤儿回合污染新会话
         if (generationRef.current !== gen) return
-        addAiMessage(userMessage)
-        addAiMessage(result.meta ? { ...result.message, meta: result.meta } : result.message)
+        updateAiMessage(占位下标, result.meta ? { ...result.message, meta: result.meta } : result.message)
       } catch (err) {
         if (generationRef.current !== gen) return
         if (是否中断错误(err)) {
           // Claude Code：中断后已发出的消息保留，当前回合终止
-          addAiMessage(userMessage)
           setSystemLines([t('ai.commands.interrupted')])
         } else {
           setSendError(t('ai.error'))
@@ -329,7 +380,7 @@ export function AIChat({ className }: AIChatProps) {
         abortRef.current = null
       }
     },
-    [chatMutation, addAiMessage, addOptimisticMessage]
+    [chatMutation, addAiMessage, updateAiMessage]
   )
 
   /** 排队泄放：空闲时把队首消息发出（Claude Code 的 queued 语义） */
@@ -338,10 +389,17 @@ export function AIChat({ className }: AIChatProps) {
     sendingRef.current = true
     const [next, ...rest] = queued
     setQueued(rest)
-    startTransition(() => {
-      void sendMessage(next.content, next.images).finally(() => {
+    const 用户消息: AiMessage = {
+      role: 'user',
+      content: next.content,
+      ...(next.images && next.images.length > 0 ? { images: next.images } : {}),
+    }
+    startTransition(async () => {
+      try {
+        await sendMessage(用户消息)
+      } finally {
         sendingRef.current = false
-      })
+      }
     })
   }, [isPending, compacting, queued, sendMessage])
 
@@ -542,18 +600,26 @@ export function AIChat({ className }: AIChatProps) {
       // 排队项带走的是独立 dataURL 字符串，释放 objectURL 不影响已入队消息
       for (const 图片 of pendingImages) URL.revokeObjectURL(图片.previewUrl)
       setPendingImages([])
-      // 新动作即清除指令输出（瞬态语义：不滞留在消息流），同时关闭模型选择器
-      setSystemLines([])
-      set模型选择下标(null)
       if (isPending || sendingRef.current || compacting) {
         setQueued((prev) => [...prev, { content, images: images.length > 0 ? images : undefined }])
         return
       }
+      // 新动作即清除指令输出（瞬态语义：不滞留在消息流），同时关闭模型选择器；
+      // 排队时不得清空 systemLines，否则 pending 中系统行被吞掉无回显。
+      setSystemLines([])
+      set模型选择下标(null)
+      const 用户消息: AiMessage = {
+        role: 'user',
+        content,
+        ...(images.length > 0 ? { images } : {}),
+      }
       sendingRef.current = true
-      startTransition(() => {
-        void sendMessage(content, images.length > 0 ? images : undefined).finally(() => {
+      startTransition(async () => {
+        try {
+          await sendMessage(用户消息)
+        } finally {
           sendingRef.current = false
-        })
+        }
       })
     },
     [isPending, compacting, runCommand, sendMessage, pendingImages, 记录输入历史]
@@ -646,7 +712,7 @@ export function AIChat({ className }: AIChatProps) {
       scrollToBottom()
       inputRef.current?.focus()
     }
-  }, [chatOpen, optimisticMessages.length, scrollToBottom])
+  }, [chatOpen, 可见消息.length, scrollToBottom])
 
   const handleQuickQuestion = useCallback(
     (question: string) => {
@@ -655,6 +721,17 @@ export function AIChat({ className }: AIChatProps) {
     },
     [submitInput, isPending]
   )
+
+  const 追问建议 = useMemo(() => {
+    let 最后用户问题 = ''
+    let 最后助手消息: AiMessage | undefined
+    for (const 消息 of 可见消息) {
+      if (消息.role === 'user') 最后用户问题 = 消息.content
+      if (消息.role === 'assistant') 最后助手消息 = 消息
+    }
+    if (!最后助手消息) return []
+    return 生成追问建议(最后用户问题, 最后助手消息)
+  }, [可见消息])
 
   const handleReset = useCallback(() => {
     generationRef.current += 1
@@ -865,15 +942,12 @@ export function AIChat({ className }: AIChatProps) {
   )
 
   // 会话判定（根因）：只要存在任何会话痕迹（消息/指令输出/排队/在途请求）就渲染会话视图，
-  // 仅完全空白且空闲时展示主页。修复"发送中仍停留主页"——此前仅凭消息数判定，
-  // 首条消息在途、optimistic 尚未落定时仍命中主页分支，连思考指示器一并被吞掉。
+  // 仅完全空白且空闲时展示主页。占位先行后：用户消息与空助手占位已落 store，
+  // 全局 pending-thinking 行不再重复渲染（避免 Retrieve 双轨迹），pending 行退化为
+  // 无占位时的纯在途兜底（历史上不可能出现，但保留防竞态）。
   const 有会话 =
-    optimisticMessages.length > 0 ||
-    systemLines.length > 0 ||
-    queued.length > 0 ||
-    isPending ||
-    compacting ||
-    模型选择中
+    可见消息.length > 0 || systemLines.length > 0 || queued.length > 0 || isPending || compacting || 模型选择中
+  const 显示全局思考行 = (isPending || compacting) && 可见消息.every((消息) => 消息.role !== 'assistant')
 
   if (!chatOpen) {
     return (
@@ -953,7 +1027,9 @@ export function AIChat({ className }: AIChatProps) {
         <div className="flex min-w-0 items-center gap-2">
           <div className="flex min-w-0 flex-col leading-tight">
             <div className="text-sm">
-              <span className="font-semibold tracking-tight text-[#f0f0f0]">{t('ai.headerName')}</span>
+              <span className="font-semibold tracking-tight xuan-harness-rolling-gradient" data-testid="header-name">
+                {t('ai.headerName')}
+              </span>
               <span className="text-[#999999]">{` ${t('ai.headerVersion')}`}</span>
             </div>
             <div className="truncate text-[10px] text-[#999999]" data-testid="chat-header-status">
@@ -990,9 +1066,12 @@ export function AIChat({ className }: AIChatProps) {
       >
         {有会话 ? (
           <div className="flex flex-col gap-3">
-            {optimisticMessages.map((message, index) =>
+            {可见消息.map((message, index) =>
               message.role === 'user' ? (
-                <div key={`${message.role}-${index}`} className="flex gap-2 text-[13px] leading-relaxed text-[#ededed]">
+                <div
+                  key={`${message.role}-${index}-${message.content.slice(0, 12)}`}
+                  className="flex gap-2 text-[13px] leading-relaxed text-[#ededed]"
+                >
                   <span className="select-none text-[#d97757]" aria-hidden="true">
                     ❯
                   </span>
@@ -1015,30 +1094,57 @@ export function AIChat({ className }: AIChatProps) {
                   </div>
                 </div>
               ) : (
-                <div key={`${message.role}-${index}`} className="flex gap-2 text-[13px] leading-relaxed text-[#e6e6e6]">
-                  <span className="select-none pt-0.5 text-[#d97757]" aria-hidden="true">
-                    ⏺
-                  </span>
+                <div
+                  key={`${message.role}-${index}-${message.content.slice(0, 12)}`}
+                  className="flex gap-2 text-[13px] leading-relaxed text-[#e6e6e6]"
+                  data-testid="assistant-placeholder"
+                >
+                  {message.content.length > 0 && (
+                    <span className="select-none pt-0.5 text-[#d97757]" aria-hidden="true">
+                      ⏺
+                    </span>
+                  )}
                   <div className="min-w-0 flex-1">
-                    <ToolBlock name={t('ai.toolName')} detail={工具轨迹描述(message)} />
+                    {message.content.length > 0 ? (
+                      <ToolBlock name={t('ai.toolName')} detail={工具轨迹描述(message)} />
+                    ) : (
+                      <div
+                        data-testid="pending-thinking"
+                        className="flex min-w-0 flex-1 flex-col text-[13px] text-[#9aa0aa]"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <Loader2 size={13} className="animate-spin text-[#d97757]" />
+                          <span>{`${t('ai.thinking')} · ${思考秒数}s · ${t('ai.cancelHint')}`}</span>
+                        </div>
+                        <ToolBlock name={t('ai.toolName')} detail={t('ai.toolRetrieving')} />
+                      </div>
+                    )}
+                    {message.reasoning && message.reasoning.length > 0 && (
+                      <div
+                        data-testid="message-reasoning"
+                        className="my-1 whitespace-pre-wrap break-words text-[12px] text-[#9aa0aa]"
+                      >
+                        {message.reasoning}
+                      </div>
+                    )}
                     <div dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }} />
                     {message.component && <UiComponentRenderer component={message.component} />}
                   </div>
                 </div>
               )
             )}
-            {(isPending || compacting) && (
-              <div className="flex gap-2 text-[13px] text-[#9aa0aa]">
-                <span className="select-none pt-0.5 text-[#d97757]" aria-hidden="true">
-                  ⏺
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <Loader2 size={13} className="animate-spin text-[#d97757]" />
-                  <span>
-                    {compacting
-                      ? t('ai.commands.compacting')
-                      : `${t('ai.thinking')} · ${思考秒数}s · ${t('ai.cancelHint')}`}
-                  </span>
+            {显示全局思考行 && (
+              <div data-testid="pending-thinking" className="flex gap-2 text-[13px] text-[#9aa0aa]">
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <div className="flex items-center gap-1.5">
+                    <Loader2 size={13} className="animate-spin text-[#d97757]" />
+                    <span>
+                      {compacting
+                        ? t('ai.commands.compacting')
+                        : `${t('ai.thinking')} · ${思考秒数}s · ${t('ai.cancelHint')}`}
+                    </span>
+                  </div>
+                  {!compacting && <ToolBlock name={t('ai.toolName')} detail={t('ai.toolRetrieving')} />}
                 </div>
               </div>
             )}
@@ -1084,18 +1190,38 @@ export function AIChat({ className }: AIChatProps) {
                 ))}
               </div>
             )}
+            {!isPending && !compacting && !模型选择中 && 追问建议.length === 3 && (
+              <div className="mt-1" data-testid="follow-up-suggestions">
+                <p className="mb-1.5 text-[11px] text-[#666]">{t('ai.followUps.label')}</p>
+                <div className="flex flex-wrap gap-2">
+                  {追问建议.map((建议) => (
+                    <button
+                      key={建议}
+                      type="button"
+                      disabled={isPending || compacting}
+                      onClick={() => handleQuickQuestion(建议)}
+                      className="rounded-full border border-[#2a2a2a] bg-[#161616] px-3 py-1 text-xs text-[#cfcfcf] transition-colors hover:border-[#d97757] hover:text-[#f0f0f0] disabled:opacity-50"
+                    >
+                      {建议}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
         ) : (
           <div className="flex h-full flex-col justify-center gap-2 text-[13px]">
-            <p className="text-[#d97757]">
-              <span aria-hidden="true">✻ </span>
-              {t('ai.welcomeTitle')}
+            <p data-testid="welcome-line">
+              <span className="xuan-harness-fixed-orange" data-testid="welcome-full">
+                <span aria-hidden="true">✻ </span>
+                {t('ai.welcomePrefix')}&nbsp;{t('ai.welcomeTitle')}
+                {t('ai.welcomeTitleSuffix')}
+              </span>
             </p>
             <p className="text-[#cfcfcf]">{t('ai.empty')}</p>
             <p className="text-xs text-[#9aa0aa]">{t('ai.welcomeIntro')}</p>
             <p className="text-[11px] text-[#666]">{t('ai.welcomeTips')}</p>
-            <p className="text-[11px] text-[#666]">{t('ai.emptyCommands')}</p>
             <p className="mt-1 text-[11px] text-[#666]">{t('ai.extendedLabel')}</p>
             <div className="flex flex-wrap gap-2">
               {ta('ai.quickQuestions').map((question) => (
@@ -1231,9 +1357,9 @@ export function AIChat({ className }: AIChatProps) {
                 void 接收图片文件(图片文件)
               }
             }}
-            placeholder={t('ai.placeholder')}
+            aria-label={t('ai.title')}
             data-lenis-prevent=""
-            className="max-h-40 flex-1 resize-none overflow-y-auto overscroll-contain bg-transparent text-[13px] leading-relaxed text-[#e6e6e6] outline-none placeholder:text-[#555]"
+            className="max-h-40 flex-1 resize-none overflow-y-auto overscroll-contain bg-transparent text-[13px] leading-relaxed text-[#e6e6e6] outline-none"
             maxLength={2000}
           />
           <button

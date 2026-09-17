@@ -49,6 +49,26 @@ describe('structuredOutput', () => {
       expect(result.component).toEqual({ type: 'ProjectCard', projectId: 'xrm' })
     })
 
+    it('parses ContactLinks without extra props', () => {
+      const result = parseAssistantPayload({ text: '联系', component: { type: 'ContactLinks' } })
+      expect(result.component).toEqual({ type: 'ContactLinks' })
+    })
+
+    it('rejects ContactLinks with extra props', () => {
+      const result = parseAssistantPayload({
+        text: '联系',
+        component: { type: 'ContactLinks', email: 'a@b.c' },
+      })
+      expect(result.text).toBe('联系')
+      expect(result.component).toBeUndefined()
+    })
+
+    it('drops legacy ContactForm and keeps text', () => {
+      const result = parseAssistantPayload({ text: '联系', component: { type: 'ContactForm' } })
+      expect(result.text).toBe('联系')
+      expect(result.component).toBeUndefined()
+    })
+
     it('drops invalid component and keeps text', () => {
       const result = parseAssistantPayload({
         text: '有效文本',

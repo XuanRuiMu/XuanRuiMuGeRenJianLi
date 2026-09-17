@@ -35,7 +35,7 @@ function buildPersonalInfoChunks(): KnowledgeChunk[] {
     ),
     chunk(
       'personal-info-contact',
-      `联系方式：邮箱${info.email}，QQ${info.qq}，微信${info.wechat}，电话${info.phone}，GitHub${info.github}，B站${info.bilibili}。`,
+      '联系方式：页面底部联系板块提供五种联系方式，AI问答可点按钮复制或直达主页。',
       'personalInfo',
       'personalInfo.ts'
     ),
@@ -65,7 +65,7 @@ function buildTechStackChunks(): KnowledgeChunk[] {
   return [
     chunk(
       'tech-stack-core',
-      '核心技术栈：Java 25（GraalVM，Spigot/Purpur服务端插件开发，HikariCP+MySQL+Guice，JUnit 6+Mockito测试）、Node.js（Express+TypeScript全栈开发）、Python（自动化脚本、AI Agent工具链）。数据库与中间件：MySQL、Redis、PostgreSQL、SQLite。前端：React 19、Three.js/R3F、Tailwind CSS、Vite。工程化与运维：Docker/docker-compose（6服务编排上线经验）、Git工作流、Gradle Kotlin DSL构建。AI方向：自定义Skill（85+）、多Agent协作、MCP协议、DeepSeek API接入。音视频：ffmpeg。',
+      '核心技术栈：Java 25（GraalVM，Spigot/Purpur服务端插件开发，JUnit 6+Mockito测试）、Node.js（Express+TypeScript全栈开发）、Python（自动化脚本、AI Agent工具链）。数据库与中间件：MySQL、Redis、PostgreSQL、SQLite。前端：React 19、Three.js/R3F、Tailwind CSS、Vite。工程化与运维：Docker/docker-compose（多服务编排上线经验）、Git工作流、Gradle Kotlin DSL构建。AI方向：自定义Skill（85+）、多Agent协作、MCP协议、DeepSeek API接入。音视频：ffmpeg。',
       'techStack',
       'workspace'
     ),
@@ -82,7 +82,7 @@ function buildWorkspaceChunks(): KnowledgeChunk[] {
   return [
     chunk(
       'workspace-overview',
-      '工作区包含以下项目：暮澜纪元我的世界MMORPG服务端（8世界32职业的服务端，自研Java插件400+类，Gradle Kotlin DSL多模块，HikariCP+MySQL持久化）、和我恋爱吧（已上线的AI恋爱聊天全栈应用：Express+TypeScript+PostgreSQL+Redis+Socket.io+DeepSeek，docker-compose编排Nginx+HTTPS）、燃烧之陨系列（我的世界多元生存服、粘液科技服、登录服、多服连接）、燃烧之陨资源包、音乐（曾考取架子鼓九级证书，未创作过歌曲等）、循环工程skill（定个目标就自动拆步骤、自己干活、自己检查直到做完，https://github.com/XuanRuiMu/loop-engineering）、个人简历（本React简历站）、开发需求文档、暮澜纪元小说。',
+      '工作区包含以下项目：暮澜纪元我的世界MMORPG服务端（8世界32职业的服务端，自研Java插件400+类，Gradle Kotlin DSL多模块）、和我恋爱吧（能直接用的恋爱聊天应用：挑AI对象聊天、军师支招、好友与挑战玩法）、燃烧之陨系列（我的世界多元生存服、粘液科技服、登录服、多服连接）、燃烧之陨资源包、音乐（曾考取架子鼓九级证书，未创作过歌曲等）、循环工程skill（定个目标就自动拆步骤、自己干活、自己检查直到做完，https://github.com/XuanRuiMu/loop-engineering）、个人简历（本React简历站）、开发需求文档、暮澜纪元小说。',
       'workspace',
       'workspace'
     ),

@@ -1,29 +1,16 @@
-import { useState, type FormEvent } from 'react'
-import { ExternalLink, Send, CheckCircle } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { Check, Copy, ExternalLink } from 'lucide-react'
 import { t, type TranslationKey } from '../../i18n/translations'
 import { cn } from '../../lib/utils'
 import { projects } from '../../data/projects'
 import { experiences } from '../../data/experience'
 import { education } from '../../data/education'
 import { personalInfo } from '../../data/personalInfo'
-import { Button } from '../ui/Button'
-import type {
-  ProjectCardComponent,
-  TimelineComponent,
-  ContactFormComponent,
-  UiComponent,
-} from '../../ai/structuredOutput'
+import type { ProjectCardComponent, TimelineComponent, UiComponent } from '../../ai/structuredOutput'
 
 interface ComponentRendererProps<T extends UiComponent> {
   component: T
 }
-
-const CONTACT_VALIDATION = {
-  nameMin: 1,
-  contactMin: 2,
-  messageMin: 10,
-  messageMax: 500,
-} as const
 
 function ProjectCardRenderer({ component }: ComponentRendererProps<ProjectCardComponent>) {
   const project = projects.find((item) => item.id === component.projectId)
@@ -139,86 +126,92 @@ function TimelineRenderer({ component }: ComponentRendererProps<TimelineComponen
   )
 }
 
-function ContactFormRenderer(_props: ComponentRendererProps<ContactFormComponent>) {
-  const [name, setName] = useState('')
-  const [contact, setContact] = useState('')
-  const [message, setMessage] = useState('')
-  const [submitted, setSubmitted] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const validate = (): boolean => {
-    if (name.trim().length < CONTACT_VALIDATION.nameMin) {
-      setError(t('contact.validation.nameRequired'))
-      return false
-    }
-    if (contact.trim().length < CONTACT_VALIDATION.contactMin) {
-      setError(t('contact.validation.contactInvalid'))
-      return false
-    }
-    if (message.trim().length < CONTACT_VALIDATION.messageMin) {
-      setError(t('contact.validation.messageMin'))
-      return false
-    }
-    if (message.trim().length > CONTACT_VALIDATION.messageMax) {
-      setError(t('contact.validation.messageMax'))
-      return false
-    }
-    return true
+function ContactLinksRenderer() {
+  const [已复制, set已复制] = useState<string | null>(null)
+  const 计时器 = useRef<number | undefined>(undefined)
+  const 标记复制成功 = (id: string) => {
+    set已复制(id)
+    window.clearTimeout(计时器.current)
+    计时器.current = window.setTimeout(() => set已复制(null), 2000)
   }
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setError(null)
-
-    if (!validate()) return
-
-    setSubmitted(true)
+  const 复制文本 = async (id: string, 文本: string) => {
+    try {
+      await navigator.clipboard.writeText(文本)
+      标记复制成功(id)
+    } catch {
+      return
+    }
   }
-
-  if (submitted) {
-    return (
-      <div className="flex flex-col items-center gap-2 rounded-xl border border-border bg-surface-elevated p-6 text-center">
-        <CheckCircle size={24} className="text-primary" />
-        <p className="text-sm font-medium text-text-primary">{t('contact.form.success')}</p>
-      </div>
-    )
+  const 尝试唤起 = (地址: string) => {
+    try {
+      window.open(地址, '_blank', 'noopener')
+    } catch {
+      return
+    }
   }
-
+  const 复制并唤起 = (id: string, 文本: string, 地址: string) => {
+    void 复制文本(id, 文本)
+    尝试唤起(地址)
+  }
+  const 按钮样式 =
+    'inline-flex items-center justify-center gap-1 rounded-lg border border-border bg-bg px-2 py-1.5 text-xs text-text-primary transition-colors hover:border-primary'
+  const 直开项 = [
+    { id: 'github', 地址: personalInfo.github, 标签: t('ai.contactLinks.github') },
+    { id: 'bilibili', 地址: personalInfo.bilibili, 标签: t('ai.contactLinks.bilibili') },
+  ]
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 rounded-xl border border-border bg-surface-elevated p-4">
-      <h3 className="text-xs font-medium text-text-primary">{t('contact.form.submit')}</h3>
-      <input
-        type="text"
-        value={name}
-        onChange={(event) => setName(event.target.value)}
-        placeholder={t('contact.form.name')}
-        className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-xs text-text-primary outline-none placeholder:text-muted focus-visible:border-primary"
-        maxLength={50}
-      />
-      <input
-        type="text"
-        value={contact}
-        onChange={(event) => setContact(event.target.value)}
-        placeholder={t('contact.form.contact')}
-        className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-xs text-text-primary outline-none placeholder:text-muted focus-visible:border-primary"
-        maxLength={100}
-      />
-      <textarea
-        value={message}
-        onChange={(event) => setMessage(event.target.value)}
-        placeholder={t('contact.form.message')}
-        rows={3}
-        className="w-full resize-none rounded-lg border border-border bg-bg px-3 py-2 text-xs text-text-primary outline-none placeholder:text-muted focus-visible:border-primary"
-        maxLength={CONTACT_VALIDATION.messageMax}
-      />
-      {error && <p className="text-xs text-red-400">{error}</p>}
-      <Button type="submit" size="sm" icon={<Send size={12} />} className="w-full">
-        {t('contact.form.submit')}
-      </Button>
-      <p className="text-center text-[10px] text-muted">
-        {t('contact.info.email')}: {personalInfo.email}
-      </p>
-    </form>
+    <div className="rounded-xl border border-border bg-surface-elevated p-3">
+      <div className="grid grid-cols-2 gap-2">
+        {直开项.map((项) => (
+          <a
+            key={项.id}
+            href={项.地址}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${项.标签}${t('ai.contactLinks.open')}`}
+            className={按钮样式}
+          >
+            <span className="truncate">{项.标签}</span>
+            <ExternalLink size={12} />
+          </a>
+        ))}
+        <button
+          type="button"
+          aria-label={`${t('ai.contactLinks.qq')}${t('ai.contactLinks.copy')}`}
+          onClick={() => 复制并唤起('qq', personalInfo.qq, `tencent://message/?uin=${personalInfo.qq}`)}
+          className={按钮样式}
+        >
+          {已复制 === 'qq' ? <Check size={12} /> : <Copy size={12} />}
+          <span className="truncate">
+            {t('ai.contactLinks.qq')} · {已复制 === 'qq' ? t('ai.contactLinks.copied') : t('ai.contactLinks.copy')}
+          </span>
+        </button>
+        <button
+          type="button"
+          aria-label={`${t('ai.contactLinks.wechat')}${t('ai.contactLinks.copy')}`}
+          onClick={() => 复制并唤起('wechat', personalInfo.wechat, 'weixin://')}
+          className={按钮样式}
+        >
+          {已复制 === 'wechat' ? <Check size={12} /> : <Copy size={12} />}
+          <span className="truncate">
+            {t('ai.contactLinks.wechat')} ·{' '}
+            {已复制 === 'wechat' ? t('ai.contactLinks.copied') : t('ai.contactLinks.copy')}
+          </span>
+        </button>
+        <button
+          type="button"
+          aria-label={`${t('ai.contactLinks.phone')}${t('ai.contactLinks.copy')}`}
+          onClick={() => void 复制文本('phone', personalInfo.phone)}
+          className={cn(按钮样式, 'col-span-2')}
+        >
+          {已复制 === 'phone' ? <Check size={12} /> : <Copy size={12} />}
+          <span className="truncate">
+            {t('ai.contactLinks.phone')} ·{' '}
+            {已复制 === 'phone' ? t('ai.contactLinks.copied') : t('ai.contactLinks.copy')}
+          </span>
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -232,7 +225,7 @@ export function UiComponentRenderer({ component, className }: UiComponentRendere
     <div className={cn('mt-2', className)} data-testid={`ui-component-${component.type}`}>
       {component.type === 'ProjectCard' && <ProjectCardRenderer component={component} />}
       {component.type === 'Timeline' && <TimelineRenderer component={component} />}
-      {component.type === 'ContactForm' && <ContactFormRenderer component={component} />}
+      {component.type === 'ContactLinks' && <ContactLinksRenderer />}
     </div>
   )
 }

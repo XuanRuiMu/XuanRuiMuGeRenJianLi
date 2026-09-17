@@ -42,7 +42,12 @@ async function 断言链接可命中(page: Page, cardId: string) {
   await expect(link).toHaveCount(1)
   const box = await 等位置稳定(link)
   expect(box).toBeTruthy()
-  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2, { steps: 8 })
+  // 先把链接自身滚到视口中央：Lenis 平滑滚动下 scrollIntoView 的惯性收敛前读取的
+  // boundingBox 是旧视口坐标，mouse.move 落点与重取 rect 错位（indie 处 timeline 末尾最易命中）。
+  await link.evaluate((el) => el.scrollIntoView({ block: 'center' }))
+  const settledBox = await 等位置稳定(link)
+  expect(settledBox).toBeTruthy()
+  await page.mouse.move(settledBox!.x + settledBox!.width / 2, settledBox!.y + settledBox!.height / 2, { steps: 8 })
   await page.waitForTimeout(700)
   const hit = await page.evaluate((id) => {
     const c = document.querySelector(`[data-experience-card="${id}"] a[href]`) as HTMLElement
@@ -67,10 +72,11 @@ test.describe('经历区外链真实可点击', () => {
   test('B站外链真实点击打开新标签页（educator）', async ({ page }) => {
     await 进入经历区(page)
     const link = await 断言链接可命中(page, 'educator')
-    const popupPromise = page.waitForEvent('popup', { timeout: 15000 })
-    await link.click()
-    const popup = await popupPromise
-    await popup.waitForURL(/bilibili\.com/i, { timeout: 15000 })
+    const [popup] = await Promise.all([
+      page.waitForEvent('popup', { timeout: 15000 }),
+      link.click(),
+    ])
+    await popup.waitForLoadState('domcontentloaded', { timeout: 20000 })
     expect(popup.url()).toContain('bilibili.com')
     await popup.close().catch(() => {})
   })

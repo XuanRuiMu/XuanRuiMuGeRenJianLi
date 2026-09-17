@@ -1,4 +1,4 @@
-﻿import { test, expect, type Page } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 
 /**
  * FP-07 根因验证：联系图标 hover→unhover 后必须与初始帧逐像素一致。
@@ -140,47 +140,58 @@ test('跑马灯：缝隙悬停不停，卡片悬停缓停', async ({ page }) => 
 
 
 /**
- * FP-09 根因验证：经历卡片悬停/聚焦时四角不得露出直角「犄角」。
- * 旧缺陷：.timeline-card-wrapper::before 悬停渐变描边 border-radius: inherit，
- * 但 wrapper 自身未设圆角 → 继承到 0（直角），与内部卡片 rounded-[20px] 不匹配，
- * 悬停时直角描边在圆角卡片外露出角部。
- * 修复：.timeline-card-wrapper 显式 border-radius: 20px，::before 继承生效。
+ * 按压残留线根因验证：wrapper 不得自带悬停描边。
+ * 旧缺陷：.timeline-card-wrapper::before 在 hover/focus-within 时画青色描边，
+ * 该层不随 is-pressed 的 scale(0.985) 缩小，按压后于卡外露出「未按压位置」的残留线。
+ * 修复：删除该 ::before；描边只由卡片自身的 .experience-gradient-border 承担。
  */
-test('经历卡片悬停描边与卡片圆角一致', async ({ page }) => {
+test('经历卡片按压后无 wrapper 描边残留线', async ({ page }) => {
   await page.goto('/')
-  const card = page.locator('.experience-card').first()
+  const card = page.locator('[data-experience-card="mcserver"]').first()
   await card.scrollIntoViewIfNeeded()
-  // 等待进入视口动画（1.2s）与懒加载稳定
   await page.waitForTimeout(1500)
 
   const wrapper = page.locator('.timeline-card-wrapper').first()
 
-  // 聚焦触发 :focus-within 描边（不触发 tilt，排除 3D 变换干扰）
-  await card.focus()
-  await expect
-    .poll(async () =>
-      wrapper.evaluate((el) => parseFloat(getComputedStyle(el, '::before').opacity))
-    )
-    .toBeGreaterThan(0.99)
-
-  // 硬断言：描边圆角必须等于内部卡片 rounded-[20px]
-  const borderRadius = await wrapper.evaluate(
-    (el) => getComputedStyle(el, '::before').borderRadius
-  )
-  expect(borderRadius, '::before 描边圆角应为 20px（直角即为「犄角」根因）').toBe('20px')
-
-  // 真实 hover 场景截图留档（含 tilt 态），供人工复核角部无直角溢出
+  // wrapper ::before 不得绘制可见描边
   await card.hover()
-  await page.waitForTimeout(1000)
-  const box = await wrapper.boundingBox()
+  await page.waitForTimeout(400)
+  const before = await wrapper.evaluate((el) => {
+    const cs = getComputedStyle(el, '::before')
+    return {
+      content: cs.content,
+      opacity: cs.opacity,
+      backgroundImage: cs.backgroundImage,
+    }
+  })
+  expect(before.content === 'none' || before.content === '""' || before.content === "''").toBe(true)
+
+  const box = await card.boundingBox()
   expect(box).toBeTruthy()
+  await page.mouse.move(box!.x + box!.width * 0.1, box!.y + box!.height * 0.12, { steps: 8 })
+  await page.waitForTimeout(300)
+  await page.mouse.down()
+  await page.waitForTimeout(800)
+
+  const pressed = await card.evaluate((el) => el.classList.contains('is-pressed'))
+  expect(pressed).toBe(true)
+
+  // 按压态：wrapper 仍不得有可绘制的 ::before
+  const pressedBefore = await wrapper.evaluate((el) => {
+    const cs = getComputedStyle(el, '::before')
+    return { content: cs.content, opacity: cs.opacity, backgroundImage: cs.backgroundImage }
+  })
+  expect(pressedBefore.content === 'none' || pressedBefore.content === '""' || pressedBefore.content === "''").toBe(true)
+
   await page.screenshot({
     clip: {
       x: Math.max(0, box!.x - 24),
       y: Math.max(0, box!.y - 24),
       width: box!.width + 48,
-      height: box!.height + 48,
+      height: 180,
     },
-    path: 'test-results/experience-card-hover.png',
+    path: 'test-results/experience-card-pressed-no-ghost.png',
   })
+
+  await page.mouse.up()
 })

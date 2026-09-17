@@ -11,10 +11,25 @@ describe('localEngine', () => {
     expect(result.component).toBeUndefined()
   })
 
-  it('returns ContactForm for contact question', () => {
+  it('returns ContactLinks for contact question', () => {
     const result = getLocalAnswer('联系方式')
-    expect(result.content).toContain(personalInfo.email)
-    expect(result.component).toEqual({ type: 'ContactForm' })
+    expect(result.content).not.toContain(personalInfo.email)
+    expect(result.content).not.toContain(personalInfo.phone)
+    expect(result.component).toEqual({ type: 'ContactLinks' })
+  })
+
+  it('qq微信手机稳定命中ContactLinks且无直给', () => {
+    for (const q of ['怎么联系你', '你的微信是多少', 'qq多少', '手机号多少', '邮箱是什么']) {
+      const result = getLocalAnswer(q)
+      expect(result.component).toEqual({ type: 'ContactLinks' })
+      expect(result.content).not.toContain(personalInfo.email)
+      expect(result.content).not.toContain(personalInfo.phone)
+    }
+  })
+
+  it('github项目问法不被联系意图污染', () => {
+    const result = getLocalAnswer('你的github项目有哪些')
+    expect(result.component).not.toEqual({ type: 'ContactLinks' })
   })
 
   it('returns ProjectCard with xrm for project name question', () => {
@@ -25,6 +40,11 @@ describe('localEngine', () => {
   it('detects lovewithme project from input', () => {
     const result = getLocalAnswer('介绍一下和我恋爱吧')
     expect(result.component).toEqual({ type: 'ProjectCard', projectId: 'lovewithme' })
+  })
+
+  it('蜂来问法落到蜂来项目卡片', () => {
+    const result = getLocalAnswer('蜂来是做什么的')
+    expect(result.component).toEqual({ type: 'ProjectCard', projectId: 'fengLai' })
   })
 
   it('detects aiConsole project from input', () => {
@@ -50,7 +70,8 @@ describe('localEngine', () => {
 
   it('returns fallback text for unknown question', () => {
     const result = getLocalAnswer('宇宙终极答案')
-    expect(result.content).toContain(personalInfo.email)
+    expect(result.content).not.toContain(personalInfo.email)
+    expect(result.content).not.toContain(personalInfo.phone)
     expect(result.component).toBeUndefined()
   })
 

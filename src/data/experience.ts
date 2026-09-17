@@ -5,6 +5,8 @@ export const educatorBilibiliUrl = 'https://space.bilibili.com/383504924/upload/
 export const wowguildVideoUrl =
   'https://www.bilibili.com/video/BV18jS9YvEyC/?spm_id_from=333.1387.upload.video_card.click&vd_source=7d17ffe17327fa579fc4419f1789bd27'
 
+export const 暮澜链接 = 'https://github.com/XuanRuiMu/XRMChaJian'
+
 export const experiences: ExperienceEntry[] = [
   {
     id: 'mcserver',
@@ -17,6 +19,7 @@ export const experiences: ExperienceEntry[] = [
       'data.experience.entries.mcserver.achievement2',
       'data.experience.entries.mcserver.achievement3',
     ],
+    links: [{ labelKey: 'projects.link.github', url: 暮澜链接 }],
   },
   {
     id: 'bachelor',
@@ -24,10 +27,7 @@ export const experiences: ExperienceEntry[] = [
     organizationKey: 'data.experience.entries.bachelor.organization',
     periodKey: 'data.experience.entries.bachelor.period',
     descriptionKeys: ['data.experience.entries.bachelor.description'],
-    achievementKeys: [
-      'data.experience.entries.bachelor.achievement1',
-      'data.experience.entries.bachelor.achievement2',
-    ],
+    achievementKeys: ['data.experience.entries.bachelor.achievement1', 'data.experience.entries.bachelor.achievement2'],
   },
   {
     id: 'educator',
@@ -48,10 +48,7 @@ export const experiences: ExperienceEntry[] = [
     organizationKey: 'data.experience.entries.wowguild.organization',
     periodKey: 'data.experience.entries.wowguild.period',
     descriptionKeys: ['data.experience.entries.wowguild.description'],
-    achievementKeys: [
-      'data.experience.entries.wowguild.achievement1',
-      'data.experience.entries.wowguild.achievement2',
-    ],
+    achievementKeys: ['data.experience.entries.wowguild.achievement1', 'data.experience.entries.wowguild.achievement2'],
     links: [{ labelKey: 'projects.link.bilibili', url: wowguildVideoUrl }],
   },
   {

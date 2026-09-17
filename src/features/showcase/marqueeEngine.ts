@@ -1,6 +1,11 @@
 export const 滚动联动系数 = 0.5
 export const 滚动增量上限 = 80
 export const 滚动暂停时长 = 1000
+export interface 跑马灯配置 {
+  滚动暂停时长: number
+}
+
+export const 默认跑马灯配置: 跑马灯配置 = { 滚动暂停时长 }
 export const 缓动时距 = { 滚动: 0.18, 悬停: 0.4, 恢复: 0.7 } as const
 export const 静止速度阈值 = 0.5
 export const 最大帧步长 = 0.05
@@ -93,9 +98,10 @@ export interface 跑马灯控制 {
   滚动位置: { current: number }
   上次滚动位置: { current: number }
   轨道表: 轨道槽位[]
+  配置: 跑马灯配置
 }
 
-export function 创建跑马灯控制(): 跑马灯控制 {
+export function 创建跑马灯控制(覆盖?: Partial<跑马灯配置>): 跑马灯控制 {
   const 起始滚动 = typeof window !== 'undefined' ? window.scrollY : 0
   return {
     悬停集合: new Set<HTMLElement>(),
@@ -103,5 +109,18 @@ export function 创建跑马灯控制(): 跑马灯控制 {
     滚动位置: { current: 起始滚动 },
     上次滚动位置: { current: 起始滚动 },
     轨道表: [],
+    配置: { ...默认跑马灯配置, ...覆盖 },
   }
+}
+
+export function 标记意图滚动(控制: 跑马灯控制, 时刻?: number): void {
+  const 锚点 = 时刻 ?? performance.now()
+  const 时长 = 控制.配置?.滚动暂停时长 ?? 默认跑马灯配置.滚动暂停时长
+  控制.暂停至.current = 锚点 + 时长
+}
+
+export function 同步滚动位置(控制: 跑马灯控制, 位置?: number): void {
+  const 目标 = 位置 ?? (typeof window !== 'undefined' ? window.scrollY : 0)
+  if (!Number.isFinite(目标)) return
+  控制.滚动位置.current = 目标
 }

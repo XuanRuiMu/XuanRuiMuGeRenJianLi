@@ -24,7 +24,7 @@ const revokeObjectURLMock = vi.fn()
 const 原生CreateObjectURL = URL.createObjectURL
 const 原生RevokeObjectURL = URL.revokeObjectURL
 
-let mockAiMessages: Array<{ role: 'user' | 'assistant'; content: string }> = []
+let mockAiMessages: Array<{ role: 'user' | 'assistant'; content: string; reasoning?: string }> = []
 
 // 模拟真实运行时的响应式：zustand store 变更与 react-query isPending 翻转都会触发重渲染，
 // mock 必须提供同等能力，否则测的是 mock 缺陷而非组件行为。
@@ -77,6 +77,10 @@ function createMockState(overrides: Record<string, unknown> = {}) {
       mockAiMessages.push(message)
       notifyMockState()
     }),
+    updateAiMessage: vi.fn((index: number, patch: Record<string, unknown>) => {
+      mockAiMessages[index] = { ...mockAiMessages[index], ...patch }
+      notifyMockState()
+    }),
     clearAiMessages,
     setAiModel,
     stashSession,
@@ -127,6 +131,11 @@ describe('AIChat', () => {
     render(<AIChat />)
     expect(screen.getByRole('dialog', { name: t('ai.title') })).toBeInTheDocument()
     expect(screen.getByText(t('ai.empty'))).toBeInTheDocument()
+    expect(screen.getByTestId('welcome-line')).toBeInTheDocument()
+    expect(screen.getByTestId('welcome-full')).toHaveClass('xuan-harness-fixed-orange')
+    expect(screen.getByTestId('welcome-full').textContent).toContain(t('ai.welcomePrefix'))
+    expect(screen.getByTestId('welcome-full').textContent).toContain(t('ai.welcomeTitle'))
+    expect(screen.getByTestId('welcome-full').textContent).toContain(t('ai.welcomeTitleSuffix'))
 
     const quickQuestions = ta('ai.quickQuestions')
     for (const question of quickQuestions) {
@@ -152,7 +161,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '/think' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -202,13 +211,14 @@ describe('AIChat', () => {
     expect(失败标记).toHaveTextContent(t('ai.imageRejected'))
     expect(screen.queryByText(t('ai.imageUploadFailed'))).not.toBeInTheDocument()
 
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '带一张坏图' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
     await waitFor(() => {
       expect(mutateAsync).toHaveBeenCalledWith({
         messages: [{ role: 'user', content: '带一张坏图' }],
         signal: expect.any(AbortSignal),
+        onProgress: expect.any(Function),
       })
     })
   })
@@ -220,7 +230,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLInputElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
     fireEvent.paste(input, { clipboardData: { files: [创建图片文件()] } })
     await waitFor(() => {
       expect(screen.getByTestId('pending-images')).toBeInTheDocument()
@@ -238,6 +248,7 @@ describe('AIChat', () => {
           },
         ],
         signal: expect.any(AbortSignal),
+        onProgress: expect.any(Function),
       })
     })
     // 发送消费后清空待发区并释放预览 objectURL
@@ -253,7 +264,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLInputElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
     fireEvent.paste(input, { clipboardData: { files: [] } })
 
     expect(createObjectURLMock).not.toHaveBeenCalled()
@@ -267,7 +278,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLInputElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
     fireEvent.paste(input, { clipboardData: { files: [创建图片文件('image/bmp')] } })
 
     const 失败标记 = await screen.findByTestId('pending-images-failed')
@@ -279,6 +290,7 @@ describe('AIChat', () => {
       expect(mutateAsync).toHaveBeenCalledWith({
         messages: [{ role: 'user', content: '描述一下' }],
         signal: expect.any(AbortSignal),
+        onProgress: expect.any(Function),
       })
     })
     await waitFor(() => {
@@ -293,7 +305,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLInputElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
     fireEvent.paste(input, { clipboardData: { files: [创建图片文件(), 创建图片文件('image/bmp'), 创建图片文件()] } })
     await waitFor(() => {
       expect(screen.getByTestId('pending-images').children.length).toBe(3)
@@ -376,7 +388,7 @@ describe('AIChat', () => {
       )
 
       render(<AIChat />)
-      const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLInputElement
+      const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
       fireEvent.paste(input, { clipboardData: { files: [创建图片文件()] } })
       fireEvent.paste(input, { clipboardData: { files: [创建图片文件()] } })
       expect(待放行.length).toBe(2)
@@ -410,7 +422,7 @@ describe('AIChat', () => {
       expect(screen.getByTestId('pending-images')).toBeInTheDocument()
     })
 
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '图里有什么' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -424,6 +436,7 @@ describe('AIChat', () => {
           },
         ],
         signal: expect.any(AbortSignal),
+        onProgress: expect.any(Function),
       })
     })
     await waitFor(() => {
@@ -437,7 +450,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '   ' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -454,7 +467,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '你是谁' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -462,6 +475,7 @@ describe('AIChat', () => {
       expect(mutateAsync).toHaveBeenCalledWith({
         messages: [{ role: 'user', content: '你是谁' }],
         signal: expect.any(AbortSignal),
+        onProgress: expect.any(Function),
       })
     })
   })
@@ -474,7 +488,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLInputElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
     fireEvent.change(input, { target: { value: '你是谁' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -489,7 +503,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLInputElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
     expect(input.disabled).toBe(false)
 
     fireEvent.change(input, { target: { value: '第二条消息' } })
@@ -508,6 +522,7 @@ describe('AIChat', () => {
       expect(mutateAsync).toHaveBeenCalledWith({
         messages: [{ role: 'user', content: '第二条消息' }],
         signal: expect.any(AbortSignal),
+        onProgress: expect.any(Function),
       })
     })
   })
@@ -518,7 +533,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '/new' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
     expect(clearAiMessages).toHaveBeenCalled()
@@ -531,7 +546,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '/help' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -547,7 +562,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '/model' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -563,7 +578,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '/model 2' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -577,7 +592,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '/model 不存在的模型' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -591,7 +606,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '/model' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -611,7 +626,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLTextAreaElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: '/model' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -633,7 +648,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLTextAreaElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: '/model' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -651,7 +666,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLTextAreaElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: '/model' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -666,7 +681,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLTextAreaElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: '/model' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
     expect(screen.getByTestId('model-picker')).toBeInTheDocument()
@@ -682,7 +697,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLTextAreaElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: '/model' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -699,7 +714,7 @@ describe('AIChat', () => {
     render(<AIChat />)
     expect(screen.getByTestId('chat-messages').hasAttribute('data-lenis-prevent')).toBe(true)
     expect(screen.getByRole('dialog').hasAttribute('data-lenis-prevent')).toBe(true)
-    expect(screen.getByPlaceholderText(t('ai.placeholder')).hasAttribute('data-lenis-prevent')).toBe(true)
+    expect(screen.getByRole('textbox', { name: t('ai.title') }).hasAttribute('data-lenis-prevent')).toBe(true)
   })
 
   it('/resume 无暂存时提示且不恢复', () => {
@@ -708,7 +723,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '/resume' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -723,7 +738,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '/resume' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -744,6 +759,84 @@ describe('AIChat', () => {
     // 底部忙提示同样含 esc中断，故此处断言忙提示整行唯一文本
     expect(screen.getByText(t('ai.thinking'), { exact: false })).toBeInTheDocument()
     expect(screen.getByText(t('ai.busyHint'))).toBeInTheDocument()
+    expect(screen.getByText(t('ai.toolName'))).toBeInTheDocument()
+    expect(screen.getByText(t('ai.toolRetrieving'))).toBeInTheDocument()
+    expect(screen.queryByText(/✻/)).not.toBeInTheDocument()
+  })
+
+  it('首条消息待回答态显示三要素：问题回显+思考计时+Retrieve占位（pending零⏺单转圈）', async () => {
+    mutateAsync.mockImplementation(() => new Promise(() => {}))
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(createMockState({ chatOpen: true }))
+    )
+
+    render(<AIChat />)
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(input, { target: { value: '待回答三要素问题' } })
+    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    act(() => {
+      mockRuntime.isPending = true
+      notifyMockState()
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('待回答三要素问题')).toBeInTheDocument()
+    })
+    // 占位先行后思考计时与Retrieve占位落在空助手占位行内（单轨迹仍用 pending-thinking 标识），零⏺单转圈
+    const pending块 = screen.getByTestId('pending-thinking')
+    expect(pending块.querySelectorAll('svg.animate-spin').length).toBe(1)
+    expect(pending块.textContent).toContain(t('ai.thinking'))
+    expect(pending块.textContent).toContain(t('ai.toolName'))
+    expect(pending块.textContent).toContain(t('ai.toolRetrieving'))
+    expect(screen.queryByText(/✻/)).not.toBeInTheDocument()
+    expect(screen.queryByText(t('ai.empty'))).not.toBeInTheDocument()
+    expect(screen.queryAllByText('⏺').length).toBe(0)
+    const 思考行 = pending块.querySelector('div.flex.items-center')
+    expect(思考行).not.toBeNull()
+    expect(思考行?.textContent).toContain(t('ai.thinking'))
+    expect(思考行?.querySelector('svg.animate-spin')).not.toBeNull()
+  })
+
+  it('FP-03 pending单图标与助手⏺列对齐： settled⏺保留，pending零⏺单转圈同列', () => {
+    mockRuntime.isPending = true
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(
+        createMockState({
+          chatOpen: true,
+          aiMessages: [
+            { role: 'user', content: '已落定问题' },
+            { role: 'assistant', content: '已落定答案' },
+          ],
+        })
+      )
+    )
+
+    render(<AIChat />)
+    // 已落定助手行自带⏺；在途全局 pending 行仅在无助手位时兜底出现，此处应无全局行
+    expect(screen.queryByTestId('pending-thinking')).not.toBeInTheDocument()
+    expect(screen.queryAllByText('⏺').length).toBe(1)
+  })
+
+  it('排队时系统行不被清空且排队仍显示', async () => {
+    mutateAsync.mockImplementation(() => new Promise(() => {}))
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(createMockState({ chatOpen: true, aiThinking: 'high' }))
+    )
+
+    render(<AIChat />)
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(input, { target: { value: '/think' } })
+    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    expect(screen.getByText(t('ai.thinkLevel').replace('{level}', 'max'))).toBeInTheDocument()
+
+    mockRuntime.isPending = true
+    notifyMockState()
+    fireEvent.change(input, { target: { value: '排队第二条' } })
+    fireEvent.submit(input.closest('form') as HTMLFormElement)
+
+    expect(screen.getByText(t('ai.thinkLevel').replace('{level}', 'max'))).toBeInTheDocument()
+    expect(screen.getByText(/排队第二条/)).toBeInTheDocument()
+    expect(screen.getByText(t('ai.queue.hint'))).toBeInTheDocument()
   })
 
   it('未知指令给出 Claude Code 风格的报错', () => {
@@ -752,7 +845,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '/不存在的指令' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -766,7 +859,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '/compact' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -781,7 +874,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '/compact' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -806,7 +899,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '在途问题' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -839,6 +932,7 @@ describe('AIChat', () => {
       expect(mutateAsync).toHaveBeenCalledWith({
         messages: [{ role: 'user', content: quickQuestions[0] }],
         signal: expect.any(AbortSignal),
+        onProgress: expect.any(Function),
       })
     })
   })
@@ -851,7 +945,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '你是谁' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -864,7 +958,7 @@ describe('AIChat', () => {
     })
   })
 
-  it('rolls back optimistic message and shows error on failure', async () => {
+  it('keeps user message and shows error on failure（异步optimistic保留上下文）', async () => {
     mutateAsync.mockRejectedValueOnce(new Error('失败'))
 
     mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
@@ -872,7 +966,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '你是谁' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -881,9 +975,9 @@ describe('AIChat', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText(t('ai.empty'))).toBeInTheDocument()
       expect(screen.getByText(t('ai.error'))).toBeInTheDocument()
     })
+    expect(screen.getByText('你是谁')).toBeInTheDocument()
   })
 
   it('renders existing messages and assistant answer', () => {
@@ -991,22 +1085,22 @@ describe('AIChat', () => {
     expect(screen.getByTestId('ui-component-Timeline')).toBeInTheDocument()
   })
 
-  it('renders ContactForm component when assistant message has contact component', () => {
+  it('renders ContactLinks component when assistant message has contact component', () => {
     mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
       selector(
         createMockState({
           chatOpen: true,
           aiMessages: [
             { role: 'user', content: '联系' },
-            { role: 'assistant', content: '请填写表单', component: { type: 'ContactForm' } },
+            { role: 'assistant', content: '点下方按钮联系', component: { type: 'ContactLinks' } },
           ],
         })
       )
     )
 
     render(<AIChat />)
-    expect(screen.getByTestId('ui-component-ContactForm')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText(t('contact.form.name'))).toBeInTheDocument()
+    expect(screen.getByTestId('ui-component-ContactLinks')).toBeInTheDocument()
+    expect(screen.getByText(t('ai.contactLinks.github'), { exact: false })).toBeInTheDocument()
   })
 
   it('Esc 空闲时最小化面板（有输入草稿也不例外，用户确认语义）', () => {
@@ -1015,7 +1109,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLTextAreaElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: '未发出的草稿' } })
     fireEvent.keyDown(input, { key: 'Escape' })
     expect(setChatOpen).toHaveBeenCalledWith(false)
@@ -1027,7 +1121,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.keyDown(input, { key: 'Escape' })
     expect(setChatOpen).toHaveBeenCalledWith(false)
   })
@@ -1039,7 +1133,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLTextAreaElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: '第一行第二行' } })
     fireEvent.keyDown(input, { key: 'Enter', shiftKey: true })
     expect(mutateAsync).not.toHaveBeenCalled()
@@ -1056,7 +1150,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '?' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -1070,7 +1164,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '!ls -la' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -1084,7 +1178,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLTextAreaElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
     expect(screen.queryByTestId('command-palette')).not.toBeInTheDocument()
 
     fireEvent.change(input, { target: { value: '/mod' } })
@@ -1102,7 +1196,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLTextAreaElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: '/mod' } })
     expect(screen.getByTestId('command-palette')).toBeInTheDocument()
 
@@ -1117,7 +1211,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLTextAreaElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: '/mod' } })
     expect(screen.getByTestId('command-palette')).toBeInTheDocument()
 
@@ -1131,7 +1225,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '/modle' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -1238,6 +1332,7 @@ describe('AIChat', () => {
 
     render(<AIChat />)
     expect(screen.getByText(t('ai.headerName'))).toBeInTheDocument()
+    expect(screen.getByTestId('header-name')).toHaveClass('xuan-harness-rolling-gradient')
     const 标题状态 = screen.getByTestId('chat-header-status')
     expect(标题状态).toHaveTextContent('deepseek-v4.1-flash-expires-on-0910')
     expect(标题状态).toHaveTextContent(t('ai.headerBilling'))
@@ -1252,7 +1347,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLTextAreaElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
     const 表单 = input.closest('form') as HTMLFormElement
     fireEvent.change(input, { target: { value: '第一个问题' } })
     fireEvent.submit(表单)
@@ -1274,7 +1369,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     fireEvent.change(input, { target: { value: '/compact 只看项目' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -1307,7 +1402,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder'))
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
     expect(input.tagName).toBe('TEXTAREA')
     expect(input).toHaveAttribute('maxlength', '2000')
   })
@@ -1322,7 +1417,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLTextAreaElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: '/model' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -1346,7 +1441,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLTextAreaElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: '/model' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -1362,7 +1457,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLTextAreaElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
     fireEvent.keyDown(input, { key: 'Tab', shiftKey: true })
     expect(setAiModel).toHaveBeenCalledWith('deepseek-v4.1-flash-expires-on-0910')
     expect(screen.getByText(t('ai.commands.modelSwitchedPrefix'), { exact: false })).toBeInTheDocument()
@@ -1374,7 +1469,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLTextAreaElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: '/' } })
 
     const 选项 = screen.getAllByRole('option')
@@ -1389,7 +1484,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLTextAreaElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: '/model' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
@@ -1404,7 +1499,7 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    const input = screen.getByPlaceholderText(t('ai.placeholder')) as HTMLTextAreaElement
+    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
     fireEvent.change(input, { target: { value: '/model' } })
     fireEvent.submit(input.closest('form') as HTMLFormElement)
     fireEvent.keyDown(input, { key: 'ArrowDown' })
@@ -1474,5 +1569,234 @@ describe('AIChat', () => {
     })
     expect(面板.style.width).toBe('320px')
     expect(面板.style.height).toBe('400px')
+  })
+
+  it('回答完成后显示3个继续聊天选项（技术栈场景）', () => {
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(
+        createMockState({
+          chatOpen: true,
+          aiMessages: [
+            { role: 'user', content: '和我恋爱吧项目用了什么技术栈' },
+            { role: 'assistant', content: '用了Express等' },
+          ],
+        })
+      )
+    )
+
+    render(<AIChat />)
+    const 建议区 = screen.getByTestId('follow-up-suggestions')
+    expect(建议区).toBeInTheDocument()
+    expect(screen.getByText(t('ai.followUps.label'))).toBeInTheDocument()
+    for (const 建议 of ta('ai.followUps.tech')) {
+      expect(screen.getByText(建议)).toBeInTheDocument()
+    }
+  })
+
+  it('LLM组件信号同样驱动继续选项（蜂来ProjectCard场景）', () => {
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(
+        createMockState({
+          chatOpen: true,
+          aiMessages: [
+            { role: 'user', content: '蜂来是做什么的' },
+            {
+              role: 'assistant',
+              content: '蜂来介绍',
+              component: { type: 'ProjectCard', projectId: 'fengLai' },
+            },
+          ],
+        })
+      )
+    )
+
+    render(<AIChat />)
+    const 建议区 = screen.getByTestId('follow-up-suggestions')
+    expect(建议区).toBeInTheDocument()
+    for (const 建议 of ta('ai.followUps.projectsFengLai')) {
+      expect(screen.getByText(建议)).toBeInTheDocument()
+    }
+  })
+
+  it('点击继续选项会发送该问题', async () => {
+    mutateAsync.mockResolvedValue({ message: { role: 'assistant', content: '答' } })
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(
+        createMockState({
+          chatOpen: true,
+          aiMessages: [
+            { role: 'user', content: '介绍一下暮澜纪元' },
+            { role: 'assistant', content: '暮澜纪元介绍' },
+          ],
+        })
+      )
+    )
+
+    render(<AIChat />)
+    const 首个建议 = ta('ai.followUps.projectsXrm')[0]
+    fireEvent.click(screen.getByText(首个建议))
+    await waitFor(() => {
+      expect(mutateAsync).toHaveBeenCalled()
+    })
+  })
+
+  it('FP-04 流式中断/超时分类语义不变：AbortError 不走本地兜底语义', async () => {
+    mutateAsync.mockRejectedValueOnce(new DOMException('The operation was aborted.', 'AbortError'))
+
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(createMockState({ chatOpen: true }))
+    )
+
+    render(<AIChat />)
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(input, { target: { value: '中断语义问题' } })
+    fireEvent.submit(input.closest('form') as HTMLFormElement)
+
+    await waitFor(() => {
+      expect(screen.getByText(t('ai.commands.interrupted'))).toBeInTheDocument()
+    })
+    expect(screen.queryByText(t('ai.error'))).not.toBeInTheDocument()
+  })
+
+  it('FP-04 流式增量经onProgress落到占位助手消息逐字显示', async () => {
+    mutateAsync.mockImplementationOnce(
+      (入参: { onProgress?: (增量: { reasoning: string; content: string }) => void }) => {
+        入参.onProgress?.({ reasoning: '思考一', content: '' })
+        入参.onProgress?.({ reasoning: '思考一思考二', content: '' })
+        入参.onProgress?.({ reasoning: '思考一思考二', content: '{"text":"流式"}' })
+        return Promise.resolve({ message: { role: 'assistant', content: '流式', reasoning: '思考一思考二' } })
+      }
+    )
+
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(createMockState({ chatOpen: true }))
+    )
+
+    render(<AIChat />)
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(input, { target: { value: '流式问题' } })
+    fireEvent.submit(input.closest('form') as HTMLFormElement)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('message-reasoning')).toHaveTextContent('思考一思考二')
+    })
+    await waitFor(() => {
+      expect(screen.getByText('流式')).toBeInTheDocument()
+    })
+  })
+
+  it('FP-R3 占位先行：mutateAsync执行前已有用户+空助手占位', async () => {
+    let 执行时消息: Array<{ role: string; content: string }> = []
+    mutateAsync.mockImplementationOnce(() => {
+      执行时消息 = mockAiMessages.map((消息) => ({ role: 消息.role, content: 消息.content }))
+      return Promise.resolve({ message: { role: 'assistant', content: '占位后落定' } })
+    })
+    const addAiMessage = vi.fn((message) => {
+      mockAiMessages.push(message)
+      notifyMockState()
+    })
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(createMockState({ chatOpen: true, addAiMessage }))
+    )
+
+    render(<AIChat />)
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(input, { target: { value: '占位先行问题' } })
+    fireEvent.submit(input.closest('form') as HTMLFormElement)
+
+    await waitFor(() => {
+      expect(mutateAsync).toHaveBeenCalled()
+    })
+    expect(执行时消息).toEqual([
+      { role: 'user', content: '占位先行问题' },
+      { role: 'assistant', content: '' },
+    ])
+    await waitFor(() => {
+      expect(screen.getByText('占位后落定')).toBeInTheDocument()
+    })
+  })
+
+  it('FP-R3 SSE增量即落屏多帧递增：半包亦显示已到字符且每帧直接update', async () => {
+    const 更新序列: string[] = []
+    let 捕获进度: ((增量: { reasoning: string; content: string }) => void) | undefined
+    mutateAsync.mockImplementationOnce(
+      (入参: { onProgress?: (增量: { reasoning: string; content: string }) => void }) => {
+        捕获进度 = 入参.onProgress
+        return new Promise(() => {})
+      }
+    )
+    const updateAiMessage = vi.fn((index: number, patch: Record<string, unknown>) => {
+      mockAiMessages[index] = { ...mockAiMessages[index], ...patch }
+      if (typeof patch.content === 'string') 更新序列.push(patch.content as string)
+      notifyMockState()
+    })
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(createMockState({ chatOpen: true, updateAiMessage }))
+    )
+
+    render(<AIChat />)
+    const input = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(input, { target: { value: '多帧递增问题' } })
+    fireEvent.submit(input.closest('form') as HTMLFormElement)
+
+    await waitFor(() => {
+      expect(捕获进度).toBeDefined()
+    })
+    await act(async () => {
+      捕获进度?.({ reasoning: '', content: '{"text":"流' })
+      捕获进度?.({ reasoning: '', content: '{"text":"流式真' })
+      捕获进度?.({ reasoning: '', content: '{"text":"流式真逐字"}' })
+    })
+
+    expect(更新序列).toEqual(['流', '流式真', '流式真逐字'])
+    await waitFor(() => {
+      expect(screen.getByText('流式真逐字')).toBeInTheDocument()
+    })
+  })
+
+  it('FP-04 落定助手消息保留reasoning且历史无reasoning回退兼容', () => {
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(
+        createMockState({
+          chatOpen: true,
+          aiMessages: [
+            { role: 'user', content: '老问题' },
+            { role: 'assistant', content: '老答案' },
+            { role: 'user', content: '新问题' },
+            { role: 'assistant', content: '新答案', reasoning: '完整思考流' },
+          ],
+        })
+      )
+    )
+
+    render(<AIChat />)
+    expect(screen.getByText('完整思考流')).toBeInTheDocument()
+    expect(screen.getByTestId('message-reasoning')).toHaveTextContent('完整思考流')
+    expect(screen.getByText('老答案')).toBeInTheDocument()
+  })
+
+  it('思考中与空会话不显示继续选项', () => {
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(createMockState({ chatOpen: true }))
+    )
+    render(<AIChat />)
+    expect(screen.queryByTestId('follow-up-suggestions')).not.toBeInTheDocument()
+    cleanup()
+
+    mockRuntime.isPending = true
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(
+        createMockState({
+          chatOpen: true,
+          aiMessages: [
+            { role: 'user', content: '你的技术栈' },
+            { role: 'assistant', content: '技术栈回答' },
+          ],
+        })
+      )
+    )
+    render(<AIChat />)
+    expect(screen.queryByTestId('follow-up-suggestions')).not.toBeInTheDocument()
+    mockRuntime.isPending = false
   })
 })

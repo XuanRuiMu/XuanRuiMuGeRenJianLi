@@ -33,8 +33,9 @@ import {
   归一化位移,
   钳制滚动增量,
   推进一帧,
+  标记意图滚动,
+  同步滚动位置,
   最大帧步长,
-  滚动暂停时长,
   type 跑马灯控制,
   type 轨道槽位,
 } from './marqueeEngine'
@@ -58,6 +59,7 @@ const CARD_ICONS: Record<string, LucideIcon> = {
   gameWorld: Gamepad2,
   courses: MonitorPlay,
   escape: Music,
+  fenglai: Gamepad2,
   repoLoop: FolderGit2,
   repoLove: GitBranch,
   repoData: Database,
@@ -119,12 +121,33 @@ function ShowcaseProductCard({ card, index, reducedMotion, 控制 }: ShowcasePro
     }
   }, [控制, reducedMotion])
 
+  const 有配图 = Boolean(card.image)
+
   const inner = (
-    <div className="flex h-full w-full flex-col justify-between rounded-xl bg-black p-5 md:p-6">
-      <Icon size={44} style={{ color: iconColor }} aria-hidden="true" />
-      <div>
-        <h3 className="mb-1.5 text-base font-bold text-white md:text-lg">{t(card.titleKey)}</h3>
-        <p className="text-xs leading-relaxed text-[#aaa6c3] md:text-sm">{t(card.descKey)}</p>
+    <div
+      className="relative flex h-full w-full flex-col justify-between overflow-hidden rounded-xl bg-black p-5 md:p-6"
+      style={
+        有配图
+          ? {
+              backgroundImage: `url(${card.image})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }
+          : undefined
+      }
+    >
+      {有配图 && (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-t from-black/90 via-black/50 to-black/70"
+        />
+      )}
+      <div className="relative z-10 flex h-full w-full flex-col justify-between">
+        <Icon size={44} style={{ color: iconColor }} aria-hidden="true" />
+        <div>
+          <h3 className="mb-1.5 text-base font-bold text-white md:text-lg">{t(card.titleKey)}</h3>
+          <p className="text-xs leading-relaxed text-[#aaa6c3] md:text-sm">{t(card.descKey)}</p>
+        </div>
       </div>
     </div>
   )
@@ -282,24 +305,19 @@ export function ShowcaseSection() {
   const [控制] = useState(创建跑马灯控制)
 
   useEffect(() => {
-    const 延长暂停 = () => {
-      控制.暂停至.current = performance.now() + 滚动暂停时长
-    }
-    const 同步滚动位置 = () => {
-      控制.滚动位置.current = window.scrollY
-      延长暂停()
-    }
+    const 意图输入 = () => 标记意图滚动(控制)
+    const 缓冲同步 = () => 同步滚动位置(控制)
     const 按键暂停 = (事件: KeyboardEvent) => {
-      if (是否滚动按键(事件.key)) 延长暂停()
+      if (是否滚动按键(事件.key)) 标记意图滚动(控制)
     }
-    window.addEventListener('wheel', 延长暂停, { passive: true })
-    window.addEventListener('touchmove', 延长暂停, { passive: true })
-    window.addEventListener('scroll', 同步滚动位置, { passive: true })
+    window.addEventListener('wheel', 意图输入, { passive: true })
+    window.addEventListener('touchmove', 意图输入, { passive: true })
+    window.addEventListener('scroll', 缓冲同步, { passive: true })
     window.addEventListener('keydown', 按键暂停)
     return () => {
-      window.removeEventListener('wheel', 延长暂停)
-      window.removeEventListener('touchmove', 延长暂停)
-      window.removeEventListener('scroll', 同步滚动位置)
+      window.removeEventListener('wheel', 意图输入)
+      window.removeEventListener('touchmove', 意图输入)
+      window.removeEventListener('scroll', 缓冲同步)
       window.removeEventListener('keydown', 按键暂停)
       控制.悬停集合.clear()
     }

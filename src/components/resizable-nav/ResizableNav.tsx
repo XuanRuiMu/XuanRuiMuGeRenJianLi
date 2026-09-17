@@ -9,7 +9,7 @@ import { ThemeToggle } from '../theme-toggle/ThemeToggle'
 import { personalInfo } from '../../data/personalInfo'
 
 /** 中部导航锚点（联系与其他分区同款胶囊并列居中） */
-const NAV_SECTIONS: AppSection[] = ['about', 'projects', 'experience', 'education', 'contact']
+const NAV_SECTIONS: AppSection[] = ['about', 'projects', 'skills', 'experience', 'education', 'contact']
 
 const SCROLL_THRESHOLD = 100
 

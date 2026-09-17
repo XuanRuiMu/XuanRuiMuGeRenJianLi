@@ -69,11 +69,10 @@ describe('ContactSection', () => {
   })
 
   it('renders no留言 form fields', () => {
-    render(<ContactSection />)
-    expect(screen.queryByLabelText(t('contact.form.name'))).not.toBeInTheDocument()
-    expect(screen.queryByLabelText(t('contact.form.contact'))).not.toBeInTheDocument()
-    expect(screen.queryByLabelText(t('contact.form.message'))).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: t('contact.form.submit') })).not.toBeInTheDocument()
+    const { container } = render(<ContactSection />)
+    expect(container.querySelector('form')).not.toBeInTheDocument()
+    expect(container.querySelector('textarea')).not.toBeInTheDocument()
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
   })
 
   it('contact links have correct href attributes', () => {

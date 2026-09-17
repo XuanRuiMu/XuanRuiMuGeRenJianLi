@@ -6,7 +6,8 @@ import { lenisRef } from '../lib/lenisInstance'
 
 export type AppTheme = 'dark' | 'light' | 'system'
 
-export type AppSection = 'hero' | 'about' | 'projects' | 'experience' | 'education' | 'design' | 'media' | 'contact'
+export type AppSection =
+  'hero' | 'about' | 'projects' | 'skills' | 'experience' | 'education' | 'design' | 'media' | 'contact'
 
 export type 回退原因 = 'timeout' | 'http' | 'network' | 'format'
 
@@ -24,6 +25,8 @@ export interface AiMessage {
   /** vision 输入：用户随消息携带的图片（data URL）；仅在 user 消息中有效（API 限制） */
   images?: string[]
   component?: UiComponent
+  /** 流式思考原文（reasoning_content 增量拼出的完整思考流；历史消息无该字段时回退兼容为不渲染） */
+  reasoning?: string
   /** 检索轨迹：命中数/耗时/是否本地兜底 */
   meta?: AiToolMeta
 }
@@ -54,6 +57,7 @@ export interface AppState {
   toggleChat: () => void
   setChatOpen: (open: boolean) => void
   addAiMessage: (message: AiMessage) => void
+  updateAiMessage: (index: number, patch: Partial<AiMessage>) => void
   clearAiMessages: () => void
   setAiModel: (model: string) => void
   stashSession: (messages: AiMessage[]) => void
@@ -75,6 +79,7 @@ export const SECTION_ORDER: AppSection[] = [
   'hero',
   'about',
   'projects',
+  'skills',
   'experience',
   'education',
   'design',
@@ -86,6 +91,7 @@ export const SECTIONS: Record<string, AppSection> = {
   HERO: 'hero',
   ABOUT: 'about',
   PROJECTS: 'projects',
+  SKILLS: 'skills',
   EXPERIENCE: 'experience',
   EDUCATION: 'education',
   DESIGN: 'design',
@@ -118,6 +124,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   toggleChat: () => set((state) => ({ chatOpen: !state.chatOpen })),
   setChatOpen: (open) => set({ chatOpen: open }),
   addAiMessage: (message) => set((state) => ({ aiMessages: [...state.aiMessages, message] })),
+  updateAiMessage: (index, patch) =>
+    set((state) => ({
+      aiMessages: state.aiMessages.map((message, i) => (i === index ? { ...message, ...patch } : message)),
+    })),
   clearAiMessages: () => set({ aiMessages: [] }),
   setAiModel: (model) => {
     持久化已选模型ID(model)

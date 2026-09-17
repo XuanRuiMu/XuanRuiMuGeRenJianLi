@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, within, waitFor } from '@testing-library/react'
+import { render, screen, within, waitFor, cleanup } from '@testing-library/react'
 import { ShowcaseSection } from './ShowcaseSection'
 import {
   归一化位移,
@@ -10,11 +10,20 @@ import {
   是否滚动按键,
   推进一帧,
   缓动时距,
+  创建跑马灯控制,
+  标记意图滚动,
+  同步滚动位置,
+  默认跑马灯配置,
+  滚动暂停时长,
 } from './marqueeEngine'
-import { showcaseRows } from '../../data/showcase'
+import { showcaseRows, 暮澜链接 } from '../../data/showcase'
 import { t } from '../../i18n/translations'
 
 describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
+  afterEach(() => {
+    cleanup()
+  })
+
   it('renders the gradient header with both title lines and subtitle', () => {
     render(<ShowcaseSection />)
     expect(screen.getByText(t('showcase.titleLine1'))).toBeInTheDocument()
@@ -31,7 +40,7 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
         expect(screen.getAllByText(t(card.descKey)).length).toBeGreaterThanOrEqual(1)
       }
     }
-    // 15 张逻辑卡 × 2 份（无缝 marquee 轨道）：3 行 × 5 张 × 2
+    // 逻辑卡总数 × 2 份（无缝 marquee 轨道，数据驱动，随showcaseRows扩展自动同步）
     const expected = showcaseRows.reduce((n, r) => n + r.cards.length, 0) * 2
     const cards = document.querySelectorAll('.group\\/card')
     expect(cards).toHaveLength(expected)
@@ -108,6 +117,10 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
 })
 
 describe('FP-06探索板块重构：8视频与开源仓库可达', () => {
+  afterEach(() => {
+    cleanup()
+  })
+
   const 视频映射: Array<{ id: string; titleKey: Parameters<typeof t>[0]; href: string }> = [
     { id: 'coding', titleKey: 'showcase.cards.coding.title', href: 'https://www.bilibili.com/video/BV11r421j7UV' },
     { id: 'systems', titleKey: 'showcase.cards.systems.title', href: 'https://www.bilibili.com/video/BV1x36HYjEoA' },
@@ -140,8 +153,8 @@ describe('FP-06探索板块重构：8视频与开源仓库可达', () => {
     {
       id: 'repoData',
       titleKey: 'showcase.cards.repoData.title',
-      href: 'https://github.com/XuanRuiMu/LianAiBaDataCenter',
-      仓库名: 'LianAiBaDataCenter',
+      href: 'https://github.com/XuanRuiMu/LianAiBaGuanLiZhongXin',
+      仓库名: 'LianAiBaGuanLiZhongXin',
     },
   ]
 
@@ -204,6 +217,42 @@ describe('FP-06探索板块重构：8视频与开源仓库可达', () => {
     for (const id of ['education', 'design', 'media', 'opensource']) {
       expect(document.getElementById(id)).not.toBeNull()
     }
+  })
+
+  it('FP-04：media行末蜂来卡标题描述链接配图数据驱动', () => {
+    const media行 = showcaseRows.find((row) => row.anchorId === 'media')
+    expect(media行).toBeDefined()
+    const 蜂来卡 = media行?.cards.at(-1)
+    expect(蜂来卡?.id).toBe('fenglai')
+    expect(蜂来卡?.titleKey).toBe('showcase.cards.fenglai.title')
+    expect(蜂来卡?.descKey).toBe('showcase.cards.fenglai.desc')
+    expect(蜂来卡?.href).toBe('https://xuanruimu.github.io/FengLai/index.html')
+    expect(蜂来卡?.image).toBe('/showcase/蜂来.png')
+    expect(t('showcase.cards.fenglai.title')).toBe('蜂来')
+    expect(t('showcase.cards.fenglai.desc')).toBe('无厘头的纯前端互动网页')
+  })
+
+  it('FP-04：蜂来卡外链新开并带安全rel', () => {
+    render(<ShowcaseSection />)
+    const escapedTitle = t('showcase.cards.fenglai.title').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const links = screen.getAllByRole('link', { name: new RegExp(escapedTitle) })
+    expect(links.length).toBeGreaterThanOrEqual(1)
+    for (const link of links) {
+      expect(link).toHaveAttribute('href', 'https://xuanruimu.github.io/FengLai/index.html')
+      expect(link).toHaveAttribute('target', '_blank')
+      const rel = link.getAttribute('rel') ?? ''
+      expect(rel).toContain('noopener')
+      expect(rel).toContain('noreferrer')
+    }
+  })
+
+  it('FP-01：xrmUi与gameWorld展示卡均为指定暮澜链接', () => {
+    expect(暮澜链接).toBe('https://github.com/XuanRuiMu/XRMChaJian')
+    const 所有卡片 = showcaseRows.flatMap((row) => row.cards)
+    const 展示暮澜 = 所有卡片.find((card) => card.id === 'xrmUi')
+    const 游戏世界 = 所有卡片.find((card) => card.id === 'gameWorld')
+    expect(展示暮澜?.href).toBe('https://github.com/XuanRuiMu/XRMChaJian')
+    expect(游戏世界?.href).toBe('https://github.com/XuanRuiMu/XRMChaJian')
   })
 })
 
@@ -368,6 +417,7 @@ describe('跑马灯布局不变量测量', () => {
   afterEach(() => {
     if (原始宽度描述符) Object.defineProperty(HTMLElement.prototype, 'offsetWidth', 原始宽度描述符)
     if (原始视口描述符) Object.defineProperty(window, 'innerWidth', 原始视口描述符)
+    cleanup()
   })
 
   it('按布局宽度计算副本数', async () => {
@@ -376,5 +426,114 @@ describe('跑马灯布局不变量测量', () => {
       const expected = showcaseRows.reduce((n, r) => n + r.cards.length, 0) * 5
       expect(document.querySelectorAll('.group\\/card')).toHaveLength(expected)
     })
+  })
+})
+
+describe('FP-03跑马灯启停根因：意图输入与缓冲滚动解耦', () => {
+  afterEach(() => {
+    cleanup()
+  })
+
+  it('意图输入设置暂停锚点=时刻+滚动暂停时长', () => {
+    const 控制 = 创建跑马灯控制()
+    标记意图滚动(控制, 1000)
+    expect(控制.暂停至.current).toBe(1000 + 滚动暂停时长)
+  })
+
+  it('默认以当前时间为锚点', () => {
+    const 控制 = 创建跑马灯控制()
+    const 开始 = performance.now()
+    标记意图滚动(控制)
+    const 结束 = performance.now()
+    expect(控制.暂停至.current).toBeGreaterThanOrEqual(开始 + 滚动暂停时长)
+    expect(控制.暂停至.current).toBeLessThanOrEqual(结束 + 滚动暂停时长)
+  })
+
+  it('连续意图输入每次重设计时（debounce语义）', () => {
+    const 控制 = 创建跑马灯控制()
+    标记意图滚动(控制, 1000)
+    expect(控制.暂停至.current).toBe(1000 + 滚动暂停时长)
+    标记意图滚动(控制, 1500)
+    expect(控制.暂停至.current).toBe(1500 + 滚动暂停时长)
+  })
+
+  it('缓冲scroll只同步位置不延长暂停（核心回归）', () => {
+    const 控制 = 创建跑马灯控制()
+    标记意图滚动(控制, 1000)
+    const 锚点 = 控制.暂停至.current
+    同步滚动位置(控制, 500)
+    同步滚动位置(控制, 900)
+    同步滚动位置(控制, 1400)
+    expect(控制.滚动位置.current).toBe(1400)
+    expect(控制.暂停至.current).toBe(锚点)
+  })
+
+  it('用户最后一滚后无新意图即按锚点恢复（滚轮停止即计时语义）', () => {
+    const 控制 = 创建跑马灯控制()
+    标记意图滚动(控制, 1000)
+    同步滚动位置(控制, 500)
+    const 恢复时刻 = 1000 + 滚动暂停时长
+    expect(控制.暂停至.current).toBe(恢复时刻)
+    expect(恢复时刻 + 1 < 控制.暂停至.current).toBe(false)
+    同步滚动位置(控制, 900)
+    expect(控制.暂停至.current).toBe(恢复时刻)
+  })
+
+  it('暂停锚点只锚定最后意图时刻，不被缓冲续命', () => {
+    const 控制 = 创建跑马灯控制()
+    标记意图滚动(控制, 1000)
+    标记意图滚动(控制, 1200)
+    同步滚动位置(控制, 300)
+    标记意图滚动(控制, 1400)
+    同步滚动位置(控制, 600)
+    同步滚动位置(控制, 900)
+    expect(控制.暂停至.current).toBe(1400 + 滚动暂停时长)
+    const 恢复时刻 = 1400 + 滚动暂停时长 + 1
+    expect(恢复时刻 < 控制.暂停至.current).toBe(false)
+  })
+
+  it('同步位置不抢rAF的增量账本', () => {
+    const 控制 = 创建跑马灯控制()
+    控制.上次滚动位置.current = 100
+    同步滚动位置(控制, 160)
+    expect(控制.滚动位置.current).toBe(160)
+    expect(控制.上次滚动位置.current).toBe(100)
+  })
+
+  it('滚动暂停时长可配置，默认与常量一致', () => {
+    expect(默认跑马灯配置.滚动暂停时长).toBe(滚动暂停时长)
+    const 默认控制 = 创建跑马灯控制()
+    expect(默认控制.配置.滚动暂停时长).toBe(滚动暂停时长)
+    const 自定义 = 创建跑马灯控制({ 滚动暂停时长: 500 })
+    标记意图滚动(自定义, 1000)
+    expect(自定义.暂停至.current).toBe(1500)
+  })
+
+  it('组件订阅意图与缓冲两类事件并在卸载时清理', () => {
+    window.matchMedia = vi.fn().mockImplementation(() => ({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })) as unknown as typeof window.matchMedia
+    const 添加 = vi.spyOn(window, 'addEventListener')
+    const 移除 = vi.spyOn(window, 'removeEventListener')
+    const { unmount } = render(<ShowcaseSection />)
+    expect(添加).toHaveBeenCalledWith('wheel', expect.any(Function), expect.objectContaining({ passive: true }))
+    expect(添加).toHaveBeenCalledWith('touchmove', expect.any(Function), expect.objectContaining({ passive: true }))
+    expect(添加).toHaveBeenCalledWith('scroll', expect.any(Function), expect.objectContaining({ passive: true }))
+    expect(添加).toHaveBeenCalledWith('keydown', expect.any(Function))
+    window.dispatchEvent(new WheelEvent('wheel', { bubbles: true, cancelable: true }))
+    window.dispatchEvent(new Event('touchmove', { bubbles: true, cancelable: true }))
+    window.dispatchEvent(new Event('scroll'))
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }))
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }))
+    unmount()
+    expect(移除).toHaveBeenCalledWith('wheel', expect.any(Function))
+    expect(移除).toHaveBeenCalledWith('touchmove', expect.any(Function))
+    expect(移除).toHaveBeenCalledWith('scroll', expect.any(Function))
+    expect(移除).toHaveBeenCalledWith('keydown', expect.any(Function))
+    添加.mockRestore()
+    移除.mockRestore()
   })
 })

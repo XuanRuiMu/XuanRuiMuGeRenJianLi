@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Section } from '../../components/ui/Section'
-import { t } from '../../i18n/translations'
+import { t, type TranslationKey } from '../../i18n/translations'
 import { useTypewriter } from './useTypewriter'
 
 function chaiFenJianJie(text: string): string[] {
@@ -142,6 +142,19 @@ export function AboutSection() {
             <span aria-hidden="true">{'//'}</span>
             <span>{t('about.caption.eof')}</span>
           </div>
+        </div>
+
+        <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {(['projects', 'techStack', 'courses', 'students'] as const).map((key) => (
+            <div key={key} className="rounded-xl border border-border/60 bg-surface/40 px-4 py-4 text-center">
+              <div className="font-display text-2xl font-bold text-primary text-shadow-readable">
+                {t(`about.metrics.${key}.value` as unknown as TranslationKey)}
+              </div>
+              <div className="mt-1 text-xs text-muted">
+                {t(`about.metrics.${key}.label` as unknown as TranslationKey)}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </Section>

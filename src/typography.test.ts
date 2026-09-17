@@ -40,6 +40,6 @@ describe('FP-03排版回归：中英/中数相邻零空格', () => {
     expect(t('command.copyGithub')).toBe('复制GitHub')
     expect(t('showcase.cards.teaching.desc')).toBe('编写、格式规范到提交全链路拆解')
     expect(t('data.projects.xrm.metrics.systems')).toBe('8世界/32职业')
-    expect(t('data.projects.analytics.metrics.stack')).toBe('Java+Python双栈')
+    expect(t('data.projects.fengLai.metrics.stack')).toBe('纯前端无后端')
   })
 })

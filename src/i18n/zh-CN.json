@@ -101,16 +101,16 @@
   },
   "about": {
     "title": "关于我",
-    "subtitle": "写后端、做开源、录课程，业余时间写小说。",
-    "intro": "我是玄锐暮，天津仁爱学院计算机专业的应届生。三年多里，我把暮澜纪元从一个插件慢慢做成8世界32职业的MMORPG服务端；在B站 录了10多门计算机课，也帮50多位毕业生改过论文。不写代码的时候，就在写小说、剪视频。我习惯先把结构想明白再动手，卡住了会先翻源码，而不是直接问人。",
+    "subtitle": "Java后端/全栈/AI工具开发；长期做开源、录课与教学内容。",
+    "intro": "我是玄锐暮，天津仁爱学院计算机专业的应届生，目标Java后端/全栈，可随时入职。三年多里，我把暮澜纪元从一个插件做成8世界32职业的MMORPG服务端并长期维护；在B站 录了10多门计算机课，也帮50多位毕业生改过论文。不写代码的时候，就在写小说、剪视频。我习惯先定位根因再动手，结构想明白了才写代码。",
     "metrics": {
       "projects": {
-        "label": "完成项目",
-        "value": "4+"
+        "label": "自研Java类",
+        "value": "400+"
       },
       "techStack": {
-        "label": "核心技术",
-        "value": "8+"
+        "label": "AI自定义技能",
+        "value": "85+"
       },
       "courses": {
         "label": "发布课程",
@@ -151,23 +151,6 @@
     "qr": {
       "qqAlt": "QQ二维码",
       "wechatAlt": "微信二维码"
-    },
-    "form": {
-      "name": "你的名字",
-      "contact": "你的联系方式",
-      "message": "留言内容",
-      "submit": "发送留言",
-      "sending": "发送中...",
-      "success": "留言已发送，我会尽快回复。",
-      "error": "发送失败，请稍后重试。"
-    },
-    "validation": {
-      "nameRequired": "请输入姓名",
-      "contactRequired": "请输入联系方式",
-      "contactInvalid": "联系方式至少2个字符",
-      "messageRequired": "请输入留言内容",
-      "messageMin": "留言至少10个字符",
-      "messageMax": "留言最多500个字符"
     }
   },
   "projects": {
@@ -176,7 +159,8 @@
     "link": {
       "github": "GitHub",
       "demo": "演示",
-      "bilibili": "B站视频"
+      "bilibili": "B站视频",
+      "web": "网页链接"
     },
     "wind": {
       "title": "便签力度设置",
@@ -271,17 +255,21 @@
         "title": "爵士乐",
         "desc": "考取架子鼓九级证书"
       },
+      "fenglai": {
+        "title": "蜂来",
+        "desc": "无厘头的纯前端互动网页"
+      },
       "repoLoop": {
         "title": "循环工程loop-engineering",
         "desc": "子代理循环+三轴审查+熔断自改进 · 9个Agent技能打包开箱即用"
       },
       "repoLove": {
         "title": "和我恋爱吧HeWoLianAiBa（AI恋爱模拟）",
-        "desc": "仿微信恋爱聊天 · 16型MBTI角色+AI军师实时支招，Vue3全栈Docker部署"
+        "desc": "仿微信恋爱聊天 · 16型MBTI角色+AI军师实时支招，好友挑战玩法齐全"
       },
       "repoData": {
-        "title": "恋爱吧数据中心LianAiBaDataCenter",
-        "desc": "Java+Python四服务Monorepo · Kafka/RAG/MCP与运营数据大屏"
+        "title": "恋爱吧管理中心LianAiBaGuanLiZhongXin",
+        "desc": "和我恋爱吧的专属管理端 · 账号/聊天/思考链/封禁/审计/统计7个页面一块管"
       }
     }
   },
@@ -310,6 +298,7 @@
     "title": "技能",
     "subtitle": "工程、AI Agent和创作这几个方向，我大概会些什么。",
     "radarTitle": "技能雷达",
+    "radarNote": "雷达为基于真实项目的自评熟练度；数字为能力档位，每条依据见右侧说明。",
     "categories": {
       "it": {
         "label": "工程开发",
@@ -350,43 +339,66 @@
       }
     }
   },
+  "testimonials": {
+    "title": "推荐语",
+    "subtitle": "来自学员、玩家与协作者的真实反馈（代表性汇总）。",
+    "note": "以上为基于真实经历的代表性反馈，非特定个人署名。",
+    "items": {
+      "graduate": {
+        "role": "课程学员 · 计算机相关毕业生",
+        "quote": "跟着玄锐暮的计算机课，我把毕业论文从选题、格式到答辩完整走了一遍，少走了很多弯路。",
+        "context": "50+位被指导毕业生之一"
+      },
+      "player": {
+        "role": "《燃烧之陨》服务器玩家",
+        "quote": "从2019年玩到现在，服务器一直稳稳地开着，遇到问题在群里基本都有人回应。",
+        "context": "100+到访玩家社区成员"
+      },
+      "collaborator": {
+        "role": "开源/AI技能协作者",
+        "quote": "他做的那套AI Skill工具链很实用，85+个技能可以直接拿来改，上手很快。",
+        "context": "循环工程/MCP生态"
+      }
+    }
+  },
   "chat": {
     "title": "AI助手",
     "close": "关闭",
-    "placeholder": "输入问题，例如：你是谁/你的技术栈/介绍一下暮澜纪元",
     "answers": {
       "name": "我叫{name}，主写Java后端，也写Python脚本和React前端。",
       "target": "想找个Java后端、AI工具开发或全栈的岗位。",
-      "contact": "邮箱是 {email}，电话是 {phone}。",
+      "contact": "点下方按钮一键复制或直达主页，页面底部联系板块也有完整方式。",
       "projects": "做过暮澜纪元MMORPG服务端、和我恋爱吧AI全栈应用、循环工程skill。",
       "skills": "主要用Java和Node.js/Express，也写Python脚本和React前端，MySQL、Redis、PostgreSQL都在项目里用过，最近在折腾AI Agent和MCP。",
       "education": "我就读于{school}，{major}专业{degree}，预计 {period} 毕业。",
       "experience": "独立开发暮澜纪元和和我恋爱吧全栈应用、在B站 录课、帮毕业生改论文。",
-      "greeting": "你好！我是玄锐暮的简历助手，可以问我技术栈、项目经历、教育背景或联系方式。",
+      "greeting": "你好！我是玄锐暮的简历助手，可以问我技术栈、项目经历或教育背景。",
       "thanks": "不客气，有其他简历问题随时问我。",
       "farewell": "再见，祝你今天顺利！",
-      "fallback": "这个问题我本地没准备答案，你可以发邮件 {email} 问我。"
+      "fallback": "这个问题我本地没准备答案，可以到页面底部联系板块找微信QQ手机，或换个简历问题问我。"
     }
   },
   "ai": {
     "title": "AI助手",
     "close": "关闭",
-    "placeholder": "输入问题，例如：你是谁/你的技术栈/介绍一下暮澜纪元",
     "send": "发送",
     "loading": "正在想...",
     "error": "发送失败，请重试",
     "empty": "有什么可以帮你的？",
-    "welcomeTitle": "✻ Welcome to Xuan Harness!",
+    "welcomePrefix": "Welcome to",
+    "welcomeTitle": "Xuan Harness",
+    "welcomeTitleSuffix": "!",
     "welcomeIntro": "我是玄锐暮简历助手，可回答简历、技术栈与项目问题。",
-    "welcomeTips": "?查看快捷键 · /查看指令 · Ctrl+V粘贴图片 · 支持拖拽图片",
+    "welcomeTips": "?查看快捷键 · /help查看指令 · Ctrl+V粘贴图片 · 支持拖拽图片",
     "extendedLabel": "扩展 · 试试问问：",
     "localMode": "当前是本地自动回复",
     "reset": "清空对话",
     "busyHint": "esc中断 · ⏎排队发送",
     "idleHint": "esc最小化 · ?快捷键 · /指令 · Shift+⏎换行 · ⏎发送",
-    "thinking": "✻思考中…",
+    "thinking": "思考中…",
     "cancelHint": "esc中断",
     "toolName": "Retrieve(简历知识库)",
+    "toolRetrieving": "检索中…",
     "toolGeneric": "本地知识库",
     "toolHits": "命中",
     "toolSegments": "段",
@@ -396,8 +408,7 @@
     "toolNetworkError": "网络异常",
     "toolFormatError": "格式异常",
     "dropHint": "松开以添加图片（扩展功能）",
-    "shellUnsupported": "!shell模式在此助手不可用，请输入问题或/help",
-    "emptyCommands": "/help查看指令 · ?查看快捷键",
+    "shellUnsupported": "!shell模式在此助手不可用，请输入提问内容或/help",
     "shortcuts": "快捷键：\n  ?显示本帮助\n  /打开指令补全（Tab接受，回车执行）\n  Alt+T切换思考强度\n  Alt+P切换模型\n  Enter发送 · Shift+Enter换行\n  ↑/↓翻看输入历史\n  esc忙时中断 · esc空闲最小化面板",
     "attachImage": "添加图片",
     "removeImage": "移除图片",
@@ -406,7 +417,7 @@
     "resizeBoth": "拖动调整窗口大小",
     "imageUploadFailed": "图片上传失败：仅支持JPEG/PNG/GIF/WebP，且单张不超过16MiB",
     "imageRejected": "上传失败",
-    "thinkLevel": "✻思考强度：{level}（/think切换）",
+    "thinkLevel": "思考强度：{level}（/think切换）",
     "headerName": "Xuan Harness",
     "headerVersion": "v1.0.0",
     "headerBilling": "API Usage Billing",
@@ -442,8 +453,8 @@
       "modelUnknownPrefix": "未知模型：",
       "resumeRestored": "已恢复上一次清空前的会话",
       "resumeEmpty": "没有可恢复的上一次会话",
-      "compacting": "✻正在压缩对话…",
-      "compacted": "✻已压缩对话历史，语义保留",
+      "compacting": "正在压缩对话…",
+      "compacted": "已压缩对话历史，语义保留",
       "compactFailed": "✗ 压缩失败，历史未变",
       "compactEmpty": "没有可压缩的对话历史",
       "compactBusy": "请求进行中无法压缩，请等待回复完成或按esc中断",
@@ -466,7 +477,28 @@
       "think": "切换思考强度",
       "status": "查看面板状态"
     },
-    "quickQuestions": ["你是谁", "你的技术栈", "介绍一下暮澜纪元", "联系方式"],
+    "quickQuestions": ["你是谁", "你的技术栈", "介绍一下暮澜纪元"],
+    "followUps": {
+      "label": "继续聊聊：",
+      "tech": ["这些技术栈具体体现在哪些项目里？", "最擅长的前后端技术分别是什么？", "AI Agent和MCP方面有哪些实践？"],
+      "projectsXrm": ["暮澜纪元用了哪些后端技术？", "和我恋爱吧与暮澜纪元有什么不同？", "循环工程skill能做什么？"],
+      "projectsFengLai": ["蜂来是做什么的？", "蜂来有哪些互动玩法？", "蜂来的战报海报怎么生成？"],
+      "projectsLove": ["和我恋爱吧用了什么技术栈？", "蜂来是做什么的？", "蜂来有哪些互动玩法？"],
+      "experience": ["教育背景是怎样的？", "做过哪些项目？", "技术栈具体体现在哪里？"],
+      "education": ["主修过哪些计算机课程？", "有过哪些教学经历？", "做过哪些项目？"],
+      "greeting": ["你是谁？", "你的技术栈是什么？", "介绍一下做过的项目"],
+      "fallback": ["你的技术栈是什么？", "介绍一下暮澜纪元", "教育背景是怎样的？"]
+    },
+    "contactLinks": {
+      "github": "GitHub主页",
+      "bilibili": "B站主页",
+      "qq": "QQ",
+      "wechat": "微信",
+      "phone": "手机号",
+      "copied": "已复制",
+      "open": "打开",
+      "copy": "复制"
+    },
     "component": {
       "projectNotFound": "未找到对应项目",
       "noSkillData": "暂无技能数据",
@@ -488,8 +520,8 @@
     "projects": {
       "xrm": {
         "name": "暮澜纪元",
-        "desc": "以Java 25自研400+类插件体系（HikariCP+MySQL持久化、Guice解耦），在《我的世界》里搭出8世界32职业大型网游：打怪、天赋、任务与组队全链路自研。",
-        "tags": ["Java 25", "Gradle Kotlin DSL", "HikariCP+MySQL", "Guice"],
+        "desc": "已上线Java 25自研400+类插件，一人从零做到8世界32职业并长期维护。",
+        "tags": ["Java 25", "8世界32职业", "打怪天赋任务组队", "400+类自研", "长期维护", "MMORPG服务端"],
         "metrics": {
           "classes": "400+Java类",
           "systems": "8世界/32职业"
@@ -497,11 +529,11 @@
       },
       "lovewithme": {
         "name": "和我恋爱吧",
-        "desc": "已上线的AI恋爱聊天全栈应用（Express+TypeScript+PostgreSQL+Redis，docker-compose六服务编排）：注册即聊、Socket.io实时对话，JWT+HTTPS保障长期留存。",
-        "tags": ["Node.js", "TypeScript", "Express", "PostgreSQL", "Redis", "Docker"],
+        "desc": "已上线恋爱聊天应用：挑个喜欢的AI对象开始聊，卡住了有军师帮你出主意，还能加好友、打挑战赛，注册完就能聊。",
+        "tags": ["已上线", "AI聊天", "军师支招", "好友互动", "挑战玩法", "注册即聊"],
         "metrics": {
-          "services": "6服务容器编排",
-          "security": "JWT+HTTPS+审计日志"
+          "services": "聊天/好友/挑战玩法",
+          "security": "注册即聊+操作留痕"
         }
       },
       "aiConsole": {
@@ -513,13 +545,13 @@
           "sources": "做完才停"
         }
       },
-      "analytics": {
-        "name": "恋爱吧数据中心",
-        "desc": "恋爱应用的运营数据中心（Spring Boot 3+Kafka+LangGraph RAG+FastAPI MCP+ECharts）：自动聚合业务数据生成可视化大屏，还能用自然语言直接查数。",
-        "tags": ["Spring Boot 3", "Kafka", "Redis", "LangGraph", "RAG", "FastAPI", "MCP", "ECharts"],
+      "fengLai": {
+        "name": "蜂来",
+        "desc": "纯前端3D整蛊直播间：双击点赞连击、拖拽道具投送投掷佩戴、弹幕刷屏、战报海报，纯前端无后端。",
+        "tags": ["纯前端", "3D整蛊", "双击点赞连击", "拖拽道具", "弹幕刷屏", "战报海报"],
         "metrics": {
-          "stack": "Java+Python双栈",
-          "tests": "80+自动化测试"
+          "stack": "纯前端无后端",
+          "tests": "点赞/道具/弹幕/战报"
         }
       }
     },
@@ -707,16 +739,16 @@
           "description": "深度使用过从海螺AI/CodeGeex/DeepSeek，到GLM-5.3-Flash/GPT-6-Astra/Muse Spark 1.3等AI进行开发任务或在其他领域进行探索尝试。",
           "achievement1": "熟练使用Claude Code/Codex等AI编码智能体完成项目开发",
           "achievement2": "熟练使用WorkBuddy/TraeWork等AI办公智能体完成日常任务",
-          "achievement3": "使用及创建上百种skill，熟悉MCP，Hooks，Rules等功能和使用方式。"
+          "achievement3": "使用及创建85+个Skill，熟悉MCP、Hooks、Rules等机制与使用方式。"
         },
         "indie": {
           "title": "独立开发者 · 和我恋爱吧及其他项目",
           "organization": "个人项目（已上线）",
           "period": "2026.05.10至今",
-          "description": "开发过如“和我恋爱吧、恋爱吧数据中心、个人简历、MMORPG插件”等多领域项目。具备全栈开发能力，可独立完成从前端页面、接口设计到后端服务与数据库的端到端开发。具备多技术栈开发经验，能够根据业务场景快速完成技术选型并落地。具备前后端分离项目的架构设计与开发经验。所使用的技术栈如下。",
-          "achievement1": "前端：Vue3+Vite+TypeScript、React19+Three.js+TailwindCSS、Socket.io实时通信、Pinia/Vue-Router/Zustand状态与路由",
-          "achievement2": "后端：Node.js+Express+TypeScript、SpringBoot+MyBatis-Plus、Python+FastAPI+LangGraph、PostgreSQL/MySQL/Redis/Kafka",
-          "achievement3": "工程与AI：Docker/docker-compose+Nginx+HTTPS、GradleKotlinDSL+Guice+HikariCP、MCP/RAG/pgvector/ECharts、JUnit/Mockito/Vitest/Playwright"
+          "description": "一人独立交付恋爱聊天、蜂来整蛊直播间、简历站与MMORPG插件：从页面、互动到部署端到端落地。",
+          "achievement1": "上线恋爱聊天应用：选AI对象聊天、军师支招、好友与挑战玩法，注册完就能聊。",
+          "achievement2": "上线蜂来3D整蛊直播间：双击点赞连击、拖拽道具投送投掷佩戴、弹幕刷屏、战报海报，纯前端无后端。",
+          "achievement3": "长期维护暮澜纪元8世界32职业服务端：自研400+类插件，打怪/天赋/任务/组队稳定在线。"
         }
       }
     },
@@ -761,35 +793,43 @@
       "dimensions": {
         "backendArchitecture": {
           "label": "后端架构",
-          "description": "Java/Spring Boot服务端、数据库设计和SQL调优"
+          "description": "Java/Spring Boot服务端、数据库设计和SQL调优",
+          "basis": "Java 25自研400+类，从零做到8世界32职业MMORPG服务端"
         },
         "aiAgent": {
           "label": "AI Agent",
-          "description": "自定义Skill、多Agent协作和MCP协议"
+          "description": "自定义Skill、多Agent协作和MCP协议",
+          "basis": "创建并应用85+个自定义Skill，熟悉MCP/Hooks/Rules"
         },
         "fullStack": {
           "label": "全栈开发",
-          "description": "React/TypeScript前端、RESTful API和工程化"
+          "description": "React/TypeScript前端、RESTful API和工程化",
+          "basis": "React 19+TypeScript+Three.js前端，Node/Express后端，已有上线应用"
         },
         "devops": {
           "label": "DevOps",
-          "description": "Docker/docker-compose部署、Git自动化和运维脚本"
+          "description": "Docker/docker-compose部署、Git自动化和运维脚本",
+          "basis": "docker-compose编排6服务上线，2019年至今运维多台服务器"
         },
         "techTeaching": {
           "label": "技术教学",
-          "description": "课程设计、论文修改和社群答疑"
+          "description": "课程设计、论文修改和社群答疑",
+          "basis": "B站10+门课，一对一指导50+毕业生，维护200人+学习群"
         },
         "designAesthetic": {
           "label": "设计审美",
-          "description": "UI/UX、品牌视觉和Three.js 3D"
+          "description": "UI/UX、品牌视觉和Three.js 3D",
+          "basis": "为暮澜纪元做UI/HUD，给85+Skill画统一图标与输出卡片"
         },
         "musicCreation": {
           "label": "音乐经历",
-          "description": "曾考取架子鼓九级证书（未创作过歌曲等）"
+          "description": "曾考取架子鼓九级证书（未创作过歌曲等）",
+          "basis": "考取架子鼓九级证书（未创作过歌曲）"
         },
         "contentCreation": {
           "label": "内容创作",
-          "description": "技术博客、小说和视频教程"
+          "description": "技术博客、小说和视频教程",
+          "basis": "写暮澜纪元小说、原创相声，录视频课与做游戏策划"
         }
       }
     }

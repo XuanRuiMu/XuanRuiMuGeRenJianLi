@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { ExperienceSection } from './ExperienceSection'
-import { experiences, educatorBilibiliUrl, wowguildVideoUrl } from '../../data/experience'
+import { experiences, educatorBilibiliUrl, wowguildVideoUrl, 暮澜链接 } from '../../data/experience'
 import { personalInfo } from '../../data/personalInfo'
 import { t } from '../../i18n/translations'
 
@@ -118,7 +118,8 @@ describe('ExperienceSection', () => {
       expect(border!.className).toContain('shadow-[0px_35px_120px_-15px_#211e35]')
       const inner = card.querySelector('.bg-\\[\\#151030\\]')
       expect(inner).not.toBeNull()
-      expect(card.querySelector('.tilt-card')).not.toBeNull()
+      expect(card).toHaveClass('tilt-card')
+      expect(card).toHaveAttribute('data-tilt-outer', 'true')
     }
   })
 
@@ -226,6 +227,7 @@ describe('ExperienceSection', () => {
   it('FP-05：有外链的经历卡片链接可点击跳转', () => {
     render(<ExperienceSection />)
     const cases = [
+      { id: 'mcserver', labelKey: 'projects.link.github', url: 暮澜链接 },
       { id: 'educator', labelKey: 'projects.link.bilibili', url: educatorBilibiliUrl },
       { id: 'wowguild', labelKey: 'projects.link.bilibili', url: wowguildVideoUrl },
       { id: 'indie', labelKey: 'projects.link.github', url: personalInfo.github },
@@ -244,11 +246,17 @@ describe('ExperienceSection', () => {
 
   it('FP-05：无外链的经历卡片不渲染链接', () => {
     render(<ExperienceSection />)
-    for (const id of ['mcserver', 'bachelor', 'aiengineer']) {
+    for (const id of ['bachelor', 'aiengineer']) {
       const card = document.querySelector(`[data-experience-card="${id}"]`)
       expect(card).not.toBeNull()
       expect(within(card as HTMLElement).queryByRole('link')).toBeNull()
     }
+  })
+
+  it('FP-01：经历首条挂指定暮澜链接', () => {
+    expect(暮澜链接).toBe('https://github.com/XuanRuiMu/XRMChaJian')
+    const 首条 = experiences.find((entry) => entry.id === 'mcserver')
+    expect(首条?.links?.[0].url).toBe('https://github.com/XuanRuiMu/XRMChaJian')
   })
 
   it('FP-05：独立开发者经历挂GitHub主页而非单个项目', () => {

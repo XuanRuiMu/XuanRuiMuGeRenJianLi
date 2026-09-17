@@ -71,4 +71,18 @@ describe('VisitorCounter（页脚访问人数，对接后端）', () => {
     expect(数字).toHaveClass('tabular-nums')
     expect(数字).toHaveTextContent('128')
   })
+
+  it('访问人数与其数字可被选中复制（根因：user-select禁选）', async () => {
+    状态.enabled = true
+    const VisitorCounter = await 载入组件()
+    const { container } = render(<VisitorCounter />)
+    const 卡片 = container.querySelector('.visitor-counter-card') as HTMLElement
+    const 数字 = container.querySelector('.visitor-counter-number') as HTMLElement
+    expect(卡片).not.toBeNull()
+    expect(数字).not.toBeNull()
+    const 卡片选中 = window.getComputedStyle(卡片).userSelect
+    const 数字选中 = window.getComputedStyle(数字).userSelect
+    expect(卡片选中).not.toBe('none')
+    expect(数字选中).not.toBe('none')
+  })
 })

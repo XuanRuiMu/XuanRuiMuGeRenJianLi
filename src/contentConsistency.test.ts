@@ -33,6 +33,18 @@ describe('FP-02内容一致性回归', () => {
     }
   })
 
+  it('FP-01：四处暮澜链接均为指定地址', async () => {
+    const { projects } = await import('./data/projects')
+    const { experiences } = await import('./data/experience')
+    const { showcaseRows } = await import('./data/showcase')
+    const 指定地址 = 'https://github.com/XuanRuiMu/XRMChaJian'
+    expect(projects.find((项目) => 项目.id === 'xrm')?.links[0].url).toBe(指定地址)
+    expect(experiences.find((条目) => 条目.id === 'mcserver')?.links?.[0].url).toBe(指定地址)
+    const 所有卡片 = showcaseRows.flatMap((行) => 行.cards)
+    expect(所有卡片.find((卡片) => 卡片.id === 'xrmUi')?.href).toBe(指定地址)
+    expect(所有卡片.find((卡片) => 卡片.id === 'gameWorld')?.href).toBe(指定地址)
+  })
+
   it('教学口径为线下小班课计算机培训', () => {
     expect(t('data.education.achievements.crashCourse')).toContain('线下小班课计算机培训')
     expect(t('data.education.achievements.crashCourse')).toContain('免修考试')
@@ -70,5 +82,12 @@ describe('FP-02内容一致性回归', () => {
     expect(music.skillKeys).not.toContain('data.music.skills.midi')
     expect(music.toolKeys).not.toContain('data.music.skills.kontakt')
     expect(music.toolKeys).not.toContain('data.music.skills.midi')
+  })
+
+  it('FP-01：AI输入框无视觉占位且保无障碍可用', () => {
+    expect(t('ai.empty')).toBe('有什么可以帮你的？')
+    expect(t('ai.empty')).not.toContain('例如')
+    expect(翻译文本).not.toContain('例如')
+    expect(翻译文本).not.toContain(['输入', '问题'].join(''))
   })
 })

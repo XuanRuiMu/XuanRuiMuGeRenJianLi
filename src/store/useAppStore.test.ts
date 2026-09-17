@@ -54,10 +54,11 @@ describe('useAppStore', () => {
     expect(useAppStore.getState().chatOpen).toBe(true)
   })
 
-  it('should have eight sections in order', () => {
-    expect(SECTION_ORDER).toHaveLength(8)
-    expect(Object.keys(SECTIONS)).toHaveLength(8)
+  it('should have nine sections in order', () => {
+    expect(SECTION_ORDER).toHaveLength(9)
+    expect(Object.keys(SECTIONS)).toHaveLength(9)
     expect(SECTION_ORDER).toContain('media')
+    expect(SECTION_ORDER).toContain('skills')
     expect(SECTION_ORDER).not.toContain('music')
   })
 
@@ -67,6 +68,18 @@ describe('useAppStore', () => {
     const state = useAppStore.getState()
     expect(state.performanceMetrics.lcp).toBe(1200)
     expect(state.performanceMetrics.cls).toBe(0.05)
+  })
+
+  it('should update one ai message in place for streaming progress', () => {
+    const { addAiMessage, updateAiMessage } = useAppStore.getState()
+    addAiMessage({ role: 'user', content: '流式问题' })
+    addAiMessage({ role: 'assistant', content: '' })
+    updateAiMessage(1, { reasoning: '思考一', content: '回答一' })
+    const state = useAppStore.getState()
+    expect(state.aiMessages).toHaveLength(2)
+    expect(state.aiMessages[0].content).toBe('流式问题')
+    expect(state.aiMessages[1].reasoning).toBe('思考一')
+    expect(state.aiMessages[1].content).toBe('回答一')
   })
 
   it('should merge frame metrics', () => {
