@@ -3,24 +3,36 @@ import Card from "./Card/index.astro";
 
 const stack = [
   {
-    group: "AI Agent",
-    items: ["Skill 开发", "Agent 工作流", "RAG 检索", "MCP 协议"],
+    group: "AI Agent / LLM 工程",
+    items: ["多步推理 Agent 运行时", "RAG（BM25 + 向量 RRF 融合）", "MCP 协议网关", "SSE 流式输出", "三级降级容错", "工具调用"],
+  },
+  {
+    group: "编程语言",
+    items: ["Python", "TypeScript", "Java", "JavaScript"],
   },
   {
     group: "前端",
-    items: ["React 18", "TypeScript", "Astro", "Vite"],
+    items: ["React 18", "Astro", "Vue 3", "Vite", "Canvas 2D", "WCAG 2.1 无障碍适配"],
   },
   {
     group: "后端",
-    items: ["Python FastAPI", "Node.js", "SSE 流式"],
+    items: ["FastAPI", "Node.js", "Spring Boot 3.5", "MyBatis", "REST API", "JWT 鉴权"],
   },
   {
     group: "数据库",
-    items: ["MySQL", "SQLAlchemy 异步 ORM", "SQLite"],
+    items: ["MySQL", "SQLAlchemy 异步 ORM", "Redis（入门）", "SQLite"],
   },
   {
-    group: "工具 & 运维",
-    items: ["Git", "Playwright 自动化测试", "腾讯云部署"],
+    group: "部署与运维",
+    items: ["腾讯云（Windows Server 2022）", "Docker（多阶段构建 + compose）", "Nginx", "服务守护与自愈", "Linux（WSL2，学习中）", "Git"],
+  },
+  {
+    group: "AI 编程工具链",
+    items: ["Claude Code", "Codex", "TRAE", "WorkBuddy", "可复用技能库", "MCP 服务端集成", "Git 提交前钩子（凭据 / 硬编码 / SQL 注入 / 翻译键）"],
+  },
+  {
+    group: "测试",
+    items: ["pytest", "JUnit 5 + Mockito"],
   },
 ];
 
@@ -49,5 +61,8 @@ const CHIP =
         </div>
       ))
     }
+    <p class="text-3xs text-darkslate-300 mt-3 leading-relaxed">
+      以上项目均为个人独立完成的自研 / 课程项目，非企业生产环境；未使用 Dify / Coze / LangChain，相关能力以自研实现，可快速迁移至主流框架。
+    </p>
   </div>
 </Card>
