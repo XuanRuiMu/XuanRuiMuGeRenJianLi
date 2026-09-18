@@ -4,6 +4,7 @@
 
 [![Stars](https://img.shields.io/github/stars/XuanRuiMu/XuanRuiMuGeRenJianLi?style=flat&logo=github)](https://github.com/XuanRuiMu/XuanRuiMuGeRenJianLi/stargazers)
 [![Forks](https://img.shields.io/github/forks/XuanRuiMu/XuanRuiMuGeRenJianLi?style=flat&logo=github)](https://github.com/XuanRuiMu/XuanRuiMuGeRenJianLi/forks)
+[![License: MIT](https://img.shields.io/github/license/XuanRuiMu/XuanRuiMuGeRenJianLi)](LICENSE)
 [![Last Commit](https://img.shields.io/github/last-commit/XuanRuiMu/XuanRuiMuGeRenJianLi)](https://github.com/XuanRuiMu/XuanRuiMuGeRenJianLi/commits/main)
 [![Issues](https://img.shields.io/github/issues/XuanRuiMu/XuanRuiMuGeRenJianLi)](https://github.com/XuanRuiMu/XuanRuiMuGeRenJianLi/issues)
 [![Repo Size](https://img.shields.io/github/repo-size/XuanRuiMu/XuanRuiMuGeRenJianLi)](https://github.com/XuanRuiMu/XuanRuiMuGeRenJianLi)
