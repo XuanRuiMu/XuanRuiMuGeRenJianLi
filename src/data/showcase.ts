@@ -146,13 +146,6 @@ export const showcaseRows: ShowcaseRow[] = [
         descKey: 'showcase.cards.escape.desc',
         image: '/showcase/爵士乐.png',
       },
-      {
-        id: 'fenglai',
-        titleKey: 'showcase.cards.fenglai.title',
-        descKey: 'showcase.cards.fenglai.desc',
-        href: 'https://xuanruimu.github.io/FengLai/index.html',
-        image: '/showcase/蜂来.png',
-      },
     ],
   },
   {
@@ -178,6 +171,13 @@ export const showcaseRows: ShowcaseRow[] = [
         descKey: 'showcase.cards.repoData.desc',
         href: 'https://github.com/XuanRuiMu/LianAiBaGuanLiZhongXin',
         image: '/showcase/恋爱吧管理中心LianAiBaGuanLiZhongXin.png',
+      },
+      {
+        id: 'fenglai',
+        titleKey: 'showcase.cards.fenglai.title',
+        descKey: 'showcase.cards.fenglai.desc',
+        href: 'https://xuanruimu.github.io/FengLai/index.html',
+        image: '/showcase/蜂来.png',
       },
     ],
   },

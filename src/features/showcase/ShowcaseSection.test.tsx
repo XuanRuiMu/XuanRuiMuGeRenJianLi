@@ -219,10 +219,15 @@ describe('FP-06探索板块重构：8视频与开源仓库可达', () => {
     }
   })
 
-  it('FP-04：media行末蜂来卡标题描述链接配图数据驱动', () => {
+  it('FP-04：opensource行末蜂来卡标题描述链接配图数据驱动', () => {
     const media行 = showcaseRows.find((row) => row.anchorId === 'media')
     expect(media行).toBeDefined()
-    const 蜂来卡 = media行?.cards.at(-1)
+    expect(media行?.cards.map((card) => card.id)).not.toContain('fenglai')
+    expect(media行?.cards).toHaveLength(5)
+    const opensource行 = showcaseRows.find((row) => row.anchorId === 'opensource')
+    expect(opensource行).toBeDefined()
+    expect(opensource行?.cards).toHaveLength(4)
+    const 蜂来卡 = opensource行?.cards.at(-1)
     expect(蜂来卡?.id).toBe('fenglai')
     expect(蜂来卡?.titleKey).toBe('showcase.cards.fenglai.title')
     expect(蜂来卡?.descKey).toBe('showcase.cards.fenglai.desc')
