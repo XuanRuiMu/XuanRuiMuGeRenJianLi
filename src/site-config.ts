@@ -22,6 +22,7 @@ export const SITE = {
     email: "3062949899@qq.com",
     game: "/game",
     chat: "/chat",
+    resume: "/resume.pdf",
   },
   status: {
     now: "找工作ing...",
