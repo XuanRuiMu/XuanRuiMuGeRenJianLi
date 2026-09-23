@@ -1,0 +1,9 @@
+# 大标题轮换播放的求职岗位：一行一个，# 开头为注释，空行忽略。
+# 作用域：只驱动首页大标题的岗位轮换（开发模式热更新，生产需 npm run build 重新构建）。
+# 求职方向串 career.direction（src/i18n/zh-CN.json）与 SEO 元数据（index.html、public/manifest.json）
+# 是三处各自独立的字面串，不会跟着本文件变；增删岗位后需另行同步这三处并跑守卫测试。
+AI应用工程师
+AI Agent开发
+RPA实施工程师
+低代码开发
+软件实施工程师

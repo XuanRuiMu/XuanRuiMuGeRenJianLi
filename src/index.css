@@ -1,0 +1,1874 @@
+@import 'tailwindcss';
+
+/* 主题变体与 useThemeSystem 的 class 切换体系对齐（documentElement .light/.dark），
+   覆盖 Tailwind v4 默认的 prefers-color-scheme 媒体查询语义 */
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant light (&:where(.light, .light *));
+
+@theme {
+  --color-bg: #0b0c15;
+  --color-surface: #11131e;
+  --color-surface-elevated: #181b29;
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-primary: #00d9ff;
+  --color-secondary: #a55eea;
+  --color-accent: #ff6b9d;
+  --color-text-primary: #f3f4f6;
+  --color-text-secondary: #c2c6d4;
+  --color-muted: #8b8fa3;
+  --color-glass: rgba(17, 19, 30, 0.55);
+  --color-glass-border: rgba(255, 255, 255, 0.14);
+  /* 卡面/棋盘语义令牌：暗色默认值取自浅色主题修复前组件里写死的字面值，暗色视觉零变化 */
+  --color-panel: #151030;
+  --color-panel-shadow: #211e35;
+  --color-board-start: #0f1b2e;
+  --color-board-end: #0a0f1a;
+  --color-board-border: rgba(255, 255, 255, 0.1);
+  --color-board-line: rgba(255, 255, 255, 0.16);
+  --color-board-star: rgba(255, 255, 255, 0.4);
+  --color-board-hover: rgba(255, 255, 255, 0.05);
+  --color-board-focus: rgba(56, 189, 248, 0.5);
+  --color-stone-last-ring: rgba(255, 255, 255, 0.85);
+  --color-stone-win: #fde047;
+  /* 顶部导航语义令牌：暗色默认值取自 glass-nav 移植原样的字面值，暗色视觉零变化；
+     玻璃条（surface/border）浅色值在顶层 .light 块，胶囊浅色值只在
+     .light .glass-nav .nav-link-pill 作用域覆盖——移动端下拉面板恒为深色底，
+     其内胶囊不在 .glass-nav 内，继续继承这里的暗色值 */
+  --color-nav-surface: rgba(7, 19, 45, 0.18);
+  --color-nav-border: rgba(125, 211, 252, 0.08);
+  --color-nav-pill-text: #bae6fd;
+  --color-nav-pill-border: rgba(125, 211, 252, 0.4);
+  --color-nav-pill-glow: rgba(56, 189, 248, 0.25);
+  --color-nav-pill-hover-surface: rgba(125, 211, 252, 0.1);
+  --color-nav-pill-hover-border: rgba(125, 211, 252, 0.7);
+  --color-nav-pill-hover-glow: rgba(56, 189, 248, 0.45);
+  --color-nav-focus-ring: rgba(56, 189, 248, 0.6);
+}
+
+.light {
+  --color-bg: #f8f9fb;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #f1f4f8;
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-primary: #007a99;
+  --color-secondary: #7c3aed;
+  --color-accent: #db2777;
+  --color-text-primary: #0b0c15;
+  --color-text-secondary: #4b4f5c;
+  --color-muted: #5f636f;
+  --color-glass: rgba(255, 255, 255, 0.62);
+  --color-glass-border: rgba(0, 0, 0, 0.1);
+  --color-panel: #ffffff;
+  --color-panel-shadow: rgba(15, 23, 42, 0.18);
+  --color-board-start: #f7e7c3;
+  --color-board-end: #eed6a0;
+  --color-board-border: rgba(120, 85, 40, 0.35);
+  --color-board-line: rgba(74, 47, 15, 0.75);
+  --color-board-star: rgba(74, 47, 15, 0.95);
+  --color-board-hover: rgba(74, 47, 15, 0.12);
+  --color-board-focus: rgba(0, 122, 153, 0.85);
+  --color-stone-last-ring: rgba(3, 105, 161, 0.95);
+  --color-stone-win: #c2410c;
+  /* 导航玻璃条浅色值：白玻璃压丝绸纹理底；胶囊文字/描边等见
+     .light .glass-nav .nav-link-pill 作用域覆盖（原因见 @theme 处注释） */
+  --color-nav-surface: rgba(255, 255, 255, 0.72);
+  --color-nav-border: rgba(7, 89, 133, 0.2);
+}
+
+@supports (color: oklch(from #000000 l c h)) {
+  :root {
+    --color-bg: oklch(from #0b0c15 l c h);
+    --color-surface: oklch(from #11131e l c h);
+    --color-surface-elevated: oklch(from #181b29 l c h);
+    --color-border: oklch(from #ffffff l c h / 0.12);
+    --color-primary: oklch(from #00d9ff l c h);
+    --color-secondary: oklch(from #a55eea l c h);
+    --color-accent: oklch(from #ff6b9d l c h);
+    --color-text-primary: oklch(from #f3f4f6 l c h);
+    --color-text-secondary: oklch(from #c2c6d4 l c h);
+    --color-muted: oklch(from #8b8fa3 l c h);
+    --color-glass: oklch(from #11131e l c h / 0.55);
+    --color-glass-border: oklch(from #ffffff l c h / 0.14);
+  }
+
+  .light {
+    --color-bg: oklch(from #f8f9fb l c h);
+    --color-surface: oklch(from #ffffff l c h);
+    --color-surface-elevated: oklch(from #f1f4f8 l c h);
+    --color-border: oklch(from #000000 l c h / 0.1);
+    --color-primary: oklch(from #007a99 l c h);
+    --color-secondary: oklch(from #7c3aed l c h);
+    --color-accent: oklch(from #db2777 l c h);
+    --color-text-primary: oklch(from #0b0c15 l c h);
+    --color-text-secondary: oklch(from #4b4f5c l c h);
+    --color-muted: oklch(from #5f636f l c h);
+    --color-glass: oklch(from #ffffff l c h / 0.62);
+    --color-glass-border: oklch(from #000000 l c h / 0.1);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Quantico 字体（8112 TECH STACK 标题用） */
+.font-quantico {
+  font-family: 'Quantico', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@supports (font-family: 'Quantico') {
+  .font-quantico {
+    font-family: 'Quantico', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+}
+
+.showcase-marquee {
+  width: max-content;
+  overflow: visible;
+  will-change: transform;
+}
+
+#root {
+  position: relative;
+}
+
+/* 表单控件基线样式：必须位于 @layer base 内。
+   若为裸全局规则（无 layer），按 Cascade Layers 规则会战胜 @layer utilities 中的
+   Tailwind utilities（bg-transparent/bg-black/40/text-* 等全部失效），导致组件级
+   样式控制权被剥夺（浅色模式 AI 聊天输入框被刷成 var(--color-surface) 的根因）。 */
+@layer base {
+  ::placeholder {
+    color: var(--color-muted);
+    opacity: 1;
+  }
+
+  input,
+  textarea,
+  select {
+    border-color: var(--color-border);
+    color: var(--color-text-primary);
+    background-color: var(--color-surface);
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    border-color: var(--color-primary);
+  }
+
+  .light input,
+  .light textarea,
+  .light select {
+    border-color: rgba(0, 0, 0, 0.18);
+  }
+
+  @supports (color: oklch(from #000000 l c h)) {
+    .light input,
+    .light textarea,
+    .light select {
+      border-color: oklch(from #000000 l c h / 0.18);
+    }
+  }
+
+  .light input:focus,
+  .light textarea:focus,
+  .light select:focus {
+    border-color: var(--color-primary);
+  }
+
+  /* ============ 自动填充态根治（需求3：Edge/Chrome「保存的信息」刷白输入框） ============ */
+  /* 根因：Chromium 系 UA stylesheet 对 autofill 态（:-webkit-autofill）施加不透明内阴影
+     （-webkit-box-shadow: 0 0 0 1000px <填充色> inset）与 -webkit-text-fill-color，
+     盖住输入框自身的深色背景与浅色文字；任意字符输入后 autofill 态解除、样式恢复。
+     autocomplete=off 被浏览器普遍无视，根治只能由项目 CSS 显式覆盖。
+     变量语义：
+     - --autofill-overlay：autofill 态内阴影铺底实色（box-shadow 无法半透明，只能取实色）
+     - --autofill-text：autofill 态文字与光标颜色 */
+  :root {
+    --autofill-overlay: #121212;
+    --autofill-text: #e6e6e6;
+  }
+
+  /* 浅色对近似 ContactSection 表单底（bg-black/[0.04] 叠白卡片 ≈ 96% 白），取纯白铺底
+     允许轻微差异；同时覆盖 UiComponentRegistry 表单（bg-bg 双主题跟随） */
+  .light {
+    --autofill-overlay: #ffffff;
+    --autofill-text: #0b0c15;
+  }
+
+  /* 锚点例外：AIChat 输入框为终端风组件，容器 bg-[#121212]/文字 text-[#e6e6e6]
+     写死于 JSX 不随主题切换，浅色主题下若沿用白色铺底会在深色终端框内出现白块——
+     正是本需求要根除的缺陷。name="message" 为全站唯一锚点（AIChat.tsx），
+     元素级重声明变量优先于 .light 的继承值，使该框双主题恒用终端深色配对 */
+  input[name='message'],
+  textarea[name='message'],
+  select[name='message'] {
+    --autofill-overlay: #121212;
+    --autofill-text: #e6e6e6;
+  }
+
+  /* 覆盖规则：hover/focus 变体防部分版本 UA 分态加强；transition 超长过渡是经典对策——
+     UA 以 background-color 过渡动画刷入填充底色，令其永不完成 */
+  input:-webkit-autofill,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  textarea:-webkit-autofill:hover,
+  select:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill:focus,
+  select:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px var(--autofill-overlay) inset;
+    -webkit-text-fill-color: var(--autofill-text);
+    caret-color: var(--autofill-text);
+    transition: background-color 9999s ease-in-out 0s;
+  }
+}
+
+.text-shadow-readable {
+  text-shadow:
+    0 1px 6px color-mix(in srgb, var(--color-bg) 92%, transparent),
+    0 2px 18px color-mix(in srgb, var(--color-bg) 78%, transparent),
+    0 4px 40px color-mix(in srgb, var(--color-bg) 58%, transparent);
+}
+
+@supports (color: oklch(from #000000 l c h)) {
+  .text-shadow-readable {
+    text-shadow:
+      0 1px 6px oklch(from var(--color-bg) l c h / 0.92),
+      0 2px 18px oklch(from var(--color-bg) l c h / 0.78),
+      0 4px 40px oklch(from var(--color-bg) l c h / 0.58);
+  }
+}
+
+.divider-line {
+  border-top: 1px solid var(--color-border);
+}
+
+:root {
+  --badge-mint-text: #6ee7b7;
+  --badge-orange-text: #fb923c;
+}
+
+.light {
+  --badge-mint-text: #047857;
+  --badge-orange-text: #c2410c;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 5px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: rgba(128, 128, 128, 0.08);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.3);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.45);
+}
+
+@supports (color: oklch(from #808080 l c h)) {
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: oklch(from #808080 l c h / 0.08);
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: oklch(from #808080 l c h / 0.3);
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: oklch(from #808080 l c h / 0.45);
+  }
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.font-display {
+  font-family:
+    'SmileySans-Subset',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+
+.text-glow {
+  text-shadow:
+    0 0 8px currentColor,
+    0 0 24px currentColor,
+    0 0 48px color-mix(in srgb, currentColor 50%, transparent);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(128, 128, 128, 0.12) 0%,
+    rgba(128, 128, 128, 0.24) 50%,
+    rgba(128, 128, 128, 0.12) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite linear;
+  border-radius: 0.5rem;
+}
+
+@supports (color: oklch(from #808080 l c h)) {
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      oklch(from #808080 l c h / 0.12) 0%,
+      oklch(from #808080 l c h / 0.24) 50%,
+      oklch(from #808080 l c h / 0.12) 100%
+    );
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 可访问性：减少动画偏好 */
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* View Transitions API */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.8s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(root) {
+  animation-name: vt-fade-out;
+}
+
+::view-transition-new(root) {
+  animation-name: vt-fade-in;
+}
+
+@keyframes vt-fade-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+::view-transition-old(command-palette),
+::view-transition-new(command-palette) {
+  animation-duration: 0.35s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(command-palette) {
+  animation-name: vt-command-out;
+}
+
+::view-transition-new(command-palette) {
+  animation-name: vt-command-in;
+}
+
+@keyframes vt-command-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(-12px);
+  }
+}
+
+@keyframes vt-command-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Circular reveal theme transition */
+html.circular-reveal-active::view-transition-new(root) {
+  animation-name: circular-reveal-in;
+  animation-duration: 0.7s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html.circular-reveal-active::view-transition-old(root) {
+  animation-name: circular-reveal-out;
+  animation-duration: 0.7s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes circular-reveal-in {
+  from {
+    clip-path: circle(0% at var(--circular-origin-x, 50%) var(--circular-origin-y, 50%));
+  }
+
+  to {
+    clip-path: circle(150% at var(--circular-origin-x, 50%) var(--circular-origin-y, 50%));
+  }
+}
+
+@keyframes circular-reveal-out {
+  from {
+    clip-path: circle(150% at var(--circular-origin-x, 50%) var(--circular-origin-y, 50%));
+  }
+
+  to {
+    clip-path: circle(0% at var(--circular-origin-x, 50%) var(--circular-origin-y, 50%));
+  }
+}
+
+/* 统一入场动画 — IntersectionObserver 驱动（见 components/Reveal.tsx） */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 1.4s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+  /* 根因修复（交界白线）：原本永久 will-change:opacity,transform 会把每个 .reveal（含
+     恰好落在「项目作品/技能」交界处的技能标题）永久提升为独立合成层。快速滚动时该层边缘
+     与相邻 section 在分数像素处错位，露出浏览器默认白色（而非深色底），表现为交界粗白线。
+     移除永久 will-change：过渡期间浏览器会自动提升图层，动画结束后自动降级，既不损失入场
+     性能，也消除了长期驻留的合成层这一整类交界闪白问题。 */
+}
+
+.reveal--visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* 减少动画偏好转为静态：内容直接可见，无位移、无过渡 */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal--visible {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+.reduced-motion .reveal,
+.reduced-motion .reveal--visible {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+/* Container Queries */
+.card-container {
+  container-type: inline-size;
+  container-name: card;
+}
+
+@container card (max-width: 220px) {
+  .card-container {
+    padding: var(--spacing-3);
+  }
+
+  .card-container .card-header {
+    margin-bottom: var(--spacing-2);
+  }
+
+  .card-container .card-footer {
+    margin-top: var(--spacing-2);
+    padding-top: var(--spacing-2);
+  }
+}
+
+@container card (min-width: 480px) {
+  .card-container {
+    padding: var(--spacing-8);
+  }
+}
+
+.section-card-container {
+  container-type: inline-size;
+  container-name: section-card;
+}
+
+@container section-card (max-width: 260px) {
+  .section-card-container {
+    padding: var(--spacing-4);
+  }
+}
+
+@container section-card (min-width: 560px) {
+  .section-card-container {
+    padding: var(--spacing-8);
+  }
+}
+
+/* 经历卡片倾斜由外层 .experience-card 承接（data-tilt-outer），.tilt-card 仅保留兼容空壳，禁止写 transform 语义 */
+
+/* Experience Timeline */
+.timeline {
+  --timeline-progress: 0;
+  --timeline-line-width: 2px;
+  --timeline-node-size: 1.25rem;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 1.25rem;
+  top: 0;
+  bottom: 0;
+  width: var(--timeline-line-width);
+  background: var(--color-muted);
+  opacity: 0.35;
+  border-radius: 999px;
+}
+
+.timeline::after {
+  content: '';
+  position: absolute;
+  left: 1.25rem;
+  top: 0;
+  width: var(--timeline-line-width);
+  height: 100%;
+  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-secondary) 50%, var(--color-accent) 100%);
+  border-radius: 999px;
+  transform: scaleY(var(--timeline-progress));
+  transform-origin: top center;
+  box-shadow:
+    0 0 12px var(--color-primary),
+    0 0 28px var(--color-secondary);
+  transition: transform 0.1s linear;
+  z-index: 1;
+}
+
+@media (min-width: 768px) {
+  .timeline::before,
+  .timeline::after {
+    left: 50%;
+    transform: translateX(-50%) scaleY(var(--timeline-progress));
+  }
+
+  .timeline::before {
+    transform: translateX(-50%) scaleY(1);
+  }
+}
+
+/* 不设 perspective、wrapper 不设 preserve-3d：卡片倾斜由 .tilt-card 自带 perspective() 自洽；
+   多层 3D 上下文嵌套会让内部链接的绘制位置与命中位置分离（经历链接点不中的根因，e2e: experience-links） */
+.timeline-card-wrapper {
+  border-radius: 16px;
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 1.2s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.timeline-item.is-visible .timeline-card-wrapper,
+.timeline-item:first-child .timeline-card-wrapper {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 不为 timeline-card-wrapper 绘制悬停描边：经历卡片自带 .experience-gradient-border，
+   外层 ::before 不随 is-pressed 的 scale(0.985) 缩小，会在按压后于卡外露出青色残留线。 */
+
+.timeline-node {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.timeline-node.is-active {
+  transform: scale(1.35);
+  background: var(--color-primary);
+  border-color: var(--color-bg);
+}
+
+.timeline-node.is-active::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 2px solid var(--color-primary);
+  opacity: 0.85;
+  box-shadow:
+    0 0 16px var(--color-primary),
+    0 0 32px var(--color-secondary),
+    0 0 48px var(--color-accent);
+  animation: timeline-node-active-pulse 1.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes timeline-node-active-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.timeline-details {
+  max-height: 4rem;
+}
+
+.timeline-item:hover .timeline-details,
+.timeline-item:focus-within .timeline-details {
+  max-height: 20rem;
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .timeline-item {
+      animation: timeline-item-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 12% cover 35%;
+    }
+  }
+}
+
+@keyframes timeline-item-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(40px) rotateX(8deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) rotateX(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timeline::after {
+    transform: scaleY(1);
+  }
+
+  .timeline-card-wrapper {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .timeline-node {
+    animation: none;
+  }
+
+  .timeline-node.is-active {
+    transform: none;
+  }
+
+  .timeline-node.is-active::after {
+    animation: none;
+    opacity: 0.85;
+    transform: scale(1);
+  }
+
+  .timeline-details {
+    max-height: none;
+  }
+}
+
+.reduced-motion .timeline::after {
+  transform: scaleY(1);
+}
+
+.reduced-motion .timeline-card-wrapper {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reduced-motion .timeline-node {
+  animation: none;
+}
+
+.reduced-motion .timeline-node.is-active {
+  transform: none;
+}
+
+.reduced-motion .timeline-node.is-active::after {
+  animation: none;
+  opacity: 0.85;
+  transform: scale(1);
+}
+
+.reduced-motion .timeline-details {
+  max-height: none;
+}
+
+/* Anchor Positioning */
+.nav-anchor {
+  position: relative;
+}
+
+.nav-tooltip {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  z-index: 60;
+}
+
+.nav-anchor:hover .nav-tooltip,
+.nav-anchor:focus-visible .nav-tooltip {
+  opacity: 1;
+}
+
+@supports (top: anchor(bottom)) {
+  .nav-tooltip {
+    top: calc(anchor(bottom) + 6px);
+    left: anchor(center);
+  }
+}
+
+/* Skill Galaxy Fallback */
+.skill-galaxy-aurora {
+  background:
+    radial-gradient(circle at 20% 30%, var(--color-primary) 0%, transparent 35%),
+    radial-gradient(circle at 80% 70%, var(--color-secondary) 0%, transparent 35%),
+    radial-gradient(circle at 50% 50%, var(--color-accent) 0%, transparent 45%);
+  filter: blur(60px);
+  animation: skill-galaxy-aurora-drift 18s ease-in-out infinite alternate;
+}
+
+.skill-galaxy-stars {
+  background-image:
+    radial-gradient(2px 2px at 20px 40px, var(--color-text-primary), transparent),
+    radial-gradient(1.5px 1.5px at 80px 120px, var(--color-primary), transparent),
+    radial-gradient(1px 1px at 160px 60px, var(--color-secondary), transparent),
+    radial-gradient(2px 2px at 240px 180px, var(--color-accent), transparent),
+    radial-gradient(1.5px 1.5px at 320px 90px, var(--color-text-primary), transparent);
+  background-size: 360px 220px;
+  opacity: 0.35;
+  animation: skill-galaxy-stars-pan 24s linear infinite;
+}
+
+.skill-galaxy-constellation {
+  background-image:
+    linear-gradient(var(--color-primary) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-primary) 1px, transparent 1px);
+  background-size: 120px 120px;
+  opacity: 0.04;
+  animation: skill-galaxy-constellation-drift 30s linear infinite;
+}
+
+@keyframes skill-galaxy-aurora-drift {
+  from {
+    transform: translate3d(-4%, -4%, 0) scale(1);
+  }
+
+  to {
+    transform: translate3d(4%, 4%, 0) scale(1.08);
+  }
+}
+
+@keyframes skill-galaxy-stars-pan {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 360px 220px;
+  }
+}
+
+@keyframes skill-galaxy-constellation-drift {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 120px 120px;
+  }
+}
+
+/* Advanced Tabs */
+.advanced-tabs-list {
+  box-shadow:
+    0 0 28px color-mix(in srgb, var(--color-primary) 8%, transparent),
+    inset 0 0 0 1px var(--color-glass-border);
+}
+
+.advanced-tabs-indicator {
+  background: var(--color-primary);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--color-primary) 55%, transparent);
+}
+
+/* Projects Clothesline — 物理晾衣架便签 */
+.clothesline-region {
+  --rope-silver-light: #e8eaed;
+  --rope-silver-mid: #9aa0a6;
+  --rope-silver-dark: #5f6368;
+  --rope-brown-light: #a9743d;
+  --rope-brown-dark: #6b4423;
+  --note-text: #2b2118;
+  --note-text-soft: #6b5a45;
+  --note-link: #8a4d16;
+  position: relative;
+  height: 26rem;
+}
+
+@media (min-width: 768px) {
+  .clothesline-region {
+    height: 30rem;
+  }
+}
+
+/* 测试页用：区域撑满父容器剩余高度（flex 列布局） */
+.clothesline-region--fill {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+}
+
+/* 画布与容器（.clothesline-region）同宽同左缘，银绳恰好跨满便签区，
+   不再满幅溢出视口；放大缩放时随区域一并被外层 .clothesline-scroll 横向滚动揭示。 */
+.clothesline-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 满幅（full-bleed）破出容器：
+   - 满幅：用 width:100vw + margin-left:calc(50% - 50vw) 从 Section 的 max-w-6xl 居中容器里「破出」，
+     使容器恰好跨满整个视口 → 内部 .clothesline-canvas（region 同宽）银绳两端角点钉在视口边缘，
+     正常/缩小缩放下绳子连到浏览器两边（与改动前观感一致）。
+   - 不再设 overflow：原先的 overflow-x/y:auto 会把本容器变成滚动容器/独立合成层，其底边（region 高度处，
+     技能区上方固定高度）在滚动分数像素处与下层错位露出白色（见下方根因修复注释）。现 overflow 默认 visible，
+     100vw 破出产生的横向溢出由 body 的 overflow-x:hidden 兜底裁切，既不触发整页横滚，也不创建合成层。
+   - 取舍：放大缩放下不再提供横向滚动条揭示被挡便签（改为由 body 裁切），该 niche 功能让位于消除可见的白线缺陷。 */
+.clothesline-scroll {
+  position: relative;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  /* 根因修复（交界粗白线）：原 overflow-x/y:auto 把本容器变成滚动容器/独立合成层，
+     其底边恰落在 region 高度处（技能区上方固定高度）。滚动时该层底边在分数像素处与下层错位，
+     露出浏览器默认白色 → 贯穿整条的粗白线；向下滚动时物理给便签施加向下力，白色便签被推到该层底边，
+     于是表现为「便签触到固定高度就出白线」。改为不创建滚动容器（overflow 默认 visible），
+     100vw 破出满幅的溢出由 body 的 overflow-x:hidden 兜底裁切，既保留满幅绳效，又根除该整条裁切边这类交界闪白。
+     （代价：放大缩放下不再提供横向滚动揭示被挡便签，改为由 body 裁切——该 niche 功能让位于消除可见缺陷。） */
+}
+
+/* 测试页填充模式：让滚动容器也撑满父级剩余高度 */
+.clothesline-scroll:has(.clothesline-region--fill) {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.clothesline-note {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transform-origin: 50% 50%;
+  /* 根因修复（交界白线）：原本 will-change:transform 把每张（白色）便签永久提升为独立合成层，
+     其层边缘在滚动分数像素处与下层错位会露白。便签本就由物理引擎每帧 transform 驱动，
+     过渡/摆动期间浏览器会自动提升图层、静止后自动降级，无需永久 will-change。 */
+}
+
+/* 窄屏静态卡片网格（<768px 由 JS 切换渲染）：覆盖物理便签的绝对定位与隐藏初始态，
+   复用同一张羊皮纸素材、染色规则与内容排版（.clothesline-note-content 的 inset 百分比）。 */
+.clothesline-mobile-grid {
+  display: grid;
+  gap: 1.25rem;
+  padding: 0 0.75rem;
+}
+
+.clothesline-static-note {
+  position: relative;
+  opacity: 1;
+  width: 100%;
+  max-width: 22rem;
+  margin: 0 auto;
+  aspect-ratio: 547 / 638;
+  transform: none;
+  will-change: auto;
+}
+
+.clothesline-note-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center top;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.clothesline-note-tint {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  /* 染色只落在羊皮卷不透明区域，避免矩形光晕 */
+  -webkit-mask-image: url('/images/标准.png');
+  mask-image: url('/images/标准.png');
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-position: center top;
+  mask-position: center top;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* 四张便签浅色系：纯白 / 象牙白 / 浅粉 / 浅杏 */
+.clothesline-note[data-tint='0'] .clothesline-note-tint {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.clothesline-note[data-tint='1'] .clothesline-note-tint {
+  background: rgba(255, 246, 220, 0.34);
+}
+
+.clothesline-note[data-tint='2'] .clothesline-note-tint {
+  background: rgba(255, 205, 216, 0.4);
+}
+
+.clothesline-note[data-tint='3'] .clothesline-note-tint {
+  background: rgba(253, 230, 200, 0.42);
+}
+
+.clothesline-note-content {
+  position: absolute;
+  /* FP-01 像素级实测（Playwright canvas getImageData 扫描标准.png 547×638）：
+   * 算法：①dark=max(r,g,b)<70 边框/螺旋；②cream=非dark且非纯白；
+   * ③螺旋下沿=上部35%内左25%区域dark密度>30%的最后一行→y=137px(21.47%)；
+   * ④安全矩形=螺旋下沿以下逐行扫cream，左缘P70分位数、右缘P30分位数（统计法避过渡行污染）；
+   * ⑤四边各内缩6px安全边距。
+   * 测得(px): top=143 left=107 right=506 bottom=609
+   * 转百分比: top=22.41% / right=7.50% / bottom=4.55% / left=19.56%
+   * 基于此修复了文字越出羊皮卷实际边界（尤其左侧螺旋卷曲区） */
+  inset: 22.41% 7.5% 4.55% 19.56%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  /* 段间距（标题↔正文、正文↔链接）钉死为 1em = 正文自身字号，
+     满足「间隙不超过正文字号大小」的排版规范；与正文行距（--note-body-line 1.38）解耦——
+     段落间距 < 行距，使同段文字聚合更紧、段间仍清晰可辨。
+     em 以 --note-fit 为基准，间距随字号缩放，自动规范。 */
+  --note-body-line: 1.38;
+  gap: 1em;
+  /* FP-04：单一字号旋钮，运行时由 useNoteAutoFit 二分搜索推到「刚好放得下」的最大值。
+     兜底 0.8rem 保证 JS 未执行时仍有可读默认字号。 */
+  font-size: var(--note-fit, 0.8rem);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.clothesline-note-content > * {
+  pointer-events: auto;
+}
+
+.clothesline-note-title {
+  /* 根因修复：移除旧 flex-shrink:0 上下硬钉，三板块作为一组随自然流排版。
+     FP-04：em 相对 --note-fit（保持「标题最大」层次，1.45em 对应基准 0.8 的约 1.16rem） */
+  margin: 0 3% 0 1%;
+  font-size: 1.45em;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--note-text);
+}
+
+.clothesline-note-desc {
+  margin: 0 2% 0 2%;
+  font-size: 1em;
+  line-height: var(--note-body-line);
+  letter-spacing: 0.004em;
+  color: var(--note-text-soft);
+  /* 项目描述自然分行：不限字母/单词必须同行，允许在任意字符处换行 */
+  overflow-wrap: anywhere;
+  word-break: break-all;
+  line-break: anywhere;
+}
+
+.clothesline-note-link {
+  /* 根因修复：移除旧 flex-shrink:0 上下硬钉；同时移除 margin-top:auto 的「底部锚定」——
+     该属性会把盒子剩余空白全部吸到正文与链接之间，导致部分便签空隙过大。
+     改为自然流式：链接紧跟正文（仅 1.38em 统一段间距，与标题-正文间距一致），
+     剩余留白落到羊皮卷底部，符合手写便签的自然排版；
+     顺带使 useNoteAutoFit 的 4% 保守回退仅在内容真填满时才触发，不再被 auto 误触发。
+     FP-04：font-size 1.05em 相对 --note-fit */
+  margin: 0 3% 0 1%;
+  font-size: 1.05em;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--note-link);
+  text-decoration: none;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.clothesline-note-link:hover {
+  text-decoration: underline;
+}
+
+.clothesline-note-content a:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* 打字机块状光标 */
+.caret-blink {
+  animation: caret-blink 1s steps(1, end) infinite;
+}
+
+@keyframes caret-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ============ 五子棋 · 高端重做 ============ */
+
+/* 落子缩放入场（弹性缓动） */
+@keyframes gomoku-drop {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* 连珠高亮脉冲 */
+@keyframes gomoku-win-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px var(--color-stone-win),
+      0 0 10px var(--color-stone-win);
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px var(--color-stone-win),
+      0 0 22px var(--color-stone-win);
+  }
+}
+
+/* 掫桌：绕垂直轴（Y）旋转 180°，正面棋盘转到背面（正面/背面双面 3D 翻转）。
+   契约锁：时长 0.8s 与 Gomoku.tsx 的 400ms 中段清盘定时器双源耦合（清盘须发生在
+   ~90° 侧棱时刻），改此时长必须同步改 Gomoku.tsx 的 flipClearTimerRef 延时。 */
+@keyframes gomoku-flip {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(180deg);
+  }
+}
+
+/* 3D 翻转容器：perspective 由父级外层提供；preserve-3d 让正/背面构成真实立体 */
+.gomoku-flip {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  transform-style: preserve-3d;
+}
+
+.gomoku-flip__face {
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* 棋盘格线与星位：颜色走 CSS 规则而非 SVG 呈现属性（var() 在呈现属性上无实现保证）。
+   暗底半透明白线 / 浅黄木底墨线由同一令牌随主题切换 */
+.gomoku-grid__line {
+  stroke: var(--color-board-line);
+}
+
+.gomoku-grid__star {
+  fill: var(--color-board-star);
+}
+
+/* 正面：棋盘底色 + 描边 + 内边距（暗为深蓝玻璃，浅为浅黄木色） */
+.gomoku-flip__face--front {
+  background: linear-gradient(135deg, var(--color-board-start), var(--color-board-end));
+  border: 1px solid var(--color-board-border);
+  padding: 12px;
+}
+
+/* 背面：同样是棋盘（现实的棋盘正反两面都是棋面），与正面同底色/同内边距，
+   格线/星位由 Gomoku.tsx 的共享棋盘格线组件渲染，翻面后依然是完整棋面而非纯黑板 */
+.gomoku-flip__face--back {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, var(--color-board-end), var(--color-board-start));
+  border: 1px solid var(--color-board-border);
+  padding: 12px;
+}
+
+.gomoku-flip.is-flipping {
+  animation: gomoku-flip 0.8s cubic-bezier(0.45, 0.05, 0.25, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gomoku-flip.is-flipping {
+    animation: none;
+  }
+}
+
+.gomoku-stone {
+  width: 86%;
+  height: 86%;
+  border-radius: 9999px;
+  animation: gomoku-drop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.gomoku-stone--black {
+  background: radial-gradient(circle at 35% 30%, #5b6573, #0a0e16 72%);
+  box-shadow:
+    inset 0 -2px 4px rgba(0, 0, 0, 0.6),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.gomoku-stone--white {
+  background: radial-gradient(circle at 35% 30%, #ffffff, #cbd5e1 72%);
+  /* 深色描边：真实围棋白子在深色棋盘上靠暗边轮廓成像；无描边时白色石与
+     浅色格线/光晕融为一团不可辨。用 border 而非 box-shadow，避免被 --last/--win 的环覆盖；
+     3px 保证小尺寸棋子（单元格约 20px）上描边清晰可辨 */
+  border: 3px solid rgba(10, 15, 26, 0.95);
+  box-shadow:
+    inset 0 -2px 4px rgba(0, 0, 0, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* 最后一手高亮（青色环） */
+.gomoku-stone--last {
+  box-shadow:
+    0 0 0 2px var(--color-stone-last-ring),
+    0 0 14px rgba(56, 189, 248, 0.85);
+}
+
+/* 连珠高亮（金色脉冲） */
+.gomoku-stone--win {
+  box-shadow:
+    0 0 0 2px var(--color-stone-win),
+    0 0 16px var(--color-stone-win);
+  animation:
+    gomoku-drop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+    gomoku-win-pulse 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gomoku-stone {
+    animation: none;
+  }
+  .gomoku-stone--win {
+    animation: gomoku-win-pulse 1.2s ease-in-out infinite;
+  }
+}
+
+.reduced-motion .gomoku-stone {
+  animation: none;
+}
+
+.reduced-motion .gomoku-stone--win {
+  animation: gomoku-win-pulse 1.2s ease-in-out infinite;
+}
+
+/* Ink Reveal Overlay — 100% mimo.xiaomi.com algorithm */
+.ink-reveal-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ============ 浅色模式壁纸 · 神奈川冲浪里（真实名画扫描底图 + 微动循环视频） ============ */
+
+/* 纵向上下各溢出 320px：预留滚动位移空间（位移上限 280px），任何页面长度下不露底。
+   画面由组件内挂的 <img> 静态底图（真实名画扫描帧，object-cover 铺满）+
+   <video> 微动循环 + 抬白叠加层构成。 */
+.light-wallpaper {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: -320px;
+  bottom: -320px;
+  will-change: transform;
+}
+
+/* 壁纸微脉冲动画：轻微缩放呼吸感，增强动图视觉效果 */
+@keyframes wallpaper-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 0.95;
+  }
+}
+
+/* ============ 经历卡片 · 02-react-three-fiber 移植 ============ */
+
+/* 绿粉渐变描边（green-pink-gradient 原样移植）：单层描边容器，圆角裁剪，禁止内部再套圆角容器 */
+.experience-card {
+  transform-style: flat;
+  isolation: isolate;
+  transition: box-shadow 0.25s ease;
+}
+
+/* 按压态：整卡回正并轻微下沉，消除倾斜透视下描边层与阴影层的错位重影 */
+.experience-card.is-pressed {
+  box-shadow: none;
+}
+
+.experience-card.is-pressed .experience-gradient-border {
+  box-shadow: none;
+}
+
+/* 外层卡片圆角与描边层同值，避免内外层圆角差形成底部线条错位 */
+.experience-card.rounded-2xl {
+  border-radius: 16px;
+}
+
+.experience-gradient-border {
+  background: linear-gradient(90.13deg, #00cea8 1.9%, #bf61ff 97.5%);
+  border-radius: 16px;
+  overflow: hidden;
+  transform: translateZ(0);
+}
+
+/* 标签渐变文字（8102 blue/green/pink-text-gradient 原样移植）：渐变图由 --渐变-*
+   自定义属性提供，clip 机制只在基线规则里写一次；任何主题覆盖（含 .light）只允许
+   重新赋值 --渐变-*，禁止写 background/color 等简写——background 简写会把未指定的
+   background-clip 静默重置回 border-box，整条渐变将不再被文字裁切而画成实心色块 */
+.text-gradient-blue {
+  --渐变-蓝: linear-gradient(to top, #2f80ed, #56ccf2);
+  background-image: var(--渐变-蓝);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.text-gradient-green {
+  --渐变-绿: linear-gradient(to top, #11998e, #38ef7d);
+  background-image: var(--渐变-绿);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.text-gradient-pink {
+  --渐变-粉: linear-gradient(to top, #ec008c, #fc6767);
+  background-image: var(--渐变-粉);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* 五子棋标题（青→靛→粉横滚）：暗色三端点与替换前的字面渐变类逐字相同，视觉零变化 */
+.text-gradient-teal {
+  --渐变-青: linear-gradient(to right, #5eead4, #818cf8, #f0abfc);
+  background-image: var(--渐变-青);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* 亮端渐变（#56ccf2/#38ef7d/#fc6767）在白底卡面上只有 1.4–2.9:1，浅色主题整组压到
+   同色系的深端（对白底 5.0–6.7:1）；暗色主题沿用上面的原值，视觉零变化 */
+.light .text-gradient-blue {
+  --渐变-蓝: linear-gradient(to top, #1d4ed8, #0369a1);
+}
+
+.light .text-gradient-green {
+  --渐变-绿: linear-gradient(to top, #0f766e, #15803d);
+}
+
+.light .text-gradient-pink {
+  --渐变-粉: linear-gradient(to top, #be185d, #b91c1c);
+}
+
+/* #5eead4/#818cf8/#f0abfc 在浅色卡片底（#fbfbfd）上只有 1.43/2.89/1.70:1，14px 粗体
+   走 4.5:1 门槛；浅色整组压到同色系深端（5.30/7.65/6.12:1） */
+.light .text-gradient-teal {
+  --渐变-青: linear-gradient(to right, #0f766e, #4338ca, #a21caf);
+}
+
+:root {
+  --xuan-harness-fixed-orange: #ff9500;
+  --xuan-harness-gradient-duration: 6s;
+  --xuan-harness-gradient-from: #39ff88;
+  --xuan-harness-gradient-mid: #22d3ee;
+  --xuan-harness-gradient-to: #4f8cff;
+  --xuan-harness-gradient-fallback: #5eead4;
+}
+
+.xuan-harness-fixed-orange {
+  color: var(--xuan-harness-fixed-orange);
+  -webkit-text-fill-color: var(--xuan-harness-fixed-orange);
+}
+
+.xuan-harness-rolling-gradient {
+  background: linear-gradient(
+    90deg,
+    var(--xuan-harness-gradient-from),
+    var(--xuan-harness-gradient-mid),
+    var(--xuan-harness-gradient-to),
+    var(--xuan-harness-gradient-mid),
+    var(--xuan-harness-gradient-from)
+  );
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: xuan-harness-gradient-scroll var(--xuan-harness-gradient-duration) linear infinite;
+}
+
+@keyframes xuan-harness-gradient-scroll {
+  0% {
+    background-position: 0% 0;
+  }
+
+  100% {
+    background-position: -300% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xuan-harness-rolling-gradient {
+    animation: none;
+    background: none;
+    color: var(--xuan-harness-gradient-fallback);
+    -webkit-text-fill-color: var(--xuan-harness-gradient-fallback);
+  }
+}
+
+.reduced-motion .xuan-harness-rolling-gradient {
+  animation: none;
+  background: none;
+  color: var(--xuan-harness-gradient-fallback);
+  -webkit-text-fill-color: var(--xuan-harness-gradient-fallback);
+}
+
+/* 成就列表：悬停/聚焦时浮现（8102 .Box1 hover 揭示交互） */
+.experience-achievements {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(8px);
+  overflow: hidden;
+  transition:
+    max-height 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+
+.experience-card:hover .experience-achievements,
+.experience-card:focus-within .experience-achievements,
+.experience-achievements.is-visible {
+  max-height: 30rem;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.experience-card:focus {
+  outline: none;
+}
+
+.experience-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+  border-radius: 1.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .experience-achievements {
+    max-height: none;
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+.reduced-motion .experience-achievements {
+  max-height: none;
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+/* ============ 联系卡片 · 01-threejs-particles Get In Touch 移植 ============ */
+
+.contact-item-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: var(--color-glass);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--color-glass-border);
+  border-radius: 15px;
+  /* 防御：常驻合成层稳定 backdrop-filter 渲染面，避免子层动画收尾时重栅格化错位 */
+  transform: translateZ(0);
+  will-change: transform;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.contact-item-link:hover,
+.contact-item-link:focus-visible {
+  /* 与静止态保持同一矩阵基序（translateZ 打头），杜绝插值终态与静态绘制不一致 */
+  transform: translate3d(10px, 0, 0) rotate(1deg);
+  box-shadow: 0 10px 30px rgba(0, 245, 255, 0.1);
+}
+
+.contact-item-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.contact-item-icon {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background: linear-gradient(135deg, #00f5ff, #8338ec);
+  border-radius: 15px;
+  transform-origin: center center;
+  /* 根因修复：常驻合成层（基线 translateZ(0)）。无此声明时，过渡期间浏览器临时提升图层、
+     过渡结束 transform 回归静态后销毁图层，两次栅格化的子像素对齐不一致 → 图案在动画结束
+     瞬间向左上「瞬移」。常驻层使过渡前后栅格化完全一致（已用 A/B 像素对比验证）。 */
+  transform: translateZ(0);
+  will-change: transform;
+  transition:
+    transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    box-shadow 0.3s ease;
+}
+
+/* 图案（SVG）：作为父级常驻合成层的一部分渲染，无需自身独立层/backface，避免收尾重栅格化缝隙 */
+.contact-item-icon svg {
+  display: block;
+  backface-visibility: hidden;
+}
+
+.contact-item-link:hover .contact-item-icon,
+.contact-item-link:focus-visible .contact-item-icon {
+  /* 与静止态同一矩阵基序（translateZ 打头）：插值两端结构一致，终帧即静止帧 */
+  transform: translateZ(0) rotate(-5deg) scale(1.1);
+  box-shadow:
+    0 5px 20px rgba(0, 245, 255, 0.45),
+    0 0 16px rgba(0, 245, 255, 0.25);
+}
+
+.contact-item-label {
+  color: var(--color-primary);
+  margin-bottom: 0.5rem;
+}
+
+.contact-item-value {
+  color: var(--color-text-secondary);
+  transition: color 0.3s ease;
+  overflow-wrap: anywhere;
+}
+
+.contact-item-link:hover .contact-item-value,
+.contact-item-link:focus-visible .contact-item-value {
+  color: var(--color-primary);
+}
+
+/* 联系行右侧胶囊按钮：复制与跳转同款（仅图标/功能不同）。
+   点击有 active:scale-95 反馈；复制成功后发光。 */
+.contact-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border);
+  padding: 0.45rem 0.9rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  color: var(--color-muted);
+  background: transparent;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.35s ease;
+}
+
+.contact-pill:hover,
+.contact-pill:focus-visible {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.contact-pill:active {
+  transform: scale(0.95);
+}
+
+.contact-pill:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.contact-pill--copy.is-copied {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--color-primary) 28%, transparent),
+    0 0 18px color-mix(in srgb, var(--color-primary) 45%, transparent);
+}
+
+@supports (color: oklch(from #000000 l c h)) {
+  .contact-pill--copy.is-copied {
+    box-shadow:
+      0 0 0 3px oklch(from var(--color-primary) l c h / 0.28),
+      0 0 18px oklch(from var(--color-primary) l c h / 0.45);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-item-link,
+  .contact-item-icon,
+  .contact-item-value {
+    transition: none;
+  }
+
+  .contact-item-link:hover,
+  .contact-item-link:focus-visible {
+    transform: none;
+  }
+
+  .contact-item-link:hover .contact-item-icon,
+  .contact-item-link:focus-visible .contact-item-icon {
+    transform: none;
+  }
+}
+
+.reduced-motion .contact-item-link,
+.reduced-motion .contact-item-icon,
+.reduced-motion .contact-item-value,
+.reduced-motion .contact-pill {
+  transition: none;
+}
+
+.reduced-motion .contact-item-link:hover,
+.reduced-motion .contact-item-link:focus-visible {
+  transform: none;
+}
+
+.reduced-motion .contact-item-link:hover .contact-item-icon,
+.reduced-motion .contact-item-link:focus-visible .contact-item-icon {
+  transform: none;
+}
+
+/* ============ 顶部菜单栏 · 12-next-spline-3d glass-nav 移植 ============ */
+
+.glass-nav {
+  background: var(--color-nav-surface);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
+  backdrop-filter: blur(10px) saturate(160%);
+  border: 1px solid var(--color-nav-border);
+  box-shadow:
+    0 8px 32px rgba(12, 74, 110, 0.1),
+    0 2px 8px rgba(12, 74, 110, 0.08),
+    0 0 0 1px rgba(125, 211, 252, 0.04);
+}
+
+.nav-link-pill {
+  position: relative;
+  border-radius: 9999px;
+  border: 1px solid var(--color-nav-pill-border);
+  color: var(--color-nav-pill-text);
+  box-shadow: 0 0 8px var(--color-nav-pill-glow);
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s,
+    color 0.2s;
+}
+
+.nav-link-pill:hover,
+.nav-link-pill:focus-visible {
+  background: var(--color-nav-pill-hover-surface);
+  border-color: var(--color-nav-pill-hover-border);
+  box-shadow: 0 0 16px var(--color-nav-pill-hover-glow);
+}
+
+.nav-link-pill:focus-visible {
+  outline: 2px solid var(--color-nav-focus-ring);
+  outline-offset: 2px;
+}
+
+/* 浅色主题导航胶囊：原淡天蓝文字压白玻璃只有 ≈1.3:1，文字/描边/光晕整组换深天蓝系
+   （#075985 对合成底 ≈7.0:1，描边 rgba(12,74,110,0.8) ≈5.4:1，焦点环 ≈4.7:1，
+   均达正文级 4.5:1；hover 态描边 rgba(12,74,110,0.95) ≈6.9:1）。
+   浅色值只在 .glass-nav 后代作用域内覆盖令牌：移动端下拉面板（bg-slate-900/85）
+   两主题恒为深色底，其内胶囊不在 .glass-nav 内，继续用 @theme 暗值保持可读 */
+.light .glass-nav .nav-link-pill {
+  --color-nav-pill-text: #075985;
+  --color-nav-pill-border: rgba(12, 74, 110, 0.8);
+  --color-nav-pill-glow: rgba(3, 105, 161, 0.28);
+}
+
+.light .glass-nav .nav-link-pill:hover,
+.light .glass-nav .nav-link-pill:focus-visible {
+  --color-nav-pill-hover-surface: rgba(7, 89, 133, 0.1);
+  --color-nav-pill-hover-border: rgba(12, 74, 110, 0.95);
+  --color-nav-pill-hover-glow: rgba(3, 105, 161, 0.45);
+}
+
+.light .glass-nav .nav-link-pill:focus-visible {
+  --color-nav-focus-ring: rgba(3, 105, 161, 0.9);
+}
+
+/* ============ 页脚层级体系 · 一级：访问徽章（高级显眼）/ 二级：版权与状态（继承 text-muted） ============ */
+
+@keyframes visitor-counter-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 4px 24px color-mix(in srgb, var(--color-primary) 22%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--color-primary) 12%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 4px 32px color-mix(in srgb, var(--color-primary) 38%, transparent),
+      0 0 12px color-mix(in srgb, var(--color-secondary) 25%, transparent);
+  }
+}
+
+.visitor-counter-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  background:
+    linear-gradient(
+        color-mix(in srgb, var(--color-surface-elevated) 85%, transparent),
+        color-mix(in srgb, var(--color-surface-elevated) 85%, transparent)
+      )
+      padding-box,
+    linear-gradient(135deg, var(--color-primary), var(--color-secondary)) border-box;
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  backdrop-filter: blur(12px) saturate(150%);
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1;
+  white-space: nowrap;
+  animation: visitor-counter-glow 3s ease-in-out infinite;
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.2s;
+  pointer-events: auto;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.visitor-counter-number {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.visitor-counter-card:hover {
+  animation: none;
+  color: var(--color-primary);
+  box-shadow:
+    0 8px 32px color-mix(in srgb, var(--color-primary) 35%, transparent),
+    0 0 16px color-mix(in srgb, var(--color-secondary) 30%, transparent);
+  transform: translateY(-2px);
+}
+
+.visitor-counter-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.visitor-counter-icon {
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.visitor-counter-number {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .visitor-counter-card {
+    animation: none;
+    transition: none;
+  }
+  .visitor-counter-card:hover {
+    transform: none;
+  }
+}
+
+.reduced-motion .visitor-counter-card {
+  animation: none;
+  transition: none;
+}
+.reduced-motion .visitor-counter-card:hover {
+  transform: none;
+}
+
+/* ============ Skill Test Page Animations ============ */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}

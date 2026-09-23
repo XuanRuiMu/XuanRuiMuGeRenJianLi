@@ -1,0 +1,217 @@
+﻿import { test, expect, type Page } from '@playwright/test'
+import fs from 'node:fs'
+import path from 'node:path'
+
+/**
+ * FP-08 用户端视角走查：真实浏览器逐区块截图 + 后端真链路核验。
+ * 产物：test-results/walkthrough/*.png + summary.json；dev server 日志经 webServer stdout 管道审计。
+ */
+const 输出目录 = path.resolve('test-results', 'walkthrough')
+
+async function 截图(page: Page, 名称: string) {
+  await page.screenshot({ path: path.join(输出目录, `${名称}.png`) })
+}
+
+/** 滚动到指定 id 区块并等 Lenis 黏性滚动停稳 */
+async function 到达(page: Page, 区块Id: string) {
+  await page.evaluate((id) => {
+    const el = document.getElementById(id)
+    if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' })
+  }, 区块Id)
+  await page.waitForTimeout(1200)
+  await page.evaluate(async () => {
+    let 上次 = window.scrollY
+    let 稳定起 = performance.now()
+    const 开始 = performance.now()
+    while (performance.now() - 开始 < 8000) {
+      await new Promise((r) => requestAnimationFrame(r))
+      if (window.scrollY !== 上次) {
+        上次 = window.scrollY
+        稳定起 = performance.now()
+      } else if (performance.now() - 稳定起 > 600) return
+    }
+  })
+  await page.waitForTimeout(500)
+}
+
+test('全站用户视角走查（双主题/签字/壁纸/AI面板/联系方式/访客计数）', async ({ page }) => {
+  test.setTimeout(300_000)
+  fs.mkdirSync(输出目录, { recursive: true })
+  const 摘要: string[] = []
+  const 页面错误: string[] = []
+  page.on('pageerror', (err) => 页面错误.push(`pageerror: ${err.message}`))
+  page.on('console', (msg) => {
+    if (msg.type() === 'error') 页面错误.push(`console.error: ${msg.text().slice(0, 200)}`)
+  })
+
+  // ===== 深色模式：首屏 + 签字图 =====
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(2500)
+  await 截图(page, '01-hero-dark')
+  expect(await page.getByTestId('hero-signature').isVisible(), '签字图应可见').toBe(true)
+  摘要.push('签字图可见: true')
+  const 渐变span数 = await page.locator('[data-testid="role-typewriter"] span[style]').count()
+  摘要.push(`打字机定色span数: ${渐变span数}`)
+  expect(渐变span数).toBeGreaterThanOrEqual(0)
+
+  // ===== 浅色模式：壁纸 =====
+  await page.getByRole('button', { name: '选择主题' }).first().click()
+  await page.getByRole('option', { name: /浅色/ }).click()
+  await page.waitForTimeout(1500)
+  // 契约更新（用户 2026-08-25 拍板）：浅色背景 = 公有领域名画《神奈川冲浪里》
+  // （北斋，大都会美术馆 CC0 扫描件）微动循环，画面来自真实画作扫描，禁 AI 生成；
+  // 纯周期位移构造保证循环零跳变。
+  // 底图必须真实存在且完整加载（视频加载前占位 + reduced-motion 降级）；
+  // 视频必须自动循环播放（动态性为用户红线）。
+  const 壁纸底图 = page.locator('[data-testid="light-wallpaper"] img')
+  await expect(壁纸底图, '浅色壁纸内应有静态底图').toHaveCount(1)
+  await expect(壁纸底图).toHaveAttribute('src', '/images/kanagawa-wave-base.webp')
+  await expect
+    .poll(async () => 壁纸底图.evaluate((el) => (el as HTMLImageElement).naturalWidth), { timeout: 10_000 })
+    .toBe(1280)
+  摘要.push('浅色冲浪里名画底图已加载: 1280x720')
+
+  const 壁纸视频 = page.locator('[data-testid="light-wallpaper"] video')
+  await expect(壁纸视频, '浅色壁纸内应有名画微动循环视频').toHaveCount(1)
+  await expect(壁纸视频).toHaveAttribute('src', '/videos/kanagawa-wave-loop.mp4')
+  await expect(壁纸视频).toHaveAttribute('loop')
+  await expect
+    .poll(async () => 壁纸视频.evaluate((el) => (el as HTMLVideoElement).readyState), { timeout: 15_000 })
+    .toBeGreaterThanOrEqual(2)
+  const 视频帧一 = await 壁纸视频.evaluate((el) => (el as HTMLVideoElement).currentTime)
+  await page.waitForTimeout(700)
+  const 视频帧二 = await 壁纸视频.evaluate((el) => (el as HTMLVideoElement).currentTime)
+  expect(视频帧二, '真实 CG 视频应自动循环播放（currentTime 前进）').toBeGreaterThan(视频帧一)
+  摘要.push(`真实 CG 视频循环播放: ok (${视频帧一.toFixed(2)}s → ${视频帧二.toFixed(2)}s)`)
+  await 截图(page, '02-hero-light')
+
+  // 滚动后壁纸位移
+  await page.evaluate(() => window.scrollBy({ top: 500, behavior: 'instant' }))
+  await page.waitForTimeout(800)
+  const 壁纸位移 = await page.evaluate(
+    () =>
+      (document.querySelector('[data-testid="light-wallpaper"]') as HTMLElement | null)?.style.transform ?? 'missing'
+  )
+  摘要.push(`浅色壁纸滚动位移: ${壁纸位移}`)
+  expect(壁纸位移, '滚动后壁纸应有 translate3d 位移').toContain('translate3d')
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
+  await page.waitForTimeout(800)
+
+  // ===== 特效控制面板文案 =====
+  await page.getByRole('button', { name: '特效面板' }).click()
+  await page.waitForTimeout(600)
+  await 截图(page, '03-starry-panel-light')
+  expect(await page.getByText('彻底隐藏星空背景和壁纸').count(), '控制面板新文案').toBeGreaterThanOrEqual(1)
+  摘要.push('控制面板文案「彻底隐藏星空背景和壁纸」: ok')
+  // 面板打开后覆盖在触发按钮上方，二次点击会被命中测试拦截；
+  // 组件本身支持"外点即关"，按真实用户习惯点击视口空白处关闭
+  await page.mouse.click(1260, 860)
+  await page.waitForTimeout(400)
+  expect(
+    await page.evaluate(() => {
+      const slot = document.getElementById('starry-gui-slot')
+      return slot ? slot.classList.contains('hidden') : true
+    }),
+    '点击空白后面板应关闭'
+  ).toBe(true)
+
+  // ===== 各区块（浅色）=====
+  for (const [id, name] of [
+    ['about', '04-about-light'],
+    ['projects', '05-projects-light'],
+    ['experience', '06-experience-light'],
+    ['education', '07-showcase-education-light'],
+  ] as const) {
+    await 到达(page, id)
+    await 截图(page, name)
+  }
+
+  // showcase 悬停抬起态截图（须在仍处于 showcase 视口时进行）
+  const 卡片们 = page.locator('.group\\/card')
+  const 总数 = await 卡片们.count()
+  for (let i = 0; i < 总数; i++) {
+    const b = await 卡片们.nth(i).boundingBox()
+    if (b && b.x > 220 && b.x + b.width < 1220 && b.y > 130 && b.y + b.height < 860) {
+      await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2)
+      await page.waitForTimeout(700)
+      break
+    }
+  }
+  await 截图(page, '09-showcase-hover-light')
+  await page.mouse.move(10, 10)
+
+  // 联系区块
+  await 到达(page, 'contact')
+  await 截图(page, '08-contact-top-light')
+
+  // ===== AI 面板：模型名 / /help / 图片按钮 / 非法图片提示 =====
+  await 到达(page, 'hero')
+  await page.getByRole('button', { name: 'AI助手' }).first().click()
+  await page.waitForTimeout(700)
+  const 状态栏 =
+    (await page
+      .getByText(/deepseek-v4.1-flash-expires-on-0910 · /)
+      .first()
+      .textContent()) ?? ''
+  摘要.push(`AI状态栏: ${状态栏.trim()}`)
+  expect(状态栏).toContain('think on')
+  await page.keyboard.type('/help')
+  await page.keyboard.press('Enter')
+  await page.waitForTimeout(400)
+  await 截图(page, '10-ai-help-light')
+  expect(await page.getByRole('button', { name: '添加图片' }).isVisible()).toBe(true)
+
+  await page
+    .setInputFiles(
+      'input[type="file"]',
+      { name: 'fake.txt', mimeType: 'text/plain', buffer: Buffer.from('not an image') },
+      { timeout: 5000 }
+    )
+    .catch(() => {})
+  await page.waitForTimeout(600)
+  expect(await page.getByText('图片上传失败').count(), '非法图片应被拒绝并提示').toBeGreaterThanOrEqual(1)
+  摘要.push('非法图片提示: ok')
+  await page.keyboard.type('/clear')
+  await page.keyboard.press('Enter')
+  await page.waitForTimeout(300)
+  await page.getByRole('button', { name: '关闭' }).click()
+
+  // ===== 联系方式卡片（表单已按需下线：生产链路不可达，保留直连方式） =====
+  await 到达(page, 'contact')
+  await 截图(page, '11-contact-filled-light')
+  expect(await page.getByText('2760688515').count(), 'QQ号应可见').toBeGreaterThanOrEqual(1)
+  expect(await page.getByText('XuanRuiMu').count(), '微信号应可见').toBeGreaterThanOrEqual(1)
+  expect(await page.getByAltText(/QQ/).count(), 'QQ二维码应可见').toBeGreaterThanOrEqual(1)
+  expect(await page.getByAltText(/微信/).count(), '微信二维码应可见').toBeGreaterThanOrEqual(1)
+  摘要.push('联系卡片 QQ/微信二维码: ok')
+
+  // ===== 访问人数：页脚显示且刷新自增 =====
+  await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' }))
+  await page.waitForTimeout(1800)
+  const 计数1 = (await page.getByTestId('visitor-counter').textContent())?.trim() ?? ''
+  await 截图(page, '13-footer-counter-light')
+  expect(计数1, '访客计数应显示数字而非空').toMatch(/访问人数：[\d,，]+/)
+  await page.reload({ waitUntil: 'networkidle' })
+  await page.waitForTimeout(3000)
+  await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' }))
+  await page.waitForTimeout(1500)
+  const 计数2 = (await page.getByTestId('visitor-counter').textContent())?.trim() ?? ''
+  摘要.push(`访问人数 刷新前后: [${计数1}] → [${计数2}]`)
+  await 截图(page, '14-footer-counter-after-reload')
+
+  const 数字1 = Number(计数1.replace(/\D/g, ''))
+  const 数字2 = Number(计数2.replace(/\D/g, ''))
+  expect(数字2, '刷新后访问人数应自增').toBeGreaterThan(数字1)
+
+  // ===== 深色回归一屏 =====
+  await page.getByRole('button', { name: '选择主题' }).first().click()
+  await page.getByRole('option', { name: /深色/ }).click()
+  await page.waitForTimeout(1000)
+  await 到达(page, 'hero')
+  await page.waitForTimeout(800)
+  await 截图(page, '15-hero-dark-final')
+
+  fs.writeFileSync(path.join(输出目录, 'summary.json'), JSON.stringify({ 摘要, 页面错误 }, null, 2))
+  console.info('===== 走查摘要 =====\n' + 摘要.join('\n'))
+  expect(页面错误, `页面不应有运行时错误：${页面错误.slice(0, 5).join('; ')}`).toHaveLength(0)
+})

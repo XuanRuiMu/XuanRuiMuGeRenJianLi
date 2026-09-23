@@ -1,0 +1,54 @@
+{
+  "id": "/",
+  "name": "玄锐暮 · AI 简历",
+  "short_name": "玄锐暮简历",
+  "description": "玄锐暮 · AI应用工程师/AI Agent开发；低代码·RPA实施；软件实施。AI-Native Developer Résumé Hub。",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0C15",
+  "theme_color": "#0B0C15",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "项目作品",
+      "short_name": "项目",
+      "description": "查看独立主导与参与的项目作品",
+      "url": "/#projects",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "技能雷达",
+      "short_name": "技能",
+      "description": "能力清单与技能雷达：AI Agent / 后端架构 / 全栈 / DevOps实施 / 技术教学 / 设计审美",
+      "url": "/#skills",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "联系我",
+      "short_name": "联系",
+      "description": "查看联系方式",
+      "url": "/#contact",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "categories": ["portfolio", "personalization", "productivity"],
+  "lang": "zh-CN"
+}

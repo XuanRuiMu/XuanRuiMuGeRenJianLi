@@ -1,0 +1,782 @@
+{
+  "starryBg": {
+    "title": "特效控制面板",
+    "galaxy": "星系参数",
+    "particleSize": "粒子大小",
+    "branches": "旋臂数",
+    "radius": "缩放",
+    "zoom": "缩放",
+    "spin": "旋转",
+    "randomness": "扩散",
+    "colorBreath": "颜色呼吸",
+    "cycleSpeed": "周期速度",
+    "supernova": "超新星",
+    "frequency": "频率",
+    "nebula": "星云",
+    "count": "数量",
+    "opacity": "透明度",
+    "twinkle": "星星闪烁",
+    "intensity": "强度",
+    "speed": "速度",
+    "stardust": "尘埃粒子",
+    "enabled": "启用",
+    "display": "显示",
+    "inkScreen": "水墨遮罩",
+    "hideStarry": "彻底隐藏星空背景和壁纸",
+    "panelTrigger": "特效面板",
+    "viewAngle": "视角角度",
+    "centerDim": "中心暗化",
+    "period": "渐变周期",
+    "startOpacity": "起始渐变透明度",
+    "endOpacity": "最终渐变透明度"
+  },
+  "pwa": {
+    "offlineTitle": "离线模式",
+    "offlineDescription": "当前处于离线模式，已启用简化渲染",
+    "updateAvailable": "发现新版本，刷新以更新",
+    "updateButton": "立即刷新",
+    "updateLater": "稍后",
+    "offlineReady": "已支持离线访问",
+    "cacheQuotaWarning": "缓存空间不足，已自动清理旧资源",
+    "errorRegister": "PWA注册失败"
+  },
+  "loading": {
+    "title": "玄锐暮的在线简历",
+    "tips": ["正在加载简历数据...", "正在初始化主题与布局...", "正在准备命令面板..."]
+  },
+  "nav": {
+    "main": "主导航",
+    "hero": "首页",
+    "about": "关于",
+    "projects": "项目",
+    "skills": "技能",
+    "experience": "经历",
+    "education": "教育",
+    "design": "设计",
+    "media": "媒体",
+    "opensource": "开源",
+    "contact": "联系"
+  },
+  "command": {
+    "title": "命令面板",
+    "open": "命令面板",
+    "placeholder": "输入命令或搜索模块...",
+    "empty": "未找到匹配命令",
+    "sections": "模块跳转",
+    "actions": "快捷操作",
+    "toggleTheme": "切换主题",
+    "copyEmail": "复制邮箱",
+    "copyGithub": "复制GitHub",
+    "openChat": "打开AI助手",
+    "downloadResume": "下载简历",
+    "downloadEvidence": "下载佐证材料"
+  },
+  "theme": {
+    "dark": "深色模式",
+    "light": "浅色模式",
+    "system": "跟随系统",
+    "select": "选择主题"
+  },
+  "error": {
+    "title": "页面暂时无法显示",
+    "description": "页面渲染出错了，刷新一下试试。",
+    "reload": "刷新页面"
+  },
+  "footer": {
+    "copyright": "© 2026玄锐暮. 保留所有权利。",
+    "status": "玄锐暮 · 在线简历 · 离线可用",
+    "visitorsLabel": "访问人数"
+  },
+  "hero": {
+    "hint": "按Ctrl/⌘+K打开命令面板，或用顶部导航切换模块。",
+    "techTitle": "本页及相关项目所使用技术栈",
+    "cta": {
+      "downloadResume": "下载简历"
+    },
+    "downloadMenu": {
+      "trigger": "展开下载选项",
+      "label": "下载选项",
+      "evidence": "下载佐证材料.zip"
+    },
+    "copied": "已复制"
+  },
+  "career": {
+    "direction": "AI应用工程师/AI Agent开发；低代码·RPA实施；软件实施",
+    "roleTickerAria": "多重身份：",
+    "salary": "面议"
+  },
+  "about": {
+    "title": "关于我",
+    "introLines": {
+      "identity": {
+        "text": "我是玄锐暮，天津仁爱学院计算机专业2026届本科毕业生，随时到岗，期望天津，可接受夜班。",
+        "style": "normal"
+      },
+      "aiTeam": {
+        "text": "我把AI当一支开发团队来带：需求拆解、架构决策、集成联调、上线排障由我拍板，AI承担代码补全与样板生成，用Claude Code/Codex/Trae/WorkBuddy独立交付并上线了AI恋爱模拟应用、纯前端3D互动直播间和本简历站。",
+        "style": "tech"
+      },
+      "aiAssets": {
+        "text": "为了让这套做法可复制，我沉淀了85+个可复用AI工作流模板，建立MCP+Hooks+Rules的编码约束体系让AI产出直接可合并，多智能体协作的编排框架已作为「循环工程」开源。",
+        "style": "normal"
+      },
+      "aiBaseline": {
+        "text": "本站的AI助手也是我自己搭的：意图路由、语料分块检索、流式思考与断网本地兜底四层齐全，密钥收在服务端代理，构建产物扫描零凭据——AI能力之外，工程底线我一起交付。",
+        "style": "accent"
+      },
+      "beyondAi": {
+        "text": "AI之外我做这些：给暮澜纪元画整套游戏UI、技能面板与HUD，用代码跑生成艺术，长期写暮澜纪元的世界观编年史与角色故事，自写自演过原创相声《传统与科技》，用软件音源做编曲与配乐；写代码坚持中文命名、零硬编码、玩家可见文本全部走翻译文件；从2019年至今独立运维多台游戏服务器，在B站录了10多门计算机课，一对一带过50多位毕业生走完选题到答辩。",
+        "style": "normal"
+      }
+    },
+    "caption": {
+      "intro": "//about.introLines",
+      "meta": "{ readOnly: true }",
+      "eof": "//EOF"
+    }
+  },
+  "resume": {
+    "target": "目标岗位",
+    "contact": "联系方式",
+    "education": "教育背景",
+    "filename": "简历"
+  },
+  "evidence": {
+    "filename": "玄锐暮-佐证材料"
+  },
+  "contact": {
+    "title": "联系我",
+    "subtitle": "有岗位、合作或想聊技术，加QQ微信、发邮件都行，看到会回。",
+    "stillSure": {
+      "title": "如果你仍有所顾虑，不如先来把五子棋放松一下"
+    },
+    "info": {
+      "email": "邮箱",
+      "phone": "电话",
+      "github": "GitHub",
+      "bilibili": "B站",
+      "qq": "QQ",
+      "wechat": "微信"
+    },
+    "qr": {
+      "qqAlt": "QQ二维码",
+      "wechatAlt": "微信二维码"
+    }
+  },
+  "projects": {
+    "title": "项目作品",
+    "subtitle": "实际做过并上线的项目，从游戏服务端到AI小工具。",
+    "link": {
+      "github": "GitHub",
+      "demo": "演示",
+      "bilibili": "B站视频",
+      "web": "网页链接"
+    },
+    "wind": {
+      "title": "便签力度设置",
+      "strength": "便签力度"
+    }
+  },
+  "experience": {
+    "title": "经历",
+    "subtitle": "写代码、修Bug、录课和做创作的时间线。",
+    "timelineLabel": "经历时间线"
+  },
+  "showcase": {
+    "titleLine1": "持续探索",
+    "titleLine2": "多维创作",
+    "subtitle": "设计、教育、艺术，探索未至之境。",
+    "cards": {
+      "degree": {
+        "title": "学历 · 天津仁爱学院",
+        "desc": "计算机科学与技术（本科）· 2022.09 - 2026.06"
+      },
+      "coding": {
+        "title": "Python编程题精讲",
+        "desc": "0基础逐题手写演示 · 覆盖多角度的基础知识"
+      },
+      "systems": {
+        "title": "计算机网络",
+        "desc": "分层体系与网络协议 · 重点内容一次拉齐"
+      },
+      "lowlevel": {
+        "title": "MySQL数据库精讲",
+        "desc": "E-R建模与关系代数 · SQL查询增删改/视图连接，Navicat全程实操"
+      },
+      "teaching": {
+        "title": "毕业论文全流程指导",
+        "desc": "编写、格式规范到提交全链路拆解"
+      },
+      "assembly": {
+        "title": "汇编语言程序设计",
+        "desc": "寄存器与指令系统手写程序 · 从机器底层看懂代码如何执行"
+      },
+      "arch": {
+        "title": "计算机组成原理",
+        "desc": "CPU、存储系统与指令周期 · 硬件运行机制连讲"
+      },
+      "marx": {
+        "title": "马克思主义原理精讲",
+        "desc": "全知识点逐题精讲 · 选择、简答与论述题型全拆解"
+      },
+      "resumeTheater": {
+        "title": "个人简历网站",
+        "desc": "React+Three.js沉浸式个人站 · 内置AI助手、五子棋与中文打字机动效"
+      },
+      "xrmUi": {
+        "title": "暮澜纪元UI设计",
+        "desc": "游戏菜单、技能面板和HUD的整套设计"
+      },
+      "toolbox": {
+        "title": "设计工具箱",
+        "desc": "Figma · Three.js · Tailwind · UI/UX · 3D视觉 · 品牌"
+      },
+      "generative": {
+        "title": "生成艺术",
+        "desc": "用代码驱动图案与流动的视觉实验"
+      },
+      "novel": {
+        "title": "暮澜纪元小说",
+        "desc": "世界观编年史与角色故事的长期写作"
+      },
+      "comedy": {
+        "title": "原创相声《传统与科技》",
+        "desc": "自改自演歌颂型新相声 · 从文本创作到差异化角色设计"
+      },
+      "gameWorld": {
+        "title": "游戏世界设计",
+        "desc": "8世界32职业MMORPG · BOSS技能循环与阶段切换"
+      },
+      "courses": {
+        "title": "B站课程主页·玄锐暮",
+        "desc": "编程、底层硬件到公共课成套系列课 · 录制剪辑与知识可视化"
+      },
+      "fenglai": {
+        "title": "蜂来",
+        "desc": "无厘头的纯前端互动网页"
+      },
+      "repoLoop": {
+        "title": "循环工程loop-engineering",
+        "desc": "子代理循环+三轴审查+熔断自改进 · 9个Agent技能打包开箱即用"
+      },
+      "repoLove": {
+        "title": "和我恋爱吧HeWoLianAiBa（AI恋爱模拟）",
+        "desc": "仿微信恋爱聊天 · 16型MBTI角色+AI军师实时支招，好友挑战玩法齐全"
+      },
+      "repoData": {
+        "title": "恋爱吧管理中心LianAiBaGuanLiZhongXin",
+        "desc": "和我恋爱吧的专属管理端 · 账号/聊天/思考链/封禁/审计/统计7个页面一块管"
+      }
+    }
+  },
+  "education": {
+    "title": "教育背景"
+  },
+  "media": {
+    "title": "媒体"
+  },
+  "skills": {
+    "title": "技能",
+    "metrics": {
+      "javaClasses": { "value": "400+", "label": "自研Java类" },
+      "aiSkills": { "value": "85+", "label": "可复用AI工作流模板" },
+      "agentSkills": { "value": "9", "label": "开源Agent技能" },
+      "serverOps": { "value": "7年", "label": "独立服务器运维" }
+    },
+    "groupsTitle": "能力清单",
+    "groups": {
+      "aiAgent": {
+        "label": "AI Agent能力",
+        "description": "把AI当一支开发团队来带：拆任务、定规范、审产出、扛交付。",
+        "items": [
+          "用Claude Code/Codex/Trae/WorkBuddy等编码与办公智能体完成真实项目",
+          "沉淀85+个可复用AI工作流模板，把重复性开发任务标准化",
+          "建立MCP+Hooks+Rules的AI编码规范约束体系，保证产出符合规范与安全要求",
+          "设计多智能体协作流程，让专职AI角色分工完成复杂任务链（开源编排框架「循环工程」）",
+          "用AI Agent独立交付多个已上线产品"
+        ],
+        "tags": [
+          "AI Agent",
+          "智能体",
+          "大模型应用",
+          "Prompt工程",
+          "MCP",
+          "Hooks与Rules",
+          "多智能体编排",
+          "AI工作流模板",
+          "自动化"
+        ]
+      },
+      "backend": {
+        "label": "后端与数据",
+        "description": "Java服务端是主战场，Node.js和Python负责把服务接起来、跑起来。",
+        "items": [
+          "Java自研400+个插件类，撑起8世界32职业MMORPG服务端的职业、战斗与任务系统",
+          "Node.js+Express+TypeScript写业务后端，接口设计、前后端联调与数据层自己闭环",
+          "MySQL、Redis、PostgreSQL在真实项目里用过，能做表结构设计、多表查询与SQL调优",
+          "Python写自动化脚本，批量处理数据与资源打包这类重复活不再手工做"
+        ],
+        "tags": [
+          "Java",
+          "Spring Boot",
+          "Node.js",
+          "Express",
+          "TypeScript",
+          "Python",
+          "MySQL",
+          "Redis",
+          "PostgreSQL",
+          "Gradle Kotlin DSL"
+        ]
+      },
+      "frontend": {
+        "label": "前端与可视化",
+        "description": "本站就是这个板块的证据：从渲染、构建到测试全链路自己搭。",
+        "items": [
+          "React 19+TypeScript+Vite+Tailwind CSS搭建本站，命令面板、PWA、明暗主题与无障碍都是可用的实现",
+          "Three.js/@react-three/fiber做本站3D星系背景，按设备性能、电量与网络自动选质量档位",
+          "按设计稿做UI/UX与品牌视觉：给暮澜纪元做HUD与图标，给85+个AI工作流模板统一视觉",
+          "组件测试与类型检查守住前端质量，改一处不会悄悄坏三处"
+        ],
+        "tags": [
+          "React",
+          "TypeScript",
+          "Three.js",
+          "Tailwind CSS",
+          "Vite",
+          "framer-motion",
+          "HTML/CSS",
+          "响应式设计",
+          "无障碍"
+        ]
+      },
+      "delivery": {
+        "label": "实施交付与技术支持",
+        "description": "把东西送到人手里、再把人教会：部署、排障、培训、写文档。",
+        "items": [
+          "2019年至今独立运维多台服务器：核心版本升级、190+插件选型调优、登录与跨端联调、日常巡检与故障排查",
+          "docker-compose编排6个服务上线，命令行部署与日志排障是日常动作",
+          "接需求先拆解：把模糊诉求整理成可执行的步骤清单与需求文档，再动手实现",
+          "面向非技术用户做培训与答疑：B站10+门课、200人+学习群、一对一带过50+位毕业生",
+          "写清接口对接与部署说明，README、需求文档、操作手册跟着产品一起交付"
+        ],
+        "tags": [
+          "SQL",
+          "Linux",
+          "Postman",
+          "REST API",
+          "需求调研",
+          "用户培训",
+          "文档编写",
+          "问题排查",
+          "部署上线",
+          "客户沟通"
+        ]
+      }
+    },
+    "radarTitle": "技能雷达"
+  },
+  "testimonials": {
+    "title": "推荐语",
+    "items": {
+      "student": {
+        "role": "课程学员 · 计算机相关专业毕业生",
+        "quote": "毕业论文那几个月我跟着玄锐暮的课走了一遍，从选题、框架到排版格式都是一节一节讲的。我基础比较薄弱，问的问题很零碎，他也是一个一个回答，最后我按时通过了答辩。",
+        "context": "一对一指导过的毕业生之一"
+      },
+      "aiDeveloper": {
+        "role": "AI开发者 · 用过他开源的编排框架与Agent技能",
+        "quote": "他那套开源技能包里的命名和说明写得清楚，任务拆分的粒度也合适，我改了几个参数就接上了自己的项目。后来我照着这个思路，把自己那部分流程也整理了一遍。",
+        "context": "循环工程开源仓库的使用者"
+      }
+    }
+  },
+  "chat": {
+    "title": "AI助手",
+    "close": "关闭",
+    "answers": {
+      "name": "我叫{name}，求职方向是{direction}。主力语言是Java、Node.js和Python，前端用React。",
+      "target": "我的求职方向：{direction}。",
+      "contact": "点下方按钮一键复制或直达主页，页面底部联系板块也有完整方式。",
+      "projects": "做过暮澜纪元MMORPG服务端、和我恋爱吧AI全栈应用、循环工程skill。",
+      "skills": "按AI Agent能力、后端与数据、前端与可视化、实施交付与技术支持四块来说：AI这块用Claude Code/Codex等编码智能体加85+个可复用AI工作流模板；语言与框架是Java、Node.js/Express、Python和React，MySQL、Redis、PostgreSQL都在项目里用过；也能把东西部署上线并教会非技术用户用。",
+      "education": "我就读于{school}，{major}专业{degree}，预计 {period} 毕业。",
+      "experience": "独立开发暮澜纪元和和我恋爱吧全栈应用、在B站录课、帮毕业生改论文。",
+      "greeting": "你好！我是玄锐暮的简历助手，可以问我技术栈、项目经历或教育背景。",
+      "thanks": "不客气，有其他简历问题随时问我。",
+      "farewell": "再见，祝你今天顺利！",
+      "fallback": "这个问题我本地没准备答案，可以到页面底部联系板块找微信QQ，或换个简历问题问我。"
+    }
+  },
+  "ai": {
+    "title": "AI助手",
+    "close": "关闭",
+    "send": "发送",
+    "loading": "正在想...",
+    "error": "发送失败，请重试",
+    "empty": "有什么可以帮你的？",
+    "welcomePrefix": "Welcome to",
+    "welcomeTitle": "Xuan Harness",
+    "welcomeTitleSuffix": "!",
+    "welcomeIntro": "我是玄锐暮简历助手，可回答简历、技术栈与项目问题。",
+    "welcomeTips": "?查看快捷键 · /help查看指令 · Ctrl+V粘贴图片 · 支持拖拽图片",
+    "extendedLabel": "扩展 · 试试问问：",
+    "localMode": "当前是本地自动回复",
+    "reset": "清空对话",
+    "busyHint": "esc中断 · ⏎排队发送",
+    "idleHint": "esc最小化 · ?快捷键 · /指令 · Shift+⏎换行 · ⏎发送",
+    "thinking": "思考中…",
+    "cancelHint": "esc中断",
+    "toolName": "Retrieve(简历知识库)",
+    "toolRetrieving": "检索中…",
+    "toolGeneric": "本地知识库",
+    "toolHits": "命中",
+    "toolSegments": "段",
+    "toolLocalFallback": "本地兜底",
+    "toolTimeout": "超时回退",
+    "toolHttpError": "请求失败",
+    "toolNetworkError": "网络异常",
+    "toolFormatError": "格式异常",
+    "dropHint": "松开以添加图片（扩展功能）",
+    "shellUnsupported": "!shell模式在此助手不可用，请输入提问内容或/help",
+    "shortcuts": "快捷键：\n  ?显示本帮助\n  /打开指令补全（Tab接受，回车执行）\n  Alt+T切换思考强度\n  Alt+P切换模型\n  Enter发送 · Shift+Enter换行\n  ↑/↓翻看输入历史\n  esc忙时中断 · esc空闲最小化面板",
+    "attachImage": "添加图片",
+    "removeImage": "移除图片",
+    "resizeWidth": "拖动调整宽度",
+    "resizeHeight": "拖动调整高度",
+    "resizeBoth": "拖动调整窗口大小",
+    "imageUploadFailed": "图片上传失败：仅支持JPEG/PNG/GIF/WebP，且单张不超过16MiB",
+    "imageRejected": "上传失败",
+    "thinkLevel": "思考强度：{level}（/think切换）",
+    "headerName": "Xuan Harness",
+    "headerVersion": "v1.0.0",
+    "headerBilling": "API Usage Billing",
+    "headerCwd": "~/xuanruimu-resume",
+    "statusCycle": "(shift+tab to cycle)",
+    "modelPicker": {
+      "selectTitle": "Select model",
+      "selectDesc": "Switch between models. Your pick becomes the default for new sessions.",
+      "sessionLinePrefix": "Currently using",
+      "sessionLineSuffix": "for this session only",
+      "effortAdjust": "←/→ to adjust",
+      "effortUnit": "effort",
+      "effortNames": ["Off", "Low", "High", "Max"],
+      "confirmHint": "Enter to set as default · s to use this session only · Esc to cancel",
+      "sessionOnlyPrefix": "Using",
+      "sessionOnlySuffix": "for this session only",
+      "sessionBadge": "session-only"
+    },
+    "queue": {
+      "label": "已排队",
+      "hint": "当前回复结束后依次发送 · esc可中断当前回复"
+    },
+    "commands": {
+      "help": "可用指令：\n  /clear清空对话历史，开始新会话\n  /new · /clear的别名\n  /resume恢复上一次清空前的会话\n  /model查看或切换模型\n  /compact压缩对话历史，保留语义（可加聚焦说明）\n  /think切换思考强度（Alt+T）\n  /status查看面板状态\n  /help查看指令列表",
+      "unknownPrefix": "未知指令：",
+      "unknownSuffix": "。输入/help查看可用指令",
+      "didYouMean": "您是指：",
+      "modelHeader": "可用模型：",
+      "modelCurrent": "（当前）",
+      "modelHint": "输入/model<序号或模型名>切换 · 选择器内↑↓←→⏎操作",
+      "modelPickerHint": "↑/↓切模型 · ←/→切思考强度 · ⏎确认 · esc取消",
+      "modelSwitchedPrefix": "已切换模型：",
+      "modelUnknownPrefix": "未知模型：",
+      "resumeRestored": "已恢复上一次清空前的会话",
+      "resumeEmpty": "没有可恢复的上一次会话",
+      "compacting": "正在压缩对话…",
+      "compacted": "已压缩对话历史，语义保留",
+      "compactFailed": "✗ 压缩失败，历史未变",
+      "compactEmpty": "没有可压缩的对话历史",
+      "compactBusy": "请求进行中无法压缩，请等待回复完成或按esc中断",
+      "compactInterrupted": "✕压缩已中断",
+      "compactSummaryPrefix": "对话摘要",
+      "interrupted": "✕请求已被用户中断",
+      "statusModel": "模型",
+      "statusThinking": "思考",
+      "statusMessages": "消息数",
+      "statusQueued": "排队",
+      "statusContext": "上下文"
+    },
+    "cmdDesc": {
+      "help": "查看指令列表与快捷键",
+      "clear": "清空对话，开始新会话",
+      "news": "/clear的别名",
+      "resume": "恢复上一次清空前的会话",
+      "model": "查看或切换模型",
+      "compact": "压缩对话历史，保留语义",
+      "think": "切换思考强度",
+      "status": "查看面板状态"
+    },
+    "quickQuestions": ["你是谁", "你的技术栈", "介绍一下暮澜纪元"],
+    "followUps": {
+      "label": "继续聊聊：",
+      "tech": ["这些技术栈具体体现在哪些项目里？", "最擅长的前后端技术分别是什么？", "AI Agent和MCP方面有哪些实践？"],
+      "projectsXrm": ["暮澜纪元用了哪些后端技术？", "和我恋爱吧与暮澜纪元有什么不同？", "循环工程skill能做什么？"],
+      "projectsFengLai": ["蜂来是做什么的？", "蜂来有哪些互动玩法？", "蜂来的战报海报怎么生成？"],
+      "projectsLove": ["和我恋爱吧用了什么技术栈？", "蜂来是做什么的？", "蜂来有哪些互动玩法？"],
+      "experience": ["教育背景是怎样的？", "做过哪些项目？", "技术栈具体体现在哪里？"],
+      "education": ["主修过哪些计算机课程？", "有过哪些教学经历？", "做过哪些项目？"],
+      "greeting": ["你是谁？", "你的技术栈是什么？", "介绍一下做过的项目"],
+      "fallback": ["你的技术栈是什么？", "介绍一下暮澜纪元", "教育背景是怎样的？"]
+    },
+    "contactLinks": {
+      "github": "GitHub主页",
+      "bilibili": "B站主页",
+      "qq": "QQ",
+      "wechat": "微信",
+      "phone": "手机号",
+      "copied": "已复制",
+      "open": "打开",
+      "copy": "复制"
+    },
+    "component": {
+      "projectNotFound": "未找到对应项目",
+      "noSkillData": "暂无技能数据",
+      "timeline": {
+        "experience": "经历时间线",
+        "media": "媒体创作时间线",
+        "education": "教育时间线"
+      }
+    }
+  },
+  "data": {
+    "personalInfo": {
+      "expectedCity": "天津各区域均可",
+      "availability": "可随时入职"
+    },
+    "projects": {
+      "xrm": {
+        "name": "暮澜纪元",
+        "desc": "已上线Java 25自研400+类插件，一人从零做到8世界32职业并长期维护。",
+        "tags": ["Java 25", "8世界32职业", "打怪天赋任务组队", "400+类自研", "长期维护", "MMORPG服务端"],
+        "metrics": {
+          "classes": "400+Java类",
+          "systems": "8世界/32职业"
+        }
+      },
+      "lovewithme": {
+        "name": "和我恋爱吧",
+        "desc": "已上线恋爱聊天应用：挑个喜欢的AI对象开始聊，卡住了有军师帮你出主意，还能加好友、打挑战赛，注册完就能聊。",
+        "tags": ["已上线", "AI聊天", "军师支招", "好友互动", "挑战玩法", "注册即聊"],
+        "metrics": {
+          "services": "聊天/好友/挑战玩法",
+          "security": "注册即聊+操作留痕"
+        }
+      },
+      "aiConsole": {
+        "name": "循环工程skill",
+        "desc": "面向普通模型的多角色协作Skill：定个目标即自动拆步骤、自己干活自己检查直到做完，以更多token换顶级交付质量。",
+        "tags": ["自动拆解", "自动执行", "自动检查"],
+        "metrics": {
+          "lines": "自动拆步骤",
+          "sources": "做完才停"
+        }
+      },
+      "fengLai": {
+        "name": "蜂来",
+        "desc": "纯前端3D整蛊直播间：双击点赞连击、拖拽道具投送投掷佩戴、弹幕刷屏、战报海报，纯前端无后端。",
+        "tags": ["纯前端", "3D整蛊", "双击点赞连击", "拖拽道具", "弹幕刷屏", "战报海报"],
+        "metrics": {
+          "stack": "纯前端无后端",
+          "tests": "点赞/道具/弹幕/战报"
+        }
+      }
+    },
+    "design": {
+      "headline": "设计与视觉",
+      "intro": "做UI先让别人把信息看清楚，再聊好不好看。",
+      "works": {
+        "resumeTheater": {
+          "name": "简历3D剧场",
+          "category": "UI/UX+3D",
+          "desc": "现在看到的这个网站，用React+Three.js做的个人作品集。"
+        },
+        "xrmUi": {
+          "name": "暮澜纪元UI体系",
+          "category": "游戏UI",
+          "desc": "给暮澜纪元做的游戏菜单、技能面板和HUD。"
+        },
+        "aiToolchain": {
+          "name": "AI工具链视觉",
+          "category": "品牌设计",
+          "desc": "给85+个自定义Skill画了统一图标和输出卡片。"
+        }
+      },
+      "tools": {
+        "figma": "Figma",
+        "threejs": "Three.js",
+        "tailwind": "Tailwind CSS",
+        "uiux": "UI/UX",
+        "3d": "3D视觉",
+        "branding": "品牌设计"
+      }
+    },
+    "media": {
+      "headline": "多媒体创作",
+      "intro": "写小说、录视频、做相声，单纯喜欢把这些想法做出来。",
+      "categories": {
+        "writing": {
+          "label": "写作",
+          "items": {
+            "novel": "暮澜纪元小说/编年史",
+            "blog": "技术博客与文档"
+          }
+        },
+        "comedy": {
+          "label": "相声",
+          "items": {
+            "original": "原创单口相声",
+            "voice": "角色语音差异化设计"
+          }
+        },
+        "game": {
+          "label": "游戏",
+          "items": {
+            "worlds": "8世界32职业MMORPG设计",
+            "boss": "BOSS技能循环与阶段切换"
+          }
+        },
+        "video": {
+          "label": "视频",
+          "items": {
+            "courses": "B站10+门计算机课程",
+            "editing": "教程剪辑与知识可视化"
+          }
+        }
+      },
+      "timeline": {
+        "2022": "立项暮澜纪元，开始在B站更新计算机课程。",
+        "2023": "职业、天赋、任务这些核心系统基本做完。",
+        "2024": "搭了85+个AI Skill，让几个Agent能配合工作。",
+        "2025": "持续维护学习群与毕业论文指导。"
+      }
+    },
+    "experience": {
+      "entries": {
+        "mcserver": {
+          "title": "Minecraft《燃烧之陨》多元生存服",
+          "organization": "独立运营",
+          "period": "2019.07至今",
+          "description": "从2019年起独立承担《燃烧之陨》多元生存服与粘液科技服的服务器运维：Purpur核心版本升级、190+插件与80+科技附属的选型调优、AuthMe登录与基岩互通联调、多世界与副本的日常巡检，配合群机器人自动推送开服公告，保障10+世界长期稳定在线。",
+          "achievement1": "Purpur1.21.11核心+AuthMe登录+基岩互通，Java版与基岩版同服游玩",
+          "achievement2": "粘液科技配40+扩展附属，科技线从入门烧炉一路玩到终局",
+          "achievement3": "累计超100名玩家到访，QQ群日常答疑，配套群机器人自动推送开服公告"
+        },
+        "bachelor": {
+          "title": "本科毕业 · 计算机科学与技术专业",
+          "organization": "天津仁爱学院",
+          "period": "2022.09—2026.06",
+          "description": "天津仁爱学院计算机科学与技术本科，2022.09入学、2026.06顺利毕业。",
+          "achievement1": "顺利学修完成多门IT相关课程。",
+          "achievement2": "成绩优异，项目扎实。"
+        },
+        "educator": {
+          "title": "教育内容创作者",
+          "organization": "B站/线下小班课",
+          "period": "2024.03.16—2026.06",
+          "description": "在B站录课、维护200人+QQ学习交流群；面向社会带过Python基础与计算机基础小班课，做毕业论文指导。",
+          "achievement1": "录制10+门计算机课程，覆盖零基础到进阶",
+          "achievement2": "一对一指导50+毕业生走完选题到答辩，WPS/Microsoft Word排版逐节调格式",
+          "achievement3": "维护200人+学习群，沉淀系统化复习资料库"
+        },
+        "wowguild": {
+          "title": "燃烧之陨公会",
+          "organization": "魔兽世界",
+          "period": "2024.08.13至今",
+          "description": "2024年创办魔兽世界燃烧之陨公会，带团征战各版本BOSS，开荒实况同步发B站。",
+          "achievement1": "团队从零起步，目前稳定开荒",
+          "achievement2": "时刻保持和谐友善的团队氛围"
+        },
+        "aiengineer": {
+          "title": "AI应用工程师",
+          "organization": "LLM应用开发",
+          "period": "2024.09至今",
+          "description": "深度使用过从海螺AI/CodeGeeX/DeepSeek，到GLM-5.3-Flash/GPT-6 Astra/Muse Spark 1.3等AI进行开发任务或在其他领域进行探索尝试。",
+          "achievement1": "熟练使用Claude Code/Codex等AI编码智能体完成项目开发",
+          "achievement2": "熟练使用WorkBuddy/TraeWork等AI办公智能体完成日常任务",
+          "achievement3": "使用及创建85+个Skill，熟悉MCP、Hooks、Rules等机制与使用方式。"
+        },
+        "indie": {
+          "title": "独立开发者 · 和我恋爱吧及其他项目",
+          "organization": "个人项目（已上线）",
+          "period": "2026.05.10至今",
+          "description": "一人独立交付恋爱聊天、蜂来整蛊直播间、简历站与MMORPG插件：从页面、互动到部署端到端落地。",
+          "achievement1": "上线恋爱聊天应用：选AI对象聊天、军师支招、好友与挑战玩法，注册完就能聊。",
+          "achievement2": "上线蜂来3D整蛊直播间：双击点赞连击、拖拽道具投送投掷佩戴、弹幕刷屏、战报海报，纯前端无后端。",
+          "achievement3": "长期维护暮澜纪元8世界32职业服务端：自研400+类插件，打怪/天赋/任务/组队稳定在线。"
+        }
+      }
+    },
+    "education": {
+      "courses": {
+        "python": {
+          "name": "Python",
+          "level": "从入门到能写项目"
+        },
+        "c": {
+          "name": "C语言",
+          "level": "基础和指针"
+        },
+        "network": {
+          "name": "计算机网络",
+          "level": "系统串讲"
+        },
+        "computerOrganization": {
+          "name": "计算机组成原理",
+          "level": "硬件是怎么跑的"
+        },
+        "algorithms": {
+          "name": "数据结构与算法",
+          "level": "核心逻辑"
+        },
+        "assembly": {
+          "name": "汇编语言",
+          "level": "寄存器与指令"
+        },
+        "mysql": {
+          "name": "MySQL",
+          "level": "数据库基础"
+        }
+      },
+      "achievements": {
+        "crashCourse": "给0基础同学做线下小班课计算机培训，帮他把免修考试过了。",
+        "thesis": "带过50多位毕业生，从选题到答辩陪他们走了一遍。",
+        "community": "打理QQ学习群，平时答疑、丢资料、聊技术。"
+      }
+    },
+    "radar": {
+      "dimensions": {
+        "backendArchitecture": {
+          "label": "后端架构",
+          "description": "Java/Spring Boot服务端、数据库设计和SQL调优",
+          "basis": "Java 25自研400+类，从零做到8世界32职业MMORPG服务端"
+        },
+        "aiAgent": {
+          "label": "AI Agent",
+          "description": "AI编码智能体编排、可复用工作流与多智能体协作",
+          "basis": "沉淀85+个可复用AI工作流模板，为AI产出建立规范约束与审查流程，编排框架已开源"
+        },
+        "fullStack": {
+          "label": "全栈开发",
+          "description": "React/TypeScript前端、RESTful API和工程化",
+          "basis": "React 19+TypeScript+Three.js前端，Node/Express后端，已有上线应用"
+        },
+        "devopsDelivery": {
+          "label": "DevOps与实施交付",
+          "description": "Docker部署、服务器运维、实施交付与用户培训",
+          "basis": "docker-compose编排6服务上线，2019年至今运维多台服务器，承担部署排障、用户培训与文档编写"
+        },
+        "techTeaching": {
+          "label": "技术教学",
+          "description": "课程设计、论文修改和社群答疑",
+          "basis": "B站10+门课，一对一指导50+毕业生，维护200人+学习群"
+        },
+        "designAesthetic": {
+          "label": "设计审美",
+          "description": "UI/UX、品牌视觉和Three.js 3D",
+          "basis": "为暮澜纪元做界面与战斗HUD设计，给85+个AI工作流模板统一图标与输出卡片样式"
+        }
+      }
+    }
+  }
+}
