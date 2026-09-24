@@ -1,17 +1,10 @@
-import { useCallback } from 'react'
-import { Download } from 'lucide-react'
 import { personalInfo } from '../../data/personalInfo'
-import { Button } from '../../components/ui/Button'
 import { t } from '../../i18n/translations'
-import { downloadResume } from '../../lib/resume'
 import { RoleTicker } from './RoleTicker'
 import { TechStack } from './TechStack'
+import { DownloadMenu } from './DownloadMenu'
 
 export function HeroSection() {
-  const handleDownloadResume = useCallback(() => {
-    downloadResume()
-  }, [])
-
   return (
     <section
       id="hero"
@@ -31,14 +24,7 @@ export function HeroSection() {
           </h1>
           <RoleTicker />
           <div className="flex flex-wrap gap-3">
-            <Button
-              variant="secondary"
-              onClick={handleDownloadResume}
-              icon={<Download size={32} />}
-              className="h-16 px-10 text-lg"
-            >
-              {t('hero.cta.downloadResume')}
-            </Button>
+            <DownloadMenu />
           </div>
         </div>
 

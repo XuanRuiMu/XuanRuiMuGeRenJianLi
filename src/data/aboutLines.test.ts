@@ -2,62 +2,46 @@ import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import zhCN from '../i18n/zh-CN.json'
-import { 关于我介绍行, type 关于我样式 } from './aboutLines'
+import { 关于我介绍行, 解析片段 } from './aboutLines'
 
-const 项目根 = path.resolve(__dirname, '../..')
-const 行表 = zhCN.about.introLines as Record<string, { text: string; style: string }>
-const 行id集 = Object.keys(行表)
-const 合法样式: 关于我样式[] = ['normal', 'tech', 'accent']
+const 行表 = zhCN.about.introLines as Record<string, { text: string }>
 
 describe('FP-02 关于我结构化行', () => {
-  it('每行都有非空 text、合法 style，无空行', () => {
-    expect(行id集.length).toBeGreaterThan(0)
-    for (const id of 行id集) {
-      expect(行表[id].text.trim(), `${id} 行文案不得为空`).not.toBe('')
-      expect(合法样式, `${id} 行 style 非法`).toContain(行表[id].style)
-    }
+  it('五行为序，数据层与 JSON 键序一致', () => {
+    expect(Object.keys(行表)).toEqual(['l1', 'l2', 'l3', 'l4', 'l5'])
+    expect(关于我介绍行()).toHaveLength(5)
   })
 
-  it('数据层行序与 JSON 键序一致（新增行不会漏渲染）', () => {
-    expect(关于我介绍行().map((行) => 行.id)).toEqual(行id集)
+  it('每行片段拼接后与 JSON 原文一致，无空行', () => {
+    const 片段行表 = 关于我介绍行()
+    Object.keys(行表).forEach((id, i) => {
+      const 拼接 = 片段行表[i].map((段) => 段.text).join('')
+      expect(拼接).toBe(行表[id].text.replace(/\{\{(tech|dim|accent)\|([^}]*)\}\}/g, '$2'))
+      expect(拼接.trim()).not.toBe('')
+    })
   })
 
-  it('数据层逐字透出文案，不改写内容', () => {
-    for (const 行 of 关于我介绍行()) {
-      expect(行.text).toBe(行表[行.id].text)
-    }
+  it('{{tone|…}} 标记解析为着色片段，纯文本不丢字', () => {
+    const 片段 = 解析片段('整合并自研多个{{tech|skill}}，用{{tech|MCP/Hooks/Rules}}确保任务安全性。')
+    expect(片段.map((段) => 段.tone)).toEqual(['plain', 'tech', 'plain', 'tech', 'plain'])
+    expect(片段.map((段) => 段.text).join('')).toBe('整合并自研多个skill，用MCP/Hooks/Rules确保任务安全性。')
+    expect(片段[1].text).toBe('skill')
+    expect(片段[3].text).toBe('MCP/Hooks/Rules')
   })
 
-  it('恰有一个强调行与一个技术行，且样式不靠下标', () => {
-    const 样式表 = 关于我介绍行().map((行) => 行.style)
-    expect(样式表.filter((样) => 样 === 'accent')).toHaveLength(1)
-    expect(样式表.filter((样) => 样 === 'tech')).toHaveLength(1)
+  it('第 4 行 dim/accent 片段按语义着色', () => {
+    const 片段 = 解析片段(行表.l4.text)
+    const 色调 = Object.fromEntries(片段.map((段) => [段.text, 段.tone]))
+    expect(色调['“只能做样品”']).toBe('dim')
+    expect(色调['“可交付可验证的作品”']).toBe('accent')
   })
 
-  it('单行样式非法时回退 normal，不影响其他行', () => {
-    const 首行id = 行id集[0]
-    const 末行id = 行id集[行id集.length - 1]
-    const 原值 = 行表[首行id].style
-    try {
-      行表[首行id].style = 'bogus'
-      const 数据 = 关于我介绍行()
-      expect(数据[0].style).toBe('normal')
-      expect(数据[数据.length - 1].style).toBe(行表[末行id].style)
-    } finally {
-      行表[首行id].style = 原值
-    }
-    expect(关于我介绍行()[0].style).toBe('normal')
+  it('无标记文本整段 plain', () => {
+    expect(解析片段(行表.l1.text)).toEqual([{ text: 行表.l1.text, tone: 'plain' }])
   })
 
-  it('旧单段 intro 与 metrics 结构已移除', () => {
-    expect('intro' in zhCN.about).toBe(false)
-    expect('metrics' in zhCN.about).toBe(false)
-  })
-
-  it('AboutSection 源码无魔法下标、不再引用 about.metrics', () => {
-    const 源码 = fs.readFileSync(path.resolve(项目根, 'src/features/about/AboutSection.tsx'), 'utf-8')
-    expect(源码).not.toMatch(/索引 === \d/)
-    expect(源码).not.toContain('about.metrics')
-    expect(源码).not.toContain('chaiFenJianJie')
+  it('源码无 style 字段硬依赖', () => {
+    const 源码 = fs.readFileSync(path.resolve(__dirname, './aboutLines.ts'), 'utf-8')
+    expect(源码).not.toContain("style: 'normal'")
   })
 })

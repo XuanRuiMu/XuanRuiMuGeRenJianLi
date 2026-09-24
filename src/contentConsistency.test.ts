@@ -102,7 +102,7 @@ describe('FP-02内容一致性回归', () => {
     expect('radar' in zhCN).toBe(false)
     const 维度表 = zhCN.data.radar.dimensions as Record<string, unknown>
     expect(Object.keys(维度表).sort()).toEqual(
-      ['aiAgent', 'backendArchitecture', 'designAesthetic', 'devopsDelivery', 'fullStack', 'techTeaching'].sort()
+      ['aiAgent', 'artCreation', 'backendArchitecture', 'designAesthetic', 'devopsDelivery', 'fullStack'].sort()
     )
     expect('escape' in zhCN.showcase.cards).toBe(false)
     for (const 残留 of ['架子鼓', '爵士乐', '乐理', '频谱', '音乐经历']) {
@@ -158,20 +158,20 @@ describe('FP-10 文案错误、口径不一致与死文案守卫', () => {
   })
 
   it('关于我第 4 行不再是缺谓语的句子', () => {
-    const 第4行 = t('about.introLines.aiBaseline.text')
-    expect(第4行).toContain('本站的AI助手也是我自己搭的：')
-    expect(第4行).not.toContain('同样我自己搭')
+    const 第4行 = t('about.introLines.l4.text')
+    expect(第4行).toContain('让AI从')
+    expect(第4行).not.toContain('——')
   })
 
   it('推荐语 AI开发者条目与「开源的是编排框架与 Agent 技能」自洽', () => {
-    const 开源事实 = [t('about.introLines.aiAssets.text'), t('showcase.cards.repoLoop.desc')].join('\n')
+    const 开源事实 = [t('about.introLines.l3.text'), t('showcase.cards.repoLoop.desc')].join('\n')
     expect(开源事实).toContain('编排框架')
     expect(开源事实).toContain('Agent技能')
     const role = t('testimonials.items.aiDeveloper.role')
     const quote = t('testimonials.items.aiDeveloper.quote')
     expect(role).toContain('开源')
-    expect(role).toContain('编排框架')
-    expect(role).toContain('Agent技能')
+    expect(role).toContain('开源')
+    expect(role).toContain('工具')
     expect(quote).toContain('开源')
     // 站内 85+ 工作流模板从未声明开源，推荐语不得把它说成开源物
     expect(role).not.toContain('工作流模板')

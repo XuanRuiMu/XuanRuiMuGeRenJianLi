@@ -124,4 +124,63 @@ describe('ContactSection', () => {
     render(<ContactSection />)
     expect(screen.getByText(t('contact.stillSure.title'))).toBeInTheDocument()
   })
+
+  it('外层网格为两列等宽2×2布局（lg:grid-cols-2，无旧不等宽类）', () => {
+    render(<ContactSection />)
+    const qqCard = screen.getByText(t('contact.info.qq')).closest('.contact-item-link') as HTMLElement
+    const outerGrid = qqCard.parentElement as HTMLElement
+    expect(outerGrid).toHaveClass('grid', 'lg:grid-cols-2')
+    expect(outerGrid.className).not.toContain('lg:grid-cols-[1fr_1.2fr]')
+    expect(outerGrid.children).toHaveLength(4)
+  })
+
+  it('桌面grid placement：上排=三链接卡|五子棋，下排=QQ|微信', () => {
+    render(<ContactSection />)
+    const emailCard = screen.getByText(t('contact.info.email')).closest('.contact-item-link') as HTMLElement
+    const qqCard = screen.getByText(t('contact.info.qq')).closest('.contact-item-link') as HTMLElement
+    const wechatCard = screen.getByText(t('contact.info.wechat')).closest('.contact-item-link') as HTMLElement
+    const linksContainer = emailCard.parentElement as HTMLElement
+    const outerGrid = qqCard.parentElement as HTMLElement
+
+    expect(linksContainer).toHaveClass('lg:col-start-1', 'lg:row-start-1')
+    expect(linksContainer).toHaveClass('flex', 'flex-col')
+    expect(linksContainer.querySelectorAll('.contact-item-link')).toHaveLength(3)
+    expect(linksContainer.contains(qqCard)).toBe(false)
+    expect(linksContainer.contains(wechatCard)).toBe(false)
+
+    expect(qqCard).toHaveClass('lg:col-start-1', 'lg:row-start-2')
+    expect(wechatCard).toHaveClass('lg:col-start-2', 'lg:row-start-2')
+
+    const children = Array.from(outerGrid.children)
+    expect(children[0]).toBe(linksContainer)
+    expect(children[1]).toBe(qqCard)
+    expect(children[2]).toBe(wechatCard)
+    const gomokuPanel = children[3] as HTMLElement
+    expect(gomokuPanel.contains(screen.getByText(t('contact.stillSure.title')))).toBe(true)
+    expect(gomokuPanel).toHaveClass('lg:col-start-2', 'lg:row-start-1')
+  })
+
+  it('DOM顺序保持 邮箱→GitHub→B站→QQ→微信→五子棋（移动端堆叠序）', () => {
+    render(<ContactSection />)
+    const cards = Array.from(document.querySelectorAll('.contact-item-link'))
+    expect(cards.map((c) => c.querySelector('.contact-item-label')?.textContent)).toEqual([
+      t('contact.info.email'),
+      t('contact.info.github'),
+      t('contact.info.bilibili'),
+      t('contact.info.qq'),
+      t('contact.info.wechat'),
+    ])
+    const wechatCard = cards[4]
+    const gomokuTitle = screen.getByText(t('contact.stillSure.title'))
+    expect(wechatCard.compareDocumentPosition(gomokuTitle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('三链接卡在lg下flex-1撑满行高（总高=行高=五子棋面板高）', () => {
+    render(<ContactSection />)
+    const emailCard = screen.getByText(t('contact.info.email')).closest('.contact-item-link') as HTMLElement
+    const linksContainer = emailCard.parentElement as HTMLElement
+    for (const card of linksContainer.querySelectorAll('.contact-item-link')) {
+      expect(card).toHaveClass('lg:flex-1')
+    }
+  })
 })

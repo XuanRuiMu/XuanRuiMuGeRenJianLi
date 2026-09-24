@@ -2,7 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { Section } from '../../components/ui/Section'
 import { Reveal } from '../../components/Reveal'
 import { t } from '../../i18n/translations'
-import { radarAxes, dimensionLabelKey, dimensionBasisKey } from '../../data/radar'
+import {
+  radarAxes,
+  dimensionLabelKey,
+  dimensionBasisKey,
+  dimensionDescriptionKey,
+  type RadarAxis,
+} from '../../data/radar'
 import { 量化指标, 技能组表, type 量化指标项 } from '../../data/skillGroups'
 import { useCountUp } from '../../hooks/useCountUp'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
@@ -14,7 +20,7 @@ const RINGS = [20, 40, 60, 80, 100]
 /** 轴标签画在 1.18 倍半径处，文字本身还会向外延伸；viewBox 若只容下 SIZE 就会裁掉侧向标签。 */
 const 标签留白 = 44
 const 画布 = `${-标签留白} ${-标签留白 / 2} ${SIZE + 标签留白 * 2} ${SIZE + 标签留白}`
-/** 指标数字滚动时长（ms）：在调用点显式声明，不吃 useCountUp 的默认值，避免与经历板块的年份滚动共用同一份魔法默认。 */
+/** 指标数字滚动时长（ms） */
 const 指标滚动时长 = 640
 
 function pointAt(angleDeg: number, ratio: number): [number, number] {
@@ -49,12 +55,33 @@ function SkillMetricCard({ 指标, 启动, 动画 }: { 指标: 量化指标项; 
   )
 }
 
+/** 雷达节点悬停浮窗：定位在节点右上，超出画布时自动翻边 */
+function RadarTooltip({ 轴, x, y }: { 轴: RadarAxis; x: number; y: number }) {
+  const 翻边 = x > CENTER
+  const top = Math.max(0, y - 12)
+  const left = 翻边 ? undefined : Math.min(x + 14, SIZE + 标签留白 - 8)
+  const right = 翻边 ? SIZE + 标签留白 - x + 14 : undefined
+  return (
+    <div
+      role="tooltip"
+      className="pointer-events-none absolute z-20 w-52 rounded-lg border border-border bg-panel px-3 py-2 shadow-lg"
+      style={{ top, left, right }}
+    >
+      <div className="text-sm font-semibold text-text-primary">{t(dimensionLabelKey(轴.id))}</div>
+      <div className="mt-0.5 text-xs leading-relaxed text-text-secondary">{t(dimensionDescriptionKey(轴.id))}</div>
+      <div className="mt-1 text-[11px] leading-relaxed text-muted">{t(dimensionBasisKey(轴.id))}</div>
+    </div>
+  )
+}
+
 export function SkillsSection() {
   const reduced = useReducedMotion()
   const count = radarAxes.length
   const dataPoints = polygonPoints(radarAxes.map((a) => a.level))
   const 指标表 = 量化指标()
   const 分组表 = 技能组表()
+  const 主轴表 = radarAxes.filter((轴) => !轴.minor)
+  const [悬停轴, set悬停轴] = useState<{ 轴: RadarAxis; x: number; y: number } | null>(null)
 
   const 指标区引用 = useRef<HTMLDivElement>(null)
   const [进入视口, set进入视口] = useState(false)
@@ -80,14 +107,12 @@ export function SkillsSection() {
 
   return (
     <Section id="skills" title={t('skills.title')}>
-      {/* 量化指标：从「关于我」迁入，数字进入视口后滚动到位 */}
       <div ref={指标区引用} data-skill-metrics="true" className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {指标表.map((指标) => (
           <SkillMetricCard key={指标.id} 指标={指标} 启动={进入视口} 动画={!reduced} />
         ))}
       </div>
 
-      {/* 能力分组：第一组固定为 AI Agent能力 */}
       <div className="mt-10">
         <h3 className="mb-4 text-sm font-medium text-text-primary text-shadow-readable">{t('skills.groupsTitle')}</h3>
         <div className="grid gap-5 md:grid-cols-2">
@@ -122,14 +147,12 @@ export function SkillsSection() {
       </div>
 
       <div className="mt-12 grid items-start gap-10 md:grid-cols-2">
-        {/* 雷达图 */}
         <Reveal className="flex justify-center">
-          <figure className="w-full max-w-sm">
+          <figure className="relative w-full max-w-sm">
             <figcaption className="mb-3 text-center text-sm font-medium text-muted">
               {t('skills.radarTitle')}
             </figcaption>
             <svg viewBox={画布} className="h-auto w-full" role="img" aria-label={t('skills.radarTitle')}>
-              {/* 网格环 */}
               {RINGS.map((lv) => (
                 <polygon
                   key={lv}
@@ -139,14 +162,12 @@ export function SkillsSection() {
                   strokeWidth={1}
                 />
               ))}
-              {/* 轴线 */}
               {radarAxes.map((_, i) => {
                 const [x, y] = pointAt(i * (360 / count), 1)
                 return (
                   <line key={i} x1={CENTER} y1={CENTER} x2={x} y2={y} stroke="rgba(125,211,252,0.18)" strokeWidth={1} />
                 )
               })}
-              {/* 数据多边形 */}
               <polygon
                 points={dataPoints}
                 fill="rgba(56,189,248,0.25)"
@@ -154,18 +175,32 @@ export function SkillsSection() {
                 strokeWidth={2}
                 style={reduced ? undefined : { transition: 'all 700ms ease' }}
               />
-              {/* 数据点 */}
-              {radarAxes.map((a, i) => {
-                const [x, y] = pointAt(i * (360 / count), a.level / 100)
-                return <circle key={i} cx={x} cy={y} r={3} fill="#38bdf8" />
+              {radarAxes.map((轴, i) => {
+                const [x, y] = pointAt(i * (360 / count), 轴.level / 100)
+                return (
+                  <circle
+                    key={轴.id}
+                    cx={x}
+                    cy={y}
+                    r={悬停轴?.轴.id === 轴.id ? 5 : 3}
+                    fill={轴.minor ? '#a78bfa' : '#38bdf8'}
+                    className="cursor-pointer"
+                    onMouseEnter={() => set悬停轴({ 轴, x, y })}
+                    onMouseLeave={() => set悬停轴(null)}
+                    onFocus={() => set悬停轴({ 轴, x, y })}
+                    onBlur={() => set悬停轴(null)}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={t(dimensionLabelKey(轴.id))}
+                  />
+                )
               })}
-              {/* 轴标签 */}
-              {radarAxes.map((a, i) => {
+              {radarAxes.map((轴, i) => {
                 const [x, y] = pointAt(i * (360 / count), 1.18)
                 const anchor = x < CENTER - 4 ? 'end' : x > CENTER + 4 ? 'start' : 'middle'
                 return (
                   <text
-                    key={i}
+                    key={轴.id}
                     x={x}
                     y={y}
                     textAnchor={anchor}
@@ -173,24 +208,25 @@ export function SkillsSection() {
                     className="fill-current text-text-secondary"
                     style={{ fontSize: 11 }}
                   >
-                    {t(dimensionLabelKey(a.id))}
+                    {t(dimensionLabelKey(轴.id))}
                   </text>
                 )
               })}
             </svg>
+            {悬停轴 && <RadarTooltip 轴={悬停轴.轴} x={悬停轴.x} y={悬停轴.y} />}
           </figure>
         </Reveal>
 
-        {/* 图例 + 真实依据 */}
+        {/* 图例只列主轴；附轴（设计/艺术）仅在雷达上，悬停浮窗看说明 */}
         <div className="space-y-3">
-          {radarAxes.map((a) => (
-            <Reveal key={a.id}>
+          {主轴表.map((轴) => (
+            <Reveal key={轴.id}>
               <div className="rounded-xl border border-border/60 bg-surface/40 p-3">
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="text-sm font-medium text-text-primary">{t(dimensionLabelKey(a.id))}</span>
-                  <span className="font-mono text-xs text-primary">{a.level}</span>
+                  <span className="text-sm font-medium text-text-primary">{t(dimensionLabelKey(轴.id))}</span>
+                  <span className="font-mono text-xs text-primary">{轴.level}</span>
                 </div>
-                <p className="mt-1 text-xs leading-relaxed text-text-secondary">{t(dimensionBasisKey(a.id))}</p>
+                <p className="mt-1 text-xs leading-relaxed text-text-secondary">{t(dimensionBasisKey(轴.id))}</p>
               </div>
             </Reveal>
           ))}

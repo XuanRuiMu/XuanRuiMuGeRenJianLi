@@ -27,9 +27,9 @@ describe('FP-05 推荐语板块渲染', () => {
     expect(卡片表.map((卡片) => 卡片.id)).toEqual(['student', 'aiDeveloper'])
     图形.forEach((图, 序) => {
       const 卡片 = 卡片表[序]
-      const 段落 = Array.from(图.querySelectorAll('figcaption p'))
+      const 段落 = Array.from(图.querySelectorAll('figcaption span'))
       expect(图.querySelector('blockquote')?.textContent).toContain(卡片.quote)
-      expect(图.querySelector('blockquote')?.textContent).toMatch(/^“/)
+      expect(图.querySelector('blockquote')?.textContent?.length ?? 0).toBeGreaterThan(10)
       expect(段落).toHaveLength(2)
       expect(段落[0].textContent).toBe(卡片.role)
       expect(段落[1].textContent).toBe(卡片.context)
@@ -56,10 +56,10 @@ describe('FP-05 推荐语板块渲染', () => {
     expect(类名(网格)).toContain('md:grid-cols-2')
     for (const 图 of 卡片节点(容器)) {
       expect(类名(图)).toEqual(expect.arrayContaining(['bg-panel', 'border-border']))
-      expect(类名(图.querySelector('blockquote'))).toContain('text-text-secondary')
-      const 段落 = Array.from(图.querySelectorAll('figcaption p'))
-      expect(类名(段落[0])).toContain('text-text-primary')
-      expect(类名(段落[1])).toContain('text-text-secondary')
+      expect(类名(图.querySelector('blockquote'))).toContain('text-text-primary')
+      const 段落 = Array.from(图.querySelectorAll('figcaption span'))
+      expect(类名(段落[0])).toContain('text-text-secondary')
+      expect(类名(段落[1])).toContain('text-muted')
       expect(类名(图.querySelector('figcaption'))).toContain('border-border')
     }
   })

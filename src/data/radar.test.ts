@@ -6,15 +6,15 @@ import { radarAxes, dimensionLabelKey, dimensionBasisKey } from './radar'
 const 维度表 = zhCN.data.radar.dimensions as Record<string, { label: string; description: string; basis: string }>
 
 describe('FP-03 技能雷达 6 轴', () => {
-  it('8 轴收敛为 6 轴，AI Agent 轴居首', () => {
+  it('6 轴（4 主轴 + 2 附轴），AI Agent 轴居首', () => {
     expect(radarAxes).toHaveLength(6)
     expect(radarAxes.map((轴) => 轴.id)).toEqual([
       'aiAgent',
       'backendArchitecture',
       'fullStack',
       'devopsDelivery',
-      'techTeaching',
       'designAesthetic',
+      'artCreation',
     ])
   })
 

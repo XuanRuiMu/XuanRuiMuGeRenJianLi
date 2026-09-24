@@ -108,25 +108,20 @@
   "about": {
     "title": "关于我",
     "introLines": {
-      "identity": {
-        "text": "我是玄锐暮，天津仁爱学院计算机专业2026届本科毕业生，随时到岗，期望天津，可接受夜班。",
-        "style": "normal"
+      "l1": {
+        "text": "我是玄锐暮，天津仁爱学院计算机专业2026届本科毕业生，随时到岗，期望天津，可接受夜班。"
       },
-      "aiTeam": {
-        "text": "我把AI当一支开发团队来带：需求拆解、架构决策、集成联调、上线排障由我拍板，AI承担代码补全与样板生成，用Claude Code/Codex/Trae/WorkBuddy独立交付并上线了AI恋爱模拟应用、纯前端3D互动直播间和本简历站。",
-        "style": "tech"
+      "l2": {
+        "text": "我把AI当开发团队带：需求架构我拍板，AI进行补全与样板等具体工作。"
       },
-      "aiAssets": {
-        "text": "为了让这套做法可复制，我沉淀了85+个可复用AI工作流模板，建立MCP+Hooks+Rules的编码约束体系让AI产出直接可合并，多智能体协作的编排框架已作为「循环工程」开源。",
-        "style": "normal"
+      "l3": {
+        "text": "整合并自研多个{{tech|skill}}，用{{tech|MCP/Hooks/Rules}}确保任务安全性。编排框架已开源。"
       },
-      "aiBaseline": {
-        "text": "本站的AI助手也是我自己搭的：意图路由、语料分块检索、流式思考与断网本地兜底四层齐全，密钥收在服务端代理，构建产物扫描零凭据——AI能力之外，工程底线我一起交付。",
-        "style": "accent"
+      "l4": {
+        "text": "让AI从{{dim|“只能做样品”}}转变为真正{{accent|“可交付可验证的作品”}}。"
       },
-      "beyondAi": {
-        "text": "AI之外我做这些：给暮澜纪元画整套游戏UI、技能面板与HUD，用代码跑生成艺术，长期写暮澜纪元的世界观编年史与角色故事，自写自演过原创相声《传统与科技》，用软件音源做编曲与配乐；写代码坚持中文命名、零硬编码、玩家可见文本全部走翻译文件；从2019年至今独立运维多台游戏服务器，在B站录了10多门计算机课，一对一带过50多位毕业生走完选题到答辩。",
-        "style": "normal"
+      "l5": {
+        "text": "熟悉编写文档，使用github等基本技能。乐于尝试其他未知事物。"
       }
     },
     "caption": {
@@ -278,10 +273,22 @@
   "skills": {
     "title": "技能",
     "metrics": {
-      "javaClasses": { "value": "400+", "label": "自研Java类" },
-      "aiSkills": { "value": "85+", "label": "可复用AI工作流模板" },
-      "agentSkills": { "value": "9", "label": "开源Agent技能" },
-      "serverOps": { "value": "7年", "label": "独立服务器运维" }
+      "javaClasses": {
+        "value": "400+",
+        "label": "自研Java类"
+      },
+      "aiSkills": {
+        "value": "85+",
+        "label": "可复用AI工作流模板"
+      },
+      "agentSkills": {
+        "value": "9",
+        "label": "开源Agent技能"
+      },
+      "serverOps": {
+        "value": "7年",
+        "label": "独立服务器运维"
+      }
     },
     "groupsTitle": "能力清单",
     "groups": {
@@ -380,14 +387,14 @@
     "title": "推荐语",
     "items": {
       "student": {
-        "role": "课程学员 · 计算机相关专业毕业生",
-        "quote": "毕业论文那几个月我跟着玄锐暮的课走了一遍，从选题、框架到排版格式都是一节一节讲的。我基础比较薄弱，问的问题很零碎，他也是一个一个回答，最后我按时通过了答辩。",
-        "context": "一对一指导过的毕业生之一"
+        "role": "去年毕业的学弟",
+        "quote": "论文卡在第三章那阵子，我基本天天找他。他没直接甩模板，是一段一段帮我捋的。最后答辩那天挺顺利。",
+        "context": "论文跟他做的"
       },
       "aiDeveloper": {
-        "role": "AI开发者 · 用过他开源的编排框架与Agent技能",
-        "quote": "他那套开源技能包里的命名和说明写得清楚，任务拆分的粒度也合适，我改了几个参数就接上了自己的项目。后来我照着这个思路，把自己那部分流程也整理了一遍。",
-        "context": "循环工程开源仓库的使用者"
+        "role": "用过他开源工具的开发者",
+        "quote": "把他那套开源技能包clone下来，一晚上就跑通了。文档写得挺明白，该改哪儿都标了。我后来把自己那摊流程也照着收拾了一遍。",
+        "context": "GitHub上star了开源仓库"
       }
     }
   },
@@ -477,7 +484,7 @@
       "didYouMean": "您是指：",
       "modelHeader": "可用模型：",
       "modelCurrent": "（当前）",
-      "modelHint": "输入/model<序号或模型名>切换 · 选择器内↑↓←→⏎操作",
+      "modelHint": "输入/model\u003c序号或模型名\u003e切换 · 选择器内↑↓←→⏎操作",
       "modelPickerHint": "↑/↓切模型 · ←/→切思考强度 · ⏎确认 · esc取消",
       "modelSwitchedPrefix": "已切换模型：",
       "modelUnknownPrefix": "未知模型：",
@@ -766,15 +773,15 @@
           "description": "Docker部署、服务器运维、实施交付与用户培训",
           "basis": "docker-compose编排6服务上线，2019年至今运维多台服务器，承担部署排障、用户培训与文档编写"
         },
-        "techTeaching": {
-          "label": "技术教学",
-          "description": "课程设计、论文修改和社群答疑",
-          "basis": "B站10+门课，一对一指导50+毕业生，维护200人+学习群"
-        },
         "designAesthetic": {
           "label": "设计审美",
-          "description": "UI/UX、品牌视觉和Three.js 3D",
+          "description": "界面与视觉的设计判断",
           "basis": "为暮澜纪元做界面与战斗HUD设计，给85+个AI工作流模板统一图标与输出卡片样式"
+        },
+        "artCreation": {
+          "label": "艺术创作",
+          "description": "文字、视觉与表演向的创作表达",
+          "basis": "写世界观编年史与角色小说共5部，自写自演原创相声1段，用软件音源做编曲配乐"
         }
       }
     }

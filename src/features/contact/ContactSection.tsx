@@ -99,14 +99,14 @@ export function ContactSection() {
 
   return (
     <Section id="contact" title={t('contact.title')} subtitle={t('contact.subtitle')}>
-      <div className="grid gap-8 lg:grid-cols-[1fr_1.2fr]">
-        {/* 左：联系卡片 */}
-        <div className="grid content-start gap-6">
+      <div className="grid gap-6 lg:gap-8 lg:grid-cols-2">
+        {/* 上排左：三链接卡 */}
+        <div className="flex flex-col gap-6 lg:col-start-1 lg:row-start-1">
           {contactLinks.map((link) => {
             const Icon = link.icon
             const isEmail = link.id === 'email'
             return (
-              <div key={link.id} className="contact-item-link">
+              <div key={link.id} className="contact-item-link lg:flex-1">
                 <a
                   href={link.href}
                   target={isEmail ? undefined : '_blank'}
@@ -137,46 +137,51 @@ export function ContactSection() {
               </div>
             )
           })}
-
-          {二维码卡片.map((卡片) => {
-            const Icon = 卡片.icon
-            return (
-              <div key={卡片.id} className="contact-item-link">
-                <div className="flex w-full flex-col gap-4">
-                  <div className="flex items-center gap-4">
-                    <span className="contact-item-icon">
-                      <Icon className="h-7 w-7" />
-                    </span>
-                    <span className="contact-item-details min-w-0 flex-1">
-                      <span className="contact-item-label block text-sm font-semibold">{卡片.label}</span>
-                      <span className="contact-item-value block text-sm font-medium">{卡片.value}</span>
-                    </span>
-                    {复制按钮(卡片.id, 卡片.value, 卡片.label)}
-                  </div>
-                  {!二维码缺失[卡片.id] && (
-                    <div className="flex justify-center">
-                      <img
-                        src={卡片.src}
-                        alt={卡片.alt}
-                        loading="lazy"
-                        className="h-36 w-36 rounded-lg border border-border object-cover"
-                        onError={() => set二维码缺失((prev) => ({ ...prev, [卡片.id]: true }))}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            )
-          })}
         </div>
 
-        {/* 右：五子棋小游戏 */}
-        <div className="grid content-start gap-6">
-          <div className="rounded-xl border border-border bg-surface/40 p-5">
-            <h3 className="mb-4 font-mono text-lg font-semibold text-text-primary">{t('contact.stillSure.title')}</h3>
-            <div className="flex justify-center">
-              <Gomoku />
+        {/* 下排：QQ、微信二维码卡 */}
+        {二维码卡片.map((卡片) => {
+          const Icon = 卡片.icon
+          return (
+            <div
+              key={卡片.id}
+              className={cn(
+                'contact-item-link',
+                卡片.id === 'qq' ? 'lg:col-start-1 lg:row-start-2' : 'lg:col-start-2 lg:row-start-2'
+              )}
+            >
+              <div className="flex w-full flex-col gap-4">
+                <div className="flex items-center gap-4">
+                  <span className="contact-item-icon">
+                    <Icon className="h-7 w-7" />
+                  </span>
+                  <span className="contact-item-details min-w-0 flex-1">
+                    <span className="contact-item-label block text-sm font-semibold">{卡片.label}</span>
+                    <span className="contact-item-value block text-sm font-medium">{卡片.value}</span>
+                  </span>
+                  {复制按钮(卡片.id, 卡片.value, 卡片.label)}
+                </div>
+                {!二维码缺失[卡片.id] && (
+                  <div className="flex justify-center">
+                    <img
+                      src={卡片.src}
+                      alt={卡片.alt}
+                      loading="lazy"
+                      className="h-36 w-36 rounded-lg border border-border object-cover"
+                      onError={() => set二维码缺失((prev) => ({ ...prev, [卡片.id]: true }))}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
+          )
+        })}
+
+        {/* 上排右：五子棋小游戏 */}
+        <div className="rounded-xl border border-border bg-surface/40 p-5 lg:col-start-2 lg:row-start-1">
+          <h3 className="mb-4 font-mono text-lg font-semibold text-text-primary">{t('contact.stillSure.title')}</h3>
+          <div className="flex justify-center">
+            <Gomoku />
           </div>
         </div>
       </div>

@@ -25,7 +25,7 @@ const ContactSection = lazy(() =>
 )
 
 function SectionFallback() {
-  return <div className="min-h-[40vh] w-full" aria-hidden="true" />
+  return <div className="min-h-[12vh] w-full" aria-hidden="true" />
 }
 
 export default function App() {

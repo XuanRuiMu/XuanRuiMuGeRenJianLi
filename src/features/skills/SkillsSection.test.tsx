@@ -203,7 +203,7 @@ describe('FP-03 技能板块 - 雷达与残留', () => {
   it('雷达只画 6 条轴，图例与轴集一致', async () => {
     const { 容器 } = await 渲染技能板块()
     expect(容器.querySelectorAll('svg text')).toHaveLength(radarAxes.length)
-    expect(radarAxes).toHaveLength(6)
+    expect(radarAxes.filter((轴) => !轴.minor)).toHaveLength(4)
     const 图例 = Array.from(容器.querySelectorAll('[class*="rounded-xl border"]')).filter((节点) =>
       (节点.textContent ?? '').includes(t('data.radar.dimensions.aiAgent.basis'))
     )

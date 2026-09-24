@@ -1,37 +1,41 @@
 import { t, type TranslationKey } from '../i18n/translations'
 
 /**
- * 「关于我」正文行：文案与样式标记都在 zh-CN.json 的 about.introLines 节点。
- * 样式由数据里的 style 字段决定，与行序号无关——增删行或调换顺序都不会让强调样式跑到别的行上。
- * 行 id 顺序即展示顺序；aboutLines.test.ts 断言 id 表与 JSON 键集一致，防止新行被漏掉。
+ * 「关于我」正文行：文案在 zh-CN.json 的 about.introLines 节点。
+ * 行内支持 {{tech|…}} / {{dim|…}} / {{accent|…}} 片段标记，由 AboutSection 解析成着色 span。
+ * id 表顺序即展示顺序。
  */
 
-export type 关于我样式 = 'normal' | 'tech' | 'accent'
+export type 片段色调 = 'plain' | 'tech' | 'dim' | 'accent'
 
-export interface 关于我行 {
-  /** about.introLines 下的行 id，同时用于 React key */
-  id: string
+export interface 文本片段 {
   text: string
-  style: 关于我样式
+  tone: 片段色调
 }
 
-/** 展示顺序：身份 → AI 团队协作方式（技术高亮） → AI 资产沉淀 → 工程底线（强调） → AI 之外的能力 */
-const 行id表 = ['identity', 'aiTeam', 'aiAssets', 'aiBaseline', 'beyondAi'] as const
+/** 展示顺序 */
+const 行id表 = ['l1', 'l2', 'l3', 'l4', 'l5'] as const
 
-/** 样式白名单：非法值回退 normal，避免脏数据让行丢失样式或错套样式 */
-const 样式白名单: readonly string[] = ['normal', 'tech', 'accent']
-
-function 行键(id: string, 字段: 'text' | 'style'): TranslationKey {
-  return `about.introLines.${id}.${字段}` as unknown as TranslationKey
+function 行键(id: string): TranslationKey {
+  return `about.introLines.${id}.text` as unknown as TranslationKey
 }
 
-export function 关于我介绍行(): 关于我行[] {
-  const 行表: 关于我行[] = []
-  for (const id of 行id表) {
-    const 文本 = t(行键(id, 'text')).trim()
-    if (!文本) continue
-    const 原始样式 = t(行键(id, 'style'))
-    行表.push({ id, text: 文本, style: 样式白名单.includes(原始样式) ? (原始样式 as 关于我样式) : 'normal' })
+const 片段正则 = /\{\{(tech|dim|accent)\|([^}]*)\}\}/g
+
+/** 把带 {{tone|…}} 标记的原文拆成着色片段 */
+export function 解析片段(原文: string): 文本片段[] {
+  const 片段表: 文本片段[] = []
+  let 上次 = 0
+  for (const 匹配 of 原文.matchAll(片段正则)) {
+    const 起 = 匹配.index ?? 0
+    if (起 > 上次) 片段表.push({ text: 原文.slice(上次, 起), tone: 'plain' })
+    片段表.push({ text: 匹配[2] ?? '', tone: (匹配[1] as 片段色调) ?? 'plain' })
+    上次 = 起 + 匹配[0].length
   }
-  return 行表
+  if (上次 < 原文.length) 片段表.push({ text: 原文.slice(上次), tone: 'plain' })
+  return 片段表.filter((段) => 段.text.length > 0)
+}
+
+export function 关于我介绍行(): 文本片段[][] {
+  return 行id表.map((id) => 解析片段(t(行键(id))))
 }
