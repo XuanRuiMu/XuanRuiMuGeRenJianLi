@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, act, cleanup } from '@testing-library/react'
+import { render, act, cleanup, fireEvent } from '@testing-library/react'
 import { SkillsSection } from './SkillsSection'
 import { 量化指标, 技能组表 } from '../../data/skillGroups'
-import { radarAxes } from '../../data/radar'
+import { radarAxes, dimensionLabelKey, dimensionBasisKey } from '../../data/radar'
 import { t } from '../../i18n/translations'
 
 /** 数字滚动只允许在 act 内推进；这里冻结 rAF 让终态文本稳定可读 */
@@ -122,11 +122,11 @@ describe('FP-03 技能板块 - 量化指标', () => {
   })
 
   /**
-   * 滚动时长的行为守卫：技能板块的时长在调用点显式声明为 640ms，
-   * 半程（320ms）必须仍在滚动、满程（640ms）必须已到终态。
-   * 谁把时长改回旧的 320ms，半程断言即红；改成别的时间，满程断言即红。
+   * 滚动时长的行为守卫：技能板块的时长在调用点显式声明为 1280ms，
+   * 半程（640ms）必须仍在滚动、满程（1280ms）必须已到终态。
+   * 谁把时长改回旧的 640ms，半程断言即红；改成别的时间，满程断言即红。
    */
-  it('指标数字滚动时长 640ms：半程仍在滚动，满程落到终态', async () => {
+  it('指标数字滚动时长 1280ms：半程仍在滚动，满程落到终态', async () => {
     vi.spyOn(window, 'matchMedia').mockImplementation(
       () =>
         ({
@@ -160,15 +160,15 @@ describe('FP-03 技能板块 - 量化指标', () => {
 
     // 第一帧：各卡记录各自的起始时间
     await 推进到(0)
-    await 推进到(320)
+    await 推进到(640)
     const 半程 = 容器.querySelector('[data-skill-metric="javaClasses"]')?.textContent ?? ''
     expect(半程).not.toBe('')
     expect(半程).not.toContain('400+')
 
-    await 推进到(640)
+    await 推进到(1280)
     for (const 指标 of 量化指标()) {
       const 文本 = 容器.querySelector(`[data-skill-metric="${指标.id}"]`)?.textContent ?? ''
-      expect(文本, `${指标.id} 应在 640ms 处到达终态`).toContain(指标.value)
+      expect(文本, `${指标.id} 应在 1280ms 处到达终态`).toContain(指标.value)
     }
   })
 })
@@ -200,6 +200,103 @@ describe('FP-03 技能板块 - 能力分组', () => {
 })
 
 describe('FP-03 技能板块 - 雷达与残留', () => {
+  it('悬停技能点时气泡仅显示该技能的详细阐述', async () => {
+    const { 容器 } = await 渲染技能板块()
+    expect(容器.querySelector('[role="tooltip"]')).toBeNull()
+
+    const 点 = 容器.querySelector('[data-radar-point="aiAgent"]')
+    expect(点).not.toBeNull()
+    fireEvent.mouseEnter(点!)
+
+    const 气泡 = 容器.querySelector('[role="tooltip"]')
+    const 轴 = radarAxes.find((项) => 项.id === 'aiAgent')!
+    expect(气泡?.textContent).toBe(t(`data.radar.dimensions.${轴.id}.description` as never))
+    expect(气泡?.textContent).not.toContain(t(`data.radar.dimensions.${轴.id}.basis` as never))
+    expect(点?.getAttribute('aria-describedby')).toBe(气泡?.getAttribute('id'))
+  })
+
+  it('键盘聚焦优先于鼠标悬停，旧鼠标点离开时不关闭当前说明', async () => {
+    const { 容器 } = await 渲染技能板块()
+    const 鼠标点 = 容器.querySelector('[data-radar-point="aiAgent"]')!
+    const 键盘点 = 容器.querySelector('[data-radar-point="backendArchitecture"]')!
+
+    fireEvent.mouseEnter(鼠标点)
+    fireEvent.focus(键盘点)
+    fireEvent.mouseLeave(鼠标点)
+
+    const 气泡 = 容器.querySelector('[data-radar-tooltip="backendArchitecture"]')
+    expect(气泡?.textContent).toBe(t('data.radar.dimensions.backendArchitecture.description'))
+    expect(键盘点.getAttribute('aria-describedby')).toBe(气泡?.getAttribute('id'))
+  })
+
+  it('六个技能气泡使用独立切角造型并区分技术色与创意色', async () => {
+    const { 容器 } = await 渲染技能板块()
+    const 点表 = Array.from(容器.querySelectorAll('[data-radar-point]'))
+    expect(点表.map((点) => 点.getAttribute('data-radar-point'))).toEqual(radarAxes.map((轴) => 轴.id))
+
+    const 造型表: string[] = []
+    const 色系表 = new Set<string>()
+    for (const 点 of 点表) {
+      fireEvent.mouseEnter(点)
+      const 轴Id = 点.getAttribute('data-radar-point')!
+      const 气泡 = 容器.querySelector(`[data-radar-tooltip="${轴Id}"]`) as HTMLElement | null
+      expect(气泡?.getAttribute('data-radar-shape')).toBe(轴Id)
+      造型表.push(气泡?.style.clipPath ?? '')
+      色系表.add(气泡?.getAttribute('data-radar-tone') ?? '')
+    }
+
+    expect(new Set(造型表)).toHaveProperty('size', 6)
+    expect(Array.from(色系表).sort()).toEqual(['creative', 'technical'])
+  })
+
+  it('气泡使用 200ms 进入与 120ms 退出，减少动画时直接呈现', async () => {
+    const { 容器 } = await 渲染技能板块()
+    const 普通点 = 容器.querySelector('[data-radar-point="aiAgent"]')!
+    fireEvent.mouseEnter(普通点)
+    const 普通气泡 = 容器.querySelector('[data-radar-tooltip="aiAgent"]')
+    expect(普通气泡?.getAttribute('data-motion-enter-ms')).toBe('200')
+    expect(普通气泡?.getAttribute('data-motion-exit-ms')).toBe('120')
+    expect(普通气泡?.getAttribute('data-reduced-motion')).toBe('false')
+    fireEvent.mouseLeave(普通点)
+
+    const { 容器: 减少容器 } = await 渲染技能板块({ 减少动画: true })
+    const 减少点 = 减少容器.querySelector('[data-radar-point="aiAgent"]')!
+    fireEvent.mouseEnter(减少点)
+    const 减少气泡 = 减少容器.querySelector('[data-radar-tooltip="aiAgent"]')
+    expect(减少气泡?.getAttribute('data-reduced-motion')).toBe('true')
+  })
+
+  it('雷达尺寸保持 max-w-sm，气泡按六种预置方位贴近节点并带引导线', async () => {
+    const { 容器 } = await 渲染技能板块()
+    const 雷达容器 = 容器.querySelector('[data-radar-overlay]')
+    const 图形 = 容器.querySelector('figure svg')
+    expect(图形?.parentElement).toBe(雷达容器)
+    expect(图形?.closest('figure')?.getAttribute('class') ?? '').toContain('max-w-sm')
+
+    const 方位表: string[] = []
+    for (const 轴 of radarAxes) {
+      const 点 = 容器.querySelector(`[data-radar-point="${轴.id}"]`)!
+      fireEvent.mouseEnter(点)
+      const 气泡 = 容器.querySelector(`[data-radar-tooltip="${轴.id}"]`)!
+      const 定位层 = 气泡.parentElement!
+      方位表.push(定位层.getAttribute('data-radar-placement') ?? '')
+      expect(定位层.getAttribute('style')).toContain('%')
+      expect(容器.querySelector(`[data-radar-connector="${轴.id}"]`)).not.toBeNull()
+    }
+
+    expect(new Set(方位表)).toHaveProperty('size', 6)
+  })
+
+  it('雷达点使用可聚焦图像语义，不伪装成无动作按钮', async () => {
+    const { 容器 } = await 渲染技能板块()
+    expect(容器.querySelector('figure svg')?.getAttribute('role')).toBe('group')
+    for (const 点 of 容器.querySelectorAll('[data-radar-point]')) {
+      expect(点.getAttribute('role')).toBe('img')
+      expect(点.getAttribute('tabindex')).toBe('0')
+      expect(点.getAttribute('class')).toContain('focus-visible:stroke-primary')
+    }
+  })
+
   it('雷达只画 6 条轴，图例与轴集一致', async () => {
     const { 容器 } = await 渲染技能板块()
     expect(容器.querySelectorAll('svg text')).toHaveLength(radarAxes.length)
@@ -237,6 +334,26 @@ describe('FP-03 技能板块 - 雷达与残留', () => {
     ]) {
       expect(正文, `技能板块不得把「${词}」写成技能`).not.toContain(词)
     }
+  })
+
+  it('右侧四条主轴说明的顺序、等级与依据保持不变', async () => {
+    const { 容器 } = await 渲染技能板块()
+    const 雷达 = 容器.querySelector('figure')!
+    const 右侧 = 雷达.parentElement?.nextElementSibling as HTMLElement
+    const 卡片表 = Array.from(右侧.querySelectorAll(':scope > .reveal > div'))
+    const 主轴表 = radarAxes.filter((轴) => !轴.minor)
+
+    expect(卡片表).toHaveLength(4)
+    主轴表.forEach((轴, 索引) => {
+      const 文本 = 卡片表[索引]?.textContent ?? ''
+      expect(文本).toContain(t(dimensionLabelKey(轴.id)))
+      expect(文本).toContain(String(轴.level))
+      expect(文本).toContain(t(dimensionBasisKey(轴.id)))
+    })
+
+    const 悬停前 = 右侧.innerHTML
+    fireEvent.mouseEnter(容器.querySelector('[data-radar-point="aiAgent"]')!)
+    expect(右侧.innerHTML).toBe(悬停前)
   })
 
   it('雷达 viewBox 四周为轴标签留出余量（把标签留白改回 0 让裁切缺陷回归，本条必红）', async () => {

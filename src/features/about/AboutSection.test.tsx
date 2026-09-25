@@ -1,17 +1,28 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, act } from '@testing-library/react'
 import { AboutSection } from './AboutSection'
-import type { 打字机选项, 打字机状态 } from './useTypewriter'
+import { useTypewriter, type 打字机选项, type 打字机状态 } from './useTypewriter'
 import { 关于我介绍行, type 文本片段 } from '../../data/aboutLines'
+import { t } from '../../i18n/translations'
 
 type 打字机模块 = { useTypewriter: (选项: 打字机选项) => 打字机状态 }
 
 vi.mock('./useTypewriter', async (导入原模块) => {
   const 原模块: 打字机模块 = await 导入原模块()
-  return { ...原模块 }
+  return { ...原模块, useTypewriter: vi.fn(原模块.useTypewriter) }
 })
 
 beforeEach(() => {
+  vi.mocked(useTypewriter).mockClear()
+  window.matchMedia = vi.fn().mockImplementation(
+    () =>
+      ({
+        matches: false,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      }) as unknown as MediaQueryList
+  )
   vi.useFakeTimers()
 })
 
@@ -26,6 +37,16 @@ async function 渲染关于我(介绍行表?: 文本片段[][]) {
   })
   return 容器
 }
+
+describe('关于我 - 显现时序', () => {
+  it('普通模式五行按 7200 毫秒总显现目标计算每字间隔', async () => {
+    await 渲染关于我()
+    const 选项 = vi.mocked(useTypewriter).mock.calls.at(-1)?.[0]
+    const 总字数 = 选项?.每行文本.reduce((总数, 行) => 总数 + 行.length, 0) ?? 0
+    expect(选项?.每行文本).toHaveLength(5)
+    expect(总字数 * (选项?.每字毫秒 ?? 0)).toBe(7200)
+  })
+})
 
 describe('关于我 - 结构与着色', () => {
   it('五行完整占位渲染，aria-label 为纯文本', async () => {
@@ -73,50 +94,44 @@ describe('关于我 - 结构与着色', () => {
   })
 })
 
-describe('关于我 - 旧版 cmd 终端 chrome', () => {
-  it('头部 //about.introLines + { readOnly: true }，尾部 //EOF', async () => {
+describe('关于我 - 工程控制台', () => {
+  it('保留 CMD 头尾元信息并维持 max-w-4xl 画幅', async () => {
     const container = await 渲染关于我()
     const html = container.innerHTML
     expect(html).toContain('//about.introLines')
     expect(html).toContain('{ readOnly: true }')
     expect(html).toContain('//EOF')
-  })
-
-  it('border-y 终端框与 max-w-4xl 画幅', async () => {
-    const container = await 渲染关于我()
-    const html = container.innerHTML
-    expect(html).toContain('border-y')
     expect(html).toContain('max-w-4xl')
   })
 
-  it('行号列在独立列中（group 行结构 + tabular-nums）', async () => {
+  it('控制台具有可访问区域、稳定锚点和高级面板材质', async () => {
     const container = await 渲染关于我()
-    const 行容器 = container.querySelectorAll('.group')
-    expect(行容器.length).toBeGreaterThanOrEqual(5)
+    const 控制台 = container.querySelector('[data-about-console]')
+    expect(控制台?.getAttribute('role')).toBe('region')
+    expect(控制台?.getAttribute('aria-label')).toBe(t('about.title'))
+    expect(控制台?.getAttribute('class')).toContain('rounded-2xl')
+    expect(控制台?.getAttribute('class')).toContain('bg-surface/55')
+    expect(控制台?.getAttribute('class')).toContain('backdrop-blur-sm')
+    expect(container.querySelector('[data-console-status]')).not.toBeNull()
+  })
+
+  it('状态区提供五行同步进度，不新增玩家可见文案', async () => {
+    const container = await 渲染关于我()
+    const 进度 = container.querySelectorAll('[data-console-progress-step]')
+    expect(进度).toHaveLength(5)
+    expect(Array.from(进度).every((节点) => 节点.getAttribute('aria-hidden') === 'true')).toBe(true)
+  })
+
+  it('行号列在独立列中且正文字号保持可读', async () => {
+    const container = await 渲染关于我()
+    expect(container.querySelectorAll('[data-console-line]')).toHaveLength(5)
     const 行号 = Array.from(container.querySelectorAll('.tabular-nums')).map((s) => s.textContent)
     expect(行号).toEqual(['01', '02', '03', '04', '05'])
+    expect(container.innerHTML).toContain('text-base')
+    expect(container.innerHTML).toContain('sm:text-lg')
   })
 
-  it('强调行带渐变下划线，且仅含 accent 片段的行有（默认数据 l4 一条）', async () => {
-    const container = await 渲染关于我()
-    const 强调装饰 = container.querySelectorAll('.from-accent')
-    expect(强调装饰).toHaveLength(1)
-    expect(强调装饰[0].getAttribute('class')).toContain('bg-gradient-to-r')
-  })
-
-  it('每行有 hover 下划线动效', async () => {
-    const container = await 渲染关于我()
-    expect(container.innerHTML).toContain('group-hover:w-full')
-  })
-
-  it('正文字号 text-base / sm:text-lg', async () => {
-    const container = await 渲染关于我()
-    const html = container.innerHTML
-    expect(html).toContain('text-base')
-    expect(html).toContain('sm:text-lg')
-  })
-
-  it('块状闪烁光标：bg-current 空心块而非文本竖线', async () => {
+  it('显现时仅当前行激活，完成后五行进度全部点亮', async () => {
     vi.spyOn(window, 'matchMedia').mockImplementation(
       () =>
         ({
@@ -130,10 +145,41 @@ describe('关于我 - 旧版 cmd 终端 chrome', () => {
     act(() => {
       vi.advanceTimersByTime(200)
     })
+    expect(container.querySelectorAll('[data-about-active-line="true"]')).toHaveLength(1)
+    act(() => {
+      vi.runAllTimers()
+    })
+    expect(container.querySelectorAll('[data-about-active-line="true"]')).toHaveLength(0)
+    expect(container.querySelectorAll('[data-console-progress-step="done"]')).toHaveLength(5)
+    vi.restoreAllMocks()
+  })
+
+  it('强调行带渐变下划线，且仅含 accent 片段的行有', async () => {
+    const container = await 渲染关于我()
+    const 强调装饰 = container.querySelectorAll('.from-accent')
+    expect(强调装饰).toHaveLength(1)
+    expect(强调装饰[0].getAttribute('class')).toContain('bg-gradient-to-r')
+  })
+
+  it('每行保留 hover 反馈与块状闪烁光标', async () => {
+    vi.spyOn(window, 'matchMedia').mockImplementation(
+      () =>
+        ({
+          matches: false,
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        }) as unknown as MediaQueryList
+    )
+    const container = await 渲染关于我()
+    expect(container.innerHTML).toContain('group-hover:w-full')
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
     const 光标表 = container.querySelectorAll('.caret-blink')
     expect(光标表.length).toBeGreaterThan(0)
     expect(光标表[0].textContent).toBe('')
-    expect(光标表[0].getAttribute('class')).toContain('bg-current')
+    expect(光标表[0].getAttribute('class')).toContain('bg-primary')
     vi.restoreAllMocks()
   })
 })
@@ -182,5 +228,11 @@ describe('关于我 - 打字机光标', () => {
       vi.runAllTimers()
     })
     expect(container.querySelectorAll('.caret-blink')).toHaveLength(0)
+    expect(container.querySelectorAll('[data-about-active-line="true"]')).toHaveLength(0)
+    expect(container.querySelectorAll('[data-console-progress-step="done"]')).toHaveLength(5)
+    const 可见正文 = Array.from(container.querySelectorAll('p[aria-label]')).map(
+      (段落) => 段落.lastElementChild?.textContent ?? ''
+    )
+    expect(可见正文).toEqual(关于我介绍行().map((行) => 行.map((段) => 段.text).join('')))
   })
 })

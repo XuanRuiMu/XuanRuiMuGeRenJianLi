@@ -40,16 +40,13 @@ export function useTypewriter({ 每行文本, 开始, 减少动画 = false, 每�
       return
     }
 
-    let 当前 = 0
-    let 上次时间: number | null = null
+    let 启动时间: number | null = null
     set已显字符数(0)
 
     const 步进 = (现在: number) => {
-      if (上次时间 === null) 上次时间 = 现在
-      const 经过 = 现在 - 上次时间
-      上次时间 = 现在
-      const 推进数 = 总长 <= 0 ? 0 : Math.max(1, Math.round(经过 / 每字毫秒))
-      当前 = Math.min(总长, 当前 + 推进数)
+      if (启动时间 === null) 启动时间 = 现在
+      const 经过 = Math.max(0, 现在 - 启动时间)
+      const 当前 = Math.min(总长, Math.round(经过 / 每字毫秒))
       set已显字符数(当前)
       if (当前 < 总长) {
         帧引用.current = requestAnimationFrame(步进)
