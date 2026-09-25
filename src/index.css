@@ -995,25 +995,6 @@ html.circular-reveal-active::view-transition-old(root) {
      过渡/摆动期间浏览器会自动提升图层、静止后自动降级，无需永久 will-change。 */
 }
 
-/* 窄屏静态卡片网格（<768px 由 JS 切换渲染）：覆盖物理便签的绝对定位与隐藏初始态，
-   复用同一张羊皮纸素材、染色规则与内容排版（.clothesline-note-content 的 inset 百分比）。 */
-.clothesline-mobile-grid {
-  display: grid;
-  gap: 1.25rem;
-  padding: 0 0.75rem;
-}
-
-.clothesline-static-note {
-  position: relative;
-  opacity: 1;
-  width: 100%;
-  max-width: 22rem;
-  margin: 0 auto;
-  aspect-ratio: 547 / 638;
-  transform: none;
-  will-change: auto;
-}
-
 .clothesline-note-img {
   position: absolute;
   inset: 0;

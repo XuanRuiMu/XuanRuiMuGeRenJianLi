@@ -6,19 +6,15 @@ import { t } from '../../i18n/translations'
 import { useProjectsWindStore, 默认风力强度 } from '../../store/useProjectsWindStore'
 
 describe('ProjectsSection', () => {
-  let 桌面宽度 = true
   let 减少动画 = false
 
   beforeEach(() => {
-    桌面宽度 = true
     减少动画 = false
     useProjectsWindStore.setState({ 风力强度: 默认风力强度 })
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
       value: vi.fn().mockImplementation((query: string) => ({
         get matches() {
-          // 移动判定为「窄视口 + 粗指针」：桌面宽度=false 模拟手机（触屏窄屏），=true 模拟桌面（含高倍缩放）
-          if (query.includes('max-width')) return !桌面宽度
           if (query.includes('prefers-reduced-motion')) return 减少动画
           return false
         },
@@ -117,23 +113,24 @@ describe('ProjectsSection', () => {
     }
   })
 
-  describe('窄屏（<768px）静态卡片网格', () => {
-    beforeEach(() => {
-      桌面宽度 = false
+  describe('任何设备都只渲染物理晾衣架（手机版网格已从代码删除）', () => {
+    it('不渲染静态网格：无 .clothesline-mobile-grid / .clothesline-static-note', () => {
+      const { container } = render(<ProjectsSection />)
+      expect(container.querySelector('.clothesline-mobile-grid')).toBeNull()
+      expect(container.querySelector('.clothesline-static-note')).toBeNull()
     })
 
-    it('不挂载物理画布，渲染静态便签网格', () => {
+    it('四张物理便签与滚动容器始终挂载，画布存在', () => {
       const { container } = render(<ProjectsSection />)
-      expect(container.querySelectorAll('canvas.clothesline-canvas').length).toBe(0)
-      const grid = container.querySelector('.clothesline-mobile-grid')
-      expect(grid).not.toBeNull()
-      const notes = container.querySelectorAll('.clothesline-static-note')
+      expect(container.querySelectorAll('canvas.clothesline-canvas').length).toBe(1)
+      expect(container.querySelector('.clothesline-scroll')).not.toBeNull()
+      const notes = container.querySelectorAll('.clothesline-region .clothesline-note')
       expect(notes.length).toBe(projects.length)
     })
 
-    it('每张静态卡片包含标题与描述，有链接的项目展示可见链接', () => {
+    it('每张物理便签包含标题与描述，有链接的项目展示可见链接', () => {
       const { container } = render(<ProjectsSection />)
-      const notes = container.querySelectorAll('.clothesline-static-note')
+      const notes = container.querySelectorAll('.clothesline-region .clothesline-note')
       for (const [index, note] of Array.from(notes).entries()) {
         const project = projects[index]
         expect(note.querySelector('.clothesline-note-title')?.textContent).toBe(t(project.nameKey))
@@ -148,9 +145,9 @@ describe('ProjectsSection', () => {
       }
     })
 
-    it('静态卡片复用四种浅色染色', () => {
+    it('四种染色仍按序号循环', () => {
       const { container } = render(<ProjectsSection />)
-      const notes = container.querySelectorAll('.clothesline-static-note')
+      const notes = container.querySelectorAll('.clothesline-region .clothesline-note')
       const tints = new Set(Array.from(notes).map((note) => note.getAttribute('data-tint')))
       expect(tints.size).toBe(projects.length)
     })

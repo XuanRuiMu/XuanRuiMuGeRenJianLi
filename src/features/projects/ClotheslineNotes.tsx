@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type RefObject } from 'react'
+import { useEffect, useRef, type RefObject } from 'react'
 import { ExternalLink } from 'lucide-react'
 import { projects } from '../../data/projects'
 import type { Project } from '../../data/types'
@@ -6,30 +6,8 @@ import { t } from '../../i18n/translations'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { useProjectsWindStore } from '../../store/useProjectsWindStore'
 import { 晾衣架物理引擎, 晾衣架配置, type 晾衣架快照 } from './clotheslinePhysics'
+import { 计算晾衣架布局 } from './clotheslineLayout'
 import { useNoteAutoFit } from './useNoteAutoFit'
-
-/**
- * 手机判定：窄视口 且 主指针为粗指针（触屏）。
- * 不能只用视口宽度判定：桌面浏览器高倍缩放（>200%）会把 CSS 视口压到 768px 以下，
- * 若据此切成静态网格，缩放复原切回桌面时物理引擎不重建，便签（opacity:0 初始态）与绳子会永久消失。
- * 桌面指针恒为 fine，故高倍缩放仍保持物理晾衣架，由横向滚动容器揭示被挡便签。
- */
-const 移动断点 = '(max-width: 767.98px) and (pointer: coarse)'
-
-function useIsDesktop(): boolean {
-  const [isDesktop, setIsDesktop] = useState(
-    () => typeof window === 'undefined' || !window.matchMedia(移动断点).matches
-  )
-
-  useEffect(() => {
-    const query = window.matchMedia(移动断点)
-    const handleChange = (event: MediaQueryListEvent) => setIsDesktop(!event.matches)
-    query.addEventListener('change', handleChange)
-    return () => query.removeEventListener('change', handleChange)
-  }, [])
-
-  return isDesktop
-}
 
 // canvas 无法直接引用 CSS 变量，非 CSS 环境（如测试）下的兜底色；浏览器中始终以 index.css 的 --rope-* 变量为准
 const 兜底绳色 = {
@@ -134,17 +112,9 @@ interface ClotheslineNotesProps {
  * 自持 content ref 并调用 useNoteAutoFit，使每张便签按自身内容量独立二分适配字号。
  * DOM 结构、图片、物理引擎、银绳均不变。
  */
-function NoteContent({
-  项目,
-  最小字号 = 0.6,
-  最大字号 = 1.05,
-}: {
-  项目: Project
-  最小字号?: number
-  最大字号?: number
-}) {
+function NoteContent({ 项目 }: { 项目: Project }) {
   const 内容Ref = useRef<HTMLDivElement>(null)
-  useNoteAutoFit(内容Ref as RefObject<HTMLElement | null>, 最小字号, 最大字号)
+  useNoteAutoFit(内容Ref as RefObject<HTMLElement | null>, 0.6, 1.05)
   const link = 项目.links?.[0]
   return (
     <div className="clothesline-note-content" ref={内容Ref}>
@@ -166,24 +136,8 @@ function NoteContent({
   )
 }
 
-/** 窄屏静态卡片网格：不挂物理引擎，羊皮纸便签纵向排列，字号下限更高、链接恒可见 */
-function MobileNotesGrid() {
-  return (
-    <div className="clothesline-mobile-grid">
-      {projects.map((project, index) => (
-        <div key={project.id} className="clothesline-note clothesline-static-note" data-tint={index % 4}>
-          <img src="/images/标准.png" alt="" className="clothesline-note-img" aria-hidden="true" />
-          <div className="clothesline-note-tint" aria-hidden="true" />
-          <NoteContent 项目={project} 最小字号={0.9} 最大字号={1.1} />
-        </div>
-      ))}
-    </div>
-  )
-}
-
 export function ClotheslineNotes({ 填充 = false }: ClotheslineNotesProps) {
   const reducedMotion = useReducedMotion()
-  const isDesktop = useIsDesktop()
   const 风力强度 = useProjectsWindStore((s) => s.风力强度)
   const 容器Ref = useRef<HTMLDivElement>(null)
   const 画布Ref = useRef<HTMLCanvasElement>(null)
@@ -223,13 +177,19 @@ export function ClotheslineNotes({ 填充 = false }: ClotheslineNotesProps) {
       引擎?.销毁()
       const 基准宽 = 容器.offsetWidth
       if (基准宽 < 1) return
-      // 晾衣绳区改为满幅（region = 100vw）：绳子两端角点钉在 region 边缘（画布左X=0 / 画布宽=region），
-      // 跨满整个视口连到浏览器两边；便签集群宽度取 min(1152, 基准宽) 居中到满幅内（布局偏移X），
-      // 使 100%/缩小缩放的观感与改动前（便签居中、绳子满幅）完全一致。放大缩放时 region 由 min-width
-      // 冻结在基准宽、外层横向滚动揭示被挡便签——绳子与便签同源同宽、一起滚动对齐。
-      const 带宽 = Math.min(1152, 基准宽)
-      const 布局偏移X = Math.max(0, (基准宽 - 带宽) / 2)
-      引擎 = new 晾衣架物理引擎({ 宽: 带宽, 高: 容器.offsetHeight, 画布左X: 0, 画布宽: 画布.offsetWidth, 布局偏移X })
+      // 统一布局（clotheslineLayout 为唯一来源）：任何设备都只渲染物理晾衣架，不存在手机版网格。
+      // 带宽 = 钳制(基准宽, 最小带宽 768, 最大带宽 1152)：低于最小带宽时按最小带宽铺开（保证便签不重叠、字号可读），
+      // 区域 min-width 同步抬到该宽度 → 超出视口的部分由外层 .clothesline-scroll 横向滚动条（触屏即拖动）揭示。
+      // 放大缩放时 region 由 min-width 冻结在基准宽、外层横向滚动揭示被挡便签——绳子与便签同源同宽、一起滚动对齐。
+      const { 带宽, 布局偏移X, 区域最小宽 } = 计算晾衣架布局(基准宽)
+      容器.style.minWidth = `${区域最小宽}px`
+      引擎 = new 晾衣架物理引擎({
+        宽: 带宽,
+        高: 容器.offsetHeight,
+        画布左X: 0,
+        画布宽: Math.max(画布.offsetWidth, 区域最小宽),
+        布局偏移X,
+      })
       引擎Ref.current = 引擎
       同步快照(引擎.获取快照())
     }
@@ -265,11 +225,8 @@ export function ClotheslineNotes({ 填充 = false }: ClotheslineNotesProps) {
       rafId = requestAnimationFrame(tick)
     }
 
+    // 区域最小宽在 构建() 内同步设置（含最小带宽兜底），此处不再重复设置。
     构建()
-    // 根因修复：自校准基准宽度。区域 width:100% 但同时设 min-width=挂载时宽度，
-    // 放大缩放（外层容器 CSS 像素变窄）时区域固定在 100% 基准宽、由外层横向滚动容器揭示被挡便签；
-    // 缩小缩放时区域=100%（≥基准）无滚动、行为不变。offsetWidth 与浏览器缩放无关，故 Ctrl 缩放不触发物理重建。
-    容器.style.minWidth = `${容器.offsetWidth}px`
 
     // 风监听挂在 section 级容器上：纯被动监听，不捕获指针、不 preventDefault，文字选择与链接点击不受影响
     const 风宿主 = 容器.closest('section') ?? 容器
@@ -343,13 +300,7 @@ export function ClotheslineNotes({ 填充 = false }: ClotheslineNotesProps) {
       引擎Ref.current = null
       引擎 = null
     }
-    // isDesktop 必须在依赖里：窄屏↔桌面切换会整体更换 DOM（静态网格 ↔ 物理便签），
-    // 不重建的话新 DOM 上没有引擎——便签停留在 opacity:0 初始态、画布空白，表现为「便签+绳子消失」。
-  }, [reducedMotion, isDesktop])
-
-  if (!isDesktop) {
-    return <MobileNotesGrid />
-  }
+  }, [reducedMotion])
 
   return (
     <div className="clothesline-scroll">
