@@ -39,6 +39,24 @@ async function 渲染关于我(介绍行表?: 文本片段[][]) {
 }
 
 describe('关于我 - 显现时序', () => {
+  it('短视口进入关于我时仍启动显现', async () => {
+    let 观察选项: IntersectionObserverInit | undefined
+    const 观察器构造 = vi.fn((回调: IntersectionObserverCallback, 选项?: IntersectionObserverInit) => {
+      观察选项 = 选项
+      return {
+        observe: vi.fn(() => 回调([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver)),
+        unobserve: vi.fn(),
+        disconnect: vi.fn(),
+      } as unknown as IntersectionObserver
+    })
+    vi.stubGlobal('IntersectionObserver', 观察器构造)
+
+    await 渲染关于我()
+
+    expect(观察选项?.threshold).toBe(0)
+    vi.unstubAllGlobals()
+  })
+
   it('普通模式五行按 7200 毫秒总显现目标计算每字间隔', async () => {
     await 渲染关于我()
     const 选项 = vi.mocked(useTypewriter).mock.calls.at(-1)?.[0]
@@ -154,6 +172,21 @@ describe('关于我 - 工程控制台', () => {
     vi.restoreAllMocks()
   })
 
+  it('当前写入行与悬停行使用不同且悬停更深的视觉状态', async () => {
+    const container = await 渲染关于我()
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
+    const 当前行 = container.querySelector('[data-about-active-line="true"]')!
+    const 普通行 = container.querySelector('[data-about-active-line="false"]')!
+    expect(当前行.className).toContain('border-primary/10')
+    expect(当前行.className).toContain('bg-primary/[0.035]')
+    expect(当前行.className).toContain('hover:bg-primary/[0.10]')
+    expect(普通行.className).toContain('hover:border-primary/30')
+    expect(普通行.className).toContain('hover:bg-primary/[0.10]')
+    expect(当前行.querySelector('[class*="bottom-0"]')?.className).toContain('w-28')
+    expect(普通行.querySelector('[class*="bottom-0"]')?.className).toContain('group-hover:w-full')
+  })
   it('强调行带渐变下划线，且仅含 accent 片段的行有', async () => {
     const container = await 渲染关于我()
     const 强调装饰 = container.querySelectorAll('.from-accent')

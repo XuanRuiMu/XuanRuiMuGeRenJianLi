@@ -218,8 +218,7 @@ export function SkillsSection() {
   const 主轴表 = radarAxes.filter((轴) => !轴.minor)
   const 气泡说明Id = useId()
   const [悬停轴Id, set悬停轴Id] = useState<string | null>(null)
-  const [聚焦轴Id, set聚焦轴Id] = useState<string | null>(null)
-  const 当前轴Id = 聚焦轴Id ?? 悬停轴Id
+  const 当前轴Id = 悬停轴Id
   const 当前轴索引 = radarAxes.findIndex((轴) => 轴.id === 当前轴Id)
   const 当前轴 = 当前轴索引 >= 0 ? radarAxes[当前轴索引] : null
   const 当前视觉 = 当前轴 ? 气泡视觉表[当前轴.id] : undefined
@@ -364,15 +363,11 @@ export function SkillsSection() {
                       cy={y}
                       r={当前轴?.id === 轴.id ? 5 : 3}
                       fill={轴.minor ? '#a78bfa' : '#38bdf8'}
-                      className="cursor-pointer focus-visible:stroke-[3px] focus-visible:stroke-primary focus-visible:outline-none"
+                      className="cursor-default"
                       onMouseEnter={() => set悬停轴Id(轴.id)}
                       onMouseLeave={() => set悬停轴Id(null)}
-                      onFocus={() => set聚焦轴Id(轴.id)}
-                      onBlur={() => set聚焦轴Id(null)}
-                      tabIndex={0}
                       role="img"
                       aria-label={t(dimensionLabelKey(轴.id))}
-                      aria-describedby={当前轴?.id === 轴.id ? 当前说明Id : undefined}
                     />
                   )
                 })}

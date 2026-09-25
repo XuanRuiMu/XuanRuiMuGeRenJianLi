@@ -87,6 +87,28 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
     }
   })
 
+  it('每排跑马灯在独立二维裁剪视口内使用不可收缩的完整周期副本', () => {
+    const { container } = render(<ShowcaseSection />)
+    const 视口表 = container.querySelectorAll('.showcase-marquee-viewport')
+    expect(视口表).toHaveLength(4)
+    for (const 视口 of 视口表) {
+      expect(视口.className).toContain('overflow-hidden')
+      const 轨道 = 视口.querySelector('.showcase-marquee')!
+      expect(轨道.children.length).toBeGreaterThanOrEqual(2)
+      for (const 周期组 of 轨道.children) {
+        expect(周期组.className).toContain('shrink-0')
+      }
+    }
+  })
+
+  it('展示区外层不再使用固定高度撑开空白', () => {
+    const { container } = render(<ShowcaseSection />)
+    const 外层 = container.querySelector('section[aria-label] > div') as HTMLElement
+    expect(外层.className).not.toContain('h-[1750px]')
+    expect(外层.className).not.toContain('h-[2550px]')
+    expect(外层.className).not.toContain('h-[3000px]')
+  })
+
   it('renders rows statically without inline transform under reduced motion', () => {
     window.matchMedia = vi.fn().mockImplementation(() => ({
       matches: true,

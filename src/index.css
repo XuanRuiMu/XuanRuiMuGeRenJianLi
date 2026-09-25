@@ -534,6 +534,11 @@ html.circular-reveal-active::view-transition-old(root) {
   transform: none;
 }
 
+.testimonial-reveal {
+  transform: none;
+  transition: opacity 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 /* 减少动画偏好转为静态：内容直接可见，无位移、无过渡 */
 @media (prefers-reduced-motion: reduce) {
   .reveal,
@@ -945,24 +950,30 @@ html.circular-reveal-active::view-transition-old(root) {
   z-index: 0;
 }
 
-/* 满幅（full-bleed）破出容器：
-   - 满幅：用 width:100vw + margin-left:calc(50% - 50vw) 从 Section 的 max-w-6xl 居中容器里「破出」，
-     使容器恰好跨满整个视口 → 内部 .clothesline-canvas（region 同宽）银绳两端角点钉在视口边缘，
-     正常/缩小缩放下绳子连到浏览器两边（与改动前观感一致）。
-   - 不再设 overflow：原先的 overflow-x/y:auto 会把本容器变成滚动容器/独立合成层，其底边（region 高度处，
-     技能区上方固定高度）在滚动分数像素处与下层错位露出白色（见下方根因修复注释）。现 overflow 默认 visible，
-     100vw 破出产生的横向溢出由 body 的 overflow-x:hidden 兜底裁切，既不触发整页横滚，也不创建合成层。
-   - 取舍：放大缩放下不再提供横向滚动条揭示被挡便签（改为由 body 裁切），该 niche 功能让位于消除可见的白线缺陷。 */
 .clothesline-scroll {
   position: relative;
   width: 100vw;
   margin-left: calc(50% - 50vw);
-  /* 根因修复（交界粗白线）：原 overflow-x/y:auto 把本容器变成滚动容器/独立合成层，
-     其底边恰落在 region 高度处（技能区上方固定高度）。滚动时该层底边在分数像素处与下层错位，
-     露出浏览器默认白色 → 贯穿整条的粗白线；向下滚动时物理给便签施加向下力，白色便签被推到该层底边，
-     于是表现为「便签触到固定高度就出白线」。改为不创建滚动容器（overflow 默认 visible），
-     100vw 破出满幅的溢出由 body 的 overflow-x:hidden 兜底裁切，既保留满幅绳效，又根除该整条裁切边这类交界闪白。
-     （代价：放大缩放下不再提供横向滚动揭示被挡便签，改为由 body 裁切——该 niche 功能让位于消除可见缺陷。） */
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary) transparent;
+}
+
+.clothesline-scroll::-webkit-scrollbar {
+  height: 10px;
+}
+
+.clothesline-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.clothesline-scroll::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: var(--color-primary);
+  background-clip: padding-box;
 }
 
 /* 测试页填充模式：让滚动容器也撑满父级剩余高度 */

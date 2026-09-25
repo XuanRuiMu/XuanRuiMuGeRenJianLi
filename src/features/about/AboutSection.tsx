@@ -5,6 +5,7 @@ import { useTypewriter } from './useTypewriter'
 import { 关于我介绍行, type 文本片段, type 片段色调 } from '../../data/aboutLines'
 
 const 关于我显现总毫秒 = 7200
+const 关于我显现触发阈值 = 0
 
 const 色调类: Record<片段色调, string> = {
   plain: '',
@@ -57,7 +58,7 @@ export function AboutSection({ 介绍行表 }: AboutSectionProps = {}) {
           }
         }
       },
-      { threshold: 0.3 }
+      { threshold: 关于我显现触发阈值 }
     )
     观察器.observe(节点)
     return () => 观察器.disconnect()
@@ -151,12 +152,17 @@ export function AboutSection({ 介绍行表 }: AboutSectionProps = {}) {
                   data-about-active-line={是当前行 ? 'true' : 'false'}
                   className={[
                     'group relative grid grid-cols-[2rem_minmax(0,1fr)] gap-3 rounded-lg border border-transparent px-2 py-3 transition-colors duration-500 sm:grid-cols-[2.5rem_minmax(0,1fr)] sm:gap-4 sm:px-3',
-                    是当前行 ? 'border-primary/10 bg-primary/[0.035]' : 'hover:border-border/40 hover:bg-white/[0.018]',
+                    是当前行
+                      ? 'border-primary/10 bg-primary/[0.035] hover:border-primary/30 hover:bg-primary/[0.10]'
+                      : 'hover:border-primary/30 hover:bg-primary/[0.10]',
                   ].join(' ')}
                 >
                   <span
                     aria-hidden="true"
-                    className="w-full pt-1 text-right font-mono text-[11px] tabular-nums text-muted/45 text-shadow-readable transition-colors duration-300 group-hover:text-muted/80"
+                    className={[
+                      'w-full pt-1 text-right font-mono text-[11px] tabular-nums text-shadow-readable transition-colors duration-300',
+                      是当前行 ? 'text-primary/70' : 'text-muted/45 group-hover:text-muted/80',
+                    ].join(' ')}
                   >
                     {String(行号 + 1).padStart(2, '0')}
                   </span>
@@ -165,7 +171,7 @@ export function AboutSection({ 介绍行表 }: AboutSectionProps = {}) {
                       aria-hidden="true"
                       className={[
                         'absolute -left-3 top-1.5 h-[calc(100%-0.75rem)] w-px origin-center bg-primary transition-opacity duration-500 sm:-left-3',
-                        是当前行 ? 'opacity-100' : 'opacity-0 group-hover:opacity-35',
+                        是当前行 ? 'opacity-100' : 'opacity-0 group-hover:opacity-45',
                       ].join(' ')}
                     />
                     <p
@@ -210,7 +216,10 @@ export function AboutSection({ 介绍行表 }: AboutSectionProps = {}) {
 
                     <span
                       aria-hidden="true"
-                      className="pointer-events-none absolute -bottom-0.5 left-0 h-px w-0 bg-gradient-to-r from-primary/60 via-border to-transparent transition-all duration-500 group-hover:w-full"
+                      className={[
+                        'pointer-events-none absolute -bottom-0.5 left-0 h-px bg-gradient-to-r from-primary/60 via-border to-transparent transition-all duration-500',
+                        是当前行 ? 'w-28' : 'w-0 group-hover:w-full',
+                      ].join(' ')}
                     />
                   </div>
                 </div>

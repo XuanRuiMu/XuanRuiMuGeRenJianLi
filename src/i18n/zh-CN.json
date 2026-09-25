@@ -63,6 +63,7 @@
     "placeholder": "输入命令或搜索模块...",
     "empty": "未找到匹配命令",
     "sections": "模块跳转",
+    "suggestions": "命令建议",
     "actions": "快捷操作",
     "toggleTheme": "切换主题",
     "copyEmail": "复制邮箱",
@@ -384,7 +385,8 @@
     "radarTitle": "技能雷达"
   },
   "testimonials": {
-    "title": "推荐语",
+    "title": "",
+    "ariaLabel": "推荐语",
     "items": {
       "student": {
         "role": "去年毕业的学弟",
@@ -755,32 +757,32 @@
       "dimensions": {
         "backendArchitecture": {
           "label": "后端架构",
-          "description": "Java/Spring Boot服务端、数据库设计和SQL调优",
+          "description": "以Java 25自研400+类服务端，从零构建8世界、32职业MMORPG的架构与实现。",
           "basis": "Java 25自研400+类，从零做到8世界32职业MMORPG服务端"
         },
         "aiAgent": {
           "label": "AI Agent",
-          "description": "AI编码智能体编排、可复用工作流与多智能体协作",
+          "description": "沉淀85+个可复用AI工作流模板，用规范约束与审查流程组织AI编码产出。",
           "basis": "沉淀85+个可复用AI工作流模板，为AI产出建立规范约束与审查流程，编排框架已开源"
         },
         "fullStack": {
           "label": "全栈开发",
-          "description": "React/TypeScript前端、RESTful API和工程化",
+          "description": "以React 19、TypeScript、Three.js构建前端，结合Node/Express服务支撑已上线应用。",
           "basis": "React 19+TypeScript+Three.js前端，Node/Express后端，已有上线应用"
         },
         "devopsDelivery": {
           "label": "DevOps与实施交付",
-          "description": "Docker部署、服务器运维、实施交付与用户培训",
+          "description": "用docker-compose编排6服务完成上线，并持续承担多台服务器的部署、排障、培训与文档编写。",
           "basis": "docker-compose编排6服务上线，2019年至今运维多台服务器，承担部署排障、用户培训与文档编写"
         },
         "designAesthetic": {
           "label": "设计审美",
-          "description": "界面与视觉的设计判断",
+          "description": "为暮澜纪元完成界面与战斗HUD设计，并为85+个AI工作流模板统一图标与输出卡片样式。",
           "basis": "为暮澜纪元做界面与战斗HUD设计，给85+个AI工作流模板统一图标与输出卡片样式"
         },
         "artCreation": {
           "label": "艺术创作",
-          "description": "文字、视觉与表演向的创作表达",
+          "description": "完成5部世界观编年史与角色小说，创作1段自写自演原创相声，并用软件音源完成编曲配乐。",
           "basis": "写世界观编年史与角色小说共5部，自写自演原创相声1段，用软件音源做编曲配乐"
         }
       }

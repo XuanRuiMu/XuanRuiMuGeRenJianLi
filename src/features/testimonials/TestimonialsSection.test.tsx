@@ -36,12 +36,13 @@ describe('FP-05 推荐语板块渲染', () => {
     })
   })
 
-  it('板块只有标题，副标题不再渲染', async () => {
+  it('标题值为空时不渲染标题区，两张卡片仍保留', async () => {
     const 容器 = await 渲染推荐语()
-    const 标题 = 容器.querySelector('h2')
-    expect(标题?.textContent).toBe(t('testimonials.title'))
-    const 标题区 = 标题?.closest('div') ?? null
-    expect(标题区?.querySelectorAll('p')).toHaveLength(0)
+    expect(t('testimonials.title')).toBe('')
+    expect(容器.querySelector('h2')).toBeNull()
+    expect(卡片节点(容器)).toHaveLength(2)
+    expect(容器.querySelector('section')?.id).toBe('testimonials')
+    expect(容器.querySelector('section')).toHaveAttribute('aria-label', t('testimonials.ariaLabel'))
   })
 
   it('免责说明不再渲染：卡片之外没有任何多余段落', async () => {
@@ -55,8 +56,9 @@ describe('FP-05 推荐语板块渲染', () => {
     const 网格 = 卡片节点(容器)[0].parentElement?.parentElement ?? null
     expect(类名(网格)).toContain('md:grid-cols-2')
     for (const 图 of 卡片节点(容器)) {
+      expect(图.parentElement?.className).toContain('testimonial-reveal')
       expect(类名(图)).toEqual(expect.arrayContaining(['bg-panel', 'border-border']))
-      expect(类名(图.querySelector('blockquote'))).toContain('text-text-primary')
+      expect(类名(图.querySelector('blockquote'))).toEqual(expect.arrayContaining(['font-bold', 'text-text-primary']))
       const 段落 = Array.from(图.querySelectorAll('figcaption span'))
       expect(类名(段落[0])).toContain('text-text-secondary')
       expect(类名(段落[1])).toContain('text-muted')

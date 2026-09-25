@@ -22,7 +22,7 @@ import {
   GitBranch,
   type LucideIcon,
 } from 'lucide-react'
-import { motion, useScroll, useSpring, useTransform } from 'framer-motion'
+import { motion, useScroll, useSpring, useTransform, type MotionStyle } from 'framer-motion'
 import { showcaseRows, type ShowcaseCard } from '../../data/showcase'
 import { t } from '../../i18n/translations'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
@@ -98,9 +98,10 @@ interface ShowcaseProductCardProps {
   index: number
   reducedMotion: boolean
   控制?: 跑马灯控制
+  视差?: MotionStyle
 }
 
-function ShowcaseProductCard({ card, index, reducedMotion, 控制 }: ShowcaseProductCardProps) {
+function ShowcaseProductCard({ card, index, reducedMotion, 控制, 视差 }: ShowcaseProductCardProps) {
   const gradient = GRADIENTS[index % GRADIENTS.length]
   const neonShadow = NEON_SHADOWS[index % NEON_SHADOWS.length]
   const iconColor = ICON_COLORS[index % ICON_COLORS.length]
@@ -158,7 +159,7 @@ function ShowcaseProductCard({ card, index, reducedMotion, 控制 }: ShowcasePro
       className="group/card relative h-32 w-[11rem] shrink-0 md:h-[26.75rem] md:w-[22rem] lg:h-96 lg:w-[30rem]"
     >
       <span aria-hidden="true" className="absolute inset-x-0 -bottom-6 h-6" />
-      <motion.div whileHover={reducedMotion ? undefined : { y: -20 }} className="h-full w-full">
+      <motion.div style={视差} whileHover={reducedMotion ? undefined : { y: -20 }} className="h-full w-full">
         <div className={`h-full w-full rounded-xl bg-gradient-to-r p-[2px] ${gradient} ${neonShadow} md:p-[6px]`}>
           {card.href ? (
             <a
@@ -201,7 +202,9 @@ function useZidongPaomadeng(选项: { 控制: 跑马灯控制; 方向: 1 | -1; �
       if (!组) return
       const 组宽 = 组.offsetWidth
       if (!(组宽 > 0)) return
-      const 视口宽 = window.innerWidth || document.documentElement.clientWidth || 0
+      const 轨道元素 = 轨道Ref.current
+      const 视口元素 = 轨道元素?.parentElement
+      const 视口宽 = 视口元素?.clientWidth || window.innerWidth || document.documentElement.clientWidth || 0
       设置份数((旧份数) => {
         const 目标份数 = 计算份数(视口宽, 组宽)
         return 旧份数 === 目标份数 ? 旧份数 : 目标份数
@@ -209,7 +212,6 @@ function useZidongPaomadeng(选项: { 控制: 跑马灯控制; 方向: 1 | -1; �
       if (组宽 !== 周期Ref.current) {
         周期Ref.current = 组宽
         位移Ref.current = 归一化位移(位移Ref.current, 组宽)
-        const 轨道元素 = 轨道Ref.current
         if (轨道元素) 轨道元素.style.transform = `translate3d(${-位移Ref.current}px, 0, 0)`
       }
     }
@@ -264,9 +266,10 @@ interface ShowcaseMarqueeRowProps {
   基准速度: number
   减少动画: boolean
   控制: 跑马灯控制
+  视差?: MotionStyle
 }
 
-function ShowcaseMarqueeRow({ row, rowIndex, 方向, 基准速度, 减少动画, 控制 }: ShowcaseMarqueeRowProps) {
+function ShowcaseMarqueeRow({ row, rowIndex, 方向, 基准速度, 减少动画, 控制, 视差 }: ShowcaseMarqueeRowProps) {
   const { 轨道Ref, 组Ref, 份数 } = useZidongPaomadeng({
     控制,
     方向,
@@ -279,20 +282,23 @@ function ShowcaseMarqueeRow({ row, rowIndex, 方向, 基准速度, 减少动画,
       <span id={row.anchorId} className="block scroll-mt-24" aria-hidden="true">
         &nbsp;
       </span>
-      <div ref={轨道Ref} className="showcase-marquee flex">
-        {Array.from({ length: 份数 }).map((_, group) => (
-          <div key={group} ref={group === 0 ? 组Ref : undefined} className="flex gap-20 pr-20">
-            {row.cards.map((card, cardIndex) => (
-              <ShowcaseProductCard
-                key={`${card.id}-${group}`}
-                card={card}
-                index={rowIndex * 5 + cardIndex}
-                reducedMotion={减少动画}
-                控制={控制}
-              />
-            ))}
-          </div>
-        ))}
+      <div className="showcase-marquee-viewport relative w-full overflow-hidden">
+        <div ref={轨道Ref} className="showcase-marquee flex">
+          {Array.from({ length: 份数 }).map((_, group) => (
+            <div key={group} ref={group === 0 ? 组Ref : undefined} className="flex shrink-0 gap-20 pr-20">
+              {row.cards.map((card, cardIndex) => (
+                <ShowcaseProductCard
+                  key={`${card.id}-${group}`}
+                  card={card}
+                  index={rowIndex * 5 + cardIndex}
+                  reducedMotion={减少动画}
+                  控制={控制}
+                  视差={视差}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -377,10 +383,10 @@ export function ShowcaseSection() {
       }
 
   return (
-    <section aria-label={t('showcase.titleLine2')}>
+    <section data-showcase="true" aria-label={t('showcase.titleLine2')}>
       <div
         ref={ref}
-        className="relative flex h-[1750px] flex-col pb-40 antialiased [perspective:1000px] [transform-style:preserve-3d] md:h-[2550px] lg:h-[3000px] z-[100] isolate"
+        className="relative z-[100] isolate flex min-h-0 flex-col pb-24 antialiased [perspective:1000px] md:pb-28"
       >
         <div className="relative mx-auto w-full max-w-7xl px-4 py-20 md:py-40">
           <h2 className="font-display text-4xl font-bold tracking-widest md:text-6xl">
@@ -395,7 +401,7 @@ export function ShowcaseSection() {
           <p className="mt-8 max-w-2xl text-xl font-bold text-sky-400 md:text-2xl">{t('showcase.subtitle')}</p>
         </div>
 
-        <motion.div style={entrance} className="[transform-style:preserve-3d]">
+        <div className="[perspective:1000px]">
           {showcaseRows.map((row, rowIndex) => (
             <ShowcaseMarqueeRow
               key={row.anchorId}
@@ -405,9 +411,10 @@ export function ShowcaseSection() {
               基准速度={50}
               减少动画={reducedMotion}
               控制={控制}
+              视差={entrance}
             />
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   )

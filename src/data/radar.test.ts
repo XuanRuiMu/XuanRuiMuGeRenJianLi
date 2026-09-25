@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import zhCN from '../i18n/zh-CN.json'
 import { t } from '../i18n/translations'
-import { radarAxes, dimensionLabelKey, dimensionBasisKey } from './radar'
+import { radarAxes, dimensionLabelKey, dimensionBasisKey, dimensionDescriptionKey } from './radar'
 
 const 维度表 = zhCN.data.radar.dimensions as Record<string, { label: string; description: string; basis: string }>
 
@@ -60,6 +60,27 @@ describe('FP-03 技能雷达 6 轴', () => {
   it('每条依据都带可核验的数字或实物依据，不含未证实的编造量', () => {
     for (const 轴 of radarAxes) {
       expect(维度表[轴.id].basis).toMatch(/\d/)
+    }
+  })
+
+  it('气泡描述使用工作区已有的真实事实', () => {
+    const 事实关键词 = {
+      aiAgent: ['85+', '工作流'],
+      backendArchitecture: ['Java 25', '400+', 'MMORPG'],
+      fullStack: ['React 19', 'TypeScript', 'Three.js'],
+      devopsDelivery: ['docker-compose', '6服务'],
+      designAesthetic: ['战斗HUD', '85+'],
+      artCreation: ['5部', '相声', '软件音源'],
+    } as const
+    const 归一 = (文本: string) => 文本.replace(/\s+/g, '')
+    for (const 轴 of radarAxes) {
+      const 描述 = 归一(t(dimensionDescriptionKey(轴.id)))
+      const 依据 = 归一(维度表[轴.id].basis)
+      for (const 关键词 of 事实关键词[轴.id as keyof typeof 事实关键词]) {
+        const 归一关键词 = 归一(关键词)
+        expect(描述, `${轴.id} 气泡应包含真实事实：${关键词}`).toContain(归一关键词)
+        expect(依据, `${轴.id} 依据应能核验气泡事实：${关键词}`).toContain(归一关键词)
+      }
     }
   })
 })

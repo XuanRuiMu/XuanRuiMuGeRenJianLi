@@ -212,21 +212,20 @@ describe('FP-03 技能板块 - 雷达与残留', () => {
     const 轴 = radarAxes.find((项) => 项.id === 'aiAgent')!
     expect(气泡?.textContent).toBe(t(`data.radar.dimensions.${轴.id}.description` as never))
     expect(气泡?.textContent).not.toContain(t(`data.radar.dimensions.${轴.id}.basis` as never))
-    expect(点?.getAttribute('aria-describedby')).toBe(气泡?.getAttribute('id'))
   })
 
-  it('键盘聚焦优先于鼠标悬停，旧鼠标点离开时不关闭当前说明', async () => {
+  it('仅鼠标悬停显示气泡，点击与聚焦不固定气泡', async () => {
     const { 容器 } = await 渲染技能板块()
     const 鼠标点 = 容器.querySelector('[data-radar-point="aiAgent"]')!
     const 键盘点 = 容器.querySelector('[data-radar-point="backendArchitecture"]')!
 
     fireEvent.mouseEnter(鼠标点)
-    fireEvent.focus(键盘点)
+    expect(容器.querySelector('[data-radar-tooltip="aiAgent"]')).not.toBeNull()
     fireEvent.mouseLeave(鼠标点)
+    fireEvent.click(鼠标点)
+    fireEvent.focus(键盘点)
 
-    const 气泡 = 容器.querySelector('[data-radar-tooltip="backendArchitecture"]')
-    expect(气泡?.textContent).toBe(t('data.radar.dimensions.backendArchitecture.description'))
-    expect(键盘点.getAttribute('aria-describedby')).toBe(气泡?.getAttribute('id'))
+    expect(容器.querySelector('[data-radar-tooltip="backendArchitecture"]')).toBeNull()
   })
 
   it('六个技能气泡使用独立切角造型并区分技术色与创意色', async () => {
@@ -287,13 +286,14 @@ describe('FP-03 技能板块 - 雷达与残留', () => {
     expect(new Set(方位表)).toHaveProperty('size', 6)
   })
 
-  it('雷达点使用可聚焦图像语义，不伪装成无动作按钮', async () => {
+  it('雷达点仅保留悬停语义，不提供点击或键盘固定入口', async () => {
     const { 容器 } = await 渲染技能板块()
     expect(容器.querySelector('figure svg')?.getAttribute('role')).toBe('group')
     for (const 点 of 容器.querySelectorAll('[data-radar-point]')) {
       expect(点.getAttribute('role')).toBe('img')
-      expect(点.getAttribute('tabindex')).toBe('0')
-      expect(点.getAttribute('class')).toContain('focus-visible:stroke-primary')
+      expect(点.getAttribute('tabindex')).toBeNull()
+      expect(点.getAttribute('aria-describedby')).toBeNull()
+      expect(点.getAttribute('class')).toContain('cursor-default')
     }
   })
 

@@ -137,8 +137,6 @@ test('跑马灯：缝隙悬停不停，卡片悬停缓停', async ({ page }) => 
   expect(Math.abs(恢复后 - 恢复前), '移出后轨道应恢复移动').toBeGreaterThan(15)
 })
 
-
-
 /**
  * 按压残留线根因验证：wrapper 不得自带悬停描边。
  * 旧缺陷：.timeline-card-wrapper::before 在 hover/focus-within 时画青色描边，
@@ -194,4 +192,77 @@ test('经历卡片按压后无 wrapper 描边残留线', async ({ page }) => {
   })
 
   await page.mouse.up()
+})
+
+test('项目作品在放大后由局部横向滚动容器承载溢出', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 900 })
+  await page.goto('/')
+  const 滚动容器 = page.locator('.clothesline-scroll')
+  await 滚动容器.scrollIntoViewIfNeeded()
+  const 样式 = await 滚动容器.evaluate((元素) => getComputedStyle(元素).overflowX)
+  expect(样式).toBe('auto')
+  const 初始尺寸 = await 滚动容器.evaluate((元素) => ({ 宽度: 元素.scrollWidth, 可视宽: 元素.clientWidth }))
+  expect(初始尺寸.宽度).toBe(初始尺寸.可视宽)
+  const 视口 = page.viewportSize()
+  expect(视口).not.toBeNull()
+  await page.setViewportSize({ width: Math.round(视口!.width * 1.1), height: 视口!.height })
+  await page.waitForTimeout(300)
+  const 缩小后 = await 滚动容器.evaluate((元素) => ({ 宽度: 元素.scrollWidth, 可视宽: 元素.clientWidth }))
+  expect(缩小后.宽度).toBe(缩小后.可视宽)
+  await page.setViewportSize({ width: Math.round(视口!.width / 2), height: 视口!.height })
+  await page.waitForTimeout(300)
+  const 放大后 = await 滚动容器.evaluate((元素) => ({ 宽度: 元素.scrollWidth, 可视宽: 元素.clientWidth }))
+  expect(放大后.宽度).toBeGreaterThan(放大后.可视宽)
+  const 滚动后 = await 滚动容器.evaluate((元素) => {
+    元素.scrollLeft = 元素.clientWidth / 2
+    return 元素.scrollLeft
+  })
+  expect(滚动后).toBeGreaterThan(0)
+})
+
+test('多维创作每排副本保持同一二维周期，接缝不产生垂直断代', async ({ page }) => {
+  await page.goto('/')
+  const 区域 = page.locator('section[data-showcase="true"]')
+  await 区域.scrollIntoViewIfNeeded()
+  await page.waitForTimeout(900)
+  const 结果 = await 区域.evaluate((元素) => {
+    return [...元素.querySelectorAll('.showcase-marquee')].map((轨道) => {
+      const 组表 = [...轨道.children].map((组) => ({
+        宽: (组 as HTMLElement).offsetWidth,
+        左: (组 as HTMLElement).getBoundingClientRect().left,
+        顶: (组 as HTMLElement).getBoundingClientRect().top,
+      }))
+      return 组表
+    })
+  })
+  for (const 组表 of 结果) {
+    expect(组表.length).toBeGreaterThanOrEqual(2)
+    const 周期 = 组表[0].宽
+    expect(周期).toBeGreaterThan(0)
+    for (let 索引 = 1; 索引 < 组表.length; 索引 += 1) {
+      expect(组表[索引].宽).toBe(周期)
+      expect(Math.abs(组表[索引].左 - 组表[索引 - 1].左 - 周期)).toBeLessThan(2)
+      expect(Math.abs(组表[索引].顶 - 组表[0].顶)).toBeLessThan(2)
+    }
+  }
+})
+
+test('多维创作与联系我之间的空白不再由固定高度撑开', async ({ page }) => {
+  await page.goto('/')
+  const 区域 = page.locator('section[data-showcase="true"]')
+  await 区域.scrollIntoViewIfNeeded()
+  await page.waitForTimeout(900)
+  const 尺寸 = await 区域.evaluate((元素) => ({ 高度: (元素 as HTMLElement).offsetHeight }))
+  const 间距 = await page.evaluate(() => {
+    const 区域元素 = document.querySelector('section[data-showcase="true"]') as HTMLElement
+    const 联系元素 = document.querySelector('#contact') as HTMLElement
+    const 卡片底边 = Math.max(
+      ...[...区域元素.querySelectorAll('.group\\/card')].map(
+        (卡片) => (卡片 as HTMLElement).getBoundingClientRect().bottom
+      )
+    )
+    return 联系元素.getBoundingClientRect().top - 卡片底边
+  })
+  expect(尺寸.高度).toBeLessThan(3000)
+  expect(间距).toBeLessThan(700)
 })
