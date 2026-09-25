@@ -294,7 +294,13 @@ export function SkillsSection() {
             <figcaption className="mb-3 text-center text-sm font-medium text-muted">
               {t('skills.radarTitle')}
             </figcaption>
-            <div data-radar-overlay="true" className="relative w-full overflow-visible">
+            <div
+              data-radar-overlay="true"
+              className="relative w-full overflow-visible"
+              // 兜底清除：双击拖选等浏览器指针捕获场景会抑制小圆点自身的 mouseleave，
+              // 导致悬浮窗残留。指针只要离开整个雷达图区域就强制清空，悬浮窗只可能由悬停驱动。
+              onPointerLeave={() => set悬停轴Id(null)}
+            >
               <svg viewBox={画布} className="block h-auto w-full" role="group" aria-label={t('skills.radarTitle')}>
                 {RINGS.map((lv) => (
                   <polygon
@@ -362,7 +368,7 @@ export function SkillsSection() {
                       cx={x}
                       cy={y}
                       r={当前轴?.id === 轴.id ? 5 : 3}
-                      fill={轴.minor ? '#a78bfa' : '#38bdf8'}
+                      fill="#38bdf8"
                       className="cursor-default"
                       onMouseEnter={() => set悬停轴Id(轴.id)}
                       onMouseLeave={() => set悬停轴Id(null)}

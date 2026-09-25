@@ -22,7 +22,7 @@ import {
   GitBranch,
   type LucideIcon,
 } from 'lucide-react'
-import { motion, useScroll, useSpring, useTransform, type MotionStyle } from 'framer-motion'
+import { motion, useScroll, useSpring, useTransform } from 'framer-motion'
 import { showcaseRows, type ShowcaseCard } from '../../data/showcase'
 import { t } from '../../i18n/translations'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
@@ -98,10 +98,9 @@ interface ShowcaseProductCardProps {
   index: number
   reducedMotion: boolean
   控制?: 跑马灯控制
-  视差?: MotionStyle
 }
 
-function ShowcaseProductCard({ card, index, reducedMotion, 控制, 视差 }: ShowcaseProductCardProps) {
+function ShowcaseProductCard({ card, index, reducedMotion, 控制 }: ShowcaseProductCardProps) {
   const gradient = GRADIENTS[index % GRADIENTS.length]
   const neonShadow = NEON_SHADOWS[index % NEON_SHADOWS.length]
   const iconColor = ICON_COLORS[index % ICON_COLORS.length]
@@ -159,7 +158,7 @@ function ShowcaseProductCard({ card, index, reducedMotion, 控制, 视差 }: Sho
       className="group/card relative h-32 w-[11rem] shrink-0 md:h-[26.75rem] md:w-[22rem] lg:h-96 lg:w-[30rem]"
     >
       <span aria-hidden="true" className="absolute inset-x-0 -bottom-6 h-6" />
-      <motion.div style={视差} whileHover={reducedMotion ? undefined : { y: -20 }} className="h-full w-full">
+      <motion.div whileHover={reducedMotion ? undefined : { y: -20 }} className="h-full w-full">
         <div className={`h-full w-full rounded-xl bg-gradient-to-r p-[2px] ${gradient} ${neonShadow} md:p-[6px]`}>
           {card.href ? (
             <a
@@ -266,10 +265,9 @@ interface ShowcaseMarqueeRowProps {
   基准速度: number
   减少动画: boolean
   控制: 跑马灯控制
-  视差?: MotionStyle
 }
 
-function ShowcaseMarqueeRow({ row, rowIndex, 方向, 基准速度, 减少动画, 控制, 视差 }: ShowcaseMarqueeRowProps) {
+function ShowcaseMarqueeRow({ row, rowIndex, 方向, 基准速度, 减少动画, 控制 }: ShowcaseMarqueeRowProps) {
   const { 轨道Ref, 组Ref, 份数 } = useZidongPaomadeng({
     控制,
     方向,
@@ -282,23 +280,20 @@ function ShowcaseMarqueeRow({ row, rowIndex, 方向, 基准速度, 减少动画,
       <span id={row.anchorId} className="block scroll-mt-24" aria-hidden="true">
         &nbsp;
       </span>
-      <div className="showcase-marquee-viewport relative w-full overflow-hidden">
-        <div ref={轨道Ref} className="showcase-marquee flex">
-          {Array.from({ length: 份数 }).map((_, group) => (
-            <div key={group} ref={group === 0 ? 组Ref : undefined} className="flex shrink-0 gap-20 pr-20">
-              {row.cards.map((card, cardIndex) => (
-                <ShowcaseProductCard
-                  key={`${card.id}-${group}`}
-                  card={card}
-                  index={rowIndex * 5 + cardIndex}
-                  reducedMotion={减少动画}
-                  控制={控制}
-                  视差={视差}
-                />
-              ))}
-            </div>
-          ))}
-        </div>
+      <div ref={轨道Ref} className="showcase-marquee flex">
+        {Array.from({ length: 份数 }).map((_, group) => (
+          <div key={group} ref={group === 0 ? 组Ref : undefined} className="flex shrink-0 gap-20 pr-20">
+            {row.cards.map((card, cardIndex) => (
+              <ShowcaseProductCard
+                key={`${card.id}-${group}`}
+                card={card}
+                index={rowIndex * 5 + cardIndex}
+                reducedMotion={减少动画}
+                控制={控制}
+              />
+            ))}
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -386,7 +381,7 @@ export function ShowcaseSection() {
     <section data-showcase="true" aria-label={t('showcase.titleLine2')}>
       <div
         ref={ref}
-        className="relative z-[100] isolate flex min-h-0 flex-col pb-24 antialiased [perspective:1000px] md:pb-28"
+        className="relative flex h-[1750px] flex-col pb-40 antialiased [perspective:1000px] [transform-style:preserve-3d] md:h-[2550px] lg:h-[3000px] z-[100] isolate"
       >
         <div className="relative mx-auto w-full max-w-7xl px-4 py-20 md:py-40">
           <h2 className="font-display text-4xl font-bold tracking-widest md:text-6xl">
@@ -401,7 +396,9 @@ export function ShowcaseSection() {
           <p className="mt-8 max-w-2xl text-xl font-bold text-sky-400 md:text-2xl">{t('showcase.subtitle')}</p>
         </div>
 
-        <div className="[perspective:1000px]">
+        {/* 入场 3D 倾斜必须挂在包裹层（perspective 的直接子元素）：CSS perspective 只作用于直接子级的变换，
+            挂到单张卡片上会失去透视呈现为无透视的仿射变换——整排卡片不再作为同一块 3D 平面倾斜（问题4 回归根因） */}
+        <motion.div style={entrance} className="[transform-style:preserve-3d]">
           {showcaseRows.map((row, rowIndex) => (
             <ShowcaseMarqueeRow
               key={row.anchorId}
@@ -411,10 +408,9 @@ export function ShowcaseSection() {
               基准速度={50}
               减少动画={reducedMotion}
               控制={控制}
-              视差={entrance}
             />
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   )

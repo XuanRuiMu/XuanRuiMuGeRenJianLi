@@ -8,15 +8,22 @@ import { useProjectsWindStore } from '../../store/useProjectsWindStore'
 import { 晾衣架物理引擎, 晾衣架配置, type 晾衣架快照 } from './clotheslinePhysics'
 import { useNoteAutoFit } from './useNoteAutoFit'
 
-/** 桌面断点：低于此宽度时物理晾衣架无法容纳便签（互相重叠、字号过小），切换为静态卡片网格 */
-const 桌面断点 = '(min-width: 768px)'
+/**
+ * 手机判定：窄视口 且 主指针为粗指针（触屏）。
+ * 不能只用视口宽度判定：桌面浏览器高倍缩放（>200%）会把 CSS 视口压到 768px 以下，
+ * 若据此切成静态网格，缩放复原切回桌面时物理引擎不重建，便签（opacity:0 初始态）与绳子会永久消失。
+ * 桌面指针恒为 fine，故高倍缩放仍保持物理晾衣架，由横向滚动容器揭示被挡便签。
+ */
+const 移动断点 = '(max-width: 767.98px) and (pointer: coarse)'
 
 function useIsDesktop(): boolean {
-  const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' && window.matchMedia(桌面断点).matches)
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window === 'undefined' || !window.matchMedia(移动断点).matches
+  )
 
   useEffect(() => {
-    const query = window.matchMedia(桌面断点)
-    const handleChange = (event: MediaQueryListEvent) => setIsDesktop(event.matches)
+    const query = window.matchMedia(移动断点)
+    const handleChange = (event: MediaQueryListEvent) => setIsDesktop(!event.matches)
     query.addEventListener('change', handleChange)
     return () => query.removeEventListener('change', handleChange)
   }, [])
@@ -192,7 +199,6 @@ export function ClotheslineNotes({ 填充 = false }: ClotheslineNotesProps) {
     const 容器 = 容器Ref.current
     const 画布 = 画布Ref.current
     if (!容器 || !画布) return
-
     let 引擎: 晾衣架物理引擎 | null = null
     let rafId: number | null = null
     let 运行中 = false
@@ -337,7 +343,9 @@ export function ClotheslineNotes({ 填充 = false }: ClotheslineNotesProps) {
       引擎Ref.current = null
       引擎 = null
     }
-  }, [reducedMotion])
+    // isDesktop 必须在依赖里：窄屏↔桌面切换会整体更换 DOM（静态网格 ↔ 物理便签），
+    // 不重建的话新 DOM 上没有引擎——便签停留在 opacity:0 初始态、画布空白，表现为「便签+绳子消失」。
+  }, [reducedMotion, isDesktop])
 
   if (!isDesktop) {
     return <MobileNotesGrid />

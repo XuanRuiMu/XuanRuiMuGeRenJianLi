@@ -15,7 +15,13 @@ export function TestimonialsSection() {
           <Reveal key={卡片.id} className="testimonial-reveal">
             <figure
               className="relative h-full rounded-md border border-border bg-panel px-6 py-5 shadow-sm transition-transform duration-300 ease-out hover:scale-[1.04]"
-              style={{ transform: `rotate(${便签角度[序号 % 便签角度.length]})` }}
+              style={{
+                transform: `rotate(${便签角度[序号 % 便签角度.length]})`,
+                // 永久驻留合成层：hover 缩放动画会把卡片临时提升为合成层，Windows 下合成层文本
+                // 改用灰度抗锯齿（ClearType 仅用于非合成文本），动画期间文字观感骤然变细，
+                // 表现为「静止加粗、动画不加粗」。will-change 让静止/动画共用同一条光栅化路径，观感恒定。
+                willChange: 'transform',
+              }}
             >
               {/* 胶带条：打破对称，去掉模板感 */}
               <span

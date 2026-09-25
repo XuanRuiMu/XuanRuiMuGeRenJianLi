@@ -87,26 +87,30 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
     }
   })
 
-  it('每排跑马灯在独立二维裁剪视口内使用不可收缩的完整周期副本', () => {
+  it('每排跑马灯使用不可收缩的完整周期副本，轨道由整块 3D 平面包裹', () => {
     const { container } = render(<ShowcaseSection />)
-    const 视口表 = container.querySelectorAll('.showcase-marquee-viewport')
-    expect(视口表).toHaveLength(4)
-    for (const 视口 of 视口表) {
-      expect(视口.className).toContain('overflow-hidden')
-      const 轨道 = 视口.querySelector('.showcase-marquee')!
+    const 轨道表 = container.querySelectorAll('.showcase-marquee')
+    expect(轨道表).toHaveLength(4)
+    for (const 轨道 of 轨道表) {
       expect(轨道.children.length).toBeGreaterThanOrEqual(2)
       for (const 周期组 of 轨道.children) {
         expect(周期组.className).toContain('shrink-0')
       }
     }
+    // 入场 3D 倾斜挂在 perspective 直接子级的包裹层上（perspective 只作用于直接子级，
+    // 挂到单卡会退化为无透视仿射变换，整排卡片不再作为同一块平面倾斜）
+    const 包裹层 = container.querySelector('section[aria-label] > div > div[class*="preserve-3d"]')
+    expect(包裹层).not.toBeNull()
+    expect((包裹层 as HTMLElement).className).toContain('preserve-3d')
   })
 
-  it('展示区外层不再使用固定高度撑开空白', () => {
+  it('展示区外层保留固定高度与整体透视（原版 3D 倾斜观感）', () => {
     const { container } = render(<ShowcaseSection />)
     const 外层 = container.querySelector('section[aria-label] > div') as HTMLElement
-    expect(外层.className).not.toContain('h-[1750px]')
-    expect(外层.className).not.toContain('h-[2550px]')
-    expect(外层.className).not.toContain('h-[3000px]')
+    expect(外层.className).toContain('h-[1750px]')
+    expect(外层.className).toContain('md:h-[2550px]')
+    expect(外层.className).toContain('lg:h-[3000px]')
+    expect(外层.className).toContain('[perspective:1000px]')
   })
 
   it('renders rows statically without inline transform under reduced motion', () => {

@@ -17,7 +17,8 @@ describe('ProjectsSection', () => {
       writable: true,
       value: vi.fn().mockImplementation((query: string) => ({
         get matches() {
-          if (query.includes('min-width')) return 桌面宽度
+          // 移动判定为「窄视口 + 粗指针」：桌面宽度=false 模拟手机（触屏窄屏），=true 模拟桌面（含高倍缩放）
+          if (query.includes('max-width')) return !桌面宽度
           if (query.includes('prefers-reduced-motion')) return 减少动画
           return false
         },

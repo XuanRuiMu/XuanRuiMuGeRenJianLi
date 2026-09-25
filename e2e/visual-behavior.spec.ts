@@ -220,17 +220,20 @@ test('项目作品在放大后由局部横向滚动容器承载溢出', async ({
   expect(滚动后).toBeGreaterThan(0)
 })
 
-test('多维创作每排副本保持同一二维周期，接缝不产生垂直断代', async ({ page }) => {
+test('多维创作每排副本保持同一二维周期，接缝不产生断代', async ({ page }) => {
   await page.goto('/')
   const 区域 = page.locator('section[data-showcase="true"]')
   await 区域.scrollIntoViewIfNeeded()
   await page.waitForTimeout(900)
+  // 用布局空间（offsetLeft/offsetWidth）而非 getBoundingClientRect：
+  // 整排卡片作为同一块 3D 平面倾斜时，屏幕空间坐标随位置线性变化（这是原版观感，不是断代）；
+  // 真循环的不变量必须在布局空间里检验：副本等宽、首尾相接、垂直不错位。
   const 结果 = await 区域.evaluate((元素) => {
     return [...元素.querySelectorAll('.showcase-marquee')].map((轨道) => {
       const 组表 = [...轨道.children].map((组) => ({
         宽: (组 as HTMLElement).offsetWidth,
-        左: (组 as HTMLElement).getBoundingClientRect().left,
-        顶: (组 as HTMLElement).getBoundingClientRect().top,
+        左: (组 as HTMLElement).offsetLeft,
+        顶: (组 as HTMLElement).offsetTop,
       }))
       return 组表
     })
@@ -241,28 +244,8 @@ test('多维创作每排副本保持同一二维周期，接缝不产生垂直�
     expect(周期).toBeGreaterThan(0)
     for (let 索引 = 1; 索引 < 组表.length; 索引 += 1) {
       expect(组表[索引].宽).toBe(周期)
-      expect(Math.abs(组表[索引].左 - 组表[索引 - 1].左 - 周期)).toBeLessThan(2)
+      expect(组表[索引].左 - 组表[索引 - 1].左).toBe(周期)
       expect(Math.abs(组表[索引].顶 - 组表[0].顶)).toBeLessThan(2)
     }
   }
-})
-
-test('多维创作与联系我之间的空白不再由固定高度撑开', async ({ page }) => {
-  await page.goto('/')
-  const 区域 = page.locator('section[data-showcase="true"]')
-  await 区域.scrollIntoViewIfNeeded()
-  await page.waitForTimeout(900)
-  const 尺寸 = await 区域.evaluate((元素) => ({ 高度: (元素 as HTMLElement).offsetHeight }))
-  const 间距 = await page.evaluate(() => {
-    const 区域元素 = document.querySelector('section[data-showcase="true"]') as HTMLElement
-    const 联系元素 = document.querySelector('#contact') as HTMLElement
-    const 卡片底边 = Math.max(
-      ...[...区域元素.querySelectorAll('.group\\/card')].map(
-        (卡片) => (卡片 as HTMLElement).getBoundingClientRect().bottom
-      )
-    )
-    return 联系元素.getBoundingClientRect().top - 卡片底边
-  })
-  expect(尺寸.高度).toBeLessThan(3000)
-  expect(间距).toBeLessThan(700)
 })
