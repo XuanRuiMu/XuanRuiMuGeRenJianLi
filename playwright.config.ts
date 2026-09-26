@@ -13,7 +13,7 @@ export default defineConfig({
     locale: 'zh-CN',
   },
   webServer: {
-    command: 'npm run dev',
+    command: 'npm exec -- vite --host --port 5180',
     url: 'http://localhost:5180',
     reuseExistingServer: true,
     timeout: 180_000,

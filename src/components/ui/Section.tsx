@@ -6,13 +6,14 @@ interface SectionProps {
   id?: string
   title?: string
   subtitle?: string
+  ariaLabel?: string
   children: ReactNode
   className?: string
 }
 
-export function Section({ id, title, subtitle, children, className }: SectionProps) {
+export function Section({ id, title, subtitle, ariaLabel, children, className }: SectionProps) {
   return (
-    <section id={id} className={cn('relative py-16 md:py-24 px-4 sm:px-6 lg:px-8', className)}>
+    <section id={id} aria-label={ariaLabel} className={cn('relative py-16 md:py-24 px-4 sm:px-6 lg:px-8', className)}>
       <div className="relative mx-auto max-w-6xl">
         {(title || subtitle) && (
           <Reveal className="mb-10 md:mb-14">

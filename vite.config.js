@@ -134,6 +134,9 @@ export default defineConfig(({ mode }) => {
     port: 5180,
     // 端口被占用时直接失败，禁止静默换端口（否则用户仍连旧僵尸进程上的 5180）
     strictPort: true,
+    watch: {
+      ignored: ['**/.agents/**', '**/test-results/**', '**/PROGRESS.md'],
+    },
     proxy: {
       // 开发环境与生产 nginx 同契约：前端只打同源 /api/ai/*，密钥由本代理注入，绝不进前端产物。
       '/api/ai/deepseek': {

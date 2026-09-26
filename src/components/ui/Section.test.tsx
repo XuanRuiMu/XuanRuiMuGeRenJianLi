@@ -18,6 +18,12 @@ describe('Section', () => {
     expect(screen.getByText('subtitle text')).toBeInTheDocument()
   })
 
+  it('assigns an accessible label without rendering a visible heading', () => {
+    const { container } = render(<Section ariaLabel="testimonials">content</Section>)
+    expect(container.querySelector('section')).toHaveAttribute('aria-label', 'testimonials')
+    expect(screen.queryByRole('heading')).not.toBeInTheDocument()
+  })
+
   it('assigns id to section element', () => {
     const { container } = render(<Section id="about">content</Section>)
     expect(container.querySelector('section')).toHaveAttribute('id', 'about')

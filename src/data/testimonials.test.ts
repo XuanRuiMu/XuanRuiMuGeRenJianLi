@@ -89,9 +89,8 @@ describe('FP-05 推荐语数据源：两条、单一文案源', () => {
     }
   })
 
-  it('板块标题键仍在（FP-06 的 SECTION_LABEL_KEY 依赖它）', () => {
-    expect(typeof 板块节点.title).toBe('string')
-    expect((板块节点.title as string).trim()).not.toBe('')
+  it('板块标题键保留但值为空，仅移除独立标题', () => {
+    expect(板块节点.title).toBe('')
   })
 
   it('副标题与免责说明键已删除，旧条目键不残留（反向守卫：加回即红）', () => {
