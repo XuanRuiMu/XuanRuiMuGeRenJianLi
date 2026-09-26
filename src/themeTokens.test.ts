@@ -224,14 +224,7 @@ const 禁改清单: Array<{ 文件: string; 已令牌化字面值: string[] }> =
   },
 ]
 
-const 使用的颜色类 = [
-  'bg-panel',
-  'text-text-primary',
-  'text-text-secondary',
-  'border-border',
-  'border-bg',
-  'bg-bg',
-]
+const 使用的颜色类 = ['bg-panel', 'text-text-primary', 'text-text-secondary', 'border-border', 'border-bg', 'bg-bg']
 
 const 棋盘区必含令牌引用 = [
   'var(--color-board-start)',

@@ -92,9 +92,7 @@ async function 查找得意黑源文件() {
 }
 
 function 生成UnicodeRange(字符列表) {
-  return 字符列表
-    .map((c) => `U+${c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')}`)
-    .join(', ')
+  return 字符列表.map((c) => `U+${c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')}`).join(', ')
 }
 
 async function 更新criticalCssUnicodeRange(新范围) {

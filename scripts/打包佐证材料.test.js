@@ -23,9 +23,7 @@ function 原始素材文件名() {
   return fs
     .readdirSync(源目录)
     .filter(
-      (名) =>
-        !['脱敏后', '脱敏规则.json', '审计切片'].includes(名) &&
-        !fs.statSync(path.join(源目录, 名)).isDirectory()
+      (名) => !['脱敏后', '脱敏规则.json', '审计切片'].includes(名) && !fs.statSync(path.join(源目录, 名)).isDirectory()
     )
 }
 

@@ -12,6 +12,8 @@
     "preview": "vite preview",
     "lint": "oxlint . && eslint .",
     "lint:fix": "oxlint . --fix && eslint . --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:e2e": "playwright test",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,json,md}\" \"scripts/**/*.{js,ts}\" \"*.{js,ts,json,md}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,css,json,md}\" \"scripts/**/*.{js,ts}\" \"*.{js,ts,json,md}\"",

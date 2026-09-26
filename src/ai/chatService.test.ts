@@ -93,15 +93,13 @@ describe('chatService', () => {
       json: async () => ({ choices: [{ message: { content: '{"text":"图里是一只猫"}' } }] }),
     })
 
-    const result = await sendChatMessage(
-      [
-        {
-          role: 'user',
-          content: '这张图里有什么？',
-          images: ['data:image/png;base64,QUJD', 'data:image/jpeg;base64,REVG'],
-        },
-      ]
-    )
+    const result = await sendChatMessage([
+      {
+        role: 'user',
+        content: '这张图里有什么？',
+        images: ['data:image/png;base64,QUJD', 'data:image/jpeg;base64,REVG'],
+      },
+    ])
 
     const callArgs = mockFetch.mock.calls[0] as [string, RequestInit]
     const body = JSON.parse((callArgs[1].body as string) ?? '{}')
@@ -124,13 +122,11 @@ describe('chatService', () => {
       json: async () => ({ choices: [{ message: { content: '{"text":"回答"}' } }] }),
     })
 
-    await sendChatMessage(
-      [
-        { role: 'user', content: '问题一' },
-        { role: 'assistant', content: '回答一' },
-        { role: 'user', content: '问题二' },
-      ]
-    )
+    await sendChatMessage([
+      { role: 'user', content: '问题一' },
+      { role: 'assistant', content: '回答一' },
+      { role: 'user', content: '问题二' },
+    ])
 
     const callArgs = mockFetch.mock.calls[0] as [string, RequestInit]
     const body = JSON.parse((callArgs[1].body as string) ?? '{}')
@@ -277,9 +273,7 @@ describe('chatService', () => {
   it('rethrows AbortError without falling back to the local answer（中断不得被兜底吞掉）', async () => {
     mockFetch.mockRejectedValueOnce(new DOMException('The operation was aborted.', 'AbortError'))
 
-    await expect(
-      sendChatMessage([{ role: 'user', content: '你是谁' }])
-    ).rejects.toMatchObject({
+    await expect(sendChatMessage([{ role: 'user', content: '你是谁' }])).rejects.toMatchObject({
       name: 'AbortError',
     })
   })
@@ -569,4 +563,3 @@ describe('compactConversation（/compact 语义压缩）', () => {
     await expect(compactConversation([{ role: 'user', content: '你好' }])).rejects.toThrow()
   })
 })
-

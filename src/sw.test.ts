@@ -56,8 +56,7 @@ function 安装ServiceWorkerMock(options?: {
   controller?: object | null
 }) {
   const registration = options?.registration ?? 创建注册()
-  const register =
-    options?.register ?? vi.fn(() => Promise.resolve(registration))
+  const register = options?.register ?? vi.fn(() => Promise.resolve(registration))
   const swListeners = new Map<string, (event: { data: unknown }) => void>()
   const mock = {
     register,
