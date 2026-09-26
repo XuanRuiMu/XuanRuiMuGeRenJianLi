@@ -28,3 +28,17 @@ export function 计算晾衣架布局(基准宽: number): 晾衣架布局 {
     区域最小宽: Math.max(有效宽, 最小带宽),
   }
 }
+
+/**
+ * 布局基准宽：取自身外框宽与外层可用宽的较小者。
+ * 区域自身的 min-width 会把 offsetWidth 撑住，单读 offsetWidth 会把旧宽当成新宽；
+ * 外层滚动视口的 clientWidth 不受区域 min-width 污染，是收缩时的新鲜信号。
+ */
+export function 计算布局基准宽(自身外框宽: number, 外层可用宽: number): number {
+  const 自身有效 = Number.isFinite(自身外框宽) && 自身外框宽 > 0
+  const 外层有效 = Number.isFinite(外层可用宽) && 外层可用宽 > 0
+  if (自身有效 && 外层有效) return Math.min(自身外框宽, 外层可用宽)
+  if (外层有效) return 外层可用宽
+  if (自身有效) return 自身外框宽
+  return 0
+}

@@ -26,6 +26,8 @@ dev-dist
 lighthouse-report.json
 visual-qa-screenshots
 screenshots
+# e2e 每次运行落盘的取证产物（截图+DOM 指标），属可再生成的验证证据
+.agents/evidence/
 
 # Editor directories and files
 .vscode/*

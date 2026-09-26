@@ -80,6 +80,19 @@ describe('ragEngine', () => {
     expect(results).toEqual([])
   })
 
+  it('学校口语问法首屏即学校事实（用户原话回归）', () => {
+    const results = retrieveChunks('他是哪个学校毕业的?', 3)
+    expect(results.length).toBeGreaterThan(0)
+    expect(results[0].id).toMatch(/education|personal-info-education/)
+    expect(results[0].content).toContain('天津仁爱学院')
+  })
+
+  it('文职评估问法召回经历与教育事实而非空上下文', () => {
+    const results = retrieveChunks('他能否胜任文职工作?', 8)
+    expect(results.length).toBeGreaterThan(0)
+    expect(results.some((r) => r.metadata.category === 'experience')).toBe(true)
+  })
+
   it('暮澜纪元不再双倍加分（重复规则已删，分数回归单次加成）', () => {
     const results = retrieveChunks('介绍一下暮澜纪元', 5)
     expect(results.length).toBeGreaterThan(0)

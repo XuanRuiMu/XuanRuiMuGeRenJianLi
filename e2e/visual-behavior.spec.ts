@@ -83,23 +83,24 @@ test('跑马灯：缝隙悬停不停，卡片悬停缓停', async ({ page }) => 
   await 等待滚动停稳(page)
   await page.waitForTimeout(1200)
 
-  // 轨道持续平移：固定索引的卡片会滑出视口（负坐标），必须动态选取「此刻完整可见」的卡片
-  const 卡片们 = 区块.locator('.group\\/card')
-  const 总数 = await 卡片们.count()
-  const 取盒 = async (i: number) => (await 卡片们.nth(i).boundingBox()) as { x: number; y: number; width: number; height: number }
+  // 轨道持续平移：固定索引的卡片会滑出视口（负坐标），必须动态选取「此刻完整可见」的卡片。
+  // 逐元素 locator.boundingBox() 会等待元素停止移动，而跑马灯永不停稳 → 整批读一次矩形，避免死等
+  type 盒型 = { x: number; y: number; width: number; height: number }
+  const 全部盒 = (): Promise<盒型[]> =>
+    区块.evaluate((根) =>
+      [...根.querySelectorAll('.group\\/card')].map((c) => {
+        const b = c.getBoundingClientRect()
+        return { x: b.x, y: b.y, width: b.width, height: b.height }
+      })
+    )
   // 区块高于视口，最近对齐可能让 3D 跑马灯行恰好跨在断言带边缘；
   // 用真实滚轮小幅微调直到有卡片完整落在带内（对页面高度变化鲁棒，不写死滚动量）
   let 可见索引 = -1
-  let 盒: { x: number; y: number; width: number; height: number } | null = null
+  let 盒: 盒型 | null = null
   for (let 轮 = 0; 轮 < 10 && 可见索引 < 0; 轮++) {
-    for (let i = 0; i < 总数; i++) {
-      const b = await 取盒(i)
-      if (b && b.x > 220 && b.x + b.width < 1220 && b.y > 130 && b.y + b.height < 860) {
-        可见索引 = i
-        盒 = b
-        break
-      }
-    }
+    const 盒表 = await 全部盒()
+    可见索引 = 盒表.findIndex((b) => b.x > 220 && b.x + b.width < 1220 && b.y > 130 && b.y + b.height < 860)
+    盒 = 可见索引 >= 0 ? (盒表[可见索引] ?? null) : null
     if (可见索引 < 0) {
       await page.mouse.move(720, 450)
       await page.mouse.wheel(0, 160)
@@ -120,7 +121,7 @@ test('跑马灯：缝隙悬停不停，卡片悬停缓停', async ({ page }) => 
   expect(Math.abs(缝隙后 - 缝隙前), '缝隙悬停不应停止轨道').toBeGreaterThan(10)
 
   // —— 卡片中心：应触发整体缓停（重新取盒：缝隙阶段轨道又移动了一段）——
-  const 新盒 = await 取盒(可见索引)
+  const 新盒 = (await 全部盒())[可见索引]
   await page.mouse.move(新盒.x + 新盒.width / 2, 新盒.y + 新盒.height / 2)
   await page.waitForTimeout(2500)
   const 卡前 = await 轨道位移(page, 0)
@@ -195,6 +196,11 @@ test('经历卡片按压后无 wrapper 描边残留线', async ({ page }) => {
 })
 
 test('项目作品在放大后由局部横向滚动容器承载溢出', async ({ page }) => {
+  const 控制台错误: string[] = []
+  page.on('pageerror', (错误) => 控制台错误.push(String(错误).slice(0, 200)))
+  page.on('console', (消息) => {
+    if (消息.type() === 'error') 控制台错误.push(消息.text().slice(0, 200))
+  })
   await page.setViewportSize({ width: 1920, height: 900 })
   await page.goto('/')
   const 滚动容器 = page.locator('.clothesline-scroll')
@@ -218,6 +224,26 @@ test('项目作品在放大后由局部横向滚动容器承载溢出', async ({
     return 元素.scrollLeft
   })
   expect(滚动后).toBeGreaterThan(0)
+  const 便签裁切 = await page.locator('.clothesline-note').evaluateAll((便签们) =>
+    便签们.map((便签) => {
+      const 内容 = 便签.querySelector('.clothesline-note-content') as HTMLElement | null
+      const 链接 = 便签.querySelector('.clothesline-note-link') as HTMLElement | null
+      if (!内容) return { 内容溢出: true, 链接溢出: true }
+      const 内容盒 = 内容.getBoundingClientRect()
+      const 内容溢出 = 内容.scrollHeight > 内容.clientHeight + 1
+      const 链接底 = 链接 ? 链接.offsetTop + 链接.offsetHeight : 内容.scrollHeight
+      const 链接溢出 = 链接底 > 内容.clientHeight + 1
+      const 链接在卷内 = !链接 || 链接.getBoundingClientRect().bottom <= 内容盒.bottom + 2
+      return { 内容溢出, 链接溢出, 链接在卷内 }
+    })
+  )
+  expect(便签裁切.length).toBeGreaterThan(0)
+  for (const 项 of 便签裁切) {
+    expect(项.内容溢出).toBe(false)
+    expect(项.链接溢出).toBe(false)
+    expect(项.链接在卷内).toBe(true)
+  }
+  expect(控制台错误).toEqual([])
 })
 
 test('多维创作每排副本保持同一二维周期，接缝不产生断代', async ({ page }) => {

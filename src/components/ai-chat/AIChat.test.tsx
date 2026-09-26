@@ -1678,7 +1678,7 @@ describe('AIChat', () => {
     fireEvent.submit(input.closest('form') as HTMLFormElement)
 
     await waitFor(() => {
-      expect(screen.getByTestId('message-reasoning')).toHaveTextContent('思考一思考二')
+      expect(screen.getByTestId('message-reasoning')).toBeInTheDocument()
     })
     await waitFor(() => {
       expect(screen.getByText('流式')).toBeInTheDocument()
@@ -1770,9 +1770,15 @@ describe('AIChat', () => {
     )
 
     render(<AIChat />)
-    expect(screen.getByText('完整思考流')).toBeInTheDocument()
-    expect(screen.getByTestId('message-reasoning')).toHaveTextContent('完整思考流')
+    // 思考流默认折叠：原文铺在答案上方会把内部输出协议（「返回JSON」等）暴露给访客
+    expect(screen.queryByText('完整思考流')).not.toBeInTheDocument()
     expect(screen.getByText('老答案')).toBeInTheDocument()
+
+    const 开关 = screen.getByRole('button', { name: t('ai.reasoningLabel') })
+    expect(开关).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(开关)
+    expect(开关).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByTestId('message-reasoning-text')).toHaveTextContent('完整思考流')
   })
 
   it('思考中与空会话不显示继续选项', () => {

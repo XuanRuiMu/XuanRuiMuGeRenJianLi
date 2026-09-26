@@ -1,6 +1,6 @@
 import type { AiMessage } from '../store/useAppStore'
 import { ta } from '../i18n/translations'
-import { 命中共享意图, 检测项目卡片, 是否纯问候, 是否感谢, 是否告别 } from './intentTable'
+import { 命中兜底意图, 检测项目卡片, 是否纯问候, 是否感谢, 是否告别 } from './intentTable'
 
 function 取组(键: string): string[] {
   return ta(`ai.followUps.${键}` as never)
@@ -38,17 +38,17 @@ export function 生成追问建议(用户问题: string, 助手消息?: AiMessag
   if (组件?.type === 'ContactLinks') return 规范化三元(取组('fallback'))
 
   const 文本 = 输入.toLowerCase()
-  if (命中共享意图('tech', 文本)) return 规范化三元(取组('tech'))
+  if (命中兜底意图('tech', 文本)) return 规范化三元(取组('tech'))
   const 项目卡片 = 检测项目卡片(输入)
   if (项目卡片 === 'xrm') return 规范化三元(取组('projectsXrm'))
   if (项目卡片 === 'fengLai') return 规范化三元(取组('projectsFengLai'))
   if (项目卡片 === 'lovewithme' || 项目卡片 === 'aiConsole') return 规范化三元(取组('projectsLove'))
-  if (命中共享意图('projects-xrm', 文本)) return 规范化三元(取组('projectsXrm'))
-  if (命中共享意图('projects-蜂来', 文本)) return 规范化三元(取组('projectsFengLai'))
-  if (命中共享意图('projects-爱与循环', 文本) || 命中共享意图('projects-通用', 文本)) {
+  if (命中兜底意图('projects-xrm', 文本)) return 规范化三元(取组('projectsXrm'))
+  if (命中兜底意图('projects-蜂来', 文本)) return 规范化三元(取组('projectsFengLai'))
+  if (命中兜底意图('projects-爱与循环', 文本) || 命中兜底意图('projects-通用', 文本)) {
     return 规范化三元(取组('projectsLove'))
   }
-  if (命中共享意图('experience', 文本)) return 规范化三元(取组('experience'))
-  if (命中共享意图('education', 文本)) return 规范化三元(取组('education'))
+  if (命中兜底意图('experience', 文本)) return 规范化三元(取组('experience'))
+  if (命中兜底意图('education', 文本)) return 规范化三元(取组('education'))
   return 规范化三元(取组('fallback'))
 }

@@ -102,13 +102,19 @@ async function 更新criticalCssUnicodeRange(新范围) {
   if (!匹配) {
     throw new Error(`critical.css 未匹配到 unicode-range 行，请检查 ${cssPath}`)
   }
-  // 幂等：当前范围已是最新则跳过写入（同一源码二次构建不产生噪声 diff）
-  if (匹配[2] === 新范围) return false
+  // 幂等：当前范围已是最新则跳过写入（同一源码二次构建不产生噪声 diff）。
+  // 必须先归一化空白再比较——写入后的值会被 prettier 折行，直接比原文永远不等
+  const 当前范围 = 匹配[2].replace(/\s+/g, ' ').trim()
+  if (当前范围 === 新范围) return false
   const 新内容 = 原内容.replace(
     /^([ \t]*unicode-range:\s*)([^;]+)(;)/m,
     (_, 前缀, _旧值, 结尾) => `${前缀}${新范围}${结尾}`
   )
-  await fs.writeFile(cssPath, 新内容)
+  // 生成结果必须过一遍 prettier：critical.css 受 CI 的 format:check 约束，
+  // 直接写单行长 unicode-range 会让每次 npm run build 都把工作树改成格式不合规
+  const prettier = (await import('prettier')).default
+  const 格式配置 = (await prettier.resolveConfig(cssPath)) ?? {}
+  await fs.writeFile(cssPath, await prettier.format(新内容, { ...格式配置, filepath: cssPath }))
   return true
 }
 

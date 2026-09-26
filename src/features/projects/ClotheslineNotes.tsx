@@ -6,7 +6,7 @@ import { t } from '../../i18n/translations'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { useProjectsWindStore } from '../../store/useProjectsWindStore'
 import { 晾衣架物理引擎, 晾衣架配置, type 晾衣架快照 } from './clotheslinePhysics'
-import { 计算晾衣架布局 } from './clotheslineLayout'
+import { 计算晾衣架布局, 计算布局基准宽 } from './clotheslineLayout'
 import { useNoteAutoFit } from './useNoteAutoFit'
 
 // canvas 无法直接引用 CSS 变量，非 CSS 环境（如测试）下的兜底色；浏览器中始终以 index.css 的 --rope-* 变量为准
@@ -175,7 +175,9 @@ export function ClotheslineNotes({ 填充 = false }: ClotheslineNotesProps) {
 
     const 构建 = () => {
       引擎?.销毁()
-      const 基准宽 = 容器.offsetWidth
+      const 滚动视口 = 容器.parentElement
+      const 外层可用宽 = 滚动视口 ? 滚动视口.clientWidth : 0
+      const 基准宽 = 计算布局基准宽(容器.offsetWidth, 外层可用宽)
       if (基准宽 < 1) return
       // 统一布局（clotheslineLayout 为唯一来源）：任何设备都只渲染物理晾衣架，不存在手机版网格。
       // 带宽 = 钳制(基准宽, 最小带宽 768, 最大带宽 1152)：低于最小带宽时按最小带宽铺开（保证便签不重叠、字号可读），

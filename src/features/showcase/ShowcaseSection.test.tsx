@@ -15,9 +15,16 @@ import {
   同步滚动位置,
   默认跑马灯配置,
   滚动暂停时长,
+  最小份数,
+  端部余量组数,
+  轨道屏幕偏移,
 } from './marqueeEngine'
 import { showcaseRows, 暮澜链接 } from '../../data/showcase'
 import { t } from '../../i18n/translations'
+
+// 固定高度残留检测：覆盖任意变体前缀（sm:/md:/2xl:/任意变体:，以冒号分隔）与 min-h-/max-h- 前缀。
+// 旧正则 (^|\s)(sm:|md:|lg:)?h-\[ 抓不到 min-h-[…] 与 max-h-[…]，死白同类残留会从检测缝里漏掉
+const 固定高度残留正则 = /(^|\s)([^\s:]+:)*(min-|max-)?h-\[/
 
 describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
   afterEach(() => {
@@ -35,13 +42,13 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
     render(<ShowcaseSection />)
     for (const row of showcaseRows) {
       for (const card of row.cards) {
-        // 每张逻辑卡片至少渲染一次（marquee 无缝循环会渲染两份相同卡片组）
+        // 每张逻辑卡片至少渲染一次（marquee 无缝循环渲染 份数 份相同卡片组）
         expect(screen.getAllByText(t(card.titleKey)).length).toBeGreaterThanOrEqual(1)
         expect(screen.getAllByText(t(card.descKey)).length).toBeGreaterThanOrEqual(1)
       }
     }
-    // 逻辑卡总数 × 2 份（无缝 marquee 轨道，数据驱动，随showcaseRows扩展自动同步）
-    const expected = showcaseRows.reduce((n, r) => n + r.cards.length, 0) * 2
+    // 逻辑卡总数 × 最小份数（jsdom 无布局宽度，份数取下限；数据驱动，随showcaseRows扩展自动同步）
+    const expected = showcaseRows.reduce((n, r) => n + r.cards.length, 0) * 最小份数
     const cards = document.querySelectorAll('.group\\/card')
     expect(cards).toHaveLength(expected)
   })
@@ -56,8 +63,8 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
 
   it('ports the neon gradient border design on every card', () => {
     render(<ShowcaseSection />)
-    // 逻辑卡总数 × 2份marquee轨道（数据驱动，随showcaseRows扩展自动同步）
-    const expected = showcaseRows.reduce((n, r) => n + r.cards.length, 0) * 2
+    // 逻辑卡总数 × 最小份数marquee轨道（数据驱动，随showcaseRows扩展自动同步）
+    const expected = showcaseRows.reduce((n, r) => n + r.cards.length, 0) * 最小份数
     const cards = document.querySelectorAll('.group\\/card')
     expect(cards).toHaveLength(expected)
     for (const card of cards) {
@@ -72,9 +79,9 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
   it('renders the bilibili card as an external link and others as plain cards', () => {
     render(<ShowcaseSection />)
     const escapedTitle = t('showcase.cards.courses.title').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    // marquee 渲染两份，故 bilibili 链接出现两次，均应为外链
+    // marquee 渲染 份数 份，故 bilibili 链接出现 份数 次，均应为外链
     const links = screen.getAllByRole('link', { name: new RegExp(escapedTitle) })
-    expect(links.length).toBe(2)
+    expect(links.length).toBe(最小份数)
     for (const link of links) {
       expect(link).toHaveAttribute('target', '_blank')
       expect(link).toHaveAttribute('href', 'https://space.bilibili.com/383504924')
@@ -92,7 +99,7 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
     const 轨道表 = container.querySelectorAll('.showcase-marquee')
     expect(轨道表).toHaveLength(4)
     for (const 轨道 of 轨道表) {
-      expect(轨道.children.length).toBeGreaterThanOrEqual(2)
+      expect(轨道.children.length).toBe(最小份数)
       for (const 周期组 of 轨道.children) {
         expect(周期组.className).toContain('shrink-0')
       }
@@ -104,13 +111,35 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
     expect((包裹层 as HTMLElement).className).toContain('preserve-3d')
   })
 
-  it('展示区外层保留固定高度与整体透视（原版 3D 倾斜观感）', () => {
+  it('展示区外层无固定高度（高度由内容驱动，消除死白）并保留整体透视', () => {
     const { container } = render(<ShowcaseSection />)
     const 外层 = container.querySelector('section[aria-label] > div') as HTMLElement
-    expect(外层.className).toContain('h-[1750px]')
-    expect(外层.className).toContain('md:h-[2550px]')
-    expect(外层.className).toContain('lg:h-[3000px]')
+    expect(外层.className).not.toMatch(固定高度残留正则)
+    expect(外层.style.height).toBe('')
     expect(外层.className).toContain('[perspective:1000px]')
+    // FP-06 尾部节奏契约：外层不得再有底部 padding（pb-40 是旧固定高度时代的尾部填充残留，
+    // 固定高度删除后已无职责）。现契约 = 末排 mb-20(80) + #contact py-16/md:py-24(96) ≈176px，
+    // 与站点其它区块的 Section py 节奏一致
+    expect(外层.className).not.toMatch(/(^|\s)([^\s:]+:)*pb-(\d|\[)/)
+  })
+
+  it('固定高度残留正则能抓死白反例且不误伤合法类', () => {
+    for (const 残留 of [
+      'h-[1750px]',
+      'md:h-[2550px]',
+      'lg:h-[3000px]',
+      'min-h-[2000px]',
+      'md:min-h-[2550px]',
+      'lg:max-h-[3000px]',
+      '2xl:max-h-[300px]',
+    ]) {
+      expect(`relative flex ${残留} flex-col`).toMatch(固定高度残留正则)
+    }
+    // 现存的合法类（任意值但非高度、非变体高度）不得被误伤
+    expect(
+      'relative flex flex-col antialiased [perspective:1000px] [transform-style:preserve-3d] z-[100] isolate'
+    ).not.toMatch(固定高度残留正则)
+    expect('h-32 w-[11rem] shrink-0 md:w-[22rem] lg:h-96 lg:w-[30rem]').not.toMatch(固定高度残留正则)
   })
 
   it('renders rows statically without inline transform under reduced motion', () => {
@@ -122,14 +151,17 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
     })) as unknown as typeof window.matchMedia
 
     render(<ShowcaseSection />)
-    // 逻辑卡总数 × 2份marquee轨道（reduced-motion下静止但仍渲染两份，数据驱动）
-    const expected = showcaseRows.reduce((n, r) => n + r.cards.length, 0) * 2
+    // 逻辑卡总数 × 最小份数（reduced-motion下静止但仍渲染 最小份数 份，数据驱动）
+    const expected = showcaseRows.reduce((n, r) => n + r.cards.length, 0) * 最小份数
     const cards = document.querySelectorAll('.group\\/card')
     expect(cards).toHaveLength(expected)
     for (const card of cards) {
       const el = card as HTMLElement
       // 减少动效时不应注入 transform 行内样式（仅保留 drift 动画所需的 CSS 变量）
       expect(el.style.transform).toBe('')
+    }
+    for (const 轨道 of document.querySelectorAll<HTMLElement>('.showcase-marquee')) {
+      expect(轨道.style.transform).toBe('')
     }
   })
 
@@ -418,15 +450,81 @@ describe('跑马灯滚动联动与暂停语义', () => {
     expect(是否滚动按键('Enter')).toBe(false)
   })
 
-  it('副本数覆盖视口变化与非法输入', () => {
-    expect(计算份数(1024, 500)).toBe(5)
-    expect(计算份数(0, 500)).toBe(2)
-    expect(计算份数(1024, 0)).toBe(2)
-    for (const 视口 of [320, 768, 1024, 1920, 3840]) {
+  it('副本数钉死字面金值（覆盖视口变化与非法输入）', () => {
+    // 金值来源=「轨道两侧各余一整组」不变量（端部余量组数=1 ⇒ 最小份数=2*1+1=3，
+    // 份数 ≥ ceil(视口/组宽)+3 保证左余量+可见窗口+右余量+回绕承接全覆盖）。
+    // 这里是显式字面反例断言而非复制实现公式：任何人把 端部余量组数 归零或改动基准，
+    // 至少一条字面断言必须变红（例如 端部余量组数=0 时 计算份数(0,500)=1≠3、(1024,500)=4≠6，
+    // 且循环内 份数*500 ≤ 视口+999 < 视口+1000 必然击穿）
+    expect(计算份数(1024, 500)).toBe(6)
+    expect(计算份数(0, 500)).toBe(3)
+    expect(计算份数(1024, 0)).toBe(3)
+    expect(计算份数(1440, 4480)).toBe(4)
+    expect(计算份数(Number.NaN, 500)).toBe(3)
+    for (const 视口 of [320, 768, 1024, 1440, 1920, 3840]) {
       const 份数 = 计算份数(视口, 500)
-      expect(份数).toBeGreaterThanOrEqual(2)
-      expect(份数 * 500).toBeGreaterThanOrEqual(视口 + 500)
+      expect(份数).toBeGreaterThanOrEqual(3)
+      // 总宽必须 ≥ 视口 + 左右各一整组（组宽 500 为字面值，不随常量取值而自洽放松）
+      expect(份数 * 500).toBeGreaterThanOrEqual(视口 + 500 + 500)
     }
+  })
+})
+
+describe('轨道两端余量不变量（真循环根因，字面金值锁死）', () => {
+  // 金值全部来自「可见窗口两侧各余一整组」不变量在 端部余量组数=1 下的实例：
+  //   轨道屏幕偏移 = -(归一化位移(位移,周期) + 周期*1) ⇒ 对任意位移恒 ∈ [-2*周期, -周期]，
+  //   位移=0 与位移=周期（回绕）两个极端都恰为 -周期；份数=ceil(视口/周期)+3。
+  // 全部用字面数字断言，任何人把基准偏移归零（写回 -位移）、把 端部余量组数 改成 0 或 2，
+  // 都必然击穿至少一条——不存在"公式与实现同构而改不动"的可能
+  const 周期 = 1200
+  const 视口宽 = 1440
+
+  it('常量与回绕端点字面金值（周期 4480=1440 视口 education 排实测组宽）', () => {
+    expect(端部余量组数).toBe(1)
+    expect(最小份数).toBe(3)
+    expect(轨道屏幕偏移(0, 4480)).toBe(-4480)
+    expect(轨道屏幕偏移(4480, 4480)).toBe(-4480)
+    expect(轨道屏幕偏移(1, 4480)).toBe(-4481)
+    expect(轨道屏幕偏移(4479, 4480)).toBe(-8959)
+  })
+
+  it('任意位移下轨道最左完整组恒整体位于视口左缘之外（左余量≥1整组）', () => {
+    // 显式反例：基准偏移若被归零，轨道屏幕偏移(0,1200)=0 > -1200，本条等值断言立即变红；
+    // 端部余量组数 若被改成 2，位移带整体左移，>-2400 变红
+    expect(轨道屏幕偏移(0, 周期)).toBe(-1200)
+    for (let i = 0; i <= 24; i++) {
+      const 位移 = (i / 24) * 周期
+      const 偏移 = 轨道屏幕偏移(位移, 周期)
+      expect(偏移).toBeLessThanOrEqual(-1200)
+      expect(偏移).toBeGreaterThan(-2400)
+    }
+  })
+
+  it('可见局部窗口 [位移+周期, 位移+周期+视口宽] 两侧各余 ≥1 周期', () => {
+    const 份数 = 计算份数(视口宽, 周期)
+    expect(份数).toBe(5)
+    for (let i = 0; i <= 24; i++) {
+      const 位移 = 归一化位移((i / 24) * 周期, 周期)
+      const 窗口左 = 位移 + 周期
+      const 窗口右 = 窗口左 + 视口宽
+      expect(窗口左).toBeGreaterThanOrEqual(周期)
+      expect(窗口右).toBeLessThanOrEqual(份数 * 周期 - 周期)
+    }
+  })
+
+  it('窄视口与超宽视口均满足余量不变量', () => {
+    for (const 视口 of [320, 3840]) {
+      const 份数 = 计算份数(视口, 周期)
+      for (const 位移 of [0, 周期 / 2, 周期 - 1]) {
+        const 窗口右 = 位移 + 视口 + 周期
+        expect(窗口右).toBeLessThanOrEqual(份数 * 周期 - 周期)
+      }
+    }
+  })
+
+  it('非法输入回退安全：非正周期回零、非有限位移按零位移处理', () => {
+    expect(轨道屏幕偏移(300, 0)).toBe(0)
+    expect(轨道屏幕偏移(Number.NaN, 周期)).toBe(-1200)
   })
 })
 
@@ -448,15 +546,22 @@ describe('跑马灯布局不变量测量', () => {
   afterEach(() => {
     if (原始宽度描述符) Object.defineProperty(HTMLElement.prototype, 'offsetWidth', 原始宽度描述符)
     if (原始视口描述符) Object.defineProperty(window, 'innerWidth', 原始视口描述符)
+    vi.unstubAllGlobals()
     cleanup()
   })
 
-  it('按布局宽度计算副本数', async () => {
+  it('按布局宽度计算副本数，并以轨道屏幕偏移写入初始 transform', async () => {
+    vi.stubGlobal('requestAnimationFrame', () => 0)
     render(<ShowcaseSection />)
     await waitFor(() => {
-      const expected = showcaseRows.reduce((n, r) => n + r.cards.length, 0) * 5
+      const expected = showcaseRows.reduce((n, r) => n + r.cards.length, 0) * 6
       expect(document.querySelectorAll('.group\\/card')).toHaveLength(expected)
     })
+    const 轨道 = document.querySelector('.showcase-marquee') as HTMLElement
+    expect(轨道.children).toHaveLength(6)
+    // 视口 1024/组宽 500 → 份数=ceil(1024/500)+3=6；位移=0 时组件写入点必须等于
+    // -(0 + 500*1) = -500px（字面金值）。写入点若被改回 -位移 或丢掉端部余量基准，此处为 0px，必红
+    expect(轨道.style.transform).toBe('translate3d(-500px, 0, 0)')
   })
 })
 

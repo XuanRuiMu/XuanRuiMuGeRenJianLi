@@ -117,14 +117,15 @@ function buildSkillChunks(): KnowledgeChunk[] {
 }
 
 function buildExperienceChunks(): KnowledgeChunk[] {
-  return experiences.map((entry) =>
-    chunk(
+  return experiences.map((entry) => {
+    const 成就 = (entry.achievementKeys ?? []).map((key) => t(key)).join('；')
+    return chunk(
       `experience-${entry.id}`,
-      `经历：${t(entry.titleKey)}。机构：${entry.organizationKey ? t(entry.organizationKey) : '个人'}。时间：${t(entry.periodKey)}。描述：${entry.descriptionKeys.map((key) => t(key)).join(' ')}。`,
+      `经历：${t(entry.titleKey)}。机构：${entry.organizationKey ? t(entry.organizationKey) : '个人'}。时间：${t(entry.periodKey)}。描述：${entry.descriptionKeys.map((key) => t(key)).join(' ')}。${成就 ? `成就：${成就}。` : ''}`,
       'experience',
       'experience.ts'
     )
-  )
+  })
 }
 
 function buildEducationChunks(): KnowledgeChunk[] {
@@ -135,7 +136,7 @@ function buildEducationChunks(): KnowledgeChunk[] {
   return [
     chunk(
       'education-summary',
-      `教育概览：${summary.school}，${summary.major}，${summary.degree}，${summary.period}。`,
+      `教育概览：${summary.school}毕业，${summary.school}，${summary.major}，${summary.degree}，${summary.period}。学校是${summary.school}。`,
       'education',
       'education.ts'
     ),

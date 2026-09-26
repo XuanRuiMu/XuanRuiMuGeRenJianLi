@@ -10,6 +10,10 @@ export const 缓动时距 = { 滚动: 0.18, 悬停: 0.4, 恢复: 0.7 } as const
 export const 静止速度阈值 = 0.5
 export const 最大帧步长 = 0.05
 export const 最小位移精度 = 0.001
+// 真循环不变量：对任意 位移∈[0,周期)，可见窗口两侧都必须至少余 端部余量组数 个完整组，
+// 否则有限副本的轨道边界会在外层 perspective + rotateZ/rotateX 倾斜下被斜扫进视口形成空洞
+export const 端部余量组数 = 1
+export const 最小份数 = 2 * 端部余量组数 + 1
 
 export function 归一化位移(位移: number, 周期: number): number {
   if (!(周期 > 0) || !Number.isFinite(位移)) return 0
@@ -26,9 +30,14 @@ export function 钳制滚动增量(增量: number): number {
 }
 
 export function 计算份数(视口宽: number, 组宽: number): number {
-  if (!(组宽 > 0)) return 2
+  if (!(组宽 > 0)) return 最小份数
   const 有效视口 = Number.isFinite(视口宽) && 视口宽 > 0 ? 视口宽 : 0
-  return Math.max(2, Math.ceil((有效视口 + 组宽) / 组宽) + 1)
+  return Math.max(最小份数, Math.ceil(有效视口 / 组宽) + 2 * 端部余量组数 + 1)
+}
+
+export function 轨道屏幕偏移(位移: number, 周期: number): number {
+  if (!(周期 > 0)) return 0
+  return -(归一化位移(位移, 周期) + 周期 * 端部余量组数)
 }
 
 export function 取缓动时距(已暂停: boolean, 滚动暂停中: boolean): number {

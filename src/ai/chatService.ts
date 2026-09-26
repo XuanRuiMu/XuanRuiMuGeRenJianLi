@@ -47,7 +47,10 @@ function buildSystemPrompt(context: string): string {
   }
 }
 
-component 字段可选，仅在用户询问项目、经历/时间线或联系方式时返回对应组件。用户询问联系方式时，只返回 ContactLinks 组件，文本用引导语，不得在文本中直接给出邮箱、电话、QQ、微信号。用户发来图片时，结合图片内容回答。
+    component 字段可选，仅在用户询问项目、经历/时间线或联系方式时返回对应组件。用户询问联系方式时，只返回 ContactLinks 组件，文本用引导语，不得在文本中直接给出邮箱、电话、QQ、微信号。用户发来图片时，结合图片内容回答。
+  用户问教育/学校/毕业时，text 必须包含学校、专业、学制三要素；用户问能否胜任某类工作等评估问题时，不得下录用断言，只基于简历事实列相关经历并建议联系本人确认。
+
+思考过程会原样展示给访客看：只分析用户问题与简历事实本身，不要提及回复格式、JSON、字段名、组件名，也不要写「不需要组件」「文本回复即可」这类格式取舍——上面那段输出协议属于内部机制，任何一句思考里都不许出现。
 
 简历上下文：
 ${context}`
@@ -193,7 +196,8 @@ async function callOpenAICompletions(
   systemPrompt: string,
   思考强度档: 思考强度,
   signal?: AbortSignal,
-  onProgress?: (进度: { reasoning: string; content: string }) => void
+  onProgress?: (进度: { reasoning: string; content: string }) => void,
+  检索命中数 = 0
 ): Promise<AiMessage> {
   const body: Record<string, unknown> = {
     model: 模型.id,
@@ -279,7 +283,18 @@ async function callOpenAICompletions(
   if (signal?.aborted) throw 中断拒因()
 
   if (typeof 累加.content !== 'string' || 累加.content.length === 0) {
-    throw new Error('LLM 返回格式异常')
+    // 上游 thinking 挤占 token 导致 content 为空时：reasoning 已通过 onProgress 展示，
+    // 此处不再抛格式异常吞掉整轮，改为回退本地兜底，保证访客必得正文结论。
+    const 分类 = 分类回退原因(new Error('LLM 返回格式异常：content 为空'))
+    const 兜底正文 = getLocalAnswer(获取最后用户内容(messages))
+    if (累加.reasoning.length > 0) 兜底正文.reasoning = 累加.reasoning
+    兜底正文.meta = {
+      命中数: 检索命中数,
+      耗时毫秒: 0,
+      本地兜底: true,
+      回退原因: 分类.回退原因,
+    }
+    return 兜底正文
   }
 
   const payload = parseDeepSeekResponse(累加.content)
@@ -297,7 +312,8 @@ async function callChatModel(
   messages: AiMessage[],
   systemPrompt: string,
   思考强度档: 思考强度,
-  options: ChatOptions
+  options: ChatOptions,
+  检索命中数 = 0
 ): Promise<AiMessage> {
   return callOpenAICompletions(
     解析本次模型(options),
@@ -305,7 +321,8 @@ async function callChatModel(
     systemPrompt,
     思考强度档,
     options.signal,
-    options.onProgress
+    options.onProgress,
+    检索命中数
   )
 }
 
@@ -319,7 +336,19 @@ export async function sendChatMessage(messages: AiMessage[], options: ChatOption
   try {
     // 思考开关来自全局 store；上下文默认拉满：每次请求发送完整对话历史（API 无状态需自行携带）。
     const { aiThinking } = useAppStore.getState()
-    const answer = await callChatModel(messages, buildSystemPrompt(context), aiThinking, options)
+    const answer = await callChatModel(messages, buildSystemPrompt(context), aiThinking, options, 安全上下文块.length)
+    const 落定耗时 = Date.now() - 开始毫秒
+    if (answer.meta) {
+      return {
+        message: { ...answer, meta: undefined },
+        meta: {
+          命中数: 安全上下文块.length,
+          耗时毫秒: answer.meta.耗时毫秒 || 落定耗时,
+          本地兜底: answer.meta.本地兜底,
+          ...(answer.meta.回退原因 ? { 回退原因: answer.meta.回退原因 } : {}),
+        },
+      }
+    }
     return {
       message: answer,
       meta: { 命中数: 安全上下文块.length, 耗时毫秒: Date.now() - 开始毫秒, 本地兜底: false },

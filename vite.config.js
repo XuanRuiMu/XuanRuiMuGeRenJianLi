@@ -8,6 +8,7 @@ import path from 'node:path'
 import fs from 'node:fs'
 import { observabilityPlugin } from './src/observability/vite-plugin-observability'
 import 开发数据接口插件 from './scripts/dev-api-plugin.js'
+import { 创建密钥注入钩子 } from './scripts/ai-proxy.js'
 
 const isAnalyze = process.env.ANALYZE === 'true'
 
@@ -144,14 +145,7 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: true,
           rewrite: (path) => path.replace(/^\/api\/ai\/deepseek/, '/v1/chat/completions'),
-          configure: (proxy) => {
-            const 密钥 = env.DEEPSEEK_API_KEY || ''
-            if (密钥) {
-              proxy.on('proxyReq', (proxyReq) => {
-                proxyReq.setHeader('Authorization', `Bearer ${密钥}`)
-              })
-            }
-          },
+          configure: 创建密钥注入钩子(env, 'DEEPSEEK_API_KEY', '/api/ai/deepseek'),
         },
         // GLM（Anthropic 兼容端点）预留通道：模型列表接入后把 endpoint 指到 /api/ai/glm。
         '/api/ai/glm': {
@@ -159,14 +153,7 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: true,
           rewrite: (path) => path.replace(/^\/api\/ai\/glm/, '/v1/messages'),
-          configure: (proxy) => {
-            const 密钥 = env.GLM_API_KEY || ''
-            if (密钥) {
-              proxy.on('proxyReq', (proxyReq) => {
-                proxyReq.setHeader('Authorization', `Bearer ${密钥}`)
-              })
-            }
-          },
+          configure: 创建密钥注入钩子(env, 'GLM_API_KEY', '/api/ai/glm'),
         },
       },
     },

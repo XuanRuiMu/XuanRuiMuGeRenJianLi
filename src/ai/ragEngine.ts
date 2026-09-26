@@ -1,5 +1,5 @@
 import { resumeKnowledgeBase, type KnowledgeChunk } from './resumeKnowledgeBase'
-import { 共享意图表, 是否纯问候 } from './intentTable'
+import { 共享意图表, 命中共享意图, 是否纯问候 } from './intentTable'
 import { RAG检索最低分 } from './deepseekConfig'
 
 export interface RetrievedChunk extends KnowledgeChunk {
@@ -78,10 +78,9 @@ function cosineSimilarity(a: Map<string, number>, b: Map<string, number>): numbe
 }
 
 function applyPatternBoost(question: string, score: number, chunk: KnowledgeChunk): number {
-  const 文本 = question.toLowerCase()
   let bonus = 0
   for (const 定义 of 共享意图表) {
-    if (定义.关键词.some((词) => 文本.includes(词.toLowerCase()))) {
+    if (命中共享意图(定义.id, question)) {
       if (定义.boostCategories.includes(chunk.metadata.category)) bonus += 0.35
       if (定义.boostSources.includes(chunk.metadata.source)) bonus += 0.25
     }

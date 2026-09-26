@@ -148,13 +148,9 @@ test('全站用户视角走查（双主题/签字/壁纸/AI面板/联系方式/�
   await 到达(page, 'hero')
   await page.getByRole('button', { name: 'AI助手' }).first().click()
   await page.waitForTimeout(700)
-  const 状态栏 =
-    (await page
-      .getByText(/deepseek-v4.1-flash-expires-on-0910 · /)
-      .first()
-      .textContent()) ?? ''
+  const 状态栏 = (await page.getByTestId('chat-status-line').textContent()) ?? ''
   摘要.push(`AI状态栏: ${状态栏.trim()}`)
-  expect(状态栏).toContain('think on')
+  expect(状态栏).toContain('think high')
   await page.keyboard.type('/help')
   await page.keyboard.press('Enter')
   await page.waitForTimeout(400)

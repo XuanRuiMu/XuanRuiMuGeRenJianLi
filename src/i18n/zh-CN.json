@@ -435,6 +435,7 @@
     "busyHint": "esc中断 · ⏎排队发送",
     "idleHint": "esc最小化 · ?快捷键 · /指令 · Shift+⏎换行 · ⏎发送",
     "thinking": "思考中…",
+    "reasoningLabel": "思考过程",
     "cancelHint": "esc中断",
     "toolName": "Retrieve(简历知识库)",
     "toolRetrieving": "检索中…",

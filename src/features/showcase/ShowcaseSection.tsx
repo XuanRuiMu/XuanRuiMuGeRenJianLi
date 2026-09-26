@@ -36,6 +36,8 @@ import {
   标记意图滚动,
   同步滚动位置,
   最大帧步长,
+  最小份数,
+  轨道屏幕偏移,
   type 跑马灯控制,
   type 轨道槽位,
 } from './marqueeEngine'
@@ -187,7 +189,7 @@ function useZidongPaomadeng(选项: { 控制: 跑马灯控制; 方向: 1 | -1; �
   const 周期Ref = useRef(0)
   const 位移Ref = useRef(0)
   const 速度Ref = useRef(0)
-  const [份数, 设置份数] = useState(2)
+  const [份数, 设置份数] = useState(最小份数)
 
   useLayoutEffect(() => {
     if (减少动画) {
@@ -211,7 +213,7 @@ function useZidongPaomadeng(选项: { 控制: 跑马灯控制; 方向: 1 | -1; �
       if (组宽 !== 周期Ref.current) {
         周期Ref.current = 组宽
         位移Ref.current = 归一化位移(位移Ref.current, 组宽)
-        if (轨道元素) 轨道元素.style.transform = `translate3d(${-位移Ref.current}px, 0, 0)`
+        if (轨道元素) 轨道元素.style.transform = `translate3d(${轨道屏幕偏移(位移Ref.current, 组宽)}px, 0, 0)`
       }
     }
     const 调度测量 = () => {
@@ -353,7 +355,7 @@ export function ShowcaseSection() {
         if (结果.位移 !== 槽位.位移.current) {
           槽位.位移.current = 结果.位移
           const 轨道 = 槽位.轨道.current
-          if (轨道) 轨道.style.transform = `translate3d(${-结果.位移}px, 0, 0)`
+          if (轨道) 轨道.style.transform = `translate3d(${轨道屏幕偏移(结果.位移, 槽位.周期.current)}px, 0, 0)`
         }
       }
       帧号 = requestAnimationFrame(帧)
@@ -381,7 +383,7 @@ export function ShowcaseSection() {
     <section data-showcase="true" aria-label={t('showcase.titleLine2')}>
       <div
         ref={ref}
-        className="relative flex h-[1750px] flex-col pb-40 antialiased [perspective:1000px] [transform-style:preserve-3d] md:h-[2550px] lg:h-[3000px] z-[100] isolate"
+        className="relative flex flex-col antialiased [perspective:1000px] [transform-style:preserve-3d] z-[100] isolate"
       >
         <div className="relative mx-auto w-full max-w-7xl px-4 py-20 md:py-40">
           <h2 className="font-display text-4xl font-bold tracking-widest md:text-6xl">

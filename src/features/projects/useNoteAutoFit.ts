@@ -1,19 +1,19 @@
 import { useEffect, type RefObject } from 'react'
 
 /**
- * FP-04 卷轴文字运行时自适应
- * --------------------------------------------------------------------------
+ * 卷轴文字运行时自适应
  * 根因：旧 CSS 用固定 `clamp()` 字号 + `overflow:hidden`，文字过长就溢出被裁，
- * GitHub 链接因此被隐藏。本 hook 把「单一 CSS 变量 `--note-fit`」当成唯一的字号旋钮——
+ * GitHub 链接因此被隐藏。内容盒 px 高与根字号变化可能不同步，
+ * 本 hook 把「单一 CSS 变量 `--note-fit`」当成唯一的字号旋钮——
  * title/desc/link 全部以 `--note-fit` 为 em 基准，所以只调这一个变量即可整组缩放。
  *
  * 适配算法：在 [最小, 最大] 区间做一次性二分搜索，把 `--note-fit` 推到
- * 「scrollHeight <= clientHeight + 1（刚好放得下）」的最大值。二分约 12 次即得终态，
- * 不会在每一帧测量（性能优先）。
+ * 「刚好放得下」的最大值；落定后若仍溢出再逐档收紧到放得下为止。
+ * 二分约 12 次加至多 8 次收紧即得终态，不会在每一帧测量（性能优先）。
  *
  * 触发时机（均经 requestAnimationFrame 防抖）：
  *  - document.fonts.ready：等关键字体加载完，否则用 fallback 测量会失真；
- *  - ResizeObserver：content 盒子尺寸变化（含视口 resize）时重适配；
+ *  - ResizeObserver：content 盒子与根元素尺寸变化（含视口 resize 与浏览器缩放）时重适配；
  *  - IntersectionObserver：便签进入视口时懒适配（离屏不无意义测量）。
  * reduced-motion 下直接设定终态（CSS 本身无 transition，无需额外处理）。
  */
@@ -24,6 +24,11 @@ export function useNoteAutoFit(contentRef: RefObject<HTMLElement | null>, 最小
 
     const 适配 = () => {
       if (!el.isConnected) return
+      const 内容放得下 = () => {
+        const 链接 = el.querySelector<HTMLElement>('.clothesline-note-link')
+        const linkBottom = 链接 ? 链接.offsetTop + 链接.offsetHeight : el.scrollHeight
+        return el.scrollHeight <= el.clientHeight && linkBottom <= el.clientHeight + 1
+      }
       let lo = 最小
       let hi = 最大
       for (let i = 0; i < 迭代; i++) {
@@ -32,18 +37,13 @@ export function useNoteAutoFit(contentRef: RefObject<HTMLElement | null>, 最小
         // 强制同步布局，读取「盒内最底部元素（链接）的布局底边」是否仍在 content 盒内。
         // 直接用链接 offsetTop+offsetHeight（布局坐标，旋转无关）比整数 scrollHeight 更精确，
         // 可避免 sub-pixel 四舍五入把真实溢出误判为放得下。无链接时退化为 scrollHeight 判据。
-        const 链接 = el.querySelector<HTMLElement>('.clothesline-note-link')
-        const linkBottom = 链接 ? 链接.offsetTop + 链接.offsetHeight : el.scrollHeight
-        // 门限取严格 scrollHeight <= clientHeight（吸收整数上取整 + 行高尾部 leading 的 1px 误差），
-        // 同时保证链接底边 <= 盒底边 +1；二者皆满足则验收 #1 稳过且链接绝不裁切。
-        const 放得下 = el.scrollHeight <= el.clientHeight && linkBottom <= el.clientHeight + 1
-        if (放得下) {
+        if (内容放得下()) {
           lo = mid // 放得下 → 尝试更大
         } else {
           hi = mid // 放不下 → 需更小
         }
       }
-      // FP-01 防孤儿折行：二分落定后做一次保守性回退。
+      // 防孤儿折行：二分落定后做一次保守性回退。
       // 若链接紧贴盒底或内容贴满，把 lo 调小一档（×0.96），
       // 让首屏始终留约 1 行行距的安全气口，杜绝首字/末字贴边的孤儿观感。
       const 链接 = el.querySelector<HTMLElement>('.clothesline-note-link')
@@ -52,6 +52,13 @@ export function useNoteAutoFit(contentRef: RefObject<HTMLElement | null>, 最小
         lo = lo * 0.96
       }
       el.style.setProperty('--note-fit', `${lo}rem`)
+      // 内容必进盒：二分落定后若仍放不下，继续逐档下调 --note-fit 直到放得下（下限=最小值）。
+      let 收紧步数 = 0
+      while (收紧步数 < 8 && lo > 最小 && el.clientHeight > 0 && !内容放得下()) {
+        lo = Math.max(最小, lo * 0.94)
+        el.style.setProperty('--note-fit', `${lo}rem`)
+        收紧步数 += 1
+      }
     }
 
     let raf = 0
@@ -67,11 +74,16 @@ export function useNoteAutoFit(contentRef: RefObject<HTMLElement | null>, 最小
       调度()
     }
 
-    // 2) content 盒子尺寸变化（resize / 父级布局变化）重适配
+    // 2) content 盒子与根字号变化（resize / 父级布局变化 / 浏览器缩放）时重适配。
+    // 根字号变化只改字号不改 content 盒 px 尺寸，盒上 ResizeObserver 可能不触发，
+    // 故额外观察 documentElement（rem 源头），rem 变即重算。
     let ro: ResizeObserver | null = null
     if (typeof ResizeObserver !== 'undefined') {
       ro = new ResizeObserver(调度)
       ro.observe(el)
+      if (typeof document !== 'undefined' && document.documentElement) {
+        ro.observe(document.documentElement)
+      }
     }
 
     // 3) 进入视口时懒适配（避免离屏便签无谓测量，且物理引擎初始宽度可能未稳定）

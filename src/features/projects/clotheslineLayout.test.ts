@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { 计算晾衣架布局, 最小带宽, 最大带宽 } from './clotheslineLayout'
+import { 计算晾衣架布局, 计算布局基准宽, 最小带宽, 最大带宽 } from './clotheslineLayout'
 
 describe('晾衣架布局（手机版网格已删除，任何设备同一套物理布局）', () => {
   it('窄于最小带宽（手机 390px）：按最小带宽铺开，区域最小宽抬到最小带宽 → 产生横向滚动', () => {
@@ -39,5 +39,23 @@ describe('晾衣架布局（手机版网格已删除，任何设备同一套物�
       expect(布局.区域最小宽).toBeGreaterThanOrEqual(布局.带宽)
       expect(布局.区域最小宽).toBeGreaterThanOrEqual(Math.min(宽, 布局.区域最小宽))
     }
+  })
+
+  it('布局基准宽取自身与外层的较小者（min-width 撑住自身时以外层新鲜信号为准）', () => {
+    expect(计算布局基准宽(1440, 700)).toBe(700)
+    expect(计算布局基准宽(700, 1440)).toBe(700)
+    expect(计算布局基准宽(1086, 1086)).toBe(1086)
+    expect(计算布局基准宽(0, 700)).toBe(700)
+    expect(计算布局基准宽(900, 0)).toBe(900)
+    expect(计算布局基准宽(0, 0)).toBe(0)
+    expect(计算布局基准宽(Number.NaN, 700)).toBe(700)
+    expect(计算布局基准宽(900, Number.NaN)).toBe(900)
+    expect(计算布局基准宽(Number.NaN, Number.NaN)).toBe(0)
+  })
+
+  it('收缩重建后布局跟随外层可用宽（1440→700 不再钉死旧宽）', () => {
+    const 收缩后基准 = 计算布局基准宽(1440, 700)
+    expect(计算晾衣架布局(收缩后基准).区域最小宽).toBe(最小带宽)
+    expect(计算晾衣架布局(收缩后基准).带宽).toBe(最小带宽)
   })
 })

@@ -1,5 +1,5 @@
 ﻿import { useRef, useState, useEffect, useCallback, useMemo, startTransition } from 'react'
-import { X, Loader2, RefreshCw, ImagePlus } from 'lucide-react'
+import { X, Loader2, RefreshCw, ImagePlus, ChevronRight } from 'lucide-react'
 import { useAppStore } from '../../store/useAppStore'
 import type { AiMessage } from '../../store/useAppStore'
 import { cn } from '../../lib/utils'
@@ -82,6 +82,37 @@ function ToolBlock({ name, detail }: { name: string; detail: string }) {
         <span aria-hidden="true">⎿</span>
         <span>{detail}</span>
       </div>
+    </div>
+  )
+}
+
+/**
+ * 模型思考流默认折叠：思考原文会复述内部输出协议（「返回JSON」「不需要组件」），
+ * 直接铺在答案上方会让访客看到机制噪声；提示词约束挡不住（实测两次跑两次仍漏），只能结构性收起来。
+ */
+function ReasoningBlock({ 面板标识, 思考 }: { 面板标识: string; 思考: string }) {
+  const [展开, set展开] = useState(false)
+  return (
+    <div className="my-1" data-testid="message-reasoning">
+      <button
+        type="button"
+        aria-expanded={展开}
+        aria-controls={面板标识}
+        onClick={() => set展开((旧) => !旧)}
+        className="flex items-center gap-1 text-[11px] text-[#9aa0aa] transition-colors hover:text-[#d97757]"
+      >
+        <ChevronRight size={11} aria-hidden="true" className={cn('transition-transform', 展开 && 'rotate-90')} />
+        <span>{t('ai.reasoningLabel')}</span>
+      </button>
+      {展开 && (
+        <div
+          id={面板标识}
+          data-testid="message-reasoning-text"
+          className="mt-1 whitespace-pre-wrap break-words text-[12px] text-[#9aa0aa]"
+        >
+          {思考}
+        </div>
+      )}
     </div>
   )
 }
@@ -1120,12 +1151,7 @@ export function AIChat({ className }: AIChatProps) {
                       </div>
                     )}
                     {message.reasoning && message.reasoning.length > 0 && (
-                      <div
-                        data-testid="message-reasoning"
-                        className="my-1 whitespace-pre-wrap break-words text-[12px] text-[#9aa0aa]"
-                      >
-                        {message.reasoning}
-                      </div>
+                      <ReasoningBlock 面板标识={`message-reasoning-panel-${index}`} 思考={message.reasoning} />
                     )}
                     <div dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }} />
                     {message.component && <UiComponentRenderer component={message.component} />}

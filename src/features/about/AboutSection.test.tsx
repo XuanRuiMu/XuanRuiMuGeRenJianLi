@@ -187,11 +187,29 @@ describe('关于我 - 工程控制台', () => {
     expect(当前行.querySelector('[class*="bottom-0"]')?.className).toContain('w-28')
     expect(普通行.querySelector('[class*="bottom-0"]')?.className).toContain('group-hover:w-full')
   })
-  it('强调行带渐变下划线，且仅含 accent 片段的行有', async () => {
+  it('accent 行只改文字着色与倾斜，不再渲染专属粉紫渐变下划线', async () => {
     const container = await 渲染关于我()
-    const 强调装饰 = container.querySelectorAll('.from-accent')
-    expect(强调装饰).toHaveLength(1)
-    expect(强调装饰[0].getAttribute('class')).toContain('bg-gradient-to-r')
+    const 行表 = 关于我介绍行()
+    const 强调行号 = 行表.findIndex((行) => 行.some((段) => 段.tone === 'accent'))
+    expect(强调行号).toBe(3)
+
+    const 正文行 = container.querySelectorAll('[data-console-line]')
+    expect(正文行).toHaveLength(5)
+    const 强调行 = 正文行[强调行号]
+
+    const accent文本 = 行表[强调行号].find((段) => 段.tone === 'accent')?.text ?? ''
+    const dim文本 = 行表[强调行号].find((段) => 段.tone === 'dim')?.text ?? ''
+    expect(accent文本).not.toBe('')
+    expect(dim文本).not.toBe('')
+    expect(强调行.querySelector('span.text-accent')?.textContent).toBe(accent文本)
+    expect(强调行.querySelector('span.text-muted')?.textContent).toBe(dim文本)
+    expect(强调行.querySelector('p[aria-label]')?.className).toContain('rotate-[-0.35deg]')
+
+    expect(container.querySelectorAll('.from-accent')).toHaveLength(0)
+    expect(container.querySelectorAll('.via-secondary')).toHaveLength(0)
+    正文行.forEach((行) => {
+      expect(行.querySelectorAll('.bg-gradient-to-r')).toHaveLength(1)
+    })
   })
 
   it('每行保留 hover 反馈与块状闪烁光标', async () => {

@@ -207,13 +207,6 @@ export function AboutSection({ 介绍行表 }: AboutSectionProps = {}) {
                       </span>
                     </p>
 
-                    {是强调行 && (
-                      <span
-                        aria-hidden="true"
-                        className="pointer-events-none absolute -bottom-1 left-0 h-px w-28 origin-left bg-gradient-to-r from-accent via-secondary to-transparent opacity-85"
-                      />
-                    )}
-
                     <span
                       aria-hidden="true"
                       className={[

@@ -20,12 +20,11 @@ describe('chatService', () => {
 
   it('attempts the DeepSeek API and falls back to the local answer when the call fails', async () => {
     // mockFetch 默认返回 undefined → callDeepSeek 抛错 → 回退本地 RAG 兜底
-    const result = await sendChatMessage([{ role: 'user', content: '你叫什么' }])
+    const result = await sendChatMessage([{ role: 'user', content: '介绍一下暮澜纪元' }])
 
     expect(mockFetch).toHaveBeenCalledTimes(1)
     expect(result.message.role).toBe('assistant')
-    expect(result.message.content).toContain(personalInfo.name)
-    expect(result.message.component).toBeUndefined()
+    expect(result.message.component).toEqual({ type: 'ProjectCard', projectId: 'xrm' })
     // 工具轨迹元数据：兜底必须诚实标注且保留真实检索命中数（FP-02根因修复）
     expect(result.meta.本地兜底).toBe(true)
     expect(result.meta.命中数).toBeGreaterThan(0)
@@ -85,6 +84,36 @@ describe('chatService', () => {
     // 远程成功时标注非兜底并给出检索命中数
     expect(result.meta.本地兜底).toBe(false)
     expect(result.meta.命中数).toBeGreaterThanOrEqual(0)
+  })
+
+  it('系统提示词约束教育三要素与评估问法诚实口径', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: '{"text":"ok"}' } }] }),
+    })
+
+    await sendChatMessage([{ role: 'user', content: '他是哪个学校毕业的?' }])
+
+    const callArgs = mockFetch.mock.calls[0] as [string, RequestInit]
+    const body = JSON.parse((callArgs[1].body as string) ?? '{}')
+    const 系统提示: string = body.messages[0].content
+    expect(系统提示).toContain('学校、专业、学制三要素')
+    expect(系统提示).toContain('不得下录用断言')
+  })
+
+  it('系统提示词约束思考流不得提及输出格式（reasoning 会原样展示给访客）', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: '{"text":"ok"}' } }] }),
+    })
+
+    await sendChatMessage([{ role: 'user', content: '你是谁' }])
+
+    const callArgs = mockFetch.mock.calls[0] as [string, RequestInit]
+    const body = JSON.parse((callArgs[1].body as string) ?? '{}')
+    const 系统提示: string = body.messages[0].content
+    expect(系统提示).toContain('思考过程会原样展示给访客')
+    expect(系统提示).toMatch(/不要提及回复格式、JSON、字段名、组件名/)
   })
 
   it('sends user images as vision content blocks（图片消息按官方块数组格式）', async () => {
@@ -194,6 +223,29 @@ describe('chatService', () => {
 
     expect(result.message.content).toBe('纯文本回答')
     expect(result.message.component).toBeUndefined()
+  })
+
+  it('学校口语问法失败回退仍命中教育预制答案与时间线（用户原话回归）', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('network down'))
+    const result = await sendChatMessage([{ role: 'user', content: '他是哪个学校毕业的?' }])
+    expect(result.meta.本地兜底).toBe(true)
+    expect(result.message.content).toContain('天津仁爱学院')
+    expect(result.message.component).toEqual({ type: 'Timeline', scope: 'education' })
+  })
+
+  it('流式content为空时保留reasoning并回退本地兜底（有思考无结果根因）', async () => {
+    mockFetch.mockResolvedValueOnce(构造SSE响应([sse行({ reasoning_content: '只有思考' }), 'data: [DONE]\n\n']))
+    const 快照: Array<{ reasoning: string; content: string }> = []
+    const result = await sendChatMessage([{ role: 'user', content: '他是哪个学校毕业的?' }], {
+      onProgress: (进度) => 快照.push({ ...进度 }),
+    })
+    expect(快照.length).toBeGreaterThanOrEqual(1)
+    expect(快照[0].reasoning).toContain('只有思考')
+    expect(result.meta.本地兜底).toBe(true)
+    expect(result.meta.回退原因).toBe('format')
+    expect(result.message.content).toContain('天津仁爱学院')
+    expect(result.message.reasoning).toContain('只有思考')
+    expect(result.message.component).toEqual({ type: 'Timeline', scope: 'education' })
   })
 
   it('falls back to local answer when LLM response is not ok (4xx)', async () => {
