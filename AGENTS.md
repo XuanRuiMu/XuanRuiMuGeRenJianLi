@@ -1,4 +1,4 @@
-# 玄锐暮个人简历（XuanRuiMuResume）项目规则
+# 玄锐暮个人简历（XuanRuiMuGeRenJianLi）项目规则
 
 本项目同时遵守上级工作区的 [../AGENTS.md](../AGENTS.md) 通用规则。本文件只补充本项目特有的强制规则。
 
@@ -9,7 +9,7 @@
 ## GitHub 备份规则 [P0]
 
 - 每次完成代码修改并验证通过后，必须立即上传到 GitHub 备份。
-- 仓库地址：https://github.com/XuanRuiMu/XuanRuiMuResume
+- 仓库地址：https://github.com/XuanRuiMu/XuanRuiMuGeRenJianLi
 - 默认分支：main
 - 提交信息使用中文描述本次改动。
 - 可通过循环工程skill「Git 推送」菜单或本地 `git push origin main` 执行。

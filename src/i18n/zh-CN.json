@@ -441,6 +441,7 @@
     "toolGeneric": "本地知识库",
     "toolHits": "命中",
     "toolSegments": "段",
+    "toolSources": "依据",
     "toolLocalFallback": "本地兜底",
     "toolTimeout": "超时回退",
     "toolHttpError": "请求失败",

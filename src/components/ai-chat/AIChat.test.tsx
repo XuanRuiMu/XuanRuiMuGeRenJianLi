@@ -1279,6 +1279,49 @@ describe('AIChat', () => {
     expect(screen.queryByText(t('ai.toolLocalFallback'), { exact: false })).not.toBeInTheDocument()
   })
 
+  it('远程回答末尾标注依据来源（来源来自检索元数据）', () => {
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(
+        createMockState({
+          chatOpen: true,
+          aiMessages: [
+            { role: 'user', content: '他能胜任文员吗' },
+            {
+              role: 'assistant',
+              content: '答案',
+              meta: { 命中数: 3, 耗时毫秒: 42, 本地兜底: false, 依据来源: ['经历', '教育背景'] },
+            },
+          ],
+        })
+      )
+    )
+
+    render(<AIChat />)
+    expect(screen.getByText('命中 3 段 · 42ms · 依据：经历、教育背景')).toBeInTheDocument()
+  })
+
+  it('本地兜底不标注依据来源（预制文案没有真实检索依据）', () => {
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(
+        createMockState({
+          chatOpen: true,
+          aiMessages: [
+            { role: 'user', content: '问题' },
+            {
+              role: 'assistant',
+              content: '兜底答案',
+              meta: { 命中数: 2, 耗时毫秒: 5, 本地兜底: true, 依据来源: ['经历'] },
+            },
+          ],
+        })
+      )
+    )
+
+    render(<AIChat />)
+    expect(screen.getByText(t('ai.toolLocalFallback'), { exact: false })).toBeInTheDocument()
+    expect(screen.queryByText(/依据：/)).not.toBeInTheDocument()
+  })
+
   it('本地兜底消息明确标注本地兜底', () => {
     mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
       selector(

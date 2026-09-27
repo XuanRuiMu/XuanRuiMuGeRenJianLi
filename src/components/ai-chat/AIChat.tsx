@@ -121,7 +121,9 @@ function 工具轨迹描述(消息: AiMessage): string {
   const 元 = 消息.meta
   if (!元) return t('ai.toolGeneric')
   const 基础 = `${t('ai.toolHits')} ${元.命中数} ${t('ai.toolSegments')} · ${元.耗时毫秒}ms`
-  if (!元.本地兜底) return 基础
+  // 依据来源来自本轮检索命中的语料分类，兜底答案是预制文案，没有真实检索依据，不标注
+  const 依据 = 元.依据来源 && 元.依据来源.length > 0 ? ` · ${t('ai.toolSources')}：${元.依据来源.join('、')}` : ''
+  if (!元.本地兜底) return `${基础}${依据}`
   const 原因 =
     元.回退原因 === 'timeout'
       ? ` · ${t('ai.toolTimeout')}`

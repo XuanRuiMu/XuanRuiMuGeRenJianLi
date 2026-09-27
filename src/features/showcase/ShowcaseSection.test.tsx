@@ -257,7 +257,7 @@ describe('FP-06探索板块重构：8视频与开源仓库可达', () => {
     {
       id: 'resumeTheater',
       titleKey: 'showcase.cards.resumeTheater.title',
-      href: 'https://github.com/XuanRuiMu/XuanRuiMuResume',
+      href: 'https://github.com/XuanRuiMu/XuanRuiMuGeRenJianLi',
     },
     {
       id: 'repoLoop',

@@ -86,6 +86,22 @@ describe('chatService', () => {
     expect(result.meta.命中数).toBeGreaterThanOrEqual(0)
   })
 
+  it('远程回答的 meta 带依据来源（取自本轮检索命中的语料分类）', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: '{"text":"ok"}' } }] }),
+    })
+
+    const result = await sendChatMessage([{ role: 'user', content: '他是哪个学校毕业的?' }])
+
+    expect(result.meta.本地兜底).toBe(false)
+    expect(result.meta.依据来源).toBeDefined()
+    expect(result.meta.依据来源).toContain('教育背景')
+    // 来源是检索出来的，不是模型自述的：必须与命中数同源
+    expect(result.meta.依据来源!.length).toBeGreaterThan(0)
+    expect(result.meta.依据来源!.length).toBeLessThanOrEqual(result.meta.命中数)
+  })
+
   it('系统提示词约束教育三要素与评估问法须给带依据结论', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,

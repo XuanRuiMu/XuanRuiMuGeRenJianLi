@@ -15,6 +15,8 @@ export interface AiToolMeta {
   命中数: number
   耗时毫秒: number
   本地兜底: boolean
+  /** 本轮检索命中的语料分类（已转中文来源名），用于回答末尾标注依据 */
+  依据来源?: string[]
   回退原因?: 回退原因
   http状态?: number
 }

@@ -92,7 +92,7 @@ export const showcaseRows: ShowcaseRow[] = [
         id: 'resumeTheater',
         titleKey: 'showcase.cards.resumeTheater.title',
         descKey: 'showcase.cards.resumeTheater.desc',
-        href: 'https://github.com/XuanRuiMu/XuanRuiMuResume',
+        href: 'https://github.com/XuanRuiMu/XuanRuiMuGeRenJianLi',
         image: '/showcase/个人简历网站.png',
       },
       {

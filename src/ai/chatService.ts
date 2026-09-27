@@ -24,6 +24,28 @@ export interface ChatServiceResult {
   meta: AiToolMeta
 }
 
+/** 语料分类 → 访客可读的来源名（回答末尾标注依据用） */
+const 来源中文名: Record<string, string> = {
+  personalInfo: '个人信息',
+  projects: '项目作品',
+  techStack: '技术栈',
+  skills: '能力分组',
+  workspace: '工作区',
+  experience: '经历',
+  education: '教育背景',
+  design: '设计作品',
+  media: '媒体创作',
+  github: 'GitHub仓库',
+}
+
+/**
+ * 依据来源取自本轮实际检索命中的语料（不是让模型自述），来源标注因此不可能被编造。
+ * 保持检索排序、去重。
+ */
+export function 取依据来源(块: Array<{ metadata: { category: string } }>): string[] {
+  return [...new Set(块.map((项) => 来源中文名[项.metadata.category] ?? 项.metadata.category))]
+}
+
 function 获取最后用户内容(messages: AiMessage[]): string {
   for (let i = messages.length - 1; i >= 0; i--) {
     if (messages[i].role === 'user') {
@@ -56,6 +78,7 @@ function buildSystemPrompt(context: string): string {
   3 讲缺口：岗位要求里简历没有直接证据的部分，直说「简历未体现」，不得脑补补全；
   4 收尾再建议联系本人确认细节与意愿。
   事实与推断必须分开措辞（推断句写成「从……看，倾向于……」）；上下文没写的信息一律不得编造。
+  回答末尾的「依据：…」由系统按本轮实际检索到的语料自动附加，text 里不要再写来源标注。
 
 思考过程会原样展示给访客看：只分析用户问题与简历事实本身，不要提及回复格式、JSON、字段名、组件名，也不要写「不需要组件」「文本回复即可」这类格式取舍——上面那段输出协议属于内部机制，任何一句思考里都不许出现。
 
@@ -338,6 +361,7 @@ export async function sendChatMessage(messages: AiMessage[], options: ChatOption
   const contextChunks = retrieveChunks(userQuestion, DEEPSEEK_RETRIEVE_TOP_K)
   const 安全上下文块 = contextChunks.filter((块) => 块.id !== 'personal-info-contact')
   const context = 安全上下文块.map((chunk, index) => `[${index + 1}] ${chunk.content}`).join('\n\n')
+  const 依据来源 = 取依据来源(安全上下文块)
   const 开始毫秒 = Date.now()
 
   try {
@@ -352,13 +376,14 @@ export async function sendChatMessage(messages: AiMessage[], options: ChatOption
           命中数: 安全上下文块.length,
           耗时毫秒: answer.meta.耗时毫秒 || 落定耗时,
           本地兜底: answer.meta.本地兜底,
+          依据来源,
           ...(answer.meta.回退原因 ? { 回退原因: answer.meta.回退原因 } : {}),
         },
       }
     }
     return {
       message: answer,
-      meta: { 命中数: 安全上下文块.length, 耗时毫秒: Date.now() - 开始毫秒, 本地兜底: false },
+      meta: { 命中数: 安全上下文块.length, 耗时毫秒: Date.now() - 开始毫秒, 本地兜底: false, 依据来源 },
     }
   } catch (err) {
     if (是否中断错误(err)) throw err
