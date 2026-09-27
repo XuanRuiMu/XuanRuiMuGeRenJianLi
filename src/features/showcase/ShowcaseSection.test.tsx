@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, within, waitFor, cleanup } from '@testing-library/react'
-import { ShowcaseSection } from './ShowcaseSection'
+import { ShowcaseSection, 解析副标题段 } from './ShowcaseSection'
 import {
   归一化位移,
   钳制滚动增量,
@@ -35,7 +35,70 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
     render(<ShowcaseSection />)
     expect(screen.getByText(t('showcase.titleLine1'))).toBeInTheDocument()
     expect(screen.getByText(t('showcase.titleLine2'))).toBeInTheDocument()
-    expect(screen.getByText(t('showcase.subtitle'))).toBeInTheDocument()
+    const 副标题 = t('showcase.subtitle')
+    const { 前缀段, 后缀段 } = 解析副标题段(副标题)
+    const 容器 = document.querySelector('[data-showcase-subtitle]') as HTMLElement
+    expect(容器).not.toBeNull()
+    // 逗号只作切分分隔符，渲染结果不带逗号
+    expect(容器.textContent).toBe(`${前缀段.join('、')}${后缀段}`)
+    expect(容器.textContent).not.toContain('，')
+    for (const 短语 of ['设计', '教育', '艺术']) {
+      expect(容器.textContent).toContain(短语)
+      expect(screen.getByText(短语, { selector: '[data-showcase-subtitle] span span' })).toBeInTheDocument()
+    }
+  })
+
+  it('副标题三短语各配不同渐变、文本仍来自翻译文件', () => {
+    const { container } = render(<ShowcaseSection />)
+    const 容器 = container.querySelector('[data-showcase-subtitle]') as HTMLElement
+    const 切分 = 解析副标题段(t('showcase.subtitle'))
+    expect(容器.textContent).toBe(`${切分.前缀段.join('、')}${切分.后缀段}`)
+    const 渐变段 = Array.from(容器.querySelectorAll('span.bg-clip-text')) as HTMLElement[]
+    expect(渐变段.map((段) => 段.textContent)).toEqual(['设计', '教育', '艺术'])
+    for (const 段 of 渐变段) {
+      expect(段.className).toContain('bg-gradient-to-r')
+      expect(段.className).toContain('bg-clip-text')
+      expect(段.className).toContain('text-transparent')
+    }
+    const 去重 = new Set(渐变段.map((段) => 段.className))
+    expect(去重.size).toBe(3)
+  })
+
+  it('副标题切分结构让后缀可独立替换（FP-05零返工契约）', () => {
+    const { 前缀段, 后缀段 } = 解析副标题段(t('showcase.subtitle'))
+    expect(前缀段).toEqual(['设计', '教育', '艺术'])
+    expect(后缀段).toBe('探索未至之境')
+    const 旧切分 = 解析副标题段('设计、教育、艺术，探索未至之境。')
+    expect(旧切分.前缀段).toEqual(['设计', '教育', '艺术'])
+    expect(旧切分.后缀段).toBe('探索未至之境')
+    const { container } = render(<ShowcaseSection />)
+    const 容器 = container.querySelector('[data-showcase-subtitle]') as HTMLElement
+    expect(容器.textContent).toBe(`${前缀段.join('、')}${后缀段}`)
+  })
+
+  it('FP-05 后缀渲染为 DeepSeek 官网 h1 实测规格（深蓝纯色/居中块/无渐变）', () => {
+    const { container } = render(<ShowcaseSection />)
+    const 后缀 = container.querySelector('[data-showcase-subtitle-suffix]') as HTMLElement
+    expect(后缀).not.toBeNull()
+    expect(后缀.textContent).toBe('探索未至之境')
+    expect(后缀.textContent.startsWith('，')).toBe(false)
+    expect(后缀.textContent).not.toContain('。')
+    expect(后缀.tagName).toBe('SPAN')
+    expect(后缀.className).toContain('block')
+    expect(后缀.className).toContain('text-center')
+    expect(后缀.className).toContain('text-[#152443]')
+    expect(后缀.className).toContain('opacity-[0.92]')
+    expect(后缀.className).toContain('tracking-[0.2em]')
+    expect(后缀.className).toContain('lg:tracking-[0.4em]')
+    expect(后缀.className).toContain('leading-[155%]')
+    expect(后缀.className).toContain('text-[38px]')
+    expect(后缀.className).toContain('md:text-[42px]')
+    expect(后缀.className).toContain('lg:text-[46px]')
+    expect(后缀.className).toContain('font-normal')
+    expect(后缀.className).not.toContain('text-transparent')
+    expect(后缀.className).not.toContain('bg-clip-text')
+    expect(后缀.className).not.toContain('bg-gradient')
+    expect(后缀.className).not.toContain('text-sky-400')
   })
 
   it('renders every card of all three rows', () => {

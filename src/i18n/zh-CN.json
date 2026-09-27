@@ -119,7 +119,7 @@
         "text": "整合并自研多个{{tech|skill}}，用{{tech|MCP/Hooks/Rules}}确保任务安全性。编排框架已开源。"
       },
       "l4": {
-        "text": "让AI从{{dim|“只能做样品”}}转变为真正{{accent|“可交付可验证的作品”}}。"
+        "text": "让AI从{{dim|“只能做样品”}}转变为真正{{accent|“可交付可验证的高质量作品”}}。"
       },
       "l5": {
         "text": "熟悉编写文档，使用github等基本技能。乐于尝试其他未知事物。"
@@ -175,13 +175,12 @@
   },
   "experience": {
     "title": "经历",
-    "subtitle": "写代码、修Bug、录课和做创作的时间线。",
     "timelineLabel": "经历时间线"
   },
   "showcase": {
     "titleLine1": "持续探索",
     "titleLine2": "多维创作",
-    "subtitle": "设计、教育、艺术，探索未至之境。",
+    "subtitle": "设计、教育、艺术，探索未至之境",
     "cards": {
       "degree": {
         "title": "学历 · 天津仁爱学院",
@@ -411,7 +410,7 @@
       "skills": "按AI Agent能力、后端与数据、前端与可视化、实施交付与技术支持四块来说：AI这块用Claude Code/Codex等编码智能体加85+个可复用AI工作流模板；语言与框架是Java、Node.js/Express、Python和React，MySQL、Redis、PostgreSQL都在项目里用过；也能把东西部署上线并教会非技术用户用。",
       "education": "我就读于{school}，{major}专业{degree}，预计 {period} 毕业。",
       "experience": "独立开发暮澜纪元和和我恋爱吧全栈应用、在B站录课、帮毕业生改论文。",
-      "greeting": "你好！我是玄锐暮的简历助手，可以问我技术栈、项目经历或教育背景。",
+      "greeting": "你好！我是玄锐暮，可以直接问我技术栈、项目经历或教育背景。",
       "thanks": "不客气，有其他简历问题随时问我。",
       "farewell": "再见，祝你今天顺利！",
       "fallback": "这个问题我本地没准备答案，可以到页面底部联系板块找微信QQ，或换个简历问题问我。"
@@ -427,7 +426,7 @@
     "welcomePrefix": "Welcome to",
     "welcomeTitle": "Xuan Harness",
     "welcomeTitleSuffix": "!",
-    "welcomeIntro": "我是玄锐暮简历助手，可回答简历、技术栈与项目问题。",
+    "welcomeIntro": "我是玄锐暮，简历、技术栈、项目和GitHub仓库都能问。",
     "welcomeTips": "?查看快捷键 · /help查看指令 · Ctrl+V粘贴图片 · 支持拖拽图片",
     "extendedLabel": "扩展 · 试试问问：",
     "localMode": "当前是本地自动回复",

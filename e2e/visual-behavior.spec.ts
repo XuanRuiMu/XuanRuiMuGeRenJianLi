@@ -215,7 +215,20 @@ test('项目作品在放大后由局部横向滚动容器承载溢出', async ({
   await page.waitForTimeout(300)
   const 缩小后 = await 滚动容器.evaluate((元素) => ({ 宽度: 元素.scrollWidth, 可视宽: 元素.clientWidth }))
   expect(缩小后.宽度).toBe(缩小后.可视宽)
-  await page.setViewportSize({ width: Math.round(视口!.width / 2), height: 视口!.height })
+  // 高于最小带宽(768)的窄视口：区域 min-width 必须跟随容器回落，不得钉死在更宽视口留下的旧值。
+  // FP-01 根因：旧实现观察区域自身，而区域宽度被自己写下的 min-width 钉住 → 观察器永不再触发，
+  // 旧 min-width 永久残留（实测 1920→2112→960 后 min-width 停在 2112px 不回落）。
+  await page.setViewportSize({ width: 960, height: 视口!.height })
+  await page.waitForTimeout(300)
+  const 高于最小带宽 = await 滚动容器.evaluate((元素) => ({
+    宽度: 元素.scrollWidth,
+    可视宽: 元素.clientWidth,
+    区域最小宽: (元素.querySelector('.clothesline-region') as HTMLElement).offsetWidth,
+  }))
+  expect(高于最小带宽.宽度).toBe(高于最小带宽.可视宽)
+  expect(高于最小带宽.区域最小宽).toBeLessThanOrEqual(960)
+  // 真正放大（≈300% 缩放 → CSS 视口 640，低于最小带宽 768）：溢出必须由局部横向滚动承载
+  await page.setViewportSize({ width: 640, height: 视口!.height })
   await page.waitForTimeout(300)
   const 放大后 = await 滚动容器.evaluate((元素) => ({ 宽度: 元素.scrollWidth, 可视宽: 元素.clientWidth }))
   expect(放大后.宽度).toBeGreaterThan(放大后.可视宽)
@@ -243,6 +256,89 @@ test('项目作品在放大后由局部横向滚动容器承载溢出', async ({
     expect(项.链接溢出).toBe(false)
     expect(项.链接在卷内).toBe(true)
   }
+  expect(控制台错误).toEqual([])
+})
+
+/**
+ * FP-01 根因验证：窄视口（≈300% 缩放后的 CSS 视口宽）→ 宽视口往返后，
+ * 晾衣架区域必须完全回到初始态，不留横向滚动条、不留滚动偏移、便签集群仍水平居中。
+ * 旧实现的基准宽读的是含上一轮内联 min-width 的 区域.offsetWidth（自污染），
+ * 且 min-width 只写不清零，同一视口宽的终态取决于经过的路径。
+ */
+test('晾衣架缩放往返后无残留滚动条、scrollLeft 归零、便签集群居中', async ({ page }) => {
+  const 控制台错误: string[] = []
+  page.on('pageerror', (错误) => 控制台错误.push(String(错误).slice(0, 200)))
+  page.on('console', (消息) => {
+    if (消息.type() === 'error') 控制台错误.push(消息.text().slice(0, 200))
+  })
+  // 减少动画：物理循环不启动，便签停在静止挂点，居中断言只反映布局而非摆动
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.setViewportSize({ width: 1920, height: 900 })
+  await page.goto('/')
+  const 滚动容器 = page.locator('.clothesline-scroll')
+  await 滚动容器.scrollIntoViewIfNeeded()
+  await page.waitForTimeout(1200)
+
+  const 采样 = () =>
+    滚动容器.evaluate((元素) => {
+      const 区域 = 元素.querySelector('.clothesline-region') as HTMLElement
+      const 滚动盒 = 元素.getBoundingClientRect()
+      const 便签们 = [...元素.querySelectorAll('.clothesline-note')] as HTMLElement[]
+      const 盒表 = 便签们.map((便签) => 便签.getBoundingClientRect())
+      const 集群左 = Math.min(...盒表.map((盒) => 盒.left))
+      const 集群右 = Math.max(...盒表.map((盒) => 盒.right))
+      return {
+        scrollWidth: 元素.scrollWidth,
+        clientWidth: 元素.clientWidth,
+        scrollLeft: 元素.scrollLeft,
+        区域最小宽: 区域.offsetWidth,
+        集群中心偏移: (集群左 + 集群右) / 2 - (滚动盒.left + 滚动盒.width / 2),
+        便签数: 便签们.length,
+      }
+    })
+
+  const 初始 = await 采样()
+  expect(初始.便签数).toBeGreaterThan(0)
+  expect(Math.abs(初始.scrollWidth - 初始.clientWidth)).toBeLessThanOrEqual(1)
+  expect(初始.scrollLeft).toBe(0)
+  // 静止挂点关于主跨对称 → 便签集群精确落在可视区中线
+  expect(Math.abs(初始.集群中心偏移)).toBeLessThanOrEqual(2)
+
+  // —— 窄视口：溢出由局部横向滚动承载，绳与便签同源同宽一起滚动 ——
+  await page.setViewportSize({ width: 640, height: 900 })
+  await page.waitForTimeout(600)
+  const 窄态 = await 采样()
+  expect(窄态.scrollWidth).toBeGreaterThan(窄态.clientWidth)
+  // 滚动到最右端：便签集群随之右移，绳（canvas）与便签同属一个滚动内容，一起位移
+  const 窄态滚动 = await 滚动容器.evaluate((元素) => {
+    元素.scrollLeft = 99999
+    return 元素.scrollLeft
+  })
+  expect(窄态滚动).toBeGreaterThan(0)
+  const 右移后 = await 采样()
+  expect(右移后.scrollLeft).toBeGreaterThan(0)
+  expect(右移后.scrollWidth - 右移后.clientWidth).toBeCloseTo(窄态.scrollWidth - 窄态.clientWidth, 0)
+
+  // —— 恢复宽视口：溢出必须彻底消失，滚动偏移归零，集群回到初始位置 ——
+  await page.setViewportSize({ width: 1920, height: 900 })
+  await page.waitForTimeout(600)
+  const 恢复 = await 采样()
+  expect(Math.abs(恢复.scrollWidth - 恢复.clientWidth)).toBeLessThanOrEqual(1)
+  expect(恢复.scrollLeft).toBe(0)
+  expect(Math.abs(恢复.区域最小宽 - 初始.区域最小宽)).toBeLessThanOrEqual(1)
+  expect(Math.abs(恢复.集群中心偏移 - 初始.集群中心偏移)).toBeLessThanOrEqual(1)
+  expect(Math.abs(恢复.集群中心偏移)).toBeLessThanOrEqual(2)
+
+  // —— 再往返一轮：min-width 无单调残留，第二次恢复与第一次逐位一致 ——
+  await page.setViewportSize({ width: 640, height: 900 })
+  await page.waitForTimeout(600)
+  await page.setViewportSize({ width: 1920, height: 900 })
+  await page.waitForTimeout(600)
+  const 二次恢复 = await 采样()
+  expect(二次恢复.区域最小宽).toBe(恢复.区域最小宽)
+  expect(Math.abs(二次恢复.scrollWidth - 二次恢复.clientWidth)).toBeLessThanOrEqual(1)
+  expect(二次恢复.scrollLeft).toBe(0)
+
   expect(控制台错误).toEqual([])
 })
 

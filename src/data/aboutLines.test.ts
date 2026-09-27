@@ -33,7 +33,7 @@ describe('FP-02 关于我结构化行', () => {
     const 片段 = 解析片段(行表.l4.text)
     const 色调 = Object.fromEntries(片段.map((段) => [段.text, 段.tone]))
     expect(色调['“只能做样品”']).toBe('dim')
-    expect(色调['“可交付可验证的作品”']).toBe('accent')
+    expect(色调['“可交付可验证的高质量作品”']).toBe('accent')
   })
 
   it('无标记文本整段 plain', () => {

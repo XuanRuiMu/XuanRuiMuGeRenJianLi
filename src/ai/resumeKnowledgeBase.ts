@@ -6,6 +6,7 @@ import { experiences } from '../data/experience'
 import { education } from '../data/education'
 import { design } from '../data/design'
 import { media } from '../data/media'
+import { GitHub仓库快照, GitHub快照元信息, GitHub快照生成时间 } from '../data/githubSnapshot'
 import { t } from '../i18n/translations'
 
 export interface KnowledgeChunk {
@@ -183,6 +184,36 @@ function buildMediaChunks(): KnowledgeChunk[] {
   ]
 }
 
+/**
+ * GitHub 仓库快照chunk（构建期由 scripts/同步GitHub快照.js 拉取）。
+ * 只写快照里有的字段：没有 README 或没有语言的仓库不补空话，避免 AI 拿空字段编故事。
+ */
+function buildGitHubChunks(): KnowledgeChunk[] {
+  if (!Array.isArray(GitHub仓库快照) || GitHub仓库快照.length === 0) return []
+  const 纳入数 = GitHub快照元信息?.纳入仓库数 ?? GitHub仓库快照.length
+  const 总数 = GitHub快照元信息?.公开仓库总数 ?? 纳入数
+  // 纳入数可能小于总数（被排除清单过滤或当次被限流），两个数都写清楚，避免 AI 把"纳入数"说成仓库总数
+  const 总览 = chunk(
+    'github-overview',
+    `GitHub公开仓库快照（生成时间${GitHub快照生成时间}）：账号${GitHub快照元信息?.账号 ?? 'XuanRuiMu'}公开仓库共${总数}个，本次快照纳入${纳入数}个，分别是${GitHub仓库快照.map(
+      (仓库) => `${仓库.名称}（${仓库.主语言 || '语言未标注'}，最近推送${仓库.最近推送时间.slice(0, 10)}）`
+    ).join('；')}。`,
+    'github',
+    'githubSnapshot.ts'
+  )
+  const 仓库块 = GitHub仓库快照.map((仓库) => {
+    const 语言构成 = 仓库.语言分布.map((项) => 项.语言).join('、')
+    const 摘录 = 仓库.README摘录 ? `README要点：${仓库.README摘录.slice(0, 400)}。` : ''
+    return chunk(
+      `github-${仓库.名称}`,
+      `GitHub仓库${仓库.名称}（${仓库.全名}，${仓库.地址}）。简介：${仓库.简介 || '仓库未填写简介'}。主语言：${仓库.主语言 || '未标注'}。${语言构成 ? `语言构成：${语言构成}。` : ''}最近推送：${仓库.最近推送时间.slice(0, 10)}。Star${仓库.星标数}/Fork${仓库.分叉数}。${仓库.主题.length > 0 ? `主题：${仓库.主题.join('、')}。` : ''}${摘录}`,
+      'github',
+      'githubSnapshot.ts'
+    )
+  })
+  return [总览, ...仓库块]
+}
+
 export function buildResumeKnowledgeBase(): KnowledgeChunk[] {
   return [
     ...buildPersonalInfoChunks(),
@@ -194,6 +225,7 @@ export function buildResumeKnowledgeBase(): KnowledgeChunk[] {
     ...buildEducationChunks(),
     ...buildDesignChunks(),
     ...buildMediaChunks(),
+    ...buildGitHubChunks(),
   ]
 }
 

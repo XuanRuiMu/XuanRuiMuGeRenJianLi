@@ -9,6 +9,8 @@ export interface TechCard {
   title: string
   icon: string
   url: string
+  /** 图标是纯黑单色（深色底上看不见），深色模式下需反色为白 */
+  深色反色?: boolean
 }
 
 /** 技术卡：Java 后端 / Node.js 全栈 / 数据库 / 前端 3D —— 均带有效 logo 与官网链接 */
@@ -20,6 +22,7 @@ export const techstackV2: TechCard[] = [
       '用 Java 写了 400+ 类的 MMORPG 服务端插件：伤害管线、天赋树、任务系统；Gradle Kotlin DSL 构建，JUnit + Mockito 测试。',
     icon: '/logos/java.svg',
     url: 'https://dev.java',
+    深色反色: true,
   },
   {
     name: 'Spring Boot',
@@ -41,6 +44,7 @@ export const techstackV2: TechCard[] = [
     quote: '中间件分层：helmet 安全头、rate-limit 分布式限流、错误统一处理；Socket.io 撑起实时对话。',
     icon: '/logos/express.svg',
     url: 'https://expressjs.com',
+    深色反色: true,
   },
   {
     name: 'MySQL',
@@ -97,6 +101,7 @@ export const techstackV2: TechCard[] = [
     quote: '在浏览器里用 WebGL 驾驭场景、相机与光照——你看到的星系背景和技术球就是这么来的。',
     icon: '/logos/threejs.svg',
     url: 'https://threejs.org',
+    深色反色: true,
   },
   {
     name: 'Tailwind CSS',

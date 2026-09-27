@@ -1,0 +1,14 @@
+{
+  "排除仓库": [
+    {
+      "仓库": "XuanRuiMu/LianAiBaGuanLiZhongXin",
+      "原因": "简历知识库对该仓库有「不得出现」的硬断言（resumeKnowledgeBase.test.ts），快照阶段即排除"
+    }
+  ],
+  "README屏蔽词": [
+    {
+      "词": "恋爱吧管理中心",
+      "原因": "同上硬断言：该名称出现在其它仓库的 README 里，摘录一律截到该词之前"
+    }
+  ]
+}

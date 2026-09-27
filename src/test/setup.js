@@ -104,6 +104,9 @@ if (typeof HTMLCanvasElement !== 'undefined') {
         strokeRect: vi.fn(),
         moveTo: vi.fn(),
         lineTo: vi.fn(),
+        // 绘制晾衣绳按设备像素比重置变换，并用二次贝塞尔画悬链线
+        setTransform: vi.fn(),
+        quadraticCurveTo: vi.fn(),
         createRadialGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
         createLinearGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
       }

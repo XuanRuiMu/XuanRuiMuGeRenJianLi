@@ -55,10 +55,11 @@ describe('ExperienceSection', () => {
     Element.prototype.getBoundingClientRect = originalGetBoundingClientRect
   })
 
-  it('renders section title and subtitle', () => {
+  it('renders section title（经历副标题已移除，不得再渲染时间线副标题）', () => {
     render(<ExperienceSection />)
     expect(screen.getByRole('heading', { name: t('experience.title') })).toBeInTheDocument()
-    expect(screen.getByText(t('experience.subtitle'))).toBeInTheDocument()
+    const 标题容器 = screen.getByRole('heading', { name: t('experience.title') }).parentElement
+    expect(标题容器?.querySelector('p')).toBeNull()
   })
 
   it('renders timeline as ordered list with accessible label', () => {

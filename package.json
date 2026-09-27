@@ -6,6 +6,7 @@
   "description": "玄锐暮 AI-Native Developer Résumé Hub — 内容优先的在线简历，融合 AI 问答、Cmd+K 命令面板、技能雷达图与 PWA",
   "scripts": {
     "optimize:fonts": "node scripts/subset-fonts.js",
+    "sync:github": "node scripts/同步GitHub快照.js",
     "optimize:assets": "npm run optimize:fonts",
     "dev": "npm run optimize:assets && vite --host --port 5180",
     "build": "npm run optimize:assets && tsc --noEmit && vite build",

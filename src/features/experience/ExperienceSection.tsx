@@ -370,7 +370,7 @@ export function ExperienceSection() {
   }
 
   return (
-    <Section id="experience" title={t('experience.title')} subtitle={t('experience.subtitle')}>
+    <Section id="experience" title={t('experience.title')}>
       <ol
         ref={timelineRef}
         className="timeline relative mx-auto max-w-5xl list-none py-4 md:py-8"

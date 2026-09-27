@@ -301,6 +301,49 @@ function ShowcaseMarqueeRow({ row, rowIndex, 方向, 基准速度, 减少动画,
   )
 }
 
+const 副标题渐变类 = [
+  'bg-gradient-to-r from-[#6EFFB1] to-[#38bdf8] bg-clip-text text-transparent',
+  'bg-gradient-to-r from-[#fde047] via-[#fb923c] to-[#f472b6] bg-clip-text text-transparent',
+  'bg-gradient-to-r from-[#c4b5fd] via-[#f0abfc] to-[#818cf8] bg-clip-text text-transparent',
+] as const
+
+const 副标题前缀分隔符 = '、' as const
+
+const 副标题后缀类 =
+  'block text-center text-[38px] font-normal leading-[155%] tracking-[0.2em] text-[#152443] opacity-[0.92] md:text-[42px] lg:text-[46px] lg:tracking-[0.4em] dark:text-[#e4eaf6] [font-family:system-ui,-apple-system,"Segoe_UI",Roboto,"Helvetica_Neue",Arial,sans-serif]'
+
+/**
+ * 副标题按最后一个「，」切成两段：前缀走三色渐变、后缀走独立纯色块。
+ * 逗号只作切分分隔符，不参与渲染——后缀是独立居中块，前面挂逗号会显得突兀。
+ */
+export function 解析副标题段(副标题: string): { 前缀段: string[]; 后缀段: string } {
+  const 末句号 = 副标题.endsWith('。') ? 副标题.slice(0, -1) : 副标题
+  const 逗号位 = 末句号.lastIndexOf('，')
+  if (逗号位 < 0) return { 前缀段: [末句号], 后缀段: '' }
+  const 前缀文本 = 末句号.slice(0, 逗号位)
+  const 后缀核 = 末句号.slice(逗号位 + 1)
+  return { 前缀段: 前缀文本.split('、'), 后缀段: 后缀核 }
+}
+
+function 渲染副标题(副标题: string) {
+  const { 前缀段, 后缀段 } = 解析副标题段(副标题)
+  return (
+    <>
+      {前缀段.map((段, 序号) => (
+        <span key={序号}>
+          <span className={副标题渐变类[序号 % 副标题渐变类.length]}>{段}</span>
+          {序号 < 前缀段.length - 1 ? 副标题前缀分隔符 : ''}
+        </span>
+      ))}
+      {后缀段 ? (
+        <span data-showcase-subtitle-suffix="true" className={副标题后缀类}>
+          {后缀段}
+        </span>
+      ) : null}
+    </>
+  )
+}
+
 export function ShowcaseSection() {
   const reducedMotion = useReducedMotion()
   const ref = useRef<HTMLDivElement>(null)
@@ -395,7 +438,9 @@ export function ShowcaseSection() {
               {t('showcase.titleLine2')}
             </span>
           </h2>
-          <p className="mt-8 max-w-2xl text-xl font-bold text-sky-400 md:text-2xl">{t('showcase.subtitle')}</p>
+          <p data-showcase-subtitle="true" className="mt-8 max-w-2xl text-xl font-bold md:text-2xl">
+            {渲染副标题(t('showcase.subtitle'))}
+          </p>
         </div>
 
         {/* 入场 3D 倾斜必须挂在包裹层（perspective 的直接子元素）：CSS perspective 只作用于直接子级的变换，

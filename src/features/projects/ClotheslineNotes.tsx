@@ -6,7 +6,7 @@ import { t } from '../../i18n/translations'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { useProjectsWindStore } from '../../store/useProjectsWindStore'
 import { 晾衣架物理引擎, 晾衣架配置, type 晾衣架快照 } from './clotheslinePhysics'
-import { 计算晾衣架布局, 计算布局基准宽 } from './clotheslineLayout'
+import { 应用晾衣架布局 } from './clotheslineLayout'
 import { useNoteAutoFit } from './useNoteAutoFit'
 
 // canvas 无法直接引用 CSS 变量，非 CSS 环境（如测试）下的兜底色；浏览器中始终以 index.css 的 --rope-* 变量为准
@@ -153,6 +153,9 @@ export function ClotheslineNotes({ 填充 = false }: ClotheslineNotesProps) {
     const 容器 = 容器Ref.current
     const 画布 = 画布Ref.current
     if (!容器 || !画布) return
+    // 基准宽的权威来源：外层横向滚动视口。它的 clientWidth 不受区域内联 min-width 影响，
+    // 因此既是布局的测量源，也是 ResizeObserver 的正确观察对象（见下方 observe）。
+    const 滚动视口 = 容器.parentElement
     let 引擎: 晾衣架物理引擎 | null = null
     let rafId: number | null = null
     let 运行中 = false
@@ -175,21 +178,21 @@ export function ClotheslineNotes({ 填充 = false }: ClotheslineNotesProps) {
 
     const 构建 = () => {
       引擎?.销毁()
-      const 滚动视口 = 容器.parentElement
-      const 外层可用宽 = 滚动视口 ? 滚动视口.clientWidth : 0
-      const 基准宽 = 计算布局基准宽(容器.offsetWidth, 外层可用宽)
-      if (基准宽 < 1) return
+      引擎 = null
+      引擎Ref.current = null
+      // FP-01 根因重构：横向布局交给 clotheslineLayout 的「测量→计算→回写」唯一接缝，
+      // 基准宽只来自外层滚动视口的 clientWidth（不受本模块写出的内联 min-width 影响），
+      // 接缝内先清零再测量 → 同一视口宽的重建结果与来路无关（路径无关），无单向残留。
       // 统一布局（clotheslineLayout 为唯一来源）：任何设备都只渲染物理晾衣架，不存在手机版网格。
-      // 带宽 = 钳制(基准宽, 最小带宽 768, 最大带宽 1152)：低于最小带宽时按最小带宽铺开（保证便签不重叠、字号可读），
-      // 区域 min-width 同步抬到该宽度 → 超出视口的部分由外层 .clothesline-scroll 横向滚动条（触屏即拖动）揭示。
-      // 放大缩放时 region 由 min-width 冻结在基准宽、外层横向滚动揭示被挡便签——绳子与便签同源同宽、一起滚动对齐。
-      const { 带宽, 布局偏移X, 区域最小宽 } = 计算晾衣架布局(基准宽)
-      容器.style.minWidth = `${区域最小宽}px`
+      // 带宽 = 钳制(容器可用宽, 最小带宽 768, 最大带宽 1152)：低于最小带宽时按最小带宽铺开
+      // （保证便签不重叠、字号可读），区域 min-width 同步抬到该宽度 → 超出视口的部分由外层
+      // .clothesline-scroll 横向滚动条（触屏即拖动）揭示。绳子与便签同源同宽、一起滚动对齐。
+      const { 带宽, 布局偏移X, 区域宽, 区域高 } = 应用晾衣架布局({ 区域: 容器, 滚动视口 })
       引擎 = new 晾衣架物理引擎({
         宽: 带宽,
-        高: 容器.offsetHeight,
+        高: 区域高,
         画布左X: 0,
-        画布宽: Math.max(画布.offsetWidth, 区域最小宽),
+        画布宽: 区域宽,
         布局偏移X,
       })
       引擎Ref.current = 引擎
@@ -282,7 +285,10 @@ export function ClotheslineNotes({ 填充 = false }: ClotheslineNotesProps) {
         构建()
         if (曾运行) 启动循环()
       })
-      尺寸观察器.observe(容器)
+      // FP-01：观察基准来源（外层滚动视口）而非被回写 min-width 的区域本身。
+      // 旧实现观察区域，等于「输入 == 输出」，每次纠正都要等下一轮通知才送达；
+      // 观察外层后 区域宽 → 构建 → 区域宽 这条自反馈环彻底断开，重建对同一视口宽幂等。
+      尺寸观察器.observe(滚动视口 ?? 容器)
     }
 
     if (!reducedMotion) {

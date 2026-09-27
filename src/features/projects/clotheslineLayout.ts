@@ -6,6 +6,14 @@
  * 带宽过窄会让四张便签互相挤压重叠——故设最小带宽 768（=原桌面断点的物理最小可用宽）。
  * 容器实际宽度不足以铺开最小带宽时，区域按最小带宽铺开，超出可视部分交给外层
  * .clothesline-scroll 的横向滚动条（触屏则手指拖动）揭示。
+ *
+ * FP-01 根因重构：横向布局是「容器可用宽 → 布局」的纯映射，映射结果绝不回读自身产物。
+ * 旧实现把 区域.offsetWidth（其值包含上一次写入的内联 min-width）当作布局输入的一半，
+ * 于是布局成了依赖写入历史的反馈控制器：宽→窄→宽往返的终态只能靠 min() 恰好选中
+ * 外层这个新鲜信号才收敛；一旦外层不再把区域拉伸到自身宽度（外层转 flex、
+ * align-items 不拉伸、或带内边距），min() 就会选中自己上一轮的产物当基准，
+ * 基准自锁在旧 min-width 上再也长不回去。内联 min-width 也从不清零，基准宽退化时的
+ * 早退路径甚至跳过写回，把旧值原样留在 DOM 上。
  */
 export const 最小带宽 = 768
 export const 最大带宽 = 1152
@@ -19,8 +27,27 @@ export interface 晾衣架布局 {
   区域最小宽: number
 }
 
-export function 计算晾衣架布局(基准宽: number): 晾衣架布局 {
-  const 有效宽 = Number.isFinite(基准宽) && 基准宽 > 0 ? 基准宽 : 0
+export interface 晾衣架区域宿主 {
+  /** 区域元素（内联 min-width 由本模块回写） */
+  区域: HTMLElement
+  /** 外层横向滚动视口：容器可用宽的唯一权威来源，null 或未布局时回退区域自身外框宽 */
+  滚动视口: HTMLElement | null
+}
+
+export interface 晾衣架区域布局 extends 晾衣架布局 {
+  /** 区域实际铺开宽度：恒等于 区域最小宽（区域最小宽 ≥ 容器可用宽 = 区域自动宽），供物理引擎作画布宽 */
+  区域宽: number
+  /** 区域铺开高度，供物理引擎作世界高 */
+  区域高: number
+}
+
+/**
+ * 纯函数：容器可用宽 → 完整横向布局。
+ * 只依赖单个入参，任意调用顺序、任意重复次数下同一入参的终态恒等（路径无关）。
+ * 退化输入（0 / 负 / NaN / Infinity）不产生 NaN，按最小带宽铺开。
+ */
+export function 计算晾衣架布局(容器可用宽: number): 晾衣架布局 {
+  const 有效宽 = Number.isFinite(容器可用宽) && 容器可用宽 > 0 ? 容器可用宽 : 0
   const 带宽 = Math.min(最大带宽, Math.max(最小带宽, 有效宽))
   return {
     带宽,
@@ -30,15 +57,19 @@ export function 计算晾衣架布局(基准宽: number): 晾衣架布局 {
 }
 
 /**
- * 布局基准宽：取自身外框宽与外层可用宽的较小者。
- * 区域自身的 min-width 会把 offsetWidth 撑住，单读 offsetWidth 会把旧宽当成新宽；
- * 外层滚动视口的 clientWidth 不受区域 min-width 污染，是收缩时的新鲜信号。
+ * 把纯布局应用到真实 DOM：这是「测量 → 计算 → 回写」的唯一接缝。
+ * 顺序不可调换：必须先清空内联 min-width 再测量，否则测量值包含上一轮产物（路径依赖）。
+ * 溢出消失时同步复位 scrollLeft，使 scrollLeft==0 成为本模块保证的属性而非浏览器钳制的恩赐。
  */
-export function 计算布局基准宽(自身外框宽: number, 外层可用宽: number): number {
-  const 自身有效 = Number.isFinite(自身外框宽) && 自身外框宽 > 0
-  const 外层有效 = Number.isFinite(外层可用宽) && 外层可用宽 > 0
-  if (自身有效 && 外层有效) return Math.min(自身外框宽, 外层可用宽)
-  if (外层有效) return 外层可用宽
-  if (自身有效) return 自身外框宽
-  return 0
+export function 应用晾衣架布局(宿主: 晾衣架区域宿主): 晾衣架区域布局 {
+  const { 区域, 滚动视口 } = 宿主
+  区域.style.minWidth = ''
+  const 外层可用宽 = 滚动视口 ? 滚动视口.clientWidth : 0
+  const 容器可用宽 = 外层可用宽 > 0 ? 外层可用宽 : 区域.offsetWidth
+  const 布局 = 计算晾衣架布局(容器可用宽)
+  区域.style.minWidth = `${布局.区域最小宽}px`
+  if (滚动视口 && 滚动视口.scrollWidth <= 滚动视口.clientWidth && 滚动视口.scrollLeft !== 0) {
+    滚动视口.scrollLeft = 0
+  }
+  return { ...布局, 区域宽: 布局.区域最小宽, 区域高: 区域.offsetHeight }
 }

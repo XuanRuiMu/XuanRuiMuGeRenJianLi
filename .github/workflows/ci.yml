@@ -78,6 +78,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: 同步 GitHub 仓库快照
+        # 构建期落盘，产物自带最新仓库数据；失败时保留仓库里已提交的旧快照
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run sync:github
+
       - name: Build
         run: npm run build
 

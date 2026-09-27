@@ -86,7 +86,7 @@ describe('chatService', () => {
     expect(result.meta.命中数).toBeGreaterThanOrEqual(0)
   })
 
-  it('系统提示词约束教育三要素与评估问法诚实口径', async () => {
+  it('系统提示词约束教育三要素与评估问法须给带依据结论', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ choices: [{ message: { content: '{"text":"ok"}' } }] }),
@@ -98,7 +98,17 @@ describe('chatService', () => {
     const body = JSON.parse((callArgs[1].body as string) ?? '{}')
     const 系统提示: string = body.messages[0].content
     expect(系统提示).toContain('学校、专业、学制三要素')
-    expect(系统提示).toContain('不得下录用断言')
+    // 第一人称扮演本人：不许再出现「他的简历」式第三人称转述
+    expect(系统提示).toContain('你是玄锐暮本人的 AI 分身')
+    expect(系统提示).toContain('第一人称')
+    expect(系统提示).not.toContain('你是玄锐暮的简历 AI 助手')
+    // 评估类问题不得再搪塞拒绝：必须给结论 + 挂证据 + 讲缺口
+    expect(系统提示).toContain('必须给出明确结论')
+    expect(系统提示).toContain('我无法替他下结论')
+    expect(系统提示).toContain('简历未体现')
+    expect(系统提示).toContain('事实与推断必须分开措辞')
+    // 上下文缺失仍不得编造，是保留下来的硬约束
+    expect(系统提示).toContain('不得编造')
   })
 
   it('系统提示词约束思考流不得提及输出格式（reasoning 会原样展示给访客）', async () => {

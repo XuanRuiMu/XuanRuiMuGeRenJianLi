@@ -50,6 +50,21 @@ describe('resumeKnowledgeBase', () => {
     expect(contact?.content).not.toContain(personalInfo.wechat)
   })
 
+  it('GitHub 快照进入知识库且不含被排除仓库', () => {
+    const chunks = buildResumeKnowledgeBase()
+    const 仓库块 = chunks.filter((chunk) => chunk.metadata.category === 'github')
+    expect(仓库块.length).toBeGreaterThan(1)
+    expect(仓库块.some((chunk) => chunk.id === 'github-overview')).toBe(true)
+    // 每个仓库块都要能追溯到真实仓库地址，不许凭空造仓库
+    for (const chunk of 仓库块.filter((项) => 项.id !== 'github-overview')) {
+      expect(chunk.content).toContain('https://github.com/')
+    }
+    for (const chunk of chunks) {
+      expect(chunk.content).not.toContain('LianAiBaGuanLiZhongXin')
+      expect(chunk.content).not.toContain('恋爱吧管理中心')
+    }
+  })
+
   it('蜂来项目块含整蛊直播间事实且无旧称残留', () => {
     const chunks = buildResumeKnowledgeBase()
     const 蜂来 = chunks.find((chunk) => chunk.id === 'project-fengLai')

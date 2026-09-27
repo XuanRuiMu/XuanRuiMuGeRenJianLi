@@ -47,6 +47,7 @@ const 死键路径表 = [
   'showcase.cards.aiToolchain',
   'showcase.cards.aiToolchain.title',
   'showcase.cards.aiToolchain.desc',
+  'experience.subtitle',
   'education.subtitle',
   'education.tabs',
   'education.tabs.summary',

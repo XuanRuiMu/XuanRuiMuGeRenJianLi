@@ -153,7 +153,13 @@ export function TechStack() {
             className="tech-orb group absolute left-1/2 top-1/2 flex cursor-pointer flex-col items-center justify-center gap-1 will-change-transform no-underline"
           >
             <div className="flex h-14 w-14 items-center justify-center rounded-full border border-white/15 bg-[#0e1424]/90 shadow-[0_0_18px_rgba(124,211,252,0.25)] backdrop-blur-sm transition-transform duration-200 group-hover:scale-110 group-hover:border-[#7dd3fc]/60 light:bg-white/95 light:border-slate-300/70 light:shadow-[0_4px_14px_rgba(15,23,42,0.14)] light:group-hover:border-[#0369a1]/80">
-              <img src={orb.card.icon} alt="" aria-hidden="true" className="h-8 w-8 object-contain" loading="eager" />
+              <img
+                src={orb.card.icon}
+                alt=""
+                aria-hidden="true"
+                className={`h-8 w-8 object-contain${orb.card.深色反色 ? ' dark:invert' : ''}`}
+                loading="eager"
+              />
             </div>
             <span className="rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-medium text-[#dfe6f2] whitespace-nowrap">
               {orb.card.name}

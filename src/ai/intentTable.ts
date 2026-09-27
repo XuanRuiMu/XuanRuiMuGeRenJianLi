@@ -180,6 +180,14 @@ export const 共享意图表: 共享意图定义[] = [
     boostSources: ['music.ts'],
   },
   {
+    id: 'github',
+    // 只做 RAG 加权，不设兜底触发词：仓库数据来自构建期快照，离线兜底答不了"最近提交了什么"
+    关键词: ['github', '仓库', '开源', '源码', '代码', '最近提交', '提交记录', 'star', 'readme'],
+    兜底触发词: [],
+    boostCategories: ['github'],
+    boostSources: ['githubSnapshot.ts'],
+  },
+  {
     id: 'media',
     关键词: ['媒体', '视频', 'b站', '小说', '相声', '创作'],
     兜底触发词: [],
