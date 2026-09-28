@@ -53,25 +53,8 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       observabilityPlugin(),
-      // dev 环境本地数据接口：/api/analytics 落盘到 data/（生产走 functions/）
+      // dev 环境本地数据接口：/api/analytics 落盘到 data/（生产静态托管按 nginx 模板三选一处理）
       开发数据接口插件({ dataDir: path.resolve(__dirname, 'data') }),
-      // Serve /test-starry/ 目录索引
-      {
-        name: 'test-starry-index',
-        configureServer(server) {
-          server.middlewares.use('/test-starry', (req, res, next) => {
-            if (req.url === '/' || req.url === '') {
-              const indexPath = path.resolve(__dirname, 'public/test-starry/index.html')
-              if (fs.existsSync(indexPath)) {
-                res.setHeader('Content-Type', 'text/html; charset=utf-8')
-                res.end(fs.readFileSync(indexPath, 'utf-8'))
-                return
-              }
-            }
-            next()
-          })
-        },
-      },
       // Serve /skill-test/ 单页应用
       {
         name: 'skill-test-spa',
@@ -179,7 +162,6 @@ export default defineConfig(({ mode }) => {
               return 'three-vendor'
             }
             if (id.includes('/framer-motion/')) return 'animation-vendor'
-            if (id.includes('/recharts/')) return 'charts-vendor'
             if (
               [
                 '/lucide-react/',

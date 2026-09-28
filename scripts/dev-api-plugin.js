@@ -1,11 +1,12 @@
 /**
  * 开发环境数据接口（Vite 插件）。
  *
- * 根因背景：/api/analytics 的生产实现是 Cloudflare Pages Functions
- * （functions/api/*.ts，依赖 KV 绑定），本地 `npm run dev` 下该路径无人应答，
- * 访问计数无从谈起。本插件在 dev server 内提供同名路由的文件落盘实现：
+ * 根因背景：/api/analytics 的线上形态按 deploy/nginx.conf 三选一处理
+ * （默认方案 0：静态托管不提供该路由，前端静默降级），
+ * 本地 `npm run dev` 下该路径无人应答，访问计数无从谈起。
+ * 本插件在 dev server 内提供同名路由的文件落盘实现：
  * 数据存在项目 data/ 目录（用户要求"数据存项目文件夹内"），
- * 生产构建不受影响（插件仅在 configureServer 生效，functions/ 契约保持不变）。
+ * 生产构建不受影响（插件仅在 configureServer 生效）。
  * 留言表单已下线（生产链路不可达），本插件不再承载 /api/contact。
  */
 import fs from 'node:fs'

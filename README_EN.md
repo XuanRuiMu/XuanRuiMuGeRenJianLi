@@ -11,7 +11,7 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/XuanRuiMu/XuanRuiMuGeRenJianLi/ci.yml?label=CI)](https://github.com/XuanRuiMu/XuanRuiMuGeRenJianLi/actions)
 [![Stack](https://img.shields.io/badge/stack-React19%20%2B%20Three.js%20%2B%20Tailwind4-blueviolet)](https://github.com/XuanRuiMu/XuanRuiMuGeRenJianLi)
 
-> 🌐 [中文](README.md) ｜ English
+> 🌐 [中文](README.md) ｜ English (docs only; site UI is single-locale Chinese)
 
 ---
 
@@ -22,8 +22,8 @@ A **content-first, tech-showcase** online résumé website that turns a job rés
 - 🪐 **3D interstellar archive UI**: an immersive Three.js scene where works are exhibited like artifacts;
 - ⌘ **Cmd+K command palette**: jump to any section like an IDE, press `Cmd+K`;
 - 🤖 **AI Q&A**: ask the résumé questions and let AI answer from site content;
-- 📡 **Skill radar chart**: visualize proficiency distribution;
-- 🌐 **Bilingual i18n**: one-click Chinese / English switch;
+- 📡 **Skill radar chart**: bespoke SVG visualization of proficiency distribution;
+- 🌐 **Single-locale Chinese UI**: interface copy lives in one `zh-CN` bundle (docs are bilingual);
 - 📱 **PWA offline**: install to desktop / mobile, browsable offline;
 - ♿ **Accessibility-minded**: typography tests, a11y optimizations.
 
@@ -100,7 +100,6 @@ XuanRuiMuGeRenJianLi/
 │   └── videos/ og-image.png # OG image / background video
 ├── scripts/                 # font subsetting, dev-api-plugin, etc.
 ├── e2e/ tests/              # Playwright E2E & Vitest
-├── functions/               # serverless functions (AI Q&A)
 └── .github/workflows/ci.yml # CI
 ```
 

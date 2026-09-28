@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
 
-// jsdom / node 测试环境均提供 ResizeObserver 最小实现，Three.js / R3F / recharts 依赖它
+// jsdom / node 测试环境均提供 ResizeObserver 最小实现，Three.js / R3F 依赖它
 class MockResizeObserver {
   observe = vi.fn()
   unobserve = vi.fn()

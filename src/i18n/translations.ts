@@ -41,7 +41,3 @@ export function ta(key: TranslationKey): string[] {
 
   return Array.isArray(value) && value.every((item) => typeof item === 'string') ? value : []
 }
-
-export function getCurrentLocale(): string {
-  return currentLocale
-}

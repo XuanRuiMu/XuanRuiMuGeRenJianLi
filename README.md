@@ -11,7 +11,7 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/XuanRuiMu/XuanRuiMuGeRenJianLi/ci.yml?label=CI)](https://github.com/XuanRuiMu/XuanRuiMuGeRenJianLi/actions)
 [![Stack](https://img.shields.io/badge/stack-React19%20%2B%20Three.js%20%2B%20Tailwind4-blueviolet)](https://github.com/XuanRuiMu/XuanRuiMuGeRenJianLi)
 
-> 🌐 简体中文 ｜ [English](README_EN.md)
+> 🌐 简体中文 ｜ [English](README_EN.md)（英文版仅项目说明文档，站内界面为单语中文）
 
 ---
 
@@ -30,8 +30,8 @@
 - 🪐 **3D 星际档案馆界面**：Three.js 打造的沉浸 3D 场景，作品如展品般陈列；
 - ⌘ **Cmd+K 命令面板**：像 IDE 一样，按 `Cmd+K` 快速跳转任意板块；
 - 🤖 **AI 问答**：直接向「简历」提问，AI 结合站内内容回答；
-- 📡 **技能雷达图**：可视化展示技能熟练度分布；
-- 🌐 **双语 i18n**：中 / 英文一键切换；
+- 📡 **技能雷达图**：自研 SVG 可视化展示技能熟练度分布；
+- 🌐 **单语中文**：界面文案统一简体中文（`src/i18n/zh-CN.json` 单一语言包）；
 - 📱 **PWA 离线**：可安装到桌面 / 手机，离线可看；
 - ♿ **无障碍友好**：字体排版测试、可访问性优化。
 
@@ -110,7 +110,6 @@ XuanRuiMuGeRenJianLi/
 │   └── videos/ og-image.png # OG 图 / 背景视频
 ├── scripts/                 # subset-fonts 字体子集化、dev-api-plugin 等
 ├── e2e/ tests/              # Playwright E2E 与 Vitest 测试
-├── functions/               # 无服务器函数（AI 问答接口）
 └── .github/workflows/ci.yml # CI
 ```
 
