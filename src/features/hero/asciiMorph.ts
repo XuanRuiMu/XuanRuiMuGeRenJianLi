@@ -314,29 +314,44 @@ export function 创建点阵变形器(
   let 可见 = true
   let raf句柄 = 0
   let 上次帧 = 0
+  let 帧调度中 = false
+  let 帧执行中 = false
   const 指针 = { x: 0, y: 0, 目标x: 0, 目标y: 0, 强度: 0, 激活: false }
 
   const clamp01 = (v: number) => Math.max(0, Math.min(1, v))
 
   function wake() {
-    if (!raf句柄 && !已销毁) {
-      上次帧 = 0
-      raf句柄 = requestAnimationFrame(帧循环)
-    }
+    // 帧执行期间（切换/观察器回调触发 wake）不得重复排帧，否则循环数倍增、动画指数加速
+    if (帧调度中 || 帧执行中 || 已销毁) return
+    上次帧 = 0
+    帧调度中 = true
+    raf句柄 = requestAnimationFrame(帧循环)
   }
 
   function 帧循环(stamp: number) {
-    raf句柄 = 0
+    帧调度中 = false
+    帧执行中 = true
     const dt = 上次帧 ? (stamp - 上次帧) / 1000 : 0
     上次帧 = stamp
     if (!静态 && !document.hidden) 时间 += dt
     绘制(时间)
+    帧执行中 = false
     // 静态化、离屏或页面隐藏时停止调度，由事件（wake/唤醒/观察器回调）重新驱动
-    if (!静态 && 可见 && !document.hidden) raf句柄 = requestAnimationFrame(帧循环)
+    if (!已销毁 && !静态 && 可见 && !document.hidden) {
+      帧调度中 = true
+      raf句柄 = requestAnimationFrame(帧循环)
+    } else {
+      raf句柄 = 0
+    }
   }
 
   function 切换() {
     if (已载.length < 2 || !形态.length) return
+    // 上一场变形若已到时长，先落定为目标形态，避免从旧形态起飞
+    if (变形 && 采帧(静止点, 变形, 时间).完成) {
+      静止点 = 形态[当前序号]
+      变形 = null
+    }
     const from = 采帧(静止点, 变形, 时间).点.filter((p) => p.alpha > 0.03)
     当前序号 = (当前序号 + 1) % 已载.length
     自动切换时刻 = 时间 + 自动切换间隔秒
@@ -369,11 +384,13 @@ export function 创建点阵变形器(
     ctx.font = `600 ${cell * 0.86}px "Cascadia Mono",Consolas,monospace`
     ctx.fillStyle = 颜色
     const radius = Math.min(涟漪半径上限, w * 0.26)
-    const 帧 = 采帧(静止点, 变形, 时间)
+    let 帧 = 采帧(静止点, 变形, 时间)
     if (变形 && 帧.完成) {
+      // 落定帧必须画出新形态：若仍画旧帧，画面会弹回上一图标并因空闲早退卡死在该画面
       静止点 = 形态[当前序号]
       变形 = null
       画布.dataset.transition = 'idle'
+      帧 = { 点: 静止点, 完成: true }
     }
     for (const p of 帧.点) {
       if (p.alpha < 0.015) continue
@@ -484,6 +501,8 @@ export function 创建点阵变形器(
       已销毁 = true
       if (raf句柄) cancelAnimationFrame(raf句柄)
       raf句柄 = 0
+      帧调度中 = false
+      帧执行中 = false
       尺寸观察?.disconnect()
       可见观察?.disconnect()
       宿主按钮.removeEventListener('click', 切换)

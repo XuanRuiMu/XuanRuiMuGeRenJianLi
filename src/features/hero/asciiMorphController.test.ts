@@ -10,6 +10,7 @@ let raf序列 = 0
 const raf回调 = new Map<number, (t: number) => void>()
 let 当前时间戳 = 0
 const 已创建变形器: 点阵变形器[] = []
+const 已建上下文: Array<ReturnType<typeof 造2d上下文>> = []
 
 class 假Image {
   onload: (() => void) | null = null
@@ -77,6 +78,7 @@ beforeEach(() => {
   raf序列 = 0
   raf回调.clear()
   当前时间戳 = 0
+  已建上下文.length = 0
   vi.stubGlobal('Image', 假Image)
   vi.stubGlobal(
     'requestAnimationFrame',
@@ -98,7 +100,11 @@ beforeEach(() => {
       text: async () => '<svg viewBox="0 0 24 24"></svg>',
     }))
   )
-  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(造2d上下文 as never)
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(() => {
+    const ctx = 造2d上下文()
+    已建上下文.push(ctx)
+    return ctx as never
+  })
   vi.spyOn(HTMLCanvasElement.prototype, 'getBoundingClientRect').mockReturnValue({
     width: 520,
     height: 320,
@@ -173,6 +179,37 @@ describe('点阵变形器控制器', () => {
     })
     expect(序号回调).not.toHaveBeenCalled()
     expect(变形器).not.toBeNull()
+  })
+
+  it('任意时刻至多只有一个 rAF 回调排队（自动切换不得倍增动画循环）', async () => {
+    const 序号回调 = vi.fn()
+    const { 变形器 } = 创建(造定义('t7'), { on序号变更: 序号回调 })
+    await 等待载入(变形器!, 序号回调)
+    推进帧(5200)
+    expect(序号回调).toHaveBeenCalledTimes(2)
+    expect(raf回调.size).toBe(1)
+    推进帧(5200)
+    expect(序号回调).toHaveBeenCalledTimes(3)
+    expect(raf回调.size).toBe(1)
+  })
+
+  it('变形落定帧绘制新形态而非回画旧形态', async () => {
+    const 定义: 点阵图标定义[] = [
+      { id: 'Alpha', name: 'Alpha', glyph: 'A', src: '/logos/alpha.svg' },
+      { id: 'Beta', name: 'Beta', glyph: 'B', src: '/logos/beta.svg' },
+    ]
+    const 序号回调 = vi.fn()
+    const { 画布, 变形器 } = 创建(定义, { on序号变更: 序号回调 })
+    await 等待载入(变形器!, 序号回调)
+    画布.click()
+    推进帧(1200)
+    const 主上下文 = 已建上下文[0]
+    主上下文.fillText.mockClear()
+    推进帧(300)
+    expect(画布.dataset.transition).toBe('idle')
+    const 绘制字形 = 主上下文.fillText.mock.calls.map((c) => c[0])
+    expect(绘制字形).not.toContain('A')
+    expect(绘制字形).toContain('B')
   })
 
   it('销毁后加载完成的回调不再触发', async () => {
