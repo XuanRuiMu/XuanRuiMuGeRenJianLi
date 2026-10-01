@@ -4,6 +4,12 @@ import { HeroSection } from './HeroSection'
 import { personalInfo } from '../../data/personalInfo'
 import { t } from '../../i18n/translations'
 
+// jsdom 无 2D 画布实现，mock 掉变形器创建以保持测试输出零噪音
+vi.mock('./asciiMorph', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  创建点阵变形器: vi.fn(() => null),
+}))
+
 describe('HeroSection', () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
@@ -26,7 +32,8 @@ describe('HeroSection', () => {
     expect(screen.getByTestId('hero-signature')).toHaveAttribute('src', '/images/签字-alpha.png')
     expect(screen.getByTestId('hero-signature').getAttribute('class') ?? '').toContain('dark:invert')
     expect(screen.getByTestId('role-typewriter')).toBeInTheDocument()
-    expect(screen.getAllByText('Docker').length).toBeGreaterThanOrEqual(1)
+    // 技术栈区已替换为 ASCII 点阵变形动画（单图标逐一呈现，不再同屏展示多个技术名）
+    expect(screen.getByTestId('tech-ascii-canvas')).toBeInTheDocument()
   })
 
   it('renders the download resume button (only CTA kept)', () => {
@@ -67,9 +74,12 @@ describe('HeroSection', () => {
     document.createElement = originalCreateElement
   })
 
-  it('renders the tech stack orb (docker/vite)', () => {
+  it('renders the tech stack ASCII morph (canvas + switch hint, single icon at a time)', () => {
     render(<HeroSection />)
-    expect(screen.getAllByText('Docker').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getAllByText('Vite').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByTestId('tech-ascii-canvas')).toBeInTheDocument()
+    expect(screen.getByTestId('tech-morph-button')).toBeInTheDocument()
+    expect(screen.getByTestId('tech-morph-label')).toHaveTextContent('·· · -- / --')
+    expect(screen.getByText('点击切换')).toBeInTheDocument()
+    expect(screen.queryByTestId('tech-current-link')).not.toBeInTheDocument()
   })
 })
