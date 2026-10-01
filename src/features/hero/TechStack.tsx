@@ -3,7 +3,7 @@ import { techstackV2 } from '../../data/techStack'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { useIsDarkMode } from '../../components/starry-background/useIsDarkMode'
 import { t } from '../../i18n/translations'
-import { 创建点阵变形器, 格式化技术标签, 技术字形, type 点阵图标定义 } from './asciiMorph'
+import { 创建点阵变形器, 技术字形, type 点阵图标定义 } from './asciiMorph'
 
 /**
  * 技术栈 · ASCII 点阵变形动画（替换原 3D 旋转技术球）。
@@ -67,7 +67,6 @@ export function TechStack() {
   }, [字形颜色])
 
   const 当前卡片 = 当前 ? techstackV2.find((卡片) => 卡片.name === 当前.名称) : undefined
-  const 标签 = 当前 ? 格式化技术标签(当前.名称, 当前.序号, 当前.总数) : null
 
   return (
     <div className="w-full flex flex-col items-center" aria-label={t('hero.techGroupAria')}>
@@ -78,7 +77,6 @@ export function TechStack() {
         type="button"
         // 点击切换由变形器在宿主按钮上监听（与参考站一致），此处不得再绑 onClick 以免双触发
         aria-label={当前 ? `${t('hero.techSwitchAria')} ${当前.名称}` : t('hero.techSwitchAria')}
-        aria-describedby="tech-switch-hint"
         aria-disabled={失败 || undefined}
         data-testid="tech-morph-button"
         className="block w-full max-w-[520px] cursor-pointer rounded-xl p-0 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-[#7dd3fc]/70 light:focus-visible:outline-[#0369a1]/70"
@@ -91,14 +89,6 @@ export function TechStack() {
           className="block h-[320px] w-full"
         />
       </button>
-      <div className="mt-1 flex w-full max-w-[520px] items-center justify-between gap-3 font-mono text-[11px] tracking-[0.1em]">
-        <span data-testid="tech-morph-label" aria-live="polite" className="text-[#b9d5ff] light:text-slate-500">
-          {标签 ?? t('hero.techLabelPending')}
-        </span>
-        <span id="tech-switch-hint" className="text-[#7da2d8]/80 light:text-slate-400">
-          {t('hero.techClickHint')}
-        </span>
-      </div>
       {当前卡片 && (
         <a
           href={当前卡片.url}
@@ -106,9 +96,9 @@ export function TechStack() {
           rel="noopener noreferrer"
           aria-label={`${当前卡片.name} ${t('hero.techLinkAria')}`}
           data-testid="tech-current-link"
-          className="mt-3 rounded-full border border-white/10 bg-[#0e1424]/70 px-4 py-1.5 text-xs font-medium text-[#dfe6f2] no-underline backdrop-blur-sm transition-colors hover:border-[#7dd3fc]/60 hover:text-[#7dd3fc] light:border-slate-300/70 light:bg-white/90 light:text-slate-700 light:hover:border-[#0369a1]/70 light:hover:text-[#0369a1]"
+          className="mt-2 font-mono text-[11px] tracking-[0.1em] text-[#b9d5ff] no-underline transition-colors hover:text-[#7dd3fc] light:text-slate-500 light:hover:text-[#0369a1]"
         >
-          {当前卡片.name} · {当前卡片.title} ↗
+          {当前卡片.name} ↗
         </a>
       )}
       {失败 && (

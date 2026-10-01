@@ -91,12 +91,10 @@
   "hero": {
     "hint": "按Ctrl/⌘+K打开命令面板，或用顶部导航切换模块。",
     "techTitle": "本页及相关项目所使用技术栈",
-    "techClickHint": "点击切换",
     "techSwitchAria": "切换技术栈图标，当前",
     "techCanvasAria": "的ASCII字符点阵",
     "techLoadFail": "技术图标暂时没有加载出来",
     "techLinkAria": "官网链接",
-    "techLabelPending": "·· · -- / --",
     "techGroupAria": "技术",
     "cta": {
       "downloadResume": "下载简历"

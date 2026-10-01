@@ -74,12 +74,12 @@ describe('HeroSection', () => {
     document.createElement = originalCreateElement
   })
 
-  it('renders the tech stack ASCII morph (canvas + switch hint, single icon at a time)', () => {
+  it('renders the tech stack ASCII morph (canvas + name-only link, single icon at a time)', () => {
     render(<HeroSection />)
     expect(screen.getByTestId('tech-ascii-canvas')).toBeInTheDocument()
     expect(screen.getByTestId('tech-morph-button')).toBeInTheDocument()
-    expect(screen.getByTestId('tech-morph-label')).toHaveTextContent('·· · -- / --')
-    expect(screen.getByText('点击切换')).toBeInTheDocument()
+    expect(screen.queryByTestId('tech-morph-label')).not.toBeInTheDocument()
+    expect(screen.queryByText('点击切换')).not.toBeInTheDocument()
     expect(screen.queryByTestId('tech-current-link')).not.toBeInTheDocument()
   })
 })

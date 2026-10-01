@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest'
 import {
   平滑步进,
   技术字形,
-  格式化技术标签,
   注入svg尺寸,
   构建墨迹掩码,
   构建点阵,
@@ -43,13 +42,6 @@ describe('技术字形', () => {
 
   it('空名回退为 #', () => {
     expect(技术字形('')).toBe('#')
-  })
-})
-
-describe('格式化技术标签', () => {
-  it('按参考站格式输出 大写名 · 序号 / 总数', () => {
-    expect(格式化技术标签('Java', 4, 15)).toBe('JAVA · 05 / 15')
-    expect(格式化技术标签('React', 0, 9)).toBe('REACT · 01 / 09')
   })
 })
 

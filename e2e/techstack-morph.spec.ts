@@ -38,7 +38,7 @@ test.describe('技术栈点阵变形动画', () => {
     // 等到 idle 窗口再取切换前指纹
     await expect(画布).toHaveAttribute('data-transition', 'idle', { timeout: 10000 })
     const 前 = await 墨迹指纹(画布)
-    const 前标签 = await page.getByTestId('tech-morph-label').innerText()
+    const 前标签 = await page.getByTestId('tech-morph-button').getAttribute('aria-label')
 
     await page.getByTestId('tech-morph-button').click()
     await expect(画布, '点击后应进入变形').toHaveAttribute('data-transition', 'morphing', {
@@ -48,7 +48,7 @@ test.describe('技术栈点阵变形动画', () => {
       timeout: 5000,
     })
 
-    const 后标签 = await page.getByTestId('tech-morph-label').innerText()
+    const 后标签 = await page.getByTestId('tech-morph-button').getAttribute('aria-label')
     expect(后标签, '切换后标签应推进').not.toBe(前标签)
 
     const 后 = await 墨迹指纹(画布)
@@ -86,7 +86,7 @@ test.describe('技术栈点阵变形动画', () => {
     const 采样: Array<{ t: number; 标签: string }> = []
     const 起始 = Date.now()
     while (Date.now() - 起始 < 12000) {
-      const 标签 = await page.getByTestId('tech-morph-label').innerText()
+      const 标签 = (await page.getByTestId('tech-morph-button').getAttribute('aria-label')) ?? ''
       const t = Date.now() - 起始
       if (!采样.length || 采样[采样.length - 1].标签 !== 标签) {
         采样.push({ t, 标签 })

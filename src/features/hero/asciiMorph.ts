@@ -69,11 +69,6 @@ export function 技术字形(name: string): string {
   return 首字 ? 首字.toUpperCase() : '#'
 }
 
-/** 参考站标签格式：CLAUDE · 05 / 06 */
-export function 格式化技术标签(name: string, 序号: number, 总数: number): string {
-  return `${name.toUpperCase()} · ${String(序号 + 1).padStart(2, '0')} / ${String(总数).padStart(2, '0')}`
-}
-
 /**
  * 给只有 viewBox 的 SVG 根标签注入 512×512 宽高：部分浏览器对无内在尺寸的 SVG
  * 绘制到 canvas 时会得到 0×0，无法光栅化。默认 preserveAspectRatio=meet，

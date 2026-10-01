@@ -40,13 +40,15 @@ describe('TechStack 技术栈点阵变形', () => {
     变形器假体.销毁.mockClear()
   })
 
-  it('渲染标题、画布、切换提示与占位标签，并以 15 个技术图标创建变形器', () => {
+  it('渲染标题与画布，无可见标签行，并以 15 个技术图标创建变形器', () => {
     render(<TechStack />)
     expect(screen.getByText('本页及相关项目所使用技术栈')).toBeInTheDocument()
     expect(screen.getByTestId('tech-ascii-canvas')).toBeInTheDocument()
     expect(screen.getByTestId('tech-morph-button')).toHaveAttribute('aria-label', '切换技术栈图标，当前')
-    expect(screen.getByTestId('tech-morph-label')).toHaveTextContent('·· · -- / --')
-    expect(screen.getByText('点击切换')).toBeInTheDocument()
+    // 标签行与切换提示已按需求移除，画布下只保留技术名跳转链接
+    expect(screen.queryByTestId('tech-morph-label')).not.toBeInTheDocument()
+    expect(screen.queryByText('点击切换')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('tech-current-link')).not.toBeInTheDocument()
 
     expect(createMock).toHaveBeenCalledTimes(1)
     const [画布, 定义, 选项] = createMock.mock.calls[0]
@@ -57,16 +59,16 @@ describe('TechStack 技术栈点阵变形', () => {
     expect(选项.静态).toBe(false)
   })
 
-  it('变形器回调驱动标签与官网链接更新', () => {
+  it('变形器回调驱动官网链接更新，链接文案仅含技术名', () => {
     render(<TechStack />)
     const [, , 选项] = createMock.mock.calls[0]
     act(() => {
       选项.on序号变更(4, 'MySQL', 15)
     })
-    expect(screen.getByTestId('tech-morph-label')).toHaveTextContent('MYSQL · 05 / 15')
     const 链接 = screen.getByTestId('tech-current-link')
     expect(链接).toHaveAttribute('href', 'https://www.mysql.com')
     expect(链接).toHaveAttribute('aria-label', 'MySQL 官网链接')
+    expect(链接).toHaveTextContent('MySQL ↗')
     expect(screen.getByTestId('tech-morph-button')).toHaveAttribute('aria-label', '切换技术栈图标，当前 MySQL')
   })
 
@@ -83,11 +85,6 @@ describe('TechStack 技术栈点阵变形', () => {
     hookState.reducedMotion = true
     rerender(<TechStack />)
     expect(变形器假体.设静态).toHaveBeenCalledWith(true)
-  })
-
-  it('标签具备 aria-live 播报', () => {
-    render(<TechStack />)
-    expect(screen.getByTestId('tech-morph-label')).toHaveAttribute('aria-live', 'polite')
   })
 
   it('加载失败时展示提示并将按钮标记 aria-disabled', () => {
