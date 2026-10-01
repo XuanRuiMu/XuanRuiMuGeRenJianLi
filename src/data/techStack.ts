@@ -9,6 +9,8 @@ export interface TechCard {
   title: string
   icon: string
   url: string
+  /** 图标带整面底色时声明点阵提取模式：light 只取高亮字样（如蓝底白字），默认按透明度 */
+  掩码模式?: 'light' | 'dark'
 }
 
 /** 技术卡：Java 后端 / Node.js 全栈 / 数据库 / 前端 3D —— 均带有效 logo 与官网链接 */
@@ -83,6 +85,8 @@ export const techstackV2: TechCard[] = [
     quote: '前后端通吃：本简历站和 AI 聊天后端都是 TS；编译期捕获错误，重构才有安全感。',
     icon: '/logos/ts.svg',
     url: 'https://www.typescriptlang.org',
+    // 蓝底白字图标：alpha 掩码只能得到实心方块，须按亮度提取白色 TS 字样
+    掩码模式: 'light',
   },
   {
     name: 'React',

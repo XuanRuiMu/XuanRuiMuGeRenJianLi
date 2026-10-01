@@ -20,6 +20,8 @@ export interface 点阵图标定义 {
   /** 组成 Logo 形体的主字符（取技术名首字母） */
   glyph: string
   src: string
+  /** 带整面底色的图标（如蓝底白字）需声明提取模式，默认 alpha 只看透明度 */
+  掩码模式?: 'alpha' | 'light' | 'dark'
 }
 
 export interface 已载图标 {
@@ -34,6 +36,8 @@ export interface 已载图标 {
   bw: number
   bh: number
 }
+
+const clamp01 = (v: number) => Math.max(0, Math.min(1, v))
 
 export interface 点 {
   x: number
@@ -102,8 +106,15 @@ export interface 墨迹掩码 {
   bh: number
 }
 
-/** 从光栅像素提取 alpha 掩码，并计算墨迹（alpha>0.2）包围盒；全空时抛错 */
-export function 构建墨迹掩码(rgba: Uint8ClampedArray, 宽: number, 高: number): 墨迹掩码 {
+/** 从光栅像素提取墨迹掩码，并计算墨迹（>0.2）包围盒；全空时抛错。
+ *  模式 alpha：透明度即墨量；light：只保留高亮像素（蓝底白字类图标提取白色字样，同参考站）；
+ *  dark：只保留暗像素（亮底深字类图标的反向提取）。 */
+export function 构建墨迹掩码(
+  rgba: Uint8ClampedArray,
+  宽: number,
+  高: number,
+  模式: 'alpha' | 'light' | 'dark' = 'alpha'
+): 墨迹掩码 {
   const mask = new Float32Array(宽 * 高)
   let left = 宽
   let top = 高
@@ -111,8 +122,13 @@ export function 构建墨迹掩码(rgba: Uint8ClampedArray, 宽: number, 高: nu
   let bottom = 0
   for (let i = 0; i < mask.length; i++) {
     const a = rgba[i * 4 + 3] / 255
-    mask[i] = a
-    if (a > 0.2) {
+    let ink = a
+    if (模式 !== 'alpha') {
+      const 亮度 = (rgba[i * 4] * 0.2126 + rgba[i * 4 + 1] * 0.7152 + rgba[i * 4 + 2] * 0.0722) / 255
+      ink = a * (模式 === 'light' ? clamp01((亮度 - 0.5) * 2) : clamp01((0.5 - 亮度) * 2))
+    }
+    mask[i] = ink
+    if (ink > 0.2) {
       const x = i % 宽
       const y = Math.floor(i / 宽)
       if (x < left) left = x
@@ -267,7 +283,7 @@ async function 实际载入图标(定义: 点阵图标定义): Promise<已载图
     const ctx = 光栅.getContext('2d', { willReadFrequently: true })
     if (!ctx) throw new Error('离屏画布不可用')
     ctx.drawImage(img, 0, 0, 宽, 高)
-    const 掩码 = 构建墨迹掩码(ctx.getImageData(0, 0, 宽, 高).data, 宽, 高)
+    const 掩码 = 构建墨迹掩码(ctx.getImageData(0, 0, 宽, 高).data, 宽, 高, 定义.掩码模式)
     return { id: 定义.id, name: 定义.name, glyph: 定义.glyph, ...掩码 }
   } finally {
     if (地址 !== 定义.src) URL.revokeObjectURL(地址)
@@ -275,14 +291,16 @@ async function 实际载入图标(定义: 点阵图标定义): Promise<已载图
 }
 
 function 载入图标(定义: 点阵图标定义): Promise<已载图标> {
-  let 缓存 = 掩码缓存.get(定义.src)
+  // 缓存键必须含掩码模式：同一图标可能以不同模式分别提取
+  const 键 = `${定义.src}::${定义.掩码模式 ?? 'alpha'}`
+  let 缓存 = 掩码缓存.get(键)
   if (!缓存) {
     // 失败即逐出缓存，下次挂载可重试，避免长驻 SPA 永久复用一次瞬态失败
     缓存 = 实际载入图标(定义).catch((错误: unknown) => {
-      掩码缓存.delete(定义.src)
+      掩码缓存.delete(键)
       throw 错误
     })
-    掩码缓存.set(定义.src, 缓存)
+    掩码缓存.set(键, 缓存)
   }
   return 缓存
 }
@@ -317,8 +335,6 @@ export function 创建点阵变形器(
   let 帧调度中 = false
   let 帧执行中 = false
   const 指针 = { x: 0, y: 0, 目标x: 0, 目标y: 0, 强度: 0, 激活: false }
-
-  const clamp01 = (v: number) => Math.max(0, Math.min(1, v))
 
   function wake() {
     // 帧执行期间（切换/观察器回调触发 wake）不得重复排帧，否则循环数倍增、动画指数加速

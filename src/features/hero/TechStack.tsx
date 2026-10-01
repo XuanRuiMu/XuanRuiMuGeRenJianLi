@@ -33,6 +33,7 @@ export function TechStack() {
         name: 卡片.name,
         glyph: 技术字形(卡片.name),
         src: 卡片.icon,
+        掩码模式: 卡片.掩码模式,
       })),
     []
   )

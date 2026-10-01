@@ -110,6 +110,33 @@ describe('构建墨迹掩码', () => {
     const rgba = new Uint8ClampedArray(16 * 4)
     expect(() => 构建墨迹掩码(rgba, 4, 4)).toThrow('图标掩码为空')
   })
+
+  it('light 模式只保留高亮像素（蓝底白字提取白色字样）', () => {
+    const 宽 = 2
+    const 高 = 1
+    // 像素0：白色不透明；像素1：TS 蓝底色 (#3178c6) 不透明
+    const rgba = new Uint8ClampedArray([255, 255, 255, 255, 49, 120, 198, 255])
+    const 掩码 = 构建墨迹掩码(rgba, 宽, 高, 'light')
+    expect(掩码.mask[0]).toBe(1)
+    expect(掩码.mask[1]).toBe(0)
+  })
+
+  it('dark 模式只保留暗像素（亮底深字的反向提取）', () => {
+    const 宽 = 2
+    const 高 = 1
+    const rgba = new Uint8ClampedArray([255, 255, 255, 255, 10, 10, 10, 255])
+    const 掩码 = 构建墨迹掩码(rgba, 宽, 高, 'dark')
+    expect(掩码.mask[0]).toBe(0)
+    expect(掩码.mask[1]).toBeCloseTo((0.5 - 10 / 255) * 2, 6)
+  })
+
+  it('light 模式下掩码全空时抛错（防止无字样的底色图标静默丢失）', () => {
+    const 宽 = 2
+    const 高 = 1
+    // 两个像素都是 TS 蓝底色（无白色字样）
+    const rgba = new Uint8ClampedArray([49, 120, 198, 255, 49, 120, 198, 255])
+    expect(() => 构建墨迹掩码(rgba, 宽, 高, 'light')).toThrow('图标掩码为空')
+  })
 })
 
 function 造图标(覆盖: Partial<已载图标> = {}): 已载图标 {
