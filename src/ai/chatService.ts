@@ -1,15 +1,14 @@
 import { useMutation } from '@tanstack/react-query'
 import type { AiMessage, AiToolMeta } from '../store/useAppStore'
 import { retrieveChunks } from './ragEngine'
-import { getLocalAnswer } from './localEngine'
-import { extractJsonFromText, parseAssistantPayload, type AssistantPayload } from './structuredOutput'
+import { 提取信封正文, 有可见正文 } from './structuredOutput'
 import { DEEPSEEK_MAX_TOKENS, DEEPSEEK_RETRIEVE_TOP_K } from './deepseekConfig'
 import { 解析模型, 聊天超时毫秒, type 思考强度, type 模型定义 } from './models'
+import { getLocalAnswer, 选择组件 } from './localEngine'
 import { useAppStore, type 回退原因 } from '../store/useAppStore'
 
 export interface ChatOptions {
   model?: string
-  maxContextChunks?: number
   /** /compact 可选聚焦说明 */
   focus?: string
   /** 中断信号（对齐 Claude Code 的 Esc 中断语义）；abort 时抛出 AbortError，不回退本地兜底 */
@@ -59,36 +58,21 @@ function buildSystemPrompt(context: string): string {
   return `你是玄锐暮本人的 AI 分身，不是他的助手：谈经历、项目、技能和背景时一律用第一人称「我／我的」，像本人在自我介绍与分析；不要说「玄锐暮他如何如何」「他的简历显示」这种第三人称转述。访客问「玄锐暮能不能…」时按「我能不能…」来答。
 你可以自由与用户交流任何话题，但不得生成违法违规内容；涉及本人信息时，以下方简历上下文为准，上下文没有的信息不要编造。
 
-你必须以 JSON 格式回复，格式如下：
-{
-  "text": "回复文本（必填）",
-  "component": {
-    "type": "ProjectCard" | "Timeline" | "ContactLinks"
-    // ProjectCard 额外字段：projectId: "xrm" | "lovewithme" | "aiConsole" | "fengLai"
-    // Timeline 额外字段：scope?: "experience" | "media" | "education"
-    // ContactLinks 无额外字段
-  }
-}
+直接用中文自然语言回答，不要输出 JSON、字段名或代码块包裹的整段回答。
 
-    component 字段可选，仅在用户询问项目、经历/时间线或联系方式时返回对应组件。用户询问联系方式时，只返回 ContactLinks 组件，文本用引导语，不得在文本中直接给出邮箱、电话、QQ、微信号。用户发来图片时，结合图片内容回答。
-  用户问教育/学校/毕业时，text 必须包含学校、专业、学制三要素。
+  用户发来图片时，必须结合图片内容回答。
+  用户问联系方式时，不要在回答里直接写出邮箱、电话、QQ、微信号，只引导访客使用页面上提供的联系方式入口。
+  用户问教育/学校/毕业时，必须包含学校、专业、学制三要素。
   用户问「能不能胜任/适合做什么/够不够格」等评估类问题时，必须给出明确结论，按四步答：
   1 先给结论：能胜任/基本能胜任/暂不适合，并点明匹配程度，禁止用「我无法替他下结论」「只有本人知道」这类话搪塞；
   2 挂证据：每条结论必须紧跟一条来自下方简历上下文的具体事实（哪段经历、哪个项目、哪项技能），无证据的结论不许写；
   3 讲缺口：岗位要求里简历没有直接证据的部分，直说「简历未体现」，不得脑补补全；
   4 收尾再建议联系本人确认细节与意愿。
   事实与推断必须分开措辞（推断句写成「从……看，倾向于……」）；上下文没写的信息一律不得编造。
-  回答末尾的「依据：…」由系统按本轮实际检索到的语料自动附加，text 里不要再写来源标注。
-
-思考过程会原样展示给访客看：只分析用户问题与简历事实本身，不要提及回复格式、JSON、字段名、组件名，也不要写「不需要组件」「文本回复即可」这类格式取舍——上面那段输出协议属于内部机制，任何一句思考里都不许出现。
+  回答末尾的「依据：…」由系统按本轮实际检索到的语料自动附加，回答里不要再写来源标注。
 
 简历上下文：
 ${context}`
-}
-
-function parseDeepSeekResponse(rawContent: string): AssistantPayload {
-  const extracted = extractJsonFromText(rawContent)
-  return parseAssistantPayload(extracted)
 }
 
 export function 是否中断错误(err: unknown): boolean {
@@ -157,6 +141,23 @@ function 分类回退原因(err: unknown): { 回退原因: 回退原因; http状
 }
 
 /**
+ * 「模型没给出可见正文」的唯一出口：本地预制答案接手，思考流原样保留。
+ * 访客因此永远拿得到正文，工具轨迹也会诚实标注兜底原因，不会出现只有思考过程、
+ * 没有任何回答的空回合。原因随实测传入（预算耗尽与格式异常不是一回事）。
+ */
+function 构造无正文兜底(用户问题: string, 思考流: string, 检索命中数: number, 原因: 回退原因): AiMessage {
+  const 兜底正文 = getLocalAnswer(用户问题)
+  if (思考流.length > 0) 兜底正文.reasoning = 思考流
+  兜底正文.meta = {
+    命中数: 检索命中数,
+    耗时毫秒: 0,
+    本地兜底: true,
+    回退原因: 原因,
+  }
+  return 兜底正文
+}
+
+/**
  * 把一条 AiMessage 转为 API 消息体。
  * 带 images 的 user 消息按 vision 格式拆块数组（text 块 + image_url 块）；
  * 其余（含 assistant）保持纯字符串——API 限制图片仅允许出现在 user 消息中。
@@ -178,6 +179,13 @@ function 到Api消息(message: AiMessage): Record<string, unknown> {
 /**
  * DeepSeek(OpenAI 兼容)思考体：官方 thinking_mode 档位——关闭即 thinking.disabled 且不带
  * reasoning_effort；开启档 thinking.enabled + reasoning_effort 直传 low/high/max。
+ *
+ * 为什么全程不发 response_format: json_object：官方限制表明确「不推荐同时启用
+ * thinking.type=enabled 与 response_format.type=json_object」。实测（真实 API，thinking=high）
+ * 同开时长回答会把整段 JSON 正文写进 reasoning_content、content 只剩 200+ 空格 padding，
+ * 界面于是只剩工具轨迹与思考过程、没有回答（技术栈/项目类长回答 3/3 复现）。
+ * 因此聊天链路改为纯自然语言正文，组件由意图表判定；只有 /compact 走官方推荐的
+ * 「thinking.disabled + json_object」组合，那里 JSON 是硬要求。
  */
 function 思考体OpenAI(强度: 思考强度): Record<string, unknown> {
   if (强度 === 'off') return { thinking: { type: 'disabled' } }
@@ -186,7 +194,8 @@ function 思考体OpenAI(强度: 思考强度): Record<string, unknown> {
 
 /**
  * SSE 行解析：按 DeepSeek 官方 thinking_mode 流式示例累加 delta。
- * 同 chunk 双字段各自累加，禁丢 content；choices 空数组（如 [DONE] 后 usage 块）跳过。
+ * 同 chunk 双字段各自累加，禁丢 content；choices 空数组（如 [DONE] 后 usage 块）返回 null 跳过；
+ * finish_reason 单独透传（没有 delta 的结束帧也要读得到，否则无法判断正文是否被 max_tokens 截断）。
  */
 export function 累加流式增量(
   增量: { reasoning_content?: unknown; content?: unknown },
@@ -200,7 +209,7 @@ export function 累加流式增量(
   }
 }
 
-export function 解析SSE行(行: string): { reasoning_content?: string; content?: string } | null {
+export function 解析SSE行(行: string): { reasoning_content?: string; content?: string; finish_reason?: string } | null {
   const 去首空格 = 行.trim()
   if (去首空格 === '' || !去首空格.startsWith('data:')) return null
   const 载荷 = 去首空格.slice('data:'.length).trim()
@@ -211,13 +220,19 @@ export function 解析SSE行(行: string): { reasoning_content?: string; content
   } catch {
     return null
   }
-  const 增量 = (解析值 as { choices?: Array<{ delta?: unknown }> })?.choices?.[0]?.delta as
-    Record<string, unknown> | undefined
-  if (!增量 || typeof 增量 !== 'object') return null
-  const 结果: { reasoning_content?: string; content?: string } = {}
-  if (typeof 增量.reasoning_content === 'string') 结果.reasoning_content = 增量.reasoning_content
-  if (typeof 增量.content === 'string') 结果.content = 增量.content
-  return 结果
+  const 选择 = (解析值 as { choices?: Array<{ delta?: unknown; finish_reason?: unknown }> })?.choices?.[0] as
+    { delta?: unknown; finish_reason?: unknown } | undefined
+  const 增量 = 选择?.delta as Record<string, unknown> | undefined
+  const 结果: { reasoning_content?: string; content?: string; finish_reason?: string } = {}
+  if (增量 && typeof 增量 === 'object') {
+    if (typeof 增量.reasoning_content === 'string') 结果.reasoning_content = 增量.reasoning_content
+    if (typeof 增量.content === 'string') 结果.content = 增量.content
+  }
+  // finish_reason 是判断「正文是否被 max_tokens 截断」的唯一信号，读到就必须透传，
+  // 否则截断的回答会与完整回答长得一模一样，访客无从分辨
+  if (typeof 选择?.finish_reason === 'string') 结果.finish_reason = 选择.finish_reason
+  // usage-only 块（choices 空数组）没有任何可累加也没有结束信号，必须整行跳过
+  return Object.keys(结果).length === 0 ? null : 结果
 }
 
 async function callOpenAICompletions(
@@ -234,10 +249,10 @@ async function callOpenAICompletions(
     messages: [{ role: 'system', content: systemPrompt }, ...messages.map(到Api消息)],
     temperature: 0.6,
     max_tokens: DEEPSEEK_MAX_TOKENS,
-    response_format: { type: 'json_object' },
     stream: true,
     ...思考体OpenAI(思考强度档),
   }
+  const 用户问题 = 获取最后用户内容(messages)
 
   // 凭据由同源反代注入：前端不得构造鉴权头（credentialGuard）
   const response = await 带超时请求(
@@ -266,13 +281,19 @@ async function callOpenAICompletions(
       throw new Error('LLM 返回格式异常')
     }
 
-    const payload = parseDeepSeekResponse(rawContent)
-    return { role: 'assistant', content: payload.text, component: payload.component }
+    const 截断 = data.choices?.[0]?.finish_reason === 'length'
+    if (!有可见正文(rawContent)) {
+      return 构造无正文兜底(用户问题, '', 检索命中数, 截断 ? 'truncated' : 'format')
+    }
+    const 消息: AiMessage = { role: 'assistant', content: rawContent }
+    if (截断) 消息.meta = { 命中数: 检索命中数, 耗时毫秒: 0, 本地兜底: false, 截断: true }
+    return 消息
   }
 
   const 读取器 = (response.body as ReadableStream<Uint8Array>).getReader()
   const 解码器 = new TextDecoder()
   let 缓冲 = ''
+  let 截断 = false
   const 累加 = { reasoning: '', content: '' }
   const 推送 = () => {
     if (onProgress) onProgress({ reasoning: 累加.reasoning, content: 累加.content })
@@ -283,6 +304,7 @@ async function callOpenAICompletions(
   const 推送行 = (行: string): void => {
     const 增量 = 解析SSE行(行)
     if (!增量) return
+    if (增量.finish_reason === 'length') 截断 = true
     const 前思考长 = 累加.reasoning.length
     const 前回答长 = 累加.content.length
     累加流式增量(增量, 累加)
@@ -312,24 +334,16 @@ async function callOpenAICompletions(
 
   if (signal?.aborted) throw 中断拒因()
 
-  if (typeof 累加.content !== 'string' || 累加.content.length === 0) {
-    // 上游 thinking 挤占 token 导致 content 为空时：reasoning 已通过 onProgress 展示，
-    // 此处不再抛格式异常吞掉整轮，改为回退本地兜底，保证访客必得正文结论。
-    const 分类 = 分类回退原因(new Error('LLM 返回格式异常：content 为空'))
-    const 兜底正文 = getLocalAnswer(获取最后用户内容(messages))
-    if (累加.reasoning.length > 0) 兜底正文.reasoning = 累加.reasoning
-    兜底正文.meta = {
-      命中数: 检索命中数,
-      耗时毫秒: 0,
-      本地兜底: true,
-      回退原因: 分类.回退原因,
-    }
-    return 兜底正文
+  // 唯一空正文闸门（流式与非流式共用）：正文为空或只有不可见字符一律当失败，转本地兜底。
+  // 聊天正文是纯自然语言，这里不做任何 JSON 改写——访客主动索要 JSON 时他的内容必须原样送达。
+  if (!有可见正文(累加.content)) {
+    return 构造无正文兜底(用户问题, 累加.reasoning, 检索命中数, 截断 ? 'truncated' : 'format')
   }
 
-  const payload = parseDeepSeekResponse(累加.content)
-  const 消息: AiMessage = { role: 'assistant', content: payload.text, component: payload.component }
+  const 消息: AiMessage = { role: 'assistant', content: 累加.content }
   if (累加.reasoning.length > 0) 消息.reasoning = 累加.reasoning
+  // 截断不是兜底：如实打标让工具轨迹显示「回答已截断」，半截回答不许冒充完整回答
+  if (截断) 消息.meta = { 命中数: 检索命中数, 耗时毫秒: 0, 本地兜底: false, 截断: true }
   return 消息
 }
 
@@ -369,21 +383,26 @@ export async function sendChatMessage(messages: AiMessage[], options: ChatOption
     const { aiThinking } = useAppStore.getState()
     const answer = await callChatModel(messages, buildSystemPrompt(context), aiThinking, options, 安全上下文块.length)
     const 落定耗时 = Date.now() - 开始毫秒
-    if (answer.meta) {
+    // 组件由意图表判定后挂载（模型不再产出组件，见 思考体OpenAI 注释）：在线与本地兜底同源。
+    // 本地兜底路径 getLocalAnswer 已带 component，短路避免重复判定。
+    const 组件 = answer.component ?? 选择组件(userQuestion)
+    const 挂载 = 组件 ? { component: 组件 } : {}
+    const 截断标注 = answer.meta?.截断 ? { 截断: true } : {}
+    if (answer.meta?.本地兜底) {
       return {
-        message: { ...answer, meta: undefined },
+        message: { ...answer, ...挂载, meta: undefined },
         meta: {
           命中数: 安全上下文块.length,
           耗时毫秒: answer.meta.耗时毫秒 || 落定耗时,
-          本地兜底: answer.meta.本地兜底,
+          本地兜底: true,
           依据来源,
           ...(answer.meta.回退原因 ? { 回退原因: answer.meta.回退原因 } : {}),
         },
       }
     }
     return {
-      message: answer,
-      meta: { 命中数: 安全上下文块.length, 耗时毫秒: Date.now() - 开始毫秒, 本地兜底: false, 依据来源 },
+      message: { ...answer, ...挂载, meta: undefined },
+      meta: { 命中数: 安全上下文块.length, 耗时毫秒: 落定耗时, 本地兜底: false, 依据来源, ...截断标注 },
     }
   } catch (err) {
     if (是否中断错误(err)) throw err
@@ -405,6 +424,9 @@ export async function sendChatMessage(messages: AiMessage[], options: ChatOption
  * /compact 指令（对齐 Claude Code）：调用模型把历史对话压缩为一段语义摘要。
  * 与 /clear 的区别：保留语义而非完全清空。失败原样上抛（不本地兜底，
  * 因为兜底会伪造摘要，违反压缩语义）。
+ *
+ * 这里保留 json_object：它是官方推荐的「thinking.disabled + json_object」组合，
+ * JSON 是硬要求（摘要必须是结构化文本），与聊天链路不同，故不受同开冲突影响。
  */
 export async function compactConversation(messages: AiMessage[], options: ChatOptions = {}): Promise<string> {
   const 对话序列化 = messages
@@ -443,10 +465,12 @@ export async function compactConversation(messages: AiMessage[], options: ChatOp
   }
   const data = await response.json()
   const rawContent: unknown = data.choices?.[0]?.message?.content
-  if (typeof rawContent !== 'string') {
+  // 空摘要等于没压缩成功：宁可报错让 /compact 提示失败，也不写入空历史
+  const 摘要 = typeof rawContent === 'string' ? 提取信封正文(rawContent) : ''
+  if (!有可见正文(摘要)) {
     throw new Error('压缩返回格式异常')
   }
-  return parseDeepSeekResponse(rawContent).text
+  return 摘要
 }
 
 export function useChatService(options: ChatOptions = {}) {

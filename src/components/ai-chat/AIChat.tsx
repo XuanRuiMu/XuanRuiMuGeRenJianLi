@@ -5,6 +5,7 @@ import type { AiMessage } from '../../store/useAppStore'
 import { cn } from '../../lib/utils'
 import { t, ta } from '../../i18n/translations'
 import { useChatService, compactConversation, 是否中断错误 } from '../../ai/chatService'
+import { 有可见正文 } from '../../ai/structuredOutput'
 import { 模型列表, 循环思考强度, 步进思考强度, 思考强度顺序, type 思考强度 } from '../../ai/models'
 import { UiComponentRenderer } from './UiComponentRegistry'
 import { 生成追问建议 } from '../../ai/followUpSuggestions'
@@ -78,7 +79,7 @@ function ToolBlock({ name, detail }: { name: string; detail: string }) {
       <div className="flex items-center gap-1.5 text-[#d97757]">
         <span>{name}</span>
       </div>
-      <div className="flex items-center gap-1.5 pl-5 text-[#9aa0aa]">
+      <div className="flex items-center gap-1.5 pl-5 text-[#9aa0aa]" data-testid="tool-detail">
         <span aria-hidden="true">⎿</span>
         <span>{detail}</span>
       </div>
@@ -87,10 +88,10 @@ function ToolBlock({ name, detail }: { name: string; detail: string }) {
 }
 
 /**
- * 模型思考流默认折叠：思考原文会复述内部输出协议（「返回JSON」「不需要组件」），
- * 直接铺在答案上方会让访客看到机制噪声；提示词约束挡不住（实测两次跑两次仍漏），只能结构性收起来。
+ * 模型思考流默认折叠：思考原文会复述内部判断过程，直接铺在答案上方会让访客看到机制噪声，
+ * 只能结构性收起来。展开后高度突变，由 展开后回调 触发消息区重新贴底，否则正文会被顶出视野。
  */
-function ReasoningBlock({ 面板标识, 思考 }: { 面板标识: string; 思考: string }) {
+function ReasoningBlock({ 面板标识, 思考, 展开后 }: { 面板标识: string; 思考: string; 展开后: () => void }) {
   const [展开, set展开] = useState(false)
   return (
     <div className="my-1" data-testid="message-reasoning">
@@ -98,7 +99,10 @@ function ReasoningBlock({ 面板标识, 思考 }: { 面板标识: string; 思考
         type="button"
         aria-expanded={展开}
         aria-controls={面板标识}
-        onClick={() => set展开((旧) => !旧)}
+        onClick={() => {
+          set展开((旧) => !旧)
+          展开后()
+        }}
         className="flex items-center gap-1 text-[11px] text-[#9aa0aa] transition-colors hover:text-[#d97757]"
       >
         <ChevronRight size={11} aria-hidden="true" className={cn('transition-transform', 展开 && 'rotate-90')} />
@@ -123,7 +127,9 @@ function 工具轨迹描述(消息: AiMessage): string {
   const 基础 = `${t('ai.toolHits')} ${元.命中数} ${t('ai.toolSegments')} · ${元.耗时毫秒}ms`
   // 依据来源来自本轮检索命中的语料分类，兜底答案是预制文案，没有真实检索依据，不标注
   const 依据 = 元.依据来源 && 元.依据来源.length > 0 ? ` · ${t('ai.toolSources')}：${元.依据来源.join('、')}` : ''
-  if (!元.本地兜底) return `${基础}${依据}`
+  // 截断与兜底是两回事：被 max_tokens 截断的回答即使有正文也必须让访客知道它不完整
+  const 截断 = 元.截断 ? ` · ${t('ai.toolTruncated')}` : ''
+  if (!元.本地兜底) return `${基础}${依据}${截断}`
   const 原因 =
     元.回退原因 === 'timeout'
       ? ` · ${t('ai.toolTimeout')}`
@@ -131,9 +137,11 @@ function 工具轨迹描述(消息: AiMessage): string {
         ? ` · ${t('ai.toolHttpError')}${typeof 元.http状态 === 'number' ? ` ${元.http状态}` : ''}`
         : 元.回退原因 === 'network'
           ? ` · ${t('ai.toolNetworkError')}`
-          : 元.回退原因 === 'format'
-            ? ` · ${t('ai.toolFormatError')}`
-            : ''
+          : 元.回退原因 === 'truncated'
+            ? ` · ${t('ai.toolBudgetExhausted')}`
+            : 元.回退原因 === 'format'
+              ? ` · ${t('ai.toolFormatError')}`
+              : ''
   return `${基础} · ${t('ai.toolLocalFallback')}${原因}`
 }
 
@@ -323,41 +331,6 @@ export function AIChat({ className }: AIChatProps) {
   const [拖拽中, set拖拽中] = useState(false)
 
   /**
-   * JSON envelope 增量宽容抽取（下游打字机）：response_format=json_object 下 SSE content
-   * 为 `{"text":"..."}` 前缀流。逐帧对 content 累加串抽 `"text":"<已到字符>"` 片段，
-   * 未闭合也显示已到字符；reasoning 上游已是原文，直接直出；两者皆空回退空（禁闪烁）。
-   */
-  const 抽取流式回答 = (累加内容: string): string => {
-    if (累加内容.length === 0) return ''
-    const 键位 = 累加内容.indexOf('"text"')
-    if (键位 === -1) return ''
-    const 冒号位 = 累加内容.indexOf(':', 键位 + 6)
-    if (冒号位 === -1) return ''
-    const 引号位 = 累加内容.indexOf('"', 冒号位 + 1)
-    if (引号位 === -1) return ''
-    let 结果 = ''
-    let 转义中 = false
-    for (let 下标 = 引号位 + 1; 下标 < 累加内容.length; 下标 += 1) {
-      const 字符 = 累加内容[下标]
-      if (转义中) {
-        if (字符 === 'n') 结果 += '\n'
-        else if (字符 === 't') 结果 += '\t'
-        else if (字符 === 'r') 结果 += '\r'
-        else 结果 += 字符 ?? ''
-        转义中 = false
-        continue
-      }
-      if (字符 === '\\') {
-        转义中 = true
-        continue
-      }
-      if (字符 === '"') break
-      结果 += 字符
-    }
-    return 结果
-  }
-
-  /**
    * 发送单条消息（对齐 Claude Code）：发送后立即清空输入栏（由调用方 setInput('')），
    * 携带 AbortController 支持 Esc 中断；中断时保留已发消息并记一条中断提示，
    * 其他错误走错误栏。SSE 流式增量经 onProgress 落到占位助手消息，逐字显示。
@@ -384,17 +357,11 @@ export function AIChat({ className }: AIChatProps) {
       addAiMessage(用户消息)
       const 占位下标 = aiMessagesRef.current.length + 1
       addAiMessage({ role: 'assistant', content: '' })
-      // 下游打字机：每帧直接 updateAiMessage（禁 setTimeout 节流），reasoning 原文
-      // 直出，content 对 JSON envelope 做增量宽容抽取。
+      // 流式打字机：每帧直接 updateAiMessage（禁 setTimeout 节流），两个字段都是累加值，
+      // 原样写入即可——正文不做任何格式改写，落定判定只在 chatService 的唯一闸门里做一次。
       mutateInput.onProgress = (增量: { reasoning: string; content: string }) => {
         if (generationRef.current !== gen || 占位下标 < 0) return
-        const 思考文本 = 增量.reasoning
-        const 回答文本 = 抽取流式回答(增量.content)
-        if (思考文本.length === 0 && 回答文本.length === 0) return
-        updateAiMessage(占位下标, {
-          ...(思考文本.length > 0 ? { reasoning: 思考文本 } : {}),
-          ...(回答文本.length > 0 ? { content: 回答文本 } : {}),
-        })
+        updateAiMessage(占位下标, { reasoning: 增量.reasoning, content: 增量.content })
       }
       try {
         const result = await chatMutation.mutateAsync(mutateInput)
@@ -710,8 +677,8 @@ export function AIChat({ className }: AIChatProps) {
     setPendingImages((prev) => prev.filter((图片) => 图片.key !== key))
   }, [])
 
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  const scrollToBottom = useCallback((平滑: boolean) => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 平滑 ? 'smooth' : 'auto' })
   }, [])
 
   const 开始调整尺寸 = (方向: '宽' | '高' | '双向') => (event: React.PointerEvent<HTMLDivElement>) => {
@@ -739,14 +706,23 @@ export function AIChat({ className }: AIChatProps) {
     window.addEventListener('pointerup', 结束)
     window.addEventListener('pointercancel', 结束)
   }
-
+  /**
+   * 贴底跟随：跟随「末条消息的正文/思考长度」与「思考面板的展开次数」，
+   * 而不是消息条数。长回答流式追加、访客展开思考过程后，正文都不会被顶出视野。
+   * rAF 合并保证每帧最多滚一次；面板打开时才聚焦输入框，流式期间绝不重新聚焦（会打断输入法组字）。
+   */
+  const 末条 = 可见消息[可见消息.length - 1]
+  const 末条指纹 = 末条 ? `${末条.role}:${末条.content.length}:${(末条.reasoning ?? '').length}` : ''
+  const [思考展开次数, set思考展开次数] = useState(0)
   useEffect(() => {
-    if (chatOpen) {
-      scrollToBottom()
-      inputRef.current?.focus()
-    }
-  }, [chatOpen, 可见消息.length, scrollToBottom])
-
+    if (!chatOpen) return
+    inputRef.current?.focus()
+  }, [chatOpen])
+  useEffect(() => {
+    if (!chatOpen) return
+    const 帧 = window.requestAnimationFrame(() => scrollToBottom(!isPending))
+    return () => window.cancelAnimationFrame(帧)
+  }, [chatOpen, 末条指纹, 思考展开次数, isPending, scrollToBottom])
   const handleQuickQuestion = useCallback(
     (question: string) => {
       if (isPending) return
@@ -981,6 +957,9 @@ export function AIChat({ className }: AIChatProps) {
   const 有会话 =
     可见消息.length > 0 || systemLines.length > 0 || queued.length > 0 || isPending || compacting || 模型选择中
   const 显示全局思考行 = (isPending || compacting) && 可见消息.every((消息) => 消息.role !== 'assistant')
+  // 在途判定：转圈行只在本回合真的还在跑时出现。Esc 中断后占位消息不再有正文，
+  // 若不看在途状态就会永远转圈并一直提示「esc中断」——而此时已经没有请求可中断。
+  const 在途 = isPending || compacting
 
   if (!chatOpen) {
     return (
@@ -1099,48 +1078,51 @@ export function AIChat({ className }: AIChatProps) {
       >
         {有会话 ? (
           <div className="flex flex-col gap-3">
-            {可见消息.map((message, index) =>
-              message.role === 'user' ? (
-                <div
-                  key={`${message.role}-${index}-${message.content.slice(0, 12)}`}
-                  className="flex gap-2 text-[13px] leading-relaxed text-[#ededed]"
-                >
-                  <span className="select-none text-[#d97757]" aria-hidden="true">
-                    ❯
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    {message.images && message.images.length > 0 && (
-                      <div className="mb-1.5 flex flex-wrap gap-1.5" data-testid="message-images">
-                        {message.images.map((src, imageIndex) => (
-                          <button
-                            key={`${imageIndex}-${src.slice(-12)}`}
-                            type="button"
-                            onClick={() => setLightboxSrc(src)}
-                            className="overflow-hidden rounded border border-[#2a2a2a] transition-colors hover:border-[#d97757]"
-                          >
-                            <img src={src} alt="" className="h-16 w-16 object-cover" />
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    {message.content && <span className="whitespace-pre-wrap break-words">{message.content}</span>}
+            {可见消息.map((message, index) => {
+              // 落定判定与 chatService 的空正文闸门同源：纯空白正文不算回答，
+              // 否则会出现「工具轨迹齐全 + 正文空白」的假完成回合。
+              const 有正文 = 有可见正文(message.content)
+              if (message.role === 'user') {
+                return (
+                  <div key={`user-${index}`} className="flex gap-2 text-[13px] leading-relaxed text-[#ededed]">
+                    <span className="select-none text-[#d97757]" aria-hidden="true">
+                      ❯
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      {message.images && message.images.length > 0 && (
+                        <div className="mb-1.5 flex flex-wrap gap-1.5" data-testid="message-images">
+                          {message.images.map((src, imageIndex) => (
+                            <button
+                              key={`${imageIndex}-${src.slice(-12)}`}
+                              type="button"
+                              onClick={() => setLightboxSrc(src)}
+                              className="overflow-hidden rounded border border-[#2a2a2a] transition-colors hover:border-[#d97757]"
+                            >
+                              <img src={src} alt="" className="h-16 w-16 object-cover" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {message.content && <span className="whitespace-pre-wrap break-words">{message.content}</span>}
+                    </div>
                   </div>
-                </div>
-              ) : (
+                )
+              }
+              return (
                 <div
-                  key={`${message.role}-${index}-${message.content.slice(0, 12)}`}
+                  key={`assistant-${index}`}
                   className="flex gap-2 text-[13px] leading-relaxed text-[#e6e6e6]"
                   data-testid="assistant-placeholder"
                 >
-                  {message.content.length > 0 && (
+                  {有正文 && (
                     <span className="select-none pt-0.5 text-[#d97757]" aria-hidden="true">
                       ⏺
                     </span>
                   )}
                   <div className="min-w-0 flex-1">
-                    {message.content.length > 0 ? (
+                    {有正文 ? (
                       <ToolBlock name={t('ai.toolName')} detail={工具轨迹描述(message)} />
-                    ) : (
+                    ) : 在途 ? (
                       <div
                         data-testid="pending-thinking"
                         className="flex min-w-0 flex-1 flex-col text-[13px] text-[#9aa0aa]"
@@ -1151,16 +1133,25 @@ export function AIChat({ className }: AIChatProps) {
                         </div>
                         <ToolBlock name={t('ai.toolName')} detail={t('ai.toolRetrieving')} />
                       </div>
-                    )}
+                    ) : null}
                     {message.reasoning && message.reasoning.length > 0 && (
-                      <ReasoningBlock 面板标识={`message-reasoning-panel-${index}`} 思考={message.reasoning} />
+                      <ReasoningBlock
+                        面板标识={`message-reasoning-panel-${index}`}
+                        思考={message.reasoning}
+                        展开后={() => set思考展开次数((旧) => 旧 + 1)}
+                      />
                     )}
-                    <div dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }} />
-                    {message.component && <UiComponentRenderer component={message.component} />}
+                    {有正文 && (
+                      <div
+                        data-testid="assistant-answer"
+                        dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
+                      />
+                    )}
+                    {有正文 && message.component && <UiComponentRenderer component={message.component} />}
                   </div>
                 </div>
               )
-            )}
+            })}
             {显示全局思考行 && (
               <div data-testid="pending-thinking" className="flex gap-2 text-[13px] text-[#9aa0aa]">
                 <div className="flex min-w-0 flex-1 flex-col">

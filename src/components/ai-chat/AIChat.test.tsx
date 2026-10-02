@@ -1341,6 +1341,10 @@ describe('AIChat', () => {
 
     render(<AIChat />)
     expect(screen.getByText(t('ai.toolLocalFallback'), { exact: false })).toBeInTheDocument()
+    // 没有回退原因时不得谎报任何一个原因（复审确认缺陷：无原因 → 「格式异常」）
+    expect(screen.getByTestId('tool-detail').textContent).toBe(
+      `⎿${t('ai.toolHits')} 0 ${t('ai.toolSegments')} · 5ms · ${t('ai.toolLocalFallback')}`
+    )
   })
 
   it('无元数据的历史消息回退为通用知识库标注', () => {
@@ -1358,6 +1362,217 @@ describe('AIChat', () => {
 
     render(<AIChat />)
     expect(screen.getByText(t('ai.toolGeneric'))).toBeInTheDocument()
+  })
+
+  /**
+   * 根因回归：上游把正文挤进 reasoning、content 只剩空白 padding 时，旧实现按
+   * `content.length > 0` 判定「已落定」，界面于是渲染出「工具轨迹 + 空白正文 + 思考过程」，
+   * 看起来回答完了其实什么都没说。现在落定判据与 chatService 同源（剥离不可见字符后非空）。
+   */
+  it('纯空白正文不算已落定：空闲时既无空白工具轨迹也无永久转圈', () => {
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(
+        createMockState({
+          chatOpen: true,
+          aiMessages: [
+            { role: 'user', content: '你的技术栈是什么？' },
+            {
+              role: 'assistant',
+              content: ' '.repeat(232),
+              reasoning: '用户问技术栈……',
+              meta: { 命中数: 2, 耗时毫秒: 2300, 本地兜底: false, 依据来源: ['技术栈'] },
+            },
+          ],
+        })
+      )
+    )
+
+    render(<AIChat />)
+    // 回合已结束（isPending=false）却无正文：不得显示假完成的工具轨迹，也不得停在「检索中」
+    expect(screen.queryByTestId('pending-thinking')).not.toBeInTheDocument()
+    expect(screen.queryByText(/命中 2 段/)).not.toBeInTheDocument()
+    expect(screen.queryAllByText('⏺').length).toBe(0)
+    expect(screen.queryByTestId('assistant-answer')).not.toBeInTheDocument()
+    // 思考流仍可展开查看，机制信息不丢
+    expect(screen.getByTestId('message-reasoning')).toBeInTheDocument()
+  })
+
+  it('无正文但在途时显示思考中占位（区分「还在跑」与「跑完了但没说话」）', () => {
+    mockRuntime.isPending = true
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(
+        createMockState({
+          chatOpen: true,
+          aiMessages: [
+            { role: 'user', content: '你的技术栈是什么？' },
+            { role: 'assistant', content: '', reasoning: '用户问技术栈……' },
+          ],
+        })
+      )
+    )
+
+    render(<AIChat />)
+    expect(screen.getByTestId('pending-thinking')).toBeInTheDocument()
+    expect(screen.getByText(t('ai.toolRetrieving'))).toBeInTheDocument()
+  })
+
+  it('正文落定后渲染工具轨迹与正文（trim 判据下正常路径不受影响）', () => {
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(
+        createMockState({
+          chatOpen: true,
+          aiMessages: [
+            { role: 'user', content: '你的技术栈是什么？' },
+            {
+              role: 'assistant',
+              content: '核心技术栈：Java 25、Node.js、Python。',
+              reasoning: '用户问技术栈……',
+              meta: { 命中数: 2, 耗时毫秒: 2300, 本地兜底: false, 依据来源: ['技术栈'] },
+            },
+          ],
+        })
+      )
+    )
+
+    render(<AIChat />)
+    expect(screen.queryByTestId('pending-thinking')).not.toBeInTheDocument()
+    expect(screen.getByText('命中 2 段 · 2300ms · 依据：技术栈')).toBeInTheDocument()
+    expect(screen.getByText(/核心技术栈：Java 25/)).toBeInTheDocument()
+    expect(screen.queryAllByText('⏺').length).toBe(1)
+  })
+
+  it('长回答流式追加时消息区跟随贴底（回答不会被顶出视野）', async () => {
+    const 原生滚动 = Element.prototype.scrollIntoView
+    const 滚动记录 = vi.fn()
+    Element.prototype.scrollIntoView = 滚动记录
+    const 造状态 = (正文: string) =>
+      createMockState({
+        chatOpen: true,
+        aiMessages: [
+          { role: 'user', content: '你的技术栈是什么？' },
+          { role: 'assistant', content: 正文 },
+        ],
+      })
+    try {
+      mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+        selector(造状态('核心技术栈：Java 25'))
+      )
+
+      const { rerender } = render(<AIChat />)
+      await waitFor(() => {
+        expect(滚动记录).toHaveBeenCalledWith({ behavior: 'smooth' })
+      })
+
+      // 在途时改用 auto：逐帧滚动不能用平滑动画互相打断
+      mockRuntime.isPending = true
+      滚动记录.mockClear()
+      act(() => {
+        rerender(<AIChat />)
+      })
+      await waitFor(() => {
+        expect(滚动记录).toHaveBeenCalledWith({ behavior: 'auto' })
+      })
+
+      // 同一条消息正文变长（流式推进）：消息条数不变，但必须再次贴底
+      mockRuntime.isPending = false
+      滚动记录.mockClear()
+      mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+        selector(造状态('核心技术栈：Java 25、Node.js、Python、React 19、Three.js、Tailwind。'))
+      )
+      act(() => {
+        rerender(<AIChat />)
+      })
+      await waitFor(() => {
+        expect(滚动记录).toHaveBeenCalledWith({ behavior: 'smooth' })
+      })
+    } finally {
+      Element.prototype.scrollIntoView = 原生滚动
+    }
+  })
+
+  it('展开思考过程后消息区重新贴底（展开会让正文被顶出视野）', async () => {
+    const 原生滚动 = Element.prototype.scrollIntoView
+    const 滚动记录 = vi.fn()
+    Element.prototype.scrollIntoView = 滚动记录
+    try {
+      mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+        selector(
+          createMockState({
+            chatOpen: true,
+            aiMessages: [
+              { role: 'user', content: '你的技术栈是什么？' },
+              {
+                role: 'assistant',
+                content: '核心技术栈：Java 25、Node.js、Python。',
+                reasoning: '一段很长的思考流'.repeat(20),
+              },
+            ],
+          })
+        )
+      )
+
+      render(<AIChat />)
+      await waitFor(() => {
+        expect(滚动记录).toHaveBeenCalled()
+      })
+
+      滚动记录.mockClear()
+      fireEvent.click(screen.getByTestId('message-reasoning').querySelector('button') as HTMLButtonElement)
+      await waitFor(() => {
+        expect(screen.getByTestId('message-reasoning-text')).toBeInTheDocument()
+        expect(滚动记录).toHaveBeenCalled()
+      })
+    } finally {
+      Element.prototype.scrollIntoView = 原生滚动
+    }
+  })
+
+  it('正文被 max_tokens 截断时轨迹如实标注（半截回答不许冒充完整回答）', () => {
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(
+        createMockState({
+          chatOpen: true,
+          aiMessages: [
+            { role: 'user', content: '你做过哪些项目' },
+            {
+              role: 'assistant',
+              content: '我做过暮澜纪元、和我恋爱吧，还有',
+              meta: { 命中数: 4, 耗时毫秒: 2500, 本地兜底: false, 截断: true },
+            },
+          ],
+        })
+      )
+    )
+
+    render(<AIChat />)
+    // 截断且非兜底：只标「回答已截断」，不得混进「本地兜底」
+    expect(screen.getByTestId('tool-detail')).toHaveTextContent(t('ai.toolTruncated'))
+    expect(screen.getByTestId('tool-detail').textContent).toBe(
+      `⎿${t('ai.toolHits')} 4 ${t('ai.toolSegments')} · 2500ms · ${t('ai.toolTruncated')}`
+    )
+  })
+
+  it('预算耗尽导致的兜底标注为「输出预算耗尽」而非「格式异常」', () => {
+    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
+      selector(
+        createMockState({
+          chatOpen: true,
+          aiMessages: [
+            { role: 'user', content: '教育背景' },
+            {
+              role: 'assistant',
+              content: '我就读于天津仁爱学院。',
+              meta: { 命中数: 4, 耗时毫秒: 2500, 本地兜底: true, 回退原因: 'truncated' },
+            },
+          ],
+        })
+      )
+    )
+
+    render(<AIChat />)
+    expect(screen.getByTestId('tool-detail')).toHaveTextContent(t('ai.toolLocalFallback'))
+    expect(screen.getByTestId('tool-detail')).toHaveTextContent(t('ai.toolBudgetExhausted'))
+    expect(screen.getByTestId('tool-detail')).not.toHaveTextContent(t('ai.toolFormatError'))
   })
 
   it('标题栏显示三行式头部（名称版本/模型计费/路径），底部状态只读不可点', () => {
@@ -1759,7 +1974,7 @@ describe('AIChat', () => {
     })
   })
 
-  it('FP-R3 SSE增量即落屏多帧递增：半包亦显示已到字符且每帧直接update', async () => {
+  it('SSE增量即落屏多帧递增：正文原样逐帧直写，不做任何格式改写', async () => {
     const 更新序列: string[] = []
     let 捕获进度: ((增量: { reasoning: string; content: string }) => void) | undefined
     mutateAsync.mockImplementationOnce(
@@ -1786,9 +2001,9 @@ describe('AIChat', () => {
       expect(捕获进度).toBeDefined()
     })
     await act(async () => {
-      捕获进度?.({ reasoning: '', content: '{"text":"流' })
-      捕获进度?.({ reasoning: '', content: '{"text":"流式真' })
-      捕获进度?.({ reasoning: '', content: '{"text":"流式真逐字"}' })
+      捕获进度?.({ reasoning: '', content: '流' })
+      捕获进度?.({ reasoning: '', content: '流式真' })
+      捕获进度?.({ reasoning: '', content: '流式真逐字' })
     })
 
     expect(更新序列).toEqual(['流', '流式真', '流式真逐字'])

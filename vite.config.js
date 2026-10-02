@@ -175,9 +175,6 @@ export default defineConfig(({ mode }) => {
             ) {
               return 'ui-vendor'
             }
-            if (['/ai/', '/zod/', '/to-json-schema/'].some((prefix) => id.includes(prefix))) {
-              return 'ai-vendor'
-            }
           },
         },
       },
@@ -203,7 +200,6 @@ export default defineConfig(({ mode }) => {
         'cmdk',
         'zustand',
         '@msgpack/msgpack',
-        'zod',
       ],
       // 仅扫描真实入口，避免预打包扫描器误解析 public/ 下走 CDN importmap 的测试页（如 S2-effects.html）
       entries: ['index.html'],

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getLocalAnswer, RULES } from './localEngine'
+import { getLocalAnswer, 选择组件, RULES } from './localEngine'
 import { 共享意图表 } from './intentTable'
 import type { UiComponent } from './structuredOutput'
 import { personalInfo } from '../data/personalInfo'
@@ -217,5 +217,90 @@ describe('兜底意图与预制答案的一致性不变量（FP-04b：不留死�
     expect(getLocalAnswer('你的ui设计能力').content).toBe(诚实兜底)
     expect(getLocalAnswer('你会乐器吗').content).toBe(诚实兜底)
     expect(getLocalAnswer('你在b站发视频吗').content).toBe(诚实兜底)
+  })
+})
+
+describe('选择组件：在线与本地兜底共用的唯一组件判定（单一权威不变量）', () => {
+  it('与 getLocalAnswer 的 component 永不分叉（同一份意图表、同一次判定）', () => {
+    const 问句集 = [
+      '你是谁',
+      '介绍一下暮澜纪元',
+      '介绍一下和我恋爱吧',
+      '蜂来是做什么的',
+      '介绍一下循环工程skill',
+      '介绍项目',
+      '你做过哪些项目',
+      '怎么联系你',
+      '你的微信是多少',
+      '邮箱是什么',
+      '教育背景',
+      '他是哪个学校毕业的?',
+      '我的工作经历',
+      '你的技术栈',
+      '你擅长什么技术',
+      '你的目标岗位是什么',
+      '你好',
+      '谢谢',
+      '再见',
+      '今天天气怎么样',
+      '项目管理是你的核心能力吗',
+      '推荐几首歌',
+      '我没做过什么项目',
+      '我不想公开联系方式',
+    ]
+    for (const 问句 of 问句集) {
+      expect(选择组件(问句), `「${问句}」组件判定与本地兜底分叉`).toEqual(getLocalAnswer(问句).component)
+    }
+  })
+
+  it('否定句与比较句不挂组件（模型会按提示词说「简历未体现」，卡片会与正文自相矛盾）', () => {
+    // 这组反例来自独立盲区审计对真实模块的实测，修复前全部会挂上矛盾卡片
+    for (const 问句 of [
+      '我没做过什么项目，能胜任大厂前端吗',
+      '我没有工作经验，能做前端吗',
+      '我不想公开联系方式，可以匿名联系吗',
+      '不愿透露我的隐私信息，怎么联系你',
+      '你的项目经验和技术栈哪个更重要',
+    ]) {
+      expect(选择组件(问句), `「${问句}」不应挂组件`).toBeUndefined()
+    }
+  })
+
+  it('闸门只挡组件不挡答案（访客说「我没做过项目」问的是他自己，答案不矛盾）', () => {
+    const 结果 = getLocalAnswer('我没做过什么项目，能胜任大厂前端吗')
+    expect(结果.component).toBeUndefined()
+    // 答案仍是项目类预制文案（人称上不矛盾），不是诚实兜底
+    expect(结果.content).toContain('暮澜纪元')
+  })
+
+  it('疑问式「有没有」不算否定（正常提问仍要弹卡片）', () => {
+    expect(选择组件('有没有实习经历')).toEqual({ type: 'Timeline', scope: 'experience' })
+  })
+
+  it('通用连接词「还是/相比」不得当成否定（复审实测误伤的真卡片）', () => {
+    // 这组来自复审对真实模块的实测：收进闸门会把真卡片一起挡掉
+    expect(选择组件('微信还是邮箱都行，怎么联系你')).toEqual({ type: 'ContactLinks' })
+    expect(选择组件('相比之下，你做过哪些项目')).toEqual({ type: 'ProjectCard', projectId: 'xrm' })
+    expect(选择组件('相比之下你的教育背景如何')).toEqual({ type: 'Timeline', scope: 'education' })
+    expect(选择组件('我还是更关心项目，怎么联系你')).toEqual({ type: 'ContactLinks' })
+  })
+
+  it('组件被闸门抑制时联系方式文案不得承诺不存在的按钮（复审确认缺陷）', () => {
+    const 结果 = getLocalAnswer('我不想公开联系方式，可以匿名联系吗')
+    expect(结果.component).toBeUndefined()
+    expect(结果.content).toBe(t('chat.answers.contactNoButton' as never))
+    expect(结果.content).not.toContain('点下方按钮')
+  })
+
+  it('未触发闸门时联系方式文案与按钮卡片同时给出', () => {
+    const 结果 = getLocalAnswer('怎么联系你')
+    expect(结果.component).toEqual({ type: 'ContactLinks' })
+    expect(结果.content).toBe(t('chat.answers.contact'))
+  })
+
+  it('无组件意图恒为 undefined（技术栈/姓名/目标岗位/闲聊都不弹卡片）', () => {
+    for (const 问句 of ['你是谁', '你的技术栈', '你的目标岗位是什么', '今天天气怎么样', '你好']) {
+      expect(选择组件(问句), `「${问句}」不应有组件`).toBeUndefined()
+    }
   })
 })

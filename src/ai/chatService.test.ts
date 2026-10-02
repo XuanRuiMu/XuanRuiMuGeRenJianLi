@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { sendChatMessage, compactConversation, 是否超时错误, 是否中断错误 } from './chatService'
+import { 有可见正文 } from './structuredOutput'
 import { personalInfo } from '../data/personalInfo'
 import { DEEPSEEK_MODEL, DEEPSEEK_ENDPOINT } from './deepseekConfig'
 import { useAppStore } from '../store/useAppStore'
@@ -62,7 +63,7 @@ describe('chatService', () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        choices: [{ message: { content: '{"text":"DeepSeek 回答"}' } }],
+        choices: [{ message: { content: 'DeepSeek 回答' } }],
       }),
     })
 
@@ -79,11 +80,30 @@ describe('chatService', () => {
     expect(body.thinking).toEqual({ type: 'enabled' })
     // 默认强度 high：官方档位 reasoning_effort 直传
     expect(body.reasoning_effort).toBe('high')
-    expect(body.response_format).toEqual({ type: 'json_object' })
     expect(result.message.content).toBe('DeepSeek 回答')
     // 远程成功时标注非兜底并给出检索命中数
     expect(result.meta.本地兜底).toBe(false)
     expect(result.meta.命中数).toBeGreaterThanOrEqual(0)
+  })
+
+  it('聊天链路全程不发 response_format（官方不推荐与 thinking 同开）', async () => {
+    // 根因回归：thinking.enabled + json_object 同开时，长回答的正文会整段落进 reasoning_content，
+    // content 只剩 200+ 空格 padding，界面于是只剩工具轨迹与思考过程。逐档断言请求体。
+    for (const 强度 of ['off', 'low', 'high', 'max'] as const) {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ choices: [{ message: { content: '正文' } }] }),
+      })
+      useAppStore.setState({ aiThinking: 强度 })
+
+      await sendChatMessage([{ role: 'user', content: '你的技术栈是什么？' }])
+
+      const callArgs = mockFetch.mock.calls.at(-1) as [string, RequestInit]
+      const body = JSON.parse((callArgs[1].body as string) ?? '{}')
+      expect(body.response_format, `思考档「${强度}」不得下发 json_object`).toBeUndefined()
+      // 正文通道必须是纯文本形态：提示词不再要求 JSON
+      expect(body.messages[0].content).not.toContain('"component"')
+    }
   })
 
   it('远程回答的 meta 带依据来源（取自本轮检索命中的语料分类）', async () => {
@@ -127,10 +147,10 @@ describe('chatService', () => {
     expect(系统提示).toContain('不得编造')
   })
 
-  it('系统提示词约束思考流不得提及输出格式（reasoning 会原样展示给访客）', async () => {
+  it('系统提示词已无 JSON/组件协议（思考流无从泄漏输出格式取舍）', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ choices: [{ message: { content: '{"text":"ok"}' } }] }),
+      json: async () => ({ choices: [{ message: { content: 'ok' } }] }),
     })
 
     await sendChatMessage([{ role: 'user', content: '你是谁' }])
@@ -138,14 +158,20 @@ describe('chatService', () => {
     const callArgs = mockFetch.mock.calls[0] as [string, RequestInit]
     const body = JSON.parse((callArgs[1].body as string) ?? '{}')
     const 系统提示: string = body.messages[0].content
-    expect(系统提示).toContain('思考过程会原样展示给访客')
-    expect(系统提示).toMatch(/不要提及回复格式、JSON、字段名、组件名/)
+    // 输出协议整体下线：正文是纯自然语言，组件由意图表决定，提示词里不得再出现协议残留
+    expect(系统提示).not.toContain('component')
+    expect(系统提示).not.toContain('ProjectCard')
+    expect(系统提示).not.toContain('ContactLinks')
+    expect(系统提示).not.toContain('"text"')
+    expect(系统提示).toMatch(/直接用中文自然语言回答/)
+    // 联系渠道不直给仍是硬约束（联系方式组件只给入口，不给号码与邮箱）
+    expect(系统提示).toMatch(/不要在回答里直接写出邮箱、电话、QQ、微信号/)
   })
 
   it('sends user images as vision content blocks（图片消息按官方块数组格式）', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ choices: [{ message: { content: '{"text":"图里是一只猫"}' } }] }),
+      json: async () => ({ choices: [{ message: { content: '图里是一只猫' } }] }),
     })
 
     const result = await sendChatMessage([
@@ -190,17 +216,14 @@ describe('chatService', () => {
     expect(body.messages[3].content).toBe('问题二')
   })
 
-  it('parses structured JSON response from DeepSeek', async () => {
+  it('模型正文里的 component 一律忽略：组件只认意图表判定', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         choices: [
           {
             message: {
-              content: JSON.stringify({
-                text: '推荐暮澜纪元项目',
-                component: { type: 'ProjectCard', projectId: 'xrm' },
-              }),
+              content: '推荐暮澜纪元项目，另外附一个联系方式组件。',
             },
           },
         ],
@@ -209,25 +232,36 @@ describe('chatService', () => {
 
     const result = await sendChatMessage([{ role: 'user', content: '推荐一个项目' }])
 
-    expect(result.message.content).toBe('推荐暮澜纪元项目')
-    expect(result.message.component).toEqual({ type: 'ProjectCard', projectId: 'xrm' })
+    expect(result.message.content).toBe('推荐暮澜纪元项目，另外附一个联系方式组件。')
+    expect(result.message.component).toBeUndefined()
   })
 
-  it('LLM链路蜂来问答同样可配追问信号（组件透传不断链）', async () => {
+  it('组件与本地兜底同源：问项目/联系/教育时在线也挂同一张卡片', async () => {
+    for (const [问句, 期望组件] of [
+      ['介绍一下暮澜纪元', { type: 'ProjectCard', projectId: 'xrm' }],
+      ['怎么联系你', { type: 'ContactLinks' }],
+      ['教育背景', { type: 'Timeline', scope: 'education' }],
+      ['你的技术栈', undefined],
+    ] as const) {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ choices: [{ message: { content: '模型正文' } }] }),
+      })
+
+      const result = await sendChatMessage([{ role: 'user', content: 问句 }])
+
+      expect(result.message.content).toBe('模型正文')
+      expect(result.message.component, `「${问句}」组件判定`).toEqual(期望组件)
+      expect(result.meta.本地兜底).toBe(false)
+    }
+  })
+
+  it('LLM链路蜂来问答同样可配追问信号（组件由意图表挂载不断链）', async () => {
     const { 生成追问建议 } = await import('./followUpSuggestions')
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        choices: [
-          {
-            message: {
-              content: JSON.stringify({
-                text: '蜂来介绍',
-                component: { type: 'ProjectCard', projectId: 'fengLai' },
-              }),
-            },
-          },
-        ],
+        choices: [{ message: { content: '蜂来介绍' } }],
       }),
     })
 
@@ -418,7 +452,7 @@ describe('chatService', () => {
   it('你好成功时检索为空且非兜底（空上下文而非硬塞）', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ choices: [{ message: { content: '{"text":"你好呀"}' } }] }),
+      json: async () => ({ choices: [{ message: { content: '你好呀' } }] }),
     })
     const result = await sendChatMessage([{ role: 'user', content: '你好' }])
     expect(result.message.content).toBe('你好呀')
@@ -429,23 +463,19 @@ describe('chatService', () => {
     expect(JSON.stringify(body)).not.toContain('暮澜纪元')
   })
 
-  it('联系问法发给模型的上下文过滤邮箱直给块', async () => {
+  it('联系问法发给模型的上下文过滤邮箱直给块（组件只给入口）', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({
-        choices: [
-          { message: { content: JSON.stringify({ text: '点按钮联系', component: { type: 'ContactLinks' } }) } },
-        ],
-      }),
+      json: async () => ({ choices: [{ message: { content: '点按钮联系' } }] }),
     })
     const result = await sendChatMessage([{ role: 'user', content: '怎么联系你' }])
+    // ContactLinks 现在由意图表挂载，不再依赖模型吐出组件
     expect(result.message.component).toEqual({ type: 'ContactLinks' })
     const callArgs = mockFetch.mock.calls.at(-1) as [string, RequestInit]
     const body = JSON.parse((callArgs[1].body as string) ?? '{}')
     const 系统提示 = String(body.messages?.[0]?.content ?? '')
     expect(系统提示).not.toContain(personalInfo.email)
     expect(系统提示).not.toContain(personalInfo.phone)
-    expect(系统提示).toContain('ContactLinks')
     expect(系统提示).not.toContain('ContactForm')
   })
 
@@ -484,21 +514,21 @@ describe('chatService', () => {
     return `data: ${JSON.stringify({ choices: [{ delta: 增量 }] })}\n\n`
   }
 
-  it('请求体携带stream:true走SSE', async () => {
-    mockFetch.mockResolvedValueOnce(构造SSE响应([sse行({ content: '{"text":"流式回答"}' }), 'data: [DONE]\n\n']))
+  it('请求体携带stream:true走SSE且不再下发json_object', async () => {
+    mockFetch.mockResolvedValueOnce(构造SSE响应([sse行({ content: '流式回答' }), 'data: [DONE]\n\n']))
 
     const result = await sendChatMessage([{ role: 'user', content: '你是谁' }])
 
     const callArgs = mockFetch.mock.calls.at(-1) as [string, RequestInit]
     const body = JSON.parse((callArgs[1].body as string) ?? '{}')
     expect(body.stream).toBe(true)
-    expect(body.response_format).toEqual({ type: 'json_object' })
+    expect(body.response_format).toBeUndefined()
     expect(result.message.content).toBe('流式回答')
   })
 
   it('reasoning与content先后增量到达onProgress且文本递增', async () => {
-    const 内容前半 = '{"text":"答'
-    const 内容后半 = '案"}'
+    const 内容前半 = '答'
+    const 内容后半 = '案'
     mockFetch.mockResolvedValueOnce(
       构造SSE分片响应([
         sse行({ reasoning_content: '思考一' }),
@@ -517,20 +547,15 @@ describe('chatService', () => {
     expect(快照.map((帧) => `${帧.reasoning}|${帧.content}`)).toEqual([
       '思考一|',
       '思考一思考二|',
-      '思考一思考二|{"text":"答',
-      '思考一思考二|{"text":"答案"}',
+      '思考一思考二|答',
+      '思考一思考二|答案',
     ])
-    const 首个回答帧 = 快照.findIndex((帧) => 帧.content.length > 0)
-    expect(首个回答帧).toBeGreaterThan(1)
-    expect(快照[快照.length - 1].content).toContain('{"text"')
     expect(result.message.content).toBe('答案')
     expect(result.message.reasoning).toBe('思考一思考二')
   })
 
   it('同chunk双字段不丢content', async () => {
-    mockFetch.mockResolvedValueOnce(
-      构造SSE响应([sse行({ reasoning_content: 'R', content: '{"text":"AB"}' }), 'data: [DONE]\n\n'])
-    )
+    mockFetch.mockResolvedValueOnce(构造SSE响应([sse行({ reasoning_content: 'R', content: 'AB' }), 'data: [DONE]\n\n']))
 
     const 快照: Array<{ reasoning: string; content: string }> = []
     const result = await sendChatMessage([{ role: 'user', content: '你是谁' }], {
@@ -546,7 +571,7 @@ describe('chatService', () => {
     mockFetch.mockResolvedValueOnce(
       构造SSE响应([
         '\n',
-        sse行({ content: '{"text":"OK"}' }),
+        sse行({ content: 'OK' }),
         '\n',
         'data: [DONE]\n\n',
         'data: {"choices":[],"usage":{"prompt_tokens":1}}\n\n',
@@ -555,6 +580,150 @@ describe('chatService', () => {
 
     const result = await sendChatMessage([{ role: 'user', content: '你好' }])
     expect(result.message.content).toBe('OK')
+  })
+
+  /**
+   * 根因回归组：thinking 与 json_object 同开时上游把正文整段挤进 reasoning、content 只剩空白 padding。
+   * 三种空正文形态（纯空白 / 空信封 / 空串）都必须落到本地兜底，绝不能把空白当答案落库。
+   */
+  it.each([
+    ['纯空白padding', ' '.repeat(232)],
+    ['零宽字符', '\u200b'.repeat(232)],
+    ['制表与换行', '\n\t \n'],
+    ['空串', ''],
+  ])('content 为%s时回退本地兜底且保留思考流', async (标签, 原始正文) => {
+    mockFetch.mockResolvedValueOnce(
+      构造SSE响应([sse行({ reasoning_content: '只有思考' }), sse行({ content: 原始正文 }), 'data: [DONE]\n\n'])
+    )
+
+    const result = await sendChatMessage([{ role: 'user', content: '你的技术栈是什么？' }])
+
+    expect(result.meta.本地兜底, `${标签} 必须兜底`).toBe(true)
+    expect(result.meta.回退原因).toBe('format')
+    expect(result.message.content.trim().length, `${标签} 兜底正文不得为空白`).toBeGreaterThan(0)
+    expect(result.message.reasoning).toContain('只有思考')
+    expect(result.meta.依据来源).toEqual(expect.any(Array))
+  })
+
+  it('非流式空白正文同样走兜底（非流式分支曾只看 typeof string）', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: '   \n  ' } }] }),
+    })
+
+    const result = await sendChatMessage([{ role: 'user', content: '教育背景' }])
+
+    expect(result.meta.本地兜底).toBe(true)
+    expect(result.meta.回退原因).toBe('format')
+    expect(result.message.content).toContain('天津仁爱学院')
+    expect(result.message.component).toEqual({ type: 'Timeline', scope: 'education' })
+  })
+
+  it('JSON 信封被 token 截断时原样送达（聊天链路不改写正文），截断如实标注', async () => {
+    mockFetch.mockResolvedValueOnce(
+      构造SSE响应([
+        sse行({ reasoning_content: '思考' }),
+        sse行({ content: '核心技术栈：Java 25、Node.js。' }),
+        'data: {"choices":[{"delta":{},"finish_reason":"length"}]}\n\n',
+        'data: [DONE]\n\n',
+      ])
+    )
+
+    const result = await sendChatMessage([{ role: 'user', content: '你的技术栈是什么？' }])
+
+    expect(result.message.content).toBe('核心技术栈：Java 25、Node.js。')
+    expect(result.meta.本地兜底).toBe(false)
+    expect(result.meta.截断).toBe(true)
+  })
+
+  it('finish_reason=length 且正文为空时按「输出预算耗尽」而非「格式异常」兜底（原因必须诚实）', async () => {
+    mockFetch.mockResolvedValueOnce(
+      构造SSE响应([
+        sse行({ reasoning_content: '思考很长吃满预算' }),
+        sse行({ content: '   ' }),
+        'data: {"choices":[{"delta":{},"finish_reason":"length"}]}\n\n',
+        'data: [DONE]\n\n',
+      ])
+    )
+
+    const result = await sendChatMessage([{ role: 'user', content: '教育背景' }])
+
+    expect(result.meta.本地兜底).toBe(true)
+    expect(result.meta.回退原因).toBe('truncated')
+    expect(result.message.content).toContain('天津仁爱学院')
+  })
+
+  it('访客索要 JSON 时正文原样送达（聊天链路绝不吞掉或改写真实答案）', async () => {
+    const 访客要的JSON = '{"text":["a","b"],"count":2}'
+    mockFetch.mockResolvedValueOnce(构造SSE响应([sse行({ content: 访客要的JSON }), 'data: [DONE]\n\n']))
+
+    const result = await sendChatMessage([{ role: 'user', content: '给我一段 JSON 示例' }])
+
+    expect(result.message.content).toBe(访客要的JSON)
+    expect(result.meta.本地兜底).toBe(false)
+  })
+
+  it('非流式分支同样透传 finish_reason 截断标记', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: '半截回答' }, finish_reason: 'length' }] }),
+    })
+
+    const result = await sendChatMessage([{ role: 'user', content: '你做过哪些项目' }])
+
+    expect(result.message.content).toBe('半截回答')
+    expect(result.meta.截断).toBe(true)
+    expect(result.meta.本地兜底).toBe(false)
+  })
+
+  /**
+   * 逐帧驱动（每帧 3~6 字，模拟真实 SSE 分片）：长回答下每一帧都必须与「整段累加后」的
+   * 结果一致，且落定值等于最后一帧值。e2e 的 route.fulfill 是一次性投喂、无法真正分帧，
+   * 流式路径的逐帧行为只能在这里被证明。
+   */
+  it('长回答逐帧分片：每帧可见且落定值等于最后一帧（流式与落定不分叉）', async () => {
+    const 原文 =
+      '核心技术栈：Java 25 与 GraalVM 跑 Spigot/Purpur 服务端插件，Node.js 走 Express 全栈，Python 做自动化与 AI 工具链。'
+    const 帧列表: string[] = []
+    for (let 下标 = 0; 下标 < 原文.length; 下标 += 5) 帧列表.push(sse行({ content: 原文.slice(下标, 下标 + 5) }))
+    mockFetch.mockResolvedValueOnce(构造SSE分片响应([...帧列表, 'data: [DONE]\n\n']))
+
+    const 快照: Array<string> = []
+    const result = await sendChatMessage([{ role: 'user', content: '你的技术栈是什么？' }], {
+      onProgress: (进度) => 快照.push(进度.content),
+    })
+
+    // 每帧都是原答案的递增前缀（逐字直写，不做任何改写）
+    expect(快照.length).toBe(帧列表.length)
+    快照.forEach((帧, 序) => {
+      expect(帧).toBe(原文.slice(0, (序 + 1) * 5))
+      expect(有可见正文(帧)).toBe(true)
+    })
+    expect(快照[快照.length - 1]).toBe(原文)
+    expect(result.message.content).toBe(原文)
+    expect(result.meta.本地兜底).toBe(false)
+  })
+
+  it('思考帧先于正文帧到达时，中途不误判为「无正文」', async () => {
+    mockFetch.mockResolvedValueOnce(
+      构造SSE分片响应([
+        sse行({ reasoning_content: '先想' }),
+        sse行({ reasoning_content: '再想' }),
+        sse行({ content: '第一段' }),
+        sse行({ content: '第二段' }),
+        'data: [DONE]\n\n',
+      ])
+    )
+
+    const 快照: Array<{ reasoning: string; content: string }> = []
+    const result = await sendChatMessage([{ role: 'user', content: '你是谁' }], {
+      onProgress: (进度) => 快照.push({ ...进度 }),
+    })
+
+    expect(快照.slice(0, 2).map((帧) => 帧.content)).toEqual(['', ''])
+    expect(result.message.reasoning).toBe('先想再想')
+    expect(result.message.content).toBe('第一段第二段')
+    expect(result.meta.本地兜底).toBe(false)
   })
 
   it('流式中断抛AbortError且已累积增量保留、不进兜底', async () => {
@@ -639,5 +808,19 @@ describe('compactConversation（/compact 语义压缩）', () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 503, text: async () => 'Service Unavailable' })
 
     await expect(compactConversation([{ role: 'user', content: '你好' }])).rejects.toThrow()
+  })
+
+  it.each([
+    ['空信封', '{"text":""}'],
+    ['没有text字段', '{"answer":"别的字段名"}'],
+    ['纯空白文本', '   '],
+    ['非字符串', undefined],
+  ])('压缩返回%s时报错而非写入空摘要（空历史会让后续对话失忆）', async (标签, rawContent) => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: rawContent } }] }),
+    })
+
+    await expect(compactConversation([{ role: 'user', content: '你好' }]), 标签).rejects.toThrow('压缩返回格式异常')
   })
 })

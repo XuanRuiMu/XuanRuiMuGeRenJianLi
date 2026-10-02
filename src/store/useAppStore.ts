@@ -9,12 +9,14 @@ export type AppTheme = 'dark' | 'light' | 'system'
 export type AppSection =
   'hero' | 'about' | 'projects' | 'skills' | 'experience' | 'education' | 'design' | 'media' | 'contact'
 
-export type 回退原因 = 'timeout' | 'http' | 'network' | 'format'
+export type 回退原因 = 'timeout' | 'http' | 'network' | 'format' | 'truncated'
 
 export interface AiToolMeta {
   命中数: number
   耗时毫秒: number
   本地兜底: boolean
+  /** 正文被 max_tokens 截断（finish_reason=length）：如实告知访客，不让半截回答冒充完整回答 */
+  截断?: boolean
   /** 本轮检索命中的语料分类（已转中文来源名），用于回答末尾标注依据 */
   依据来源?: string[]
   回退原因?: 回退原因

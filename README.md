@@ -57,8 +57,8 @@
 | 框架 | [React 19](https://react.dev/) + [Vite 8](https://vite.dev/) + TypeScript             |
 | 3D   | [Three.js](https://threejs.org/) + @react-three/fiber + @react-three/drei + matter-js |
 | 样式 | [Tailwind CSS 4](https://tailwindcss.com/) + framer-motion + lenis 平滑滚动           |
-| 数据 | zustand + TanStack Query + zod                                                        |
-| AI   | Vercel AI SDK（`ai` 包）接入问答                                                      |
+| 数据 | zustand + TanStack Query                                                              |
+| AI   | 自研 DeepSeek 流式客户端（零密钥，同源反代注入凭据）                                  |
 | PWA  | vite-plugin-pwa + Workbox（离线 / 安装）                                              |
 | 性能 | 字体子集化（subset-font）、资源优化、web-vitals 观测                                  |
 | 质量 | ESLint + Prettier + oxlint + Vitest + Playwright E2E + CI                             |

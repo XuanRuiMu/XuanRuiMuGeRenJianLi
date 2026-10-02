@@ -44,16 +44,16 @@ A **content-first, tech-showcase** online résumé website that turns a job rés
 
 ## Tech stack
 
-| Layer       | Technology                                                                            |
-| ----------- | ------------------------------------------------------------------------------------- |
-| Framework   | [React 19](https://react.dev/) + [Vite 8](https://vite.dev/) + TypeScript             |
-| 3D          | [Three.js](https://threejs.org/) + @react-three/fiber + @react-three/drei + matter-js |
-| Styling     | [Tailwind CSS 4](https://tailwindcss.com/) + framer-motion + lenis smooth scroll      |
-| Data        | zustand + TanStack Query + zod                                                        |
-| AI          | Vercel AI SDK (`ai`) for Q&A                                                          |
-| PWA         | vite-plugin-pwa + Workbox (offline / install)                                         |
-| Performance | font subsetting (subset-font), asset optimization, web-vitals                         |
-| Quality     | ESLint + Prettier + oxlint + Vitest + Playwright E2E + CI                             |
+| Layer       | Technology                                                                                      |
+| ----------- | ----------------------------------------------------------------------------------------------- |
+| Framework   | [React 19](https://react.dev/) + [Vite 8](https://vite.dev/) + TypeScript                       |
+| 3D          | [Three.js](https://threejs.org/) + @react-three/fiber + @react-three/drei + matter-js           |
+| Styling     | [Tailwind CSS 4](https://tailwindcss.com/) + framer-motion + lenis smooth scroll                |
+| Data        | zustand + TanStack Query                                                                        |
+| AI          | In-house DeepSeek streaming client (zero-secret, credentials injected by the same-origin proxy) |
+| PWA         | vite-plugin-pwa + Workbox (offline / install)                                                   |
+| Performance | font subsetting (subset-font), asset optimization, web-vitals                                   |
+| Quality     | ESLint + Prettier + oxlint + Vitest + Playwright E2E + CI                                       |
 
 ---
 
