@@ -262,7 +262,6 @@ export function SkillsSection() {
             <Reveal key={组.id}>
               <div data-skill-group={组.id} className="h-full rounded-2xl border border-border/60 bg-surface/40 p-5">
                 <h4 className="text-base font-medium text-text-primary">{组.label}</h4>
-                <p className="mt-1 text-xs leading-relaxed text-text-secondary">{组.description}</p>
                 <ul className="mt-3 space-y-2">
                   {组.items.map((陈述) => (
                     <li key={陈述} className="flex gap-2 text-sm leading-relaxed text-text-secondary">

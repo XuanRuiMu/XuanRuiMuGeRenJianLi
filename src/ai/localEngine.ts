@@ -23,7 +23,7 @@ export const RULES: LocalRule[] = [
   { 意图ID: 'contact', key: 'contact', component: { type: 'ContactLinks' } },
   {
     意图ID: 项目通用规则ID,
-    聚合意图ID: ['projects-xrm', 'projects-爱与循环', 'projects-蜂来'],
+    聚合意图ID: ['projects-xrm', 'projects-爱与循环', 'projects-羊来'],
     key: 'projects',
     component: { type: 'ProjectCard', projectId: 'xrm' },
   },

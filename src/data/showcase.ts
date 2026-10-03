@@ -1,4 +1,5 @@
 import type { TranslationKey } from '../i18n/translations'
+import { yangLaiWebUrl } from './projects'
 
 export interface ShowcaseCard {
   id: string
@@ -172,11 +173,11 @@ export const showcaseRows: ShowcaseRow[] = [
         image: '/showcase/恋爱吧管理中心LianAiBaGuanLiZhongXin.png',
       },
       {
-        id: 'fenglai',
-        titleKey: 'showcase.cards.fenglai.title',
-        descKey: 'showcase.cards.fenglai.desc',
-        href: 'https://xuanruimu.github.io/FengLai/index.html',
-        image: '/showcase/蜂来.png',
+        id: 'yanglai',
+        titleKey: 'showcase.cards.yanglai.title',
+        descKey: 'showcase.cards.yanglai.desc',
+        href: yangLaiWebUrl,
+        image: '/showcase/羊来.png',
       },
     ],
   },

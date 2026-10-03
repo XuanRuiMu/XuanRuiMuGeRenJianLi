@@ -256,19 +256,19 @@ describe('chatService', () => {
     }
   })
 
-  it('LLM链路蜂来问答同样可配追问信号（组件由意图表挂载不断链）', async () => {
+  it('LLM链路羊来问答同样可配追问信号（组件由意图表挂载不断链）', async () => {
     const { 生成追问建议 } = await import('./followUpSuggestions')
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        choices: [{ message: { content: '蜂来介绍' } }],
+        choices: [{ message: { content: '羊来介绍' } }],
       }),
     })
 
-    const result = await sendChatMessage([{ role: 'user', content: '蜂来是做什么的' }])
+    const result = await sendChatMessage([{ role: 'user', content: '羊来是做什么的' }])
 
-    expect(result.message.component).toEqual({ type: 'ProjectCard', projectId: 'fengLai' })
-    expect(生成追问建议('蜂来是做什么的', result.message)).toHaveLength(3)
+    expect(result.message.component).toEqual({ type: 'ProjectCard', projectId: 'yangLai' })
+    expect(生成追问建议('羊来是做什么的', result.message)).toHaveLength(3)
   })
 
   it('falls back to text when DeepSeek returns plain text', async () => {

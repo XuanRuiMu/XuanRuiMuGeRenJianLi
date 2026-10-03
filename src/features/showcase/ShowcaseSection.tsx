@@ -1,31 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import {
-  GraduationCap,
-  Code2,
-  Network,
-  Database,
-  Users,
-  Cpu,
-  Microchip,
-  Landmark,
-  Drama,
-  Palette,
-  Sparkles,
-  Shapes,
-  Brush,
-  BookOpen,
-  Mic,
-  Gamepad2,
-  MonitorPlay,
-  Music,
-  FolderGit2,
-  GitBranch,
-  type LucideIcon,
-} from 'lucide-react'
+import { Shapes } from 'lucide-react'
 import { motion, useScroll, useSpring, useTransform } from 'framer-motion'
 import { showcaseRows, type ShowcaseCard } from '../../data/showcase'
 import { t } from '../../i18n/translations'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
+import { 卡片图标表 } from './cardIcons'
 import {
   创建跑马灯控制,
   计算份数,
@@ -41,31 +20,6 @@ import {
   type 跑马灯控制,
   type 轨道槽位,
 } from './marqueeEngine'
-
-const CARD_ICONS: Record<string, LucideIcon> = {
-  degree: GraduationCap,
-  coding: Code2,
-  systems: Network,
-  lowlevel: Database,
-  teaching: Users,
-  assembly: Cpu,
-  arch: Microchip,
-  marx: Landmark,
-  resumeTheater: Drama,
-  xrmUi: Palette,
-  aiToolchain: Sparkles,
-  toolbox: Shapes,
-  generative: Brush,
-  novel: BookOpen,
-  comedy: Mic,
-  gameWorld: Gamepad2,
-  courses: MonitorPlay,
-  escape: Music,
-  fenglai: Gamepad2,
-  repoLoop: FolderGit2,
-  repoLove: GitBranch,
-  repoData: Database,
-}
 
 const GRADIENTS = [
   'from-purple-500 to-blue-500',
@@ -106,7 +60,7 @@ function ShowcaseProductCard({ card, index, reducedMotion, 控制 }: ShowcasePro
   const gradient = GRADIENTS[index % GRADIENTS.length]
   const neonShadow = NEON_SHADOWS[index % NEON_SHADOWS.length]
   const iconColor = ICON_COLORS[index % ICON_COLORS.length]
-  const Icon = CARD_ICONS[card.id] ?? Shapes
+  const Icon = 卡片图标表[card.id] ?? Shapes
   const cardRef = useRef<HTMLDivElement>(null)
 
   useLayoutEffect(() => {

@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import fs from 'node:fs'
+import path from 'node:path'
 import { render, screen, within, waitFor, cleanup } from '@testing-library/react'
 import { ShowcaseSection, 解析副标题段 } from './ShowcaseSection'
+import { 卡片图标表 } from './cardIcons'
 import {
   归一化位移,
   钳制滚动增量,
@@ -340,31 +343,43 @@ describe('FP-06探索板块重构：8视频与开源仓库可达', () => {
     }
   })
 
-  it('FP-04：opensource行末蜂来卡标题描述链接配图数据驱动', () => {
+  it('FP-04：opensource行末羊来卡标题描述链接配图数据驱动', () => {
     const media行 = showcaseRows.find((row) => row.anchorId === 'media')
     expect(media行).toBeDefined()
-    expect(media行?.cards.map((card) => card.id)).not.toContain('fenglai')
+    expect(media行?.cards.map((card) => card.id)).not.toContain('yanglai')
     expect(media行?.cards).toHaveLength(5)
     const opensource行 = showcaseRows.find((row) => row.anchorId === 'opensource')
     expect(opensource行).toBeDefined()
     expect(opensource行?.cards).toHaveLength(4)
-    const 蜂来卡 = opensource行?.cards.at(-1)
-    expect(蜂来卡?.id).toBe('fenglai')
-    expect(蜂来卡?.titleKey).toBe('showcase.cards.fenglai.title')
-    expect(蜂来卡?.descKey).toBe('showcase.cards.fenglai.desc')
-    expect(蜂来卡?.href).toBe('https://xuanruimu.github.io/FengLai/index.html')
-    expect(蜂来卡?.image).toBe('/showcase/蜂来.png')
-    expect(t('showcase.cards.fenglai.title')).toBe('蜂来')
-    expect(t('showcase.cards.fenglai.desc')).toBe('无厘头的纯前端互动网页')
+    const 羊来卡 = opensource行?.cards.at(-1)
+    expect(羊来卡?.id).toBe('yanglai')
+    expect(羊来卡?.titleKey).toBe('showcase.cards.yanglai.title')
+    expect(羊来卡?.descKey).toBe('showcase.cards.yanglai.desc')
+    expect(羊来卡?.href).toBe('https://xuanruimu.github.io/YangLai/')
+    expect(羊来卡?.image).toBe('/showcase/羊来.png')
+    expect(t('showcase.cards.yanglai.title')).toBe('羊来')
+    expect(t('showcase.cards.yanglai.desc')).toBe('2026年动画电影《羊来》宣传直播间 · 3D互动整蛊舞台')
+    expect(fs.existsSync(path.resolve('public/showcase/羊来.png'))).toBe(true)
+    expect(fs.existsSync(path.resolve('public/showcase', `${String.fromCharCode(0x8702, 0x6765)}.png`))).toBe(false)
   })
 
-  it('FP-04：蜂来卡外链新开并带安全rel', () => {
+  it('每张展示卡都有专属图标映射，缺映射必须显式失败而非静默退化', () => {
+    const 全部卡id = showcaseRows.flatMap((row) => row.cards.map((card) => card.id))
+    expect(全部卡id.length).toBeGreaterThan(0)
+    const 缺映射 = 全部卡id.filter((id) => !(id in 卡片图标表))
+    expect(缺映射).toEqual([])
+    expect(全部卡id).toContain('yanglai')
+    expect(卡片图标表.yanglai).toBeDefined()
+    expect(卡片图标表.yanglai).not.toBe(卡片图标表.toolbox)
+  })
+
+  it('FP-04：羊来卡外链新开并带安全rel', () => {
     render(<ShowcaseSection />)
-    const escapedTitle = t('showcase.cards.fenglai.title').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const escapedTitle = t('showcase.cards.yanglai.title').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     const links = screen.getAllByRole('link', { name: new RegExp(escapedTitle) })
     expect(links.length).toBeGreaterThanOrEqual(1)
     for (const link of links) {
-      expect(link).toHaveAttribute('href', 'https://xuanruimu.github.io/FengLai/index.html')
+      expect(link).toHaveAttribute('href', 'https://xuanruimu.github.io/YangLai/')
       expect(link).toHaveAttribute('target', '_blank')
       const rel = link.getAttribute('rel') ?? ''
       expect(rel).toContain('noopener')

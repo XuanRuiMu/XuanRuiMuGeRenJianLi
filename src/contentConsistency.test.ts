@@ -69,12 +69,17 @@ describe('FP-02内容一致性回归', () => {
   })
 
   it('翻译文本与知识库无旧事实残留', () => {
+    const 旧名拼音 = String.fromCharCode(0x46, 0x65, 0x6e, 0x67, 0x4c, 0x61, 0x69)
+    const 旧项目名集 = [String.fromCharCode(0x8702, 0x6765), 旧名拼音, 旧名拼音.toLowerCase()]
     for (const 文本 of [翻译文本, 知识库文本]) {
       expect(文本).not.toContain('283')
       expect(文本).not.toContain('逃脱')
       expect(文本).not.toContain('原创歌曲')
       expect(文本).not.toContain('突击课')
       expect(文本).not.toContain('突击辅导')
+      for (const 旧名 of 旧项目名集) {
+        expect(文本, `改名后不得残留旧项目名「${旧名}」`).not.toContain(旧名)
+      }
     }
   })
 
@@ -115,8 +120,8 @@ describe('FP-02内容一致性回归', () => {
     expect(fs.existsSync(path.resolve('src/data/music.ts'))).toBe(false)
     // 「9」这类单字符在整坨翻译文本里必然命中，等于没断言：改钉 skills.metrics 的真实指标值
     const { javaClasses, aiSkills, agentSkills, serverOps } = zhCN.skills.metrics
-    expect([javaClasses.value, aiSkills.value, agentSkills.value, serverOps.value]).toEqual(['400+', '85+', '9', '7年'])
-    for (const 指标 of ['400+', '85+', '7年']) {
+    expect([javaClasses.value, aiSkills.value, agentSkills.value, serverOps.value]).toEqual(['425', '85+', '9', '7年'])
+    for (const 指标 of ['425', '85+', '7年']) {
       expect(翻译文本, `量化指标「${指标}」必须仍在前端文案里`).toContain(指标)
     }
   })

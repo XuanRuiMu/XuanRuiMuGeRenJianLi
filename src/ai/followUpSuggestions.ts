@@ -27,7 +27,7 @@ export function 生成追问建议(用户问题: string, 助手消息?: AiMessag
   const 组件 = 助手消息?.component
   if (组件?.type === 'ProjectCard') {
     if (组件.projectId === 'xrm') return 规范化三元(取组('projectsXrm'))
-    if (组件.projectId === 'fengLai') return 规范化三元(取组('projectsFengLai'))
+    if (组件.projectId === 'yangLai') return 规范化三元(取组('projectsYangLai'))
     return 规范化三元(取组('projectsLove'))
   }
   if (组件?.type === 'Timeline') {
@@ -41,10 +41,10 @@ export function 生成追问建议(用户问题: string, 助手消息?: AiMessag
   if (命中兜底意图('tech', 文本)) return 规范化三元(取组('tech'))
   const 项目卡片 = 检测项目卡片(输入)
   if (项目卡片 === 'xrm') return 规范化三元(取组('projectsXrm'))
-  if (项目卡片 === 'fengLai') return 规范化三元(取组('projectsFengLai'))
+  if (项目卡片 === 'yangLai') return 规范化三元(取组('projectsYangLai'))
   if (项目卡片 === 'lovewithme' || 项目卡片 === 'aiConsole') return 规范化三元(取组('projectsLove'))
   if (命中兜底意图('projects-xrm', 文本)) return 规范化三元(取组('projectsXrm'))
-  if (命中兜底意图('projects-蜂来', 文本)) return 规范化三元(取组('projectsFengLai'))
+  if (命中兜底意图('projects-羊来', 文本)) return 规范化三元(取组('projectsYangLai'))
   if (命中兜底意图('projects-爱与循环', 文本) || 命中兜底意图('projects-通用', 文本)) {
     return 规范化三元(取组('projectsLove'))
   }

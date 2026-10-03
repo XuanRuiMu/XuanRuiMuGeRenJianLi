@@ -45,9 +45,9 @@ describe('localEngine', () => {
     expect(result.component).toEqual({ type: 'ProjectCard', projectId: 'lovewithme' })
   })
 
-  it('蜂来问法落到蜂来项目卡片', () => {
-    const result = getLocalAnswer('蜂来是做什么的')
-    expect(result.component).toEqual({ type: 'ProjectCard', projectId: 'fengLai' })
+  it('羊来问法落到羊来项目卡片', () => {
+    const result = getLocalAnswer('羊来是做什么的')
+    expect(result.component).toEqual({ type: 'ProjectCard', projectId: 'yangLai' })
   })
 
   it('detects aiConsole project from input', () => {
@@ -160,7 +160,7 @@ describe('本地兜底答非所问根因（FP-04b）：只认话题独占的问�
     { 问句: '邮箱是什么', key: 'contact', component: { type: 'ContactLinks' } },
     { 问句: '介绍一下暮澜纪元', key: 'projects', component: { type: 'ProjectCard', projectId: 'xrm' } },
     { 问句: '和我恋爱吧是做什么的', key: 'projects', component: { type: 'ProjectCard', projectId: 'lovewithme' } },
-    { 问句: '蜂来是做什么的', key: 'projects', component: { type: 'ProjectCard', projectId: 'fengLai' } },
+    { 问句: '羊来是做什么的', key: 'projects', component: { type: 'ProjectCard', projectId: 'yangLai' } },
     { 问句: '循环工程是什么', key: 'projects', component: { type: 'ProjectCard', projectId: 'aiConsole' } },
   ]
 
@@ -226,7 +226,7 @@ describe('选择组件：在线与本地兜底共用的唯一组件判定（单�
       '你是谁',
       '介绍一下暮澜纪元',
       '介绍一下和我恋爱吧',
-      '蜂来是做什么的',
+      '羊来是做什么的',
       '介绍一下循环工程skill',
       '介绍项目',
       '你做过哪些项目',

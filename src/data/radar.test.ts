@@ -66,9 +66,9 @@ describe('FP-03 技能雷达 6 轴', () => {
   it('气泡描述使用工作区已有的真实事实', () => {
     const 事实关键词 = {
       aiAgent: ['85+', '工作流'],
-      backendArchitecture: ['Java 25', '400+', 'MMORPG'],
+      backendArchitecture: ['Java 25', '425', 'MMORPG'],
       fullStack: ['React 19', 'TypeScript', 'Three.js'],
-      devopsDelivery: ['docker-compose', '6服务'],
+      devopsDelivery: ['docker-compose', '5个服务'],
       designAesthetic: ['战斗HUD', '85+'],
       artCreation: ['5部', '相声', '软件音源'],
     } as const

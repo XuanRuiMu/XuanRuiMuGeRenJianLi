@@ -65,12 +65,12 @@ describe('resumeKnowledgeBase', () => {
     }
   })
 
-  it('蜂来项目块含整蛊直播间事实且无旧称残留', () => {
+  it('羊来项目块含整蛊直播间事实且无旧称残留', () => {
     const chunks = buildResumeKnowledgeBase()
-    const 蜂来 = chunks.find((chunk) => chunk.id === 'project-fengLai')
-    expect(蜂来).toBeDefined()
-    expect(蜂来?.content).toContain('蜂来')
-    expect(蜂来?.content).toContain('https://xuanruimu.github.io/FengLai/index.html')
+    const 羊来 = chunks.find((chunk) => chunk.id === 'project-yangLai')
+    expect(羊来).toBeDefined()
+    expect(羊来?.content).toContain('羊来')
+    expect(羊来?.content).toContain('https://xuanruimu.github.io/YangLai/')
     for (const chunk of chunks) {
       expect(chunk.content).not.toContain('恋爱吧管理中心')
       expect(chunk.content).not.toContain('LianAiBaGuanLiZhongXin')

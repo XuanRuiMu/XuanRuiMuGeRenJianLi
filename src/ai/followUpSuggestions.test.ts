@@ -20,10 +20,10 @@ describe('追问建议根因：每次回答后3个可继续选项', () => {
     expect(建议).toEqual(ta('ai.followUps.projectsLove'))
   })
 
-  it('蜂来问法命中蜂来追问且选项含蜂来玩法', () => {
-    const 建议 = 生成追问建议('蜂来是做什么的')
-    expect(建议).toEqual(ta('ai.followUps.projectsFengLai'))
-    expect(ta('ai.followUps.projectsFengLai').join('')).toContain('蜂来')
+  it('羊来问法命中羊来追问且选项含羊来玩法', () => {
+    const 建议 = 生成追问建议('羊来是做什么的')
+    expect(建议).toEqual(ta('ai.followUps.projectsYangLai'))
+    expect(ta('ai.followUps.projectsYangLai').join('')).toContain('羊来')
   })
 
   it('本地与LLM链路共用同一引擎：组件信号优先于文本', () => {
@@ -87,7 +87,7 @@ describe('兜底答案的追问分组（FP-04b）：诚实兜底与预制答案�
     { 问句: '你擅长什么', 组: 'tech' },
     { 问句: '介绍一下暮澜纪元', 组: 'projectsXrm' },
     { 问句: '和我恋爱吧是做什么的', 组: 'projectsLove' },
-    { 问句: '蜂来是做什么的', 组: 'projectsFengLai' },
+    { 问句: '羊来是做什么的', 组: 'projectsYangLai' },
     { 问句: '循环工程是什么', 组: 'projectsLove' },
   ]
 

@@ -84,7 +84,7 @@ function buildWorkspaceChunks(): KnowledgeChunk[] {
   return [
     chunk(
       'workspace-overview',
-      '工作区包含以下项目：暮澜纪元我的世界MMORPG服务端（8世界32职业的服务端，自研Java插件400+类，Gradle Kotlin DSL多模块）、和我恋爱吧（能直接用的恋爱聊天应用：挑AI对象聊天、军师支招、好友与挑战玩法）、燃烧之陨系列（我的世界多元生存服、粘液科技服、登录服、多服连接）、燃烧之陨资源包、循环工程skill（定个目标就自动拆步骤、自己干活、自己检查直到做完，https://github.com/XuanRuiMu/loop-engineering）、个人简历（本React简历站）、开发需求文档、暮澜纪元小说。',
+      '工作区包含以下项目：暮澜纪元我的世界MMORPG服务端（8世界32职业的服务端，自研Java插件425个源文件、其中测试类159个，Gradle Kotlin DSL多模块）、和我恋爱吧（能直接用的恋爱聊天应用：挑AI对象聊天、军师支招、好友与挑战玩法）、燃烧之陨系列（我的世界多元生存服、粘液科技服、登录服、多服连接）、燃烧之陨资源包、循环工程skill（定个目标就自动拆步骤、自己干活、自己检查直到做完，https://github.com/XuanRuiMu/loop-engineering）、个人简历（本React简历站）、开发需求文档、暮澜纪元小说。',
       'workspace',
       'workspace'
     ),
@@ -109,7 +109,7 @@ function buildSkillChunks(): KnowledgeChunk[] {
   const 分组块 = 技能组表().map((组) =>
     chunk(
       `skill-group-${组.id}`,
-      `能力组：${组.label}。${组.description}具体能力：${组.items.join('；')}。关键词：${组.tags.join('、')}。`,
+      `能力组：${组.label}。具体能力：${组.items.join('；')}。关键词：${组.tags.join('、')}。`,
       'skills',
       'skillGroups.ts'
     )

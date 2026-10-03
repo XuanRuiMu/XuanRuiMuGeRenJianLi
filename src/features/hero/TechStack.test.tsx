@@ -59,7 +59,7 @@ describe('TechStack 技术栈点阵变形', () => {
     expect(选项.静态).toBe(false)
   })
 
-  it('变形器回调驱动官网链接更新，链接文案仅含技术名', () => {
+  it('变形器回调驱动官网链接更新，链接文案含技术名与项目归属', () => {
     render(<TechStack />)
     const [, , 选项] = createMock.mock.calls[0]
     act(() => {
@@ -67,9 +67,27 @@ describe('TechStack 技术栈点阵变形', () => {
     })
     const 链接 = screen.getByTestId('tech-current-link')
     expect(链接).toHaveAttribute('href', 'https://www.mysql.com')
-    expect(链接).toHaveAttribute('aria-label', 'MySQL 官网链接')
-    expect(链接).toHaveTextContent('MySQL ↗')
+    expect(链接).toHaveTextContent('MySQL ↗ · 暮澜纪元')
+    expect(链接).toHaveAttribute('aria-label', 'MySQL 官网链接，使用项目 暮澜纪元')
     expect(screen.getByTestId('tech-morph-button')).toHaveAttribute('aria-label', '切换技术栈图标，当前 MySQL')
+  })
+
+  it('多项目归属同排追加、以顿号分隔且整体仍为一行链接', () => {
+    render(<TechStack />)
+    const [, , 选项] = createMock.mock.calls[0]
+    act(() => {
+      选项.on序号变更(14, 'Vite', 15)
+    })
+    const 链接 = screen.getByTestId('tech-current-link')
+    expect(链接).toHaveTextContent('Vite ↗ · 本站、羊来、和我恋爱吧、恋爱吧管理中心')
+    expect(链接).toHaveAttribute('aria-label', 'Vite 官网链接，使用项目 本站、羊来、和我恋爱吧、恋爱吧管理中心')
+    // 项目名单独成 span 并切回非等宽字体：中文在 font-mono 下会落到等宽回退字体，与拉丁字符混排不协调
+    const 项目段 = 链接.querySelector('span')
+    expect(项目段).not.toBeNull()
+    expect(项目段?.textContent).toBe('· 本站、羊来、和我恋爱吧、恋爱吧管理中心')
+    expect(项目段?.className).toContain('font-sans')
+    expect(项目段?.className).toContain('opacity-60')
+    expect(项目段?.className).toContain('light:opacity-100')
   })
 
   it('浅色主题运行时切换字符颜色', () => {

@@ -81,7 +81,7 @@ describe('FP-03 技能板块 - 量化指标', () => {
 
     // 启动微任务落地后、动画帧未跑：仍是 0 形态
     await act(async () => {})
-    expect(形态()).toEqual(['0+', '0+', '0', '0年'])
+    expect(形态()).toEqual(['0', '0+', '0', '0年'])
 
     window.IntersectionObserver = 原IO
     帧队列 = []
@@ -163,7 +163,7 @@ describe('FP-03 技能板块 - 量化指标', () => {
     await 推进到(640)
     const 半程 = 容器.querySelector('[data-skill-metric="javaClasses"]')?.textContent ?? ''
     expect(半程).not.toBe('')
-    expect(半程).not.toContain('400+')
+    expect(半程).not.toContain('425')
 
     await 推进到(1280)
     for (const 指标 of 量化指标()) {
@@ -190,7 +190,6 @@ describe('FP-03 技能板块 - 能力分组', () => {
     技能组表().forEach((组, 索引) => {
       const 节点 = 组表[索引]
       expect(节点.querySelector('h4')?.textContent).toBe(组.label)
-      expect(节点.querySelector('p')?.textContent).toBe(组.description)
       const 陈述 = Array.from(节点.querySelectorAll('ul li')).filter((项) => !项.hasAttribute('data-skill-tag'))
       expect(陈述.map((项) => 项.textContent)).toEqual(组.items)
       const 标签 = Array.from(节点.querySelectorAll('[data-skill-tag]')).map((项) => 项.getAttribute('data-skill-tag'))

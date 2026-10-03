@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { projects, lovewithmeGithubUrl, fengLaiWebUrl, 暮澜链接 } from '../../data/projects'
+import { projects, lovewithmeGithubUrl, yangLaiWebUrl, 暮澜链接 } from '../../data/projects'
 import { experiences, educatorBilibiliUrl, wowguildVideoUrl, 暮澜链接 as 经历暮澜链接 } from '../../data/experience'
 import { 暮澜链接 as 展示暮澜链接, showcaseRows } from '../../data/showcase'
 import { personalInfo } from '../../data/personalInfo'
@@ -23,12 +23,12 @@ describe('项目链接完整性', () => {
     expect(暮澜?.links[0].url).toBe('https://github.com/XuanRuiMu/XRMChaJian')
   })
 
-  it('蜂来项目链接精确等于用户指定地址且显示网页链接', () => {
-    expect(fengLaiWebUrl).toBe('https://xuanruimu.github.io/FengLai/index.html')
-    const 蜂来 = projects.find((项目) => 项目.id === 'fengLai')
-    expect(蜂来).toBeDefined()
-    expect(蜂来?.links[0].url).toBe('https://xuanruimu.github.io/FengLai/index.html')
-    expect(蜂来?.links[0].labelKey).toBe('projects.link.web')
+  it('羊来项目链接精确等于用户指定地址且显示网页链接', () => {
+    expect(yangLaiWebUrl).toBe('https://xuanruimu.github.io/YangLai/')
+    const 羊来 = projects.find((项目) => 项目.id === 'yangLai')
+    expect(羊来).toBeDefined()
+    expect(羊来?.links[0].url).toBe('https://xuanruimu.github.io/YangLai/')
+    expect(羊来?.links[0].labelKey).toBe('projects.link.web')
   })
 
   it('恋爱吧项目链接常量全库唯一源', () => {

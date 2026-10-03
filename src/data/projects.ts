@@ -2,7 +2,7 @@ import type { Project } from './types'
 import { ta } from '../i18n/translations'
 
 export const lovewithmeGithubUrl = 'https://github.com/XuanRuiMu/HeWoLianAiBa'
-export const fengLaiWebUrl = 'https://xuanruimu.github.io/FengLai/index.html'
+export const yangLaiWebUrl = 'https://xuanruimu.github.io/YangLai/'
 
 export const 暮澜链接 = 'https://github.com/XuanRuiMu/XRMChaJian'
 
@@ -32,11 +32,11 @@ export const projects: Project[] = [
     links: [{ labelKey: 'projects.link.github', url: 'https://github.com/XuanRuiMu/loop-engineering' }],
   },
   {
-    id: 'fengLai',
-    nameKey: 'data.projects.fengLai.name',
-    descKey: 'data.projects.fengLai.desc',
-    tags: ta('data.projects.fengLai.tags'),
-    metricKeys: ['data.projects.fengLai.metrics.stack', 'data.projects.fengLai.metrics.tests'],
-    links: [{ labelKey: 'projects.link.web', url: fengLaiWebUrl }],
+    id: 'yangLai',
+    nameKey: 'data.projects.yangLai.name',
+    descKey: 'data.projects.yangLai.desc',
+    tags: ta('data.projects.yangLai.tags'),
+    metricKeys: ['data.projects.yangLai.metrics.stack', 'data.projects.yangLai.metrics.tests'],
+    links: [{ labelKey: 'projects.link.web', url: yangLaiWebUrl }],
   },
 ]

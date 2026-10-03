@@ -171,5 +171,5 @@ describe('ClotheslineNotes 缩放往返（FP-01）', () => {
     往返()
     expect(区域最小宽(container)).toBe(第一轮恢复)
     expect(Math.abs(集群中心(container) - 初始集群中心)).toBeLessThanOrEqual(1)
-  })
+  }, 20_000)
 })

@@ -3,14 +3,21 @@ import fs from 'node:fs'
 import path from 'node:path'
 import zhCN from '../i18n/zh-CN.json'
 import { ta } from '../i18n/translations'
+import { buildResumeKnowledgeBase } from '../ai/resumeKnowledgeBase'
 import { 量化指标, 技能组表 } from './skillGroups'
 
 const 项目根 = path.resolve(__dirname, '../..')
 const 指标表 = zhCN.skills.metrics as Record<string, { value: string; label: string }>
-const 分组表 = zhCN.skills.groups as Record<
-  string,
-  { label: string; description: string; items: string[]; tags: string[] }
->
+const 分组表 = zhCN.skills.groups as Record<string, { label: string; items: string[]; tags: string[] }>
+
+function 键存在(路径: string): boolean {
+  let 节点: unknown = zhCN
+  for (const 步 of 路径.split('.')) {
+    if (节点 === null || typeof 节点 !== 'object' || !(步 in (节点 as object))) return false
+    节点 = (节点 as Record<string, unknown>)[步]
+  }
+  return true
+}
 
 /**
  * 红线守卫：以下工具/组件他没有真实做过，只能出现在「求职方向」里，
@@ -39,7 +46,7 @@ const 影子技能词表 = [
 
 function 技能板块全文(): string {
   const 分组文本 = 技能组表()
-    .map((组) => [组.label, 组.description, ...组.items, ...组.tags].join('\n'))
+    .map((组) => [组.label, ...组.items, ...组.tags].join('\n'))
     .join('\n')
   const 指标文本 = 量化指标()
     .map((指标) => `${指标.value} ${指标.label}`)
@@ -58,8 +65,8 @@ describe('FP-04 技能板块量化指标', () => {
 
   it('4 个数字一个都没丢，且标签逐字来自翻译文件', () => {
     const 值表 = Object.fromEntries(量化指标().map((指标) => [指标.id, 指标.value]))
-    expect(值表).toEqual({ javaClasses: '400+', aiSkills: '85+', agentSkills: '9', serverOps: '7年' })
-    expect(量化指标().find((指标) => 指标.id === 'javaClasses')?.label).toBe('自研Java类')
+    expect(值表).toEqual({ javaClasses: '425', aiSkills: '85+', agentSkills: '9', serverOps: '7年' })
+    expect(量化指标().find((指标) => 指标.id === 'javaClasses')?.label).toBe('自研Java源文件（含测试）')
     expect(量化指标().find((指标) => 指标.id === 'aiSkills')?.label).toBe('可复用AI工作流模板')
     expect(量化指标().find((指标) => 指标.id === 'agentSkills')?.label).toBe('开源Agent技能')
     expect(量化指标().find((指标) => 指标.id === 'serverOps')?.label).toBe('独立服务器运维')
@@ -96,12 +103,11 @@ describe('FP-03 技能分组数据源', () => {
     expect(分组[0].label).toBe('AI Agent能力')
   })
 
-  it('每组 label/description/items/tags 均非空，条目与标签逐字来自翻译文件', () => {
+  it('每组 label/items/tags 均非空，条目与标签逐字来自翻译文件', () => {
     const 分组 = 技能组表()
     expect(分组.length).toBeGreaterThan(0)
     for (const 组 of 分组) {
       expect(组.label.trim()).not.toBe('')
-      expect(组.description.trim()).not.toBe('')
       expect(组.items.length).toBeGreaterThanOrEqual(4)
       expect(组.tags.length).toBeGreaterThanOrEqual(6)
       expect(组.items).toEqual(ta(`skills.groups.${组.id}.items` as never))
@@ -113,12 +119,57 @@ describe('FP-03 技能分组数据源', () => {
   it('AI Agent 组 5 条陈述按报告 4.2 的面试官语言，逐条对齐规格', () => {
     const 陈述 = 技能组表()[0].items
     expect(陈述).toHaveLength(5)
-    expect(陈述[0]).toBe('用Claude Code/Codex/Trae/WorkBuddy等编码与办公智能体完成真实项目')
+    expect(陈述[0]).toBe('使用Claude Code/Codex/Trae/WorkBuddy等编码与办公智能体完成真实项目')
     expect(陈述[1]).toContain('85+个可复用AI工作流模板')
     expect(陈述[2]).toContain('MCP+Hooks+Rules的AI编码规范约束体系')
     expect(陈述[3]).toContain('多智能体协作流程')
     expect(陈述[3]).toContain('循环工程')
-    expect(陈述[4]).toContain('用AI Agent独立交付多个已上线产品')
+    expect(陈述[4]).toContain('使用AI Agent独立交付多个已上线产品')
+  })
+
+  it('能力清单正文为正式书面语：口语与口号式表达不得回流', () => {
+    const 口语痕迹词表 = [
+      '把',
+      '扛',
+      '主战场',
+      '接起来',
+      '跑起来',
+      '全链路自己搭',
+      '送到人手里',
+      '一条龙',
+      '熟门熟路',
+      '撑起',
+      '不再手工做',
+      '教会',
+      '搞定',
+      '拿手',
+      '悄悄',
+      '动手',
+    ]
+    const 正文表 = 技能组表().flatMap((组) => 组.items)
+    for (const 词 of 口语痕迹词表) {
+      for (const 正文 of 正文表) {
+        expect(正文, `能力清单正文不得出现口语表达「${词}」：${正文}`).not.toContain(词)
+      }
+    }
+    for (const 正文 of 正文表) {
+      const 汉字数 = (正文.match(/[\u4e00-\u9fff]/g) ?? []).length
+      expect(汉字数, `能力清单条目过长会撑破卡片：${正文}`).toBeLessThanOrEqual(45)
+    }
+  })
+
+  it('分组 description 已整链删除：数据层、组件与知识库均无残留消费点', () => {
+    for (const id of ['aiAgent', 'backend', 'frontend', 'delivery']) {
+      expect(键存在(`skills.groups.${id}.description`)).toBe(false)
+    }
+    expect(Object.keys(技能组表()[0])).not.toContain('description')
+    const 源码 = fs.readFileSync(path.resolve(项目根, 'src/features/skills/SkillsSection.tsx'), 'utf-8')
+    expect(源码).not.toContain('组.description')
+    const 知识库 = buildResumeKnowledgeBase()
+      .map((块) => 块.content)
+      .join('\n')
+    expect(知识库).not.toContain('把AI当一支开发团队')
+    expect(知识库).toContain('能力组：AI Agent能力。具体能力：')
   })
 
   it('实施交付组含规格要求的关键词，覆盖软件实施岗笔试口径', () => {

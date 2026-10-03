@@ -15,7 +15,7 @@
 // 取值集合直接写进类型联合：组件不再来自模型，没有第二个消费方需要独立的常量
 export type ProjectCardComponent = {
   type: 'ProjectCard'
-  projectId: 'xrm' | 'lovewithme' | 'aiConsole' | 'fengLai'
+  projectId: 'xrm' | 'lovewithme' | 'aiConsole' | 'yangLai'
 }
 export type TimelineComponent = { type: 'Timeline'; scope?: 'experience' | 'media' | 'education' }
 export type ContactLinksComponent = { type: 'ContactLinks' }

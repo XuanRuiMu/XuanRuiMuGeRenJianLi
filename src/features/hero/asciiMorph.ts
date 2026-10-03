@@ -482,11 +482,13 @@ export function 创建点阵变形器(
 
   void Promise.allSettled(定义列表.map(载入图标)).then((results) => {
     if (已销毁) return
+    const 失败项 = results.filter((r) => r.status === 'rejected')
     已载 = results.filter((r) => r.status === 'fulfilled').map((r) => r.value)
-    if (!已载.length) {
+    // 部分图标失败同样上报：否则缺一个图标会静默少一张卡，用户与排查都无从发现
+    if (!已载.length || 失败项.length) {
       选项.on加载失败?.()
-      return
     }
+    if (!已载.length) return
     选项.on序号变更?.(0, 已载[0].name, 已载.length)
     // 加载期间 时间 已在累积，从加载完成时刻重新起算自动切换，保证首个图标完整展示一个周期
     自动切换时刻 = 时间 + 自动切换间隔秒

@@ -32,19 +32,23 @@ describe('intentTable（RAG与本地共享意图表）', () => {
     expect(是否告别('你好')).toBe(false)
   })
 
-  it('项目卡片检测四型齐全（xrm/lovewithme/aiConsole/fengLai）', () => {
+  it('项目卡片检测四型齐全（xrm/lovewithme/aiConsole/yangLai）', () => {
     expect(检测项目卡片('介绍一下暮澜纪元')).toBe('xrm')
     expect(检测项目卡片('介绍一下和我恋爱吧')).toBe('lovewithme')
-    expect(检测项目卡片('蜂来是做什么的')).toBe('fengLai')
+    expect(检测项目卡片('羊来是做什么的')).toBe('yangLai')
     expect(检测项目卡片('介绍一下循环工程skill')).toBe('aiConsole')
     expect(检测项目卡片('你好')).toBeUndefined()
   })
 
-  it('项目卡片优先级 xrm > lovewithme > fengLai > aiConsole 不变', () => {
+  it('项目卡片优先级 xrm > lovewithme > yangLai > aiConsole 不变', () => {
     expect(检测项目卡片('暮澜纪元和循环工程哪个好')).toBe('xrm')
     expect(检测项目卡片('和我恋爱吧与循环工程哪个好')).toBe('lovewithme')
-    expect(检测项目卡片('蜂来的循环工程玩法')).toBe('fengLai')
+    expect(检测项目卡片('羊来的循环工程玩法')).toBe('yangLai')
     expect(检测项目卡片('循环工程是什么')).toBe('aiConsole')
+  })
+
+  it('羊来卡片同时认中文名与拼音检索词', () => {
+    expect(检测项目卡片('yanglai是什么')).toBe('yangLai')
   })
 
   it('问联系稳定命中contact且宽泛词不污染', () => {
@@ -62,7 +66,7 @@ const 意图正例: Record<string, string[]> = {
   tech: ['你擅长什么技术', '你的技术栈', '你有什么优势', '你会什么'],
   'projects-xrm': ['介绍一下暮澜纪元', 'xrm 用了什么架构'],
   'projects-爱与循环': ['和我恋爱吧是做什么的', '介绍一下循环工程'],
-  'projects-蜂来': ['蜂来是做什么的', '蜂来的弹幕刷屏怎么做'],
+  'projects-羊来': ['羊来是做什么的', '羊来的弹幕刷屏怎么做', 'yanglai是什么'],
   'projects-通用': ['你做过什么项目', '你的作品有哪些', '介绍项目', '分享项目', '讲解项目', '说说项目', '介绍项目经历'],
   experience: ['工作经历', '我的工作经历', '有没有实习经历'],
   education: ['教育背景', '你的专业是什么', '什么学历'],
@@ -151,7 +155,7 @@ describe('兜底触发词数据约束（FP-04 根因：兜底作答与 RAG 加�
       tech: ['最擅长', '擅长', '优势', '核心竞争力', '技术栈', '用什么技术', '技术', '技能', '会什么', '雷达'],
       'projects-xrm': ['暮澜纪元', 'xrm', 'mmorpg', '服务端'],
       'projects-爱与循环': ['恋爱', 'lovewithme', '聊天应用', '全栈应用', '循环工程', 'loop'],
-      'projects-蜂来': ['蜂来', 'fenglai', '整蛊', '直播间', '点赞连击', '拖拽道具', '弹幕刷屏', '战报海报'],
+      'projects-羊来': ['羊来', 'yanglai', '整蛊', '直播间', '点赞连击', '拖拽道具', '弹幕刷屏', '战报海报'],
       'projects-通用': ['项目', '作品', '做过什么'],
       experience: ['经历', '经验', '工作', '实习', '时间线', 'timeline'],
       education: ['教育', '学校', '大学', '专业', '学历'],
@@ -208,7 +212,7 @@ describe('兜底触发词数据约束（FP-04 根因：兜底作答与 RAG 加�
     expect(共享意图表.filter((项) => 项.项目卡片映射).map((项) => 项.id)).toEqual([
       'projects-xrm',
       'projects-爱与循环',
-      'projects-蜂来',
+      'projects-羊来',
     ])
   })
 

@@ -104,10 +104,10 @@ export const 共享意图表: 共享意图定义[] = [
     boostSources: ['projects.ts', 'experience.ts'],
   },
   {
-    id: 'projects-蜂来',
-    关键词: ['蜂来', 'fenglai', '整蛊', '直播间', '点赞连击', '拖拽道具', '弹幕刷屏', '战报海报'],
-    兜底触发词: ['蜂来', 'fenglai'],
-    项目卡片映射: { fengLai: ['蜂来', 'fenglai'] },
+    id: 'projects-羊来',
+    关键词: ['羊来', 'yanglai', '整蛊', '直播间', '点赞连击', '拖拽道具', '弹幕刷屏', '战报海报'],
+    兜底触发词: ['羊来', 'yanglai'],
+    项目卡片映射: { yangLai: ['羊来', 'yanglai'] },
     boostCategories: ['projects', 'experience'],
     boostSources: ['projects.ts', 'experience.ts'],
   },
@@ -211,7 +211,7 @@ export function 命中兜底意图(意图ID: string, 输入: string): boolean {
 }
 
 /** 与改造前 检测项目卡片 的判定顺序保持一致，避免兜底路径出现新的优先级漂移 */
-const 项目卡片检测顺序: 项目卡片标识[] = ['xrm', 'lovewithme', 'fengLai', 'aiConsole']
+const 项目卡片检测顺序: 项目卡片标识[] = ['xrm', 'lovewithme', 'yangLai', 'aiConsole']
 
 export function 检测项目卡片(输入: string): 项目卡片标识 | undefined {
   const 触发词池 = new Map<项目卡片标识, string[]>()

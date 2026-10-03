@@ -38,7 +38,7 @@ A **content-first, tech-showcase** online résumé website that turns a job rés
 | 💼 Experience | career timeline                                                                 |
 | ✉️ Contact    | contact info & QR codes                                                         |
 
-**Showcase corridor** (partial): [loop-engineering](https://github.com/XuanRuiMu/loop-engineering), [HeWoLianAiBa](https://github.com/XuanRuiMu/HeWoLianAiBa), [恋爱吧管理中心](https://github.com/XuanRuiMu/LianAiBaGuanLiZhongXin), the FengLai livestream, Bilibili course series (Python, Computer Networks, MySQL, Assembly, Computer Organization, Marxist Principles, Thesis Writing Guide), original crosstalk, the 暮澜纪元 novel & UI design, jazz works, etc.
+**Showcase corridor** (partial): [loop-engineering](https://github.com/XuanRuiMu/loop-engineering), [HeWoLianAiBa](https://github.com/XuanRuiMu/HeWoLianAiBa), [恋爱吧管理中心](https://github.com/XuanRuiMu/LianAiBaGuanLiZhongXin), the [YangLai livestream](https://xuanruimu.github.io/YangLai/), Bilibili course series (Python, Computer Networks, MySQL, Assembly, Computer Organization, Marxist Principles, Thesis Writing Guide), original crosstalk, the 暮澜纪元 novel & UI design, jazz works, etc.
 
 ---
 

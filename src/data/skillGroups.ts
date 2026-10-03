@@ -10,7 +10,7 @@ import { t, ta, type TranslationKey } from '../i18n/translations'
 export interface 量化指标项 {
   /** skills.metrics 下的指标 id，同时用于 React key */
   id: string
-  /** 带单位的展示串（如 "400+"），数字部分交给 useCountUp 滚动 */
+  /** 带单位的展示串（如 "85+"），数字部分交给 useCountUp 滚动 */
   value: string
   label: string
 }
@@ -19,7 +19,6 @@ export interface 技能组 {
   /** skills.groups 下的分组 id */
   id: string
   label: string
-  description: string
   /** 能力陈述句：面试官语言，逐条可回溯到真实经历 */
   items: string[]
   /** 关键词标签：对齐岗位 JD 的检索词，只写真实掌握的 */
@@ -34,7 +33,7 @@ function 指标键(id: string, 字段: 'value' | 'label'): TranslationKey {
   return `skills.metrics.${id}.${字段}` as unknown as TranslationKey
 }
 
-function 组键(id: string, 字段: 'label' | 'description' | 'items' | 'tags'): TranslationKey {
+function 组键(id: string, 字段: 'label' | 'items' | 'tags'): TranslationKey {
   return `skills.groups.${id}.${字段}` as unknown as TranslationKey
 }
 
@@ -53,7 +52,6 @@ export function 技能组表(): 技能组[] {
   const 分组表: 技能组[] = []
   for (const id of 组id表) {
     const label = t(组键(id, 'label')).trim()
-    const description = t(组键(id, 'description')).trim()
     const items = ta(组键(id, 'items'))
       .map((文本) => 文本.trim())
       .filter((文本) => 文本.length > 0)
@@ -61,7 +59,7 @@ export function 技能组表(): 技能组[] {
       .map((文本) => 文本.trim())
       .filter((文本) => 文本.length > 0)
     if (!label || items.length === 0) continue
-    分组表.push({ id, label, description, items, tags })
+    分组表.push({ id, label, items, tags })
   }
   return 分组表
 }

@@ -11,7 +11,7 @@ import { 创建点阵变形器, 技术字形, type 点阵图标定义 } from './
  * 1:1 移植参考站（bilibilitoy wujisuan-ai-test）hero 区的 Logo 字符点阵动画：
  * 15 个技术栈图标逐一点阵化呈现，5 秒自动切换 / 点击切换，切换时最近点贪心配对
  * 形成左→右波次变形 + 弧线弯曲 + 字形过半程轮换，指针悬停产生高斯涟漪。
- * 交互与信息保全：点击画布切换，画布下方展示当前技术名 · 定位并链接官网；
+ * 交互与信息保全：点击画布切换，画布下方展示当前技术名 · 官网链接 · 使用该技术的项目归属；
  * reduced-motion 时静态成点阵、点击瞬切；深浅色主题切换字符颜色。
  */
 
@@ -94,11 +94,11 @@ export function TechStack() {
           href={当前卡片.url}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={`${当前卡片.name} ${t('hero.techLinkAria')}`}
+          aria-label={`${当前卡片.name} ${t('hero.techLinkAria')}，${t('hero.techProjectAria')} ${当前卡片.项目.join('、')}`}
           data-testid="tech-current-link"
-          className="mt-2 font-mono text-[11px] tracking-[0.1em] text-[#b9d5ff] no-underline transition-colors hover:text-[#7dd3fc] light:text-slate-500 light:hover:text-[#0369a1]"
+          className="mt-2 font-mono text-[11px] tracking-[0.1em] text-[#b9d5ff] no-underline transition-colors hover:text-[#7dd3fc] light:text-slate-600 light:hover:text-[#0369a1]"
         >
-          {当前卡片.name} ↗
+          {当前卡片.name} ↗ <span className="font-sans opacity-60 light:opacity-100">· {当前卡片.项目.join('、')}</span>
         </a>
       )}
       {失败 && (

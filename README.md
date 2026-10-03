@@ -46,7 +46,7 @@
 | 💼 经历（Experience） | 履历时间线                                                      |
 | ✉️ 联系（Contact）    | 联系方式与二维码                                                |
 
-**作品集走廊陈列**（部分）：[循环工程](https://github.com/XuanRuiMu/loop-engineering)、[和我恋爱吧](https://github.com/XuanRuiMu/HeWoLianAiBa)、[恋爱吧管理中心](https://github.com/XuanRuiMu/LianAiBaGuanLiZhongXin)、蜂来直播间、B站系列课程（Python 编程题精讲 / 计算机网络 / MySQL 数据库精讲 / 汇编语言程序设计 / 计算机组成原理 / 马克思主义原理精讲 / 毕业论文全流程指导）、原创相声、暮澜纪元小说与 UI 设计、爵士乐作品等。
+**作品集走廊陈列**（部分）：[循环工程](https://github.com/XuanRuiMu/loop-engineering)、[和我恋爱吧](https://github.com/XuanRuiMu/HeWoLianAiBa)、[恋爱吧管理中心](https://github.com/XuanRuiMu/LianAiBaGuanLiZhongXin)、[羊来直播间](https://xuanruimu.github.io/YangLai/)、B站系列课程（Python 编程题精讲 / 计算机网络 / MySQL 数据库精讲 / 汇编语言程序设计 / 计算机组成原理 / 马克思主义原理精讲 / 毕业论文全流程指导）、原创相声、暮澜纪元小说与 UI 设计、爵士乐作品等。
 
 ---
 

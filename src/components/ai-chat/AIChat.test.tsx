@@ -1851,17 +1851,17 @@ describe('AIChat', () => {
     }
   })
 
-  it('LLM组件信号同样驱动继续选项（蜂来ProjectCard场景）', () => {
+  it('LLM组件信号同样驱动继续选项（羊来ProjectCard场景）', () => {
     mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
       selector(
         createMockState({
           chatOpen: true,
           aiMessages: [
-            { role: 'user', content: '蜂来是做什么的' },
+            { role: 'user', content: '羊来是做什么的' },
             {
               role: 'assistant',
-              content: '蜂来介绍',
-              component: { type: 'ProjectCard', projectId: 'fengLai' },
+              content: '羊来介绍',
+              component: { type: 'ProjectCard', projectId: 'yangLai' },
             },
           ],
         })
@@ -1871,7 +1871,7 @@ describe('AIChat', () => {
     render(<AIChat />)
     const 建议区 = screen.getByTestId('follow-up-suggestions')
     expect(建议区).toBeInTheDocument()
-    for (const 建议 of ta('ai.followUps.projectsFengLai')) {
+    for (const 建议 of ta('ai.followUps.projectsYangLai')) {
       expect(screen.getByText(建议)).toBeInTheDocument()
     }
   })
