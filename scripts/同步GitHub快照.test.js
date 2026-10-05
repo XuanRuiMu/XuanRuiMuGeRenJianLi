@@ -56,9 +56,7 @@ describe('已生成的快照文件', () => {
   })
 
   it('排除清单里的仓库与屏蔽词都不进快照', () => {
-    const 配置 = JSON.parse(
-      fs.readFileSync(path.resolve('scripts/同步GitHub快照.排除清单.json'), 'utf-8')
-    )
+    const 配置 = JSON.parse(fs.readFileSync(path.resolve('scripts/同步GitHub快照.排除清单.json'), 'utf-8'))
     const 文本 = fs.readFileSync(快照文件, 'utf-8')
     for (const 项 of 配置.排除仓库) {
       expect(文本).not.toContain(项.仓库.split('/').pop())

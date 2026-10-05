@@ -68,6 +68,7 @@
 ## 快速开始
 
 ```bash
+# 前置：PATH 中需有 Python 3（npm run dev / build / test 会调 python 重建 佐证材料.zip）
 # 克隆
 git clone https://github.com/XuanRuiMu/XuanRuiMuGeRenJianLi.git
 cd XuanRuiMuGeRenJianLi
@@ -75,7 +76,7 @@ cd XuanRuiMuGeRenJianLi
 # 安装依赖
 npm install
 
-# 本地开发（自动做字体子集化，端口 5180）
+# 本地开发（自动做素材同步 + 佐证材料打包 + 字体子集化，端口 5180）
 npm run dev
 
 # 类型检查 + 生产构建
@@ -103,21 +104,33 @@ XuanRuiMuGeRenJianLi/
 │   ├── i18n/                # 中英文翻译（zh-CN / en 等）
 │   ├── utils/               # deviceCapabilities / viewTransition / format / swRegister…
 │   └── types/               # TypeScript 类型
-├── public/                  # 静态资源
+├── public/                  # 静态资源（由 素材/ 经 scripts/同步素材.js 同步生成，勿直接编辑）
 │   ├── showcase/            # 作品集配图
 │   ├── logos/               # 技术栈 logo
 │   ├── images/              # 头像 / 签名 / 二维码
-│   └── videos/ og-image.png # OG 图 / 背景视频
-├── scripts/                 # subset-fonts 字体子集化、dev-api-plugin 等
+│   ├── videos/ og-image.png # OG 图 / 背景视频
+│   ├── fonts/               # subset-fonts.js 产出的字体子集
+│   └── 佐证材料.zip         # 打包佐证材料.py --仅打包 产出的下载包
+├── 素材/                    # 唯一素材源（images / showcase / videos / logos / icons）
+│   └── 签字.png              # 手写签字原图（images/签字-alpha.png 的来源，不参与同步）
+├── scripts/                 # 同步素材、subset-fonts 字体子集化、dev-api-plugin 等
 ├── e2e/ tests/              # Playwright E2E 与 Vitest 测试
 └── .github/workflows/ci.yml # CI
 ```
 
+> ⚠️ 限制：`npm run dev` 不会监听 `素材/` 的变化。编辑 `素材/` 后需重跑 `node scripts/同步素材.js`（或重启 `npm run dev`）才会同步到 `public/`。
+
 ---
 
-## 内容更新（无需重新构建）
+## 内容更新（换图不用改代码）
 
-作品集板块的数据集中在 `src/data/showcase.ts`，**替换同名图片后刷新即可生效**，无需重新构建部署，适合长期维护。
+作品集配图**文件名 = 卡片项目名一字不差**（项目名即 `src/i18n/zh-CN.json` 中 `showcase.cards.<id>.title` 的字面值，含空格、间隔号「·」、书名号《》、全角括号（））。配图路径由项目名自动派生，代码里不写死路径，换图三步：
+
+1. 把新图**重命名为项目名**（如 `羊来.png`），放进 `素材/showcase/`；
+2. 跑 `node scripts/同步素材.js`（或重启 `npm run dev`）把素材镜像到 `public/`；
+3. 刷新页面。
+
+`public/` 是构建产物，线上生效需重新构建并部署。项目名里的空格只在 URL 中编码成 `%20`，磁盘文件名照旧是带空格的项目名。增删卡片改 `src/data/showcase.ts`；`素材/showcase/` 下每个图片文件必须恰好被一张卡片引用，漏放图、多放图、项目名含非法文件名字符都会被 `src/data/showcase.test.ts` 拦下。
 
 ---
 

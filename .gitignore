@@ -52,5 +52,21 @@ references/
 # dev 数据接口落盘目录（留言/访问计数，仅项目根目录；前导斜杠避免误伤 src/data 等源码目录）
 /data/
 
+# 素材同步产物与构建产物，源在 素材/ 与 scripts/
+/public/images/
+/public/showcase/
+/public/videos/
+/public/logos/
+/public/fonts/
+/public/佐证材料.zip
+# 打包脚本原子写的 pid 隔离临时文件；进程被强杀/断电时残片不会被 finally 清掉，
+# 必须精确前缀匹配（宽泛的 *.tmp 会误伤源码目录）
+/public/佐证材料.zip*.tmp
+# 约定：public 根级的 png/svg 一律来自 素材/icons（由 scripts/同步素材.js 平铺生成）；
+# 手写的 public 根级 png/svg 会被下面两条规则静默忽略，换机后 404，务必先放进 素材/icons 再同步
+/public/*.png
+/public/*.svg
+/.素材同步清单.json
+
 # 循环工程过程性状态快照（不入库，交付前清理）
 PROGRESS.md

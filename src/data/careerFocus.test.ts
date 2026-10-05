@@ -16,7 +16,7 @@ function 读源码(相对路径: string): string {
 }
 
 /** 轮换岗位的唯一可编辑源（独立于 careerFocus 的解析实现，充当预言） */
-const 岗位清单文件 = '职业定位.txt'
+const 岗位清单文件 = 'src/data/职业定位.txt'
 
 function 岗位清单解析(原文: string): string[] {
   return 原文
@@ -87,7 +87,7 @@ describe('FP-01 求职定位单一数据源守卫', () => {
     const 源码 = 读源码('src/data/careerFocus.ts')
     expect(源码).toContain("directionKey: 'career.direction'")
     expect(源码).toContain('t(careerFocus.directionKey)')
-    expect(源码).toContain("from '../../职业定位.txt?raw'")
+    expect(源码).toContain("from './职业定位.txt?raw'")
     expect(源码).not.toContain('career.roles')
     // 返回值必须来自 t()/txt 解析，不允许出现任何带定位文案的字符串字面量
     const 字符串字面量表 = 源码.match(/(['"`])((?:\\.|(?!\1)[^\\])*)\1/g) ?? []

@@ -8,7 +8,7 @@ import { 字符渐变色 } from './roleGradient'
 /**
  * 角色行：1:1 复刻 02-react-three-fiber 的 typed.js 打字机语义。
  * 逐字打出(typeSpeed) → 停顿(backDelay) → 逐字删字(backSpeed) → 下一词 → 循环(loop) + 闪烁光标。
- * 岗位名来自单一数据源（src/data/careerFocus.ts → 项目根 职业定位.txt），aria 前缀来自 zh-CN.json career 节点。
+ * 岗位名来自单一数据源（src/data/careerFocus.ts → 同目录 职业定位.txt），aria 前缀来自 zh-CN.json career 节点。
  * reduced-motion 时静态显示首个角色，光标不闪烁。
  */
 

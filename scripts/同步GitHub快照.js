@@ -126,10 +126,7 @@ async function 抓仓库快照(仓库, 屏蔽词 = []) {
     开源许可证: 仓库.license?.spdx_id ?? '',
     主题: 仓库.topics ?? [],
     地址: 仓库.html_url,
-    README摘录: 按屏蔽词截断(
-      去除中英间空格(清洗README(README原文 ?? '').slice(0, README摘录上限)),
-      屏蔽词
-    ),
+    README摘录: 按屏蔽词截断(去除中英间空格(清洗README(README原文 ?? '').slice(0, README摘录上限)), 屏蔽词),
   }
 }
 
@@ -173,9 +170,7 @@ export const GitHub仓库快照: GitHub仓库快照条目[] = ${表}
 }
 
 async function 主流程() {
-  const 仓库列表 = await 取JSON(
-    `https://api.github.com/users/${账号}/repos?per_page=100&sort=pushed&type=owner`
-  )
+  const 仓库列表 = await 取JSON(`https://api.github.com/users/${账号}/repos?per_page=100&sort=pushed&type=owner`)
   const { 仓库集, 屏蔽词 } = 读排除配置()
   const 本人仓库 = 仓库列表.filter(
     (仓库) => !仓库.fork && !仓库.archived && !仓库集.has(仓库.full_name) && !仓库集.has(仓库.name)
@@ -196,9 +191,7 @@ async function 主流程() {
     生成时间,
   }
   fs.writeFileSync(输出路径, 渲染快照文件(快照表, 生成时间, 元信息), 'utf-8')
-  console.log(
-    `已写入 ${快照表.length}/${元信息.公开仓库总数} 个仓库快照 → src/data/githubSnapshot.ts（${生成时间}）`
-  )
+  console.log(`已写入 ${快照表.length}/${元信息.公开仓库总数} 个仓库快照 → src/data/githubSnapshot.ts（${生成时间}）`)
 }
 
 // 仅在被直接执行时联网同步（被测试导入时不发请求）

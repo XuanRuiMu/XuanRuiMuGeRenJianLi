@@ -75,6 +75,16 @@ jobs:
           node-version: 22
           cache: 'npm'
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python 依赖
+        # 下方 dist 防泄漏守卫测试会调起 scripts/打包佐证材料.py 的 --selftest 分支，该分支需要 Pillow；
+        # 版本与 test job 一致钉住 12.3.0（本仓实测通过）。
+        run: python -m pip install --disable-pip-version-check "pillow==12.3.0"
+
       - name: Install dependencies
         run: npm ci
 
@@ -86,6 +96,13 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: 佐证材料 dist 防泄漏守卫
+        # 该守卫的 3 条 dist 断言用 it.skipIf(!existsSync(dist)) 跳过：全新 checkout 的 test job 没有 dist
+        # 会恒 skip，只有本 job 在 npm run build 产出 dist 后再跑才实际检查。泄漏基线取自已跟踪的
+        # 佐证材料/脱敏规则.json 的 文件[].名称（原始件按设计不入库，故只能从规则文件取基线），
+        # dist 里出现其中任一文件名即判失败。放在 upload-artifact 之前，守卫失败就不上传产物。
+        run: npx vitest run scripts/打包佐证材料.test.js
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

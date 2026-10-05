@@ -116,7 +116,7 @@ describe('FP-02内容一致性回归', () => {
     }
     const 展示卡id = (await import('./data/showcase')).showcaseRows.flatMap((行) => 行.cards).map((卡) => 卡.id)
     expect(展示卡id).not.toContain('escape')
-    expect(fs.existsSync(path.resolve('public/showcase/爵士乐.png'))).toBe(false)
+    expect(fs.existsSync(path.resolve('素材/showcase/爵士乐.png'))).toBe(false)
     expect(fs.existsSync(path.resolve('src/data/music.ts'))).toBe(false)
     // 「9」这类单字符在整坨翻译文本里必然命中，等于没断言：改钉 skills.metrics 的真实指标值
     const { javaClasses, aiSkills, agentSkills, serverOps } = zhCN.skills.metrics
@@ -220,7 +220,7 @@ describe('FP-10 文案错误、口径不一致与死文案守卫', () => {
   })
 
   it('职业定位.txt 不再自称改了就能改全站', () => {
-    const 原文 = 读文件('职业定位.txt')
+    const 原文 = 读文件('src/data/职业定位.txt')
     expect(原文).not.toContain('改这里即可改站点')
     expect(原文).toContain('career.direction')
     expect(原文).toContain('manifest.json')

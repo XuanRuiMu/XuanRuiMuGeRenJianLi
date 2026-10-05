@@ -2,18 +2,23 @@ import argparse
 import csv
 import io
 import json
+import os
 import shutil
 import sys
+import time
 import zipfile
 from pathlib import Path
 from statistics import median
 
-from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageStat
-
-Image.MAX_IMAGE_PIXELS = None
-
 项目根 = Path(__file__).resolve().parent.parent
 规则路径 = 项目根 / "佐证材料" / "脱敏规则.json"
+替换重试次数 = 12
+替换重试间隔秒 = 0.25
+临时文件超龄秒 = 3600
+
+
+class 打包失败(Exception):
+    pass
 
 
 def 载入规则():
@@ -63,6 +68,8 @@ def 填充矩形(图, 矩形, 环宽):
 
 
 def 均值(区):
+    from PIL import Image
+
     return 区.resize((1, 1), Image.BOX).getpixel((0, 0))
 
 
@@ -87,6 +94,8 @@ def 执行矩形遮挡(图, 动作, 参数):
 
 
 def 执行标签条(图, 动作, 参数):
+    from PIL import Image
+
     配置 = dict(参数["标签条"])
     配置.update({k: v for k, v in 动作.items() if k in ("文字列",)})
     列0, 列1 = 动作["文字列"]
@@ -168,7 +177,7 @@ def 裁切带(图, 动作, 参数):
 
 
 def 扩张块(图, 矩形, 配置):
-    from PIL import ImageChops
+    from PIL import Image, ImageChops
 
     格 = 配置["网格"]
     底阈 = 配置["背景亮度阈"]
@@ -216,6 +225,8 @@ def 扩张块(图, 矩形, 配置):
 
 
 def 检测照片块(图, 配置):
+    from PIL import Image, ImageFilter
+
     宽, 高 = 图.size
     灰图 = 图.convert("L")
     亮 = 灰图.point(lambda p: 255 if p > 配置["亮度阈值"] else 0)
@@ -280,8 +291,15 @@ def 执行照片块(图, 动作, 参数):
     return 合并
 
 
+def 打开原图(路径):
+    from PIL import Image
+
+    Image.MAX_IMAGE_PIXELS = None
+    return Image.open(路径).convert("RGB")
+
+
 def 处理图片(源, 目标, 项, 参数, 采集=None, 保存=True):
-    图 = Image.open(源).convert("RGB")
+    图 = 打开原图(源)
     if 采集 is not None:
         采集["原图"] = 图.copy()
         采集["裁切左"] = 0
@@ -350,25 +368,69 @@ def 项名(源):
     return 源.name
 
 
+def 替换压缩包(临时, 压缩包):
+    for 次 in range(替换重试次数):
+        try:
+            os.replace(临时, 压缩包)
+            return
+        except PermissionError as 错:
+            if 次 == 替换重试次数 - 1:
+                raise 打包失败(
+                    f"错误：无法替换 {压缩包}\n"
+                    "  目标文件被占用或只读，请关闭占用它的程序（浏览器下载/编辑器/vite dev）后重试\n"
+                    f"  底层原因：{错}"
+                ) from 错
+            time.sleep(替换重试间隔秒)
+
+
+def 清理超龄临时(压缩包):
+    目录 = 压缩包.parent
+    try:
+        候选项 = sorted({*目录.glob(f"{压缩包.name}.*.tmp"), *目录.glob(f"{压缩包.name}.tmp")})
+    except OSError as 错:
+        print(f"  警告 扫描临时文件残留失败 {目录}：{错}", file=sys.stderr)
+        return
+    截止 = time.time() - 临时文件超龄秒
+    本进程 = str(os.getpid())
+    for 项 in 候选项:
+        pid段 = 项.name[len(压缩包.name) + 1 : -len(".tmp")]
+        if pid段 == 本进程:
+            continue
+        try:
+            if 项.stat().st_mtime >= 截止:
+                continue
+            项.unlink()
+            print(f"清理超龄临时文件 {项.name}")
+        except OSError as 错:
+            print(f"  警告 清理临时文件失败 {项.name}：{错}", file=sys.stderr)
+
+
 def 打包(清单, 压缩包):
     压缩包.parent.mkdir(parents=True, exist_ok=True)
-    if 压缩包.exists():
-        压缩包.unlink()
-    with zipfile.ZipFile(压缩包, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as 包:
-        for 名称, 路径 in 清单:
-            包.write(路径, arcname=名称)
-    报告 = []
-    with zipfile.ZipFile(压缩包) as 包:
-        for 信息 in 包.infolist():
-            非ASCII = not all(ord(c) < 128 for c in 信息.filename)
-            报告.append((信息.filename, 信息.file_size, bool(信息.flag_bits & 0x800), 非ASCII))
-    for 名称, _, 置位, 非ASCII in 报告:
-        if 非ASCII and not 置位:
-            raise ValueError(f"zip 内 {名称} 未设置 UTF-8 标志位")
-    return 报告
+    清理超龄临时(压缩包)
+    临时 = 压缩包.with_name(f"{压缩包.name}.{os.getpid()}.tmp")
+    try:
+        with zipfile.ZipFile(临时, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as 包:
+            for 名称, 路径 in 清单:
+                包.write(路径, arcname=名称)
+        报告 = []
+        with zipfile.ZipFile(临时) as 包:
+            for 信息 in 包.infolist():
+                非ASCII = not all(ord(c) < 128 for c in 信息.filename)
+                报告.append((信息.filename, 信息.file_size, bool(信息.flag_bits & 0x800), 非ASCII))
+        for 名称, _, 置位, 非ASCII in 报告:
+            if 非ASCII and not 置位:
+                raise ValueError(f"zip 内 {名称} 未设置 UTF-8 标志位")
+        替换压缩包(临时, 压缩包)
+        清理超龄临时(压缩包)
+        return 报告
+    finally:
+        临时.unlink(missing_ok=True)
 
 
 def 严格命中判定(输出图, 框, 填充矩形列表, 豁免列表):
+    from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageStat
+
     x0, y0, x1, y1 = 框
     区 = 输出图.convert("L").crop(框)
     if 区.width < 8 or 区.height < 8:
@@ -437,7 +499,7 @@ def 审计(规则, 参数, 切片目录):
         if 名称.lower().endswith(".csv"):
             continue
         if any(动作["类型"] == "原样入包" for 动作 in 项["动作"]):
-            原图 = Image.open(源目录 / 名称).convert("RGB")
+            原图 = 打开原图(源目录 / 名称)
             输出 = 原图
             裁切左 = 0
             填充列表 = []
@@ -506,15 +568,17 @@ def 主流程():
         elif 需要脱敏:
             摘要 = 处理图片(源, 目标, 项, 参数)
         else:
-            import shutil
-
             目标.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(源, 目标)
             摘要 = {"名称": 名称, "原样入包": True}
         清单.append((名称, 目标))
         报告.append(摘要)
         print(f"处理 {名称}: {json.dumps(摘要, ensure_ascii=False, default=str)}")
-    zip报告 = 打包(清单, 压缩包)
+    try:
+        zip报告 = 打包(清单, 压缩包)
+    except 打包失败 as 错:
+        print(错, file=sys.stderr)
+        return 1
     print(f"打包 {压缩包.relative_to(项目根)} 共 {len(zip报告)} 条目")
     for 名称, 大小, _, _ in zip报告:
         print(f"  {名称} {大小}")
@@ -523,7 +587,38 @@ def 主流程():
     return 0
 
 
+def 仅打包流程():
+    规则 = 载入规则()
+    输出目录名 = 规则["输出目录"]
+    输出目录 = 项目根 / 输出目录名
+    压缩包 = 项目根 / 规则["压缩包路径"]
+    清单 = []
+    for 项 in 规则["文件"]:
+        名称 = 项["名称"]
+        源 = 输出目录 / 名称
+        if not 源.exists():
+            print(
+                f"错误：缺少脱敏产物 {源}\n"
+                f"  {输出目录名}/ 是已入库的脱敏结果，可用 git checkout -- {输出目录名} 恢复\n"
+                "  若要重新脱敏，需另行提供未入库的原始件（原始件按设计不入库）",
+                file=sys.stderr,
+            )
+            return 1
+        清单.append((名称, 源))
+    try:
+        zip报告 = 打包(清单, 压缩包)
+    except 打包失败 as 错:
+        print(错, file=sys.stderr)
+        return 1
+    print(f"打包 {压缩包.relative_to(项目根)} 共 {len(zip报告)} 条目")
+    if len(zip报告) != len(规则["文件"]):
+        raise ValueError("zip 条目数与规则文件数不一致")
+    return 0
+
+
 def 自检():
+    from PIL import Image
+
     规则 = 载入规则()
     配置 = 规则["公共参数"]["照片块"]
     底 = Image.new("RGB", (400, 400), (10, 10, 10))
@@ -553,12 +648,23 @@ def 自检():
 
 
 if __name__ == "__main__":
-    解析 = argparse.ArgumentParser(description="佐证材料脱敏打包；--audit 用更严阈值复核残留")
+    解析 = argparse.ArgumentParser(
+        description="佐证材料脱敏打包；--audit 用更严阈值复核残留",
+        epilog="同时给出多个开关时的实际优先级：--selftest > --仅打包 > --audit > 默认全量脱敏打包",
+    )
     解析.add_argument("--audit", action="store_true", help="严格检测差异集，输出切片到 佐证材料/审计切片/")
     解析.add_argument("--selftest", action="store_true", help="审计判定逻辑单元自检（毫秒级，无副作用）")
+    解析.add_argument(
+        "--仅打包",
+        "--pack-only",
+        action="store_true",
+        help="只把已跟踪的 脱敏后/ 打成 zip（无需 Pillow，不重新脱敏）",
+    )
     选项 = 解析.parse_args()
     if 选项.selftest:
         sys.exit(自检())
+    if 选项.仅打包:
+        sys.exit(仅打包流程())
     规则 = 载入规则()
     if 选项.audit:
         参数 = dict(规则["公共参数"])

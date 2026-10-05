@@ -60,12 +60,13 @@ A **content-first, tech-showcase** online résumé website that turns a job rés
 ## Quick start
 
 ```bash
+# Prerequisite: Python 3 on PATH (npm run dev / build / test shell out to python to rebuild 佐证材料.zip)
 git clone https://github.com/XuanRuiMu/XuanRuiMuGeRenJianLi.git
 cd XuanRuiMuGeRenJianLi
 
 npm install
 
-# Dev (auto font-subsetting, port 5180)
+# Dev (auto asset sync + evidence-bundle packaging + font subsetting, port 5180)
 npm run dev
 
 # Type-check + production build
@@ -93,21 +94,33 @@ XuanRuiMuGeRenJianLi/
 │   ├── i18n/                # zh-CN / en translations
 │   ├── utils/               # deviceCapabilities / viewTransition / format / swRegister…
 │   └── types/               # TypeScript types
-├── public/                  # static assets
+├── public/                  # static assets (synced from 素材/ by scripts/同步素材.js — do not edit directly)
 │   ├── showcase/            # showcase images
 │   ├── logos/               # tech-stack logos
 │   ├── images/              # avatar / signature / QR codes
-│   └── videos/ og-image.png # OG image / background video
-├── scripts/                 # font subsetting, dev-api-plugin, etc.
+│   ├── videos/ og-image.png # OG image / background video
+│   ├── fonts/               # font subsets produced by subset-fonts.js
+│   └── 佐证材料.zip         # download bundle produced by 打包佐证材料.py --仅打包
+├── 素材/                    # single source of truth for assets (images / showcase / videos / logos / icons)
+│   └── 签字.png              # original signature art (source of images/签字-alpha.png, not synced)
+├── scripts/                 # asset sync, font subsetting, dev-api-plugin, etc.
 ├── e2e/ tests/              # Playwright E2E & Vitest
 └── .github/workflows/ci.yml # CI
 ```
 
+> ⚠️ Limitation: `npm run dev` does not watch `素材/` for changes. After editing `素材/`, re-run `node scripts/同步素材.js` (or restart `npm run dev`) to sync into `public/`.
+
 ---
 
-## Content updates (no rebuild needed)
+## Content updates (swapping images needs no code change)
 
-Showcase data is centralized in `src/data/showcase.ts` — **swap an image with the same filename and refresh**: no rebuild or redeploy required.
+Showcase images are named **exactly after the card's project name** — the literal value of `showcase.cards.<id>.title` in `src/i18n/zh-CN.json`, spaces, the middle dot `·`, book-title marks 《》 and full-width parentheses （） included. Image paths are derived from that project name, so no path is hardcoded in code. Swapping an image takes three steps:
+
+1. **Rename the new file to the project name** (e.g. `羊来.png`) and drop it into `素材/showcase/`;
+2. Run `node scripts/同步素材.js` (or restart `npm run dev`) to mirror `素材/` into `public/`;
+3. Refresh the page.
+
+`public/` is a build artifact, so going live requires a fresh build and redeploy. Spaces inside a project name are only percent-encoded as `%20` in the URL — the file on disk keeps the real space. Add or remove cards in `src/data/showcase.ts`; every file under `素材/showcase/` must be referenced by exactly one card — a missing image, an orphan image, or a project name containing characters illegal in file names is rejected by `src/data/showcase.test.ts`.
 
 ---
 

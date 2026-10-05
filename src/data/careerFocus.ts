@@ -1,10 +1,10 @@
 import { t } from '../i18n/translations'
 import type { TranslationKey } from '../i18n/translations'
-import 岗位清单原文 from '../../职业定位.txt?raw'
+import 岗位清单原文 from './职业定位.txt?raw'
 
 /**
  * 求职定位唯一数据源：方向/aria 前缀/薪资在 zh-CN.json 的 career 节点，
- * 大标题轮换岗位在项目根目录 职业定位.txt（一行一个岗位，# 开头为注释）。
+ * 大标题轮换岗位在同目录 职业定位.txt（一行一个岗位，# 开头为注释）。
  */
 export const careerFocus = {
   directionKey: 'career.direction',
