@@ -11,7 +11,7 @@ interface LayoutProps {
   children: ReactNode
 }
 
-export function Layout({ children }: LayoutProps) {
+export function BuJu({ children }: LayoutProps) {
   return (
     <div className="relative flex min-h-screen flex-col bg-bg text-text-primary">
       <XingKongXiXiBeiJing className="z-0" />

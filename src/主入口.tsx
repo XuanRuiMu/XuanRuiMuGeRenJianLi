@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './入口样式.css'
 import App from './应用/YingYong'
 import { CuoWuBianJie } from './组件/错误边界'
-import { Providers } from './应用/TiGongQi'
+import { TiGongQi } from './应用/TiGongQi'
 import { 注册服务工作线程 } from './工具/注册服务工作线程'
 import { 初始化可观测性, 环形缓冲实例, 初始化控制台仪表盘 } from './可观测'
 
@@ -21,9 +21,9 @@ if ('scrollRestoration' in history) {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <CuoWuBianJie>
-      <Providers>
+      <TiGongQi>
         <App />
-      </Providers>
+      </TiGongQi>
     </CuoWuBianJie>
   </StrictMode>
 )

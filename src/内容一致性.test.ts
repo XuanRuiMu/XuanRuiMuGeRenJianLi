@@ -139,7 +139,7 @@ describe('FP-10 文案错误、口径不一致与死文案守卫', () => {
     for (const 路径 of 死键路径表) {
       expect(键存在(路径), `zh-CN.json.${路径} 无消费者，属死文案`).toBe(false)
     }
-    // 学历/media 的板块标题仍是 AI 助手时间线的数据源，不得连带误删
+    // 学历/媒体 的板块标题仍是 AI 助手时间线的数据源，不得连带误删
     expect(键存在('education.title')).toBe(true)
     expect(键存在('media.title')).toBe(true)
     expect(Object.keys(zhCN.education)).toEqual(['title'])

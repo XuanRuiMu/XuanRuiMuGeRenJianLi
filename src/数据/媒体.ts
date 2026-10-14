@@ -1,6 +1,6 @@
 import type { 媒体 } from './类型'
 
-export const media: 媒体 = {
+export const 媒体数据: 媒体 = {
   headlineKey: 'data.media.headline',
   introKey: 'data.media.intro',
   categories: [

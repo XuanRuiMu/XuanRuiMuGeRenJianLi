@@ -1,8 +1,8 @@
 import type { 经历条目 } from './类型'
 import { 个人信息 } from './个人信息'
 
-export const educatorBilibiliUrl = 'https://space.bilibili.com/383504924/upload/video'
-export const wowguildVideoUrl =
+export const 教育者B站地址 = 'https://space.bilibili.com/383504924/upload/video'
+export const 公会视频地址 =
   'https://www.bilibili.com/video/BV18jS9YvEyC/?spm_id_from=333.1387.upload.video_card.click&vd_source=7d17ffe17327fa579fc4419f1789bd27'
 
 export const 暮澜链接 = 'https://github.com/XuanRuiMu/XRMChaJian'
@@ -40,7 +40,7 @@ export const 经历表: 经历条目[] = [
       'data.experience.entries.educator.achievement2',
       'data.experience.entries.educator.achievement3',
     ],
-    links: [{ labelKey: 'projects.link.bilibili', url: educatorBilibiliUrl }],
+    links: [{ labelKey: 'projects.link.bilibili', url: 教育者B站地址 }],
   },
   {
     id: 'wowguild',
@@ -49,7 +49,7 @@ export const 经历表: 经历条目[] = [
     periodKey: 'data.experience.entries.wowguild.period',
     descriptionKeys: ['data.experience.entries.wowguild.description'],
     achievementKeys: ['data.experience.entries.wowguild.achievement1', 'data.experience.entries.wowguild.achievement2'],
-    links: [{ labelKey: 'projects.link.bilibili', url: wowguildVideoUrl }],
+    links: [{ labelKey: 'projects.link.bilibili', url: 公会视频地址 }],
   },
   {
     id: 'aiengineer',

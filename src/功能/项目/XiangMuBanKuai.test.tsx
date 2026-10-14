@@ -18,7 +18,7 @@ describe('ProjectsSection', () => {
           if (query.includes('prefers-reduced-motion')) return 减少动画
           return false
         },
-        media: query,
+        媒体: query,
         addEventListener: vi.fn(),
         removeEventListener: vi.fn(),
       })),

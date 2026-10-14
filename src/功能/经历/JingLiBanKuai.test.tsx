@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { JingLiBanKuai } from './JingLiBanKuai'
-import { 经历表, educatorBilibiliUrl, wowguildVideoUrl, 暮澜链接 } from '../../数据/经历'
+import { 经历表, 教育者B站地址, 公会视频地址, 暮澜链接 } from '../../数据/经历'
 import { 个人信息 } from '../../数据/个人信息'
 import { t } from '../../国际化/翻译'
 
@@ -229,8 +229,8 @@ describe('ExperienceSection', () => {
     render(<JingLiBanKuai />)
     const cases = [
       { id: 'mcserver', labelKey: 'projects.link.github', url: 暮澜链接 },
-      { id: 'educator', labelKey: 'projects.link.bilibili', url: educatorBilibiliUrl },
-      { id: 'wowguild', labelKey: 'projects.link.bilibili', url: wowguildVideoUrl },
+      { id: 'educator', labelKey: 'projects.link.bilibili', url: 教育者B站地址 },
+      { id: 'wowguild', labelKey: 'projects.link.bilibili', url: 公会视频地址 },
       { id: 'indie', labelKey: 'projects.link.github', url: 个人信息.github },
     ] as const
     for (const c of cases) {

@@ -1,7 +1,7 @@
 import { useEffect, useRef, type RefObject } from 'react'
 import { ExternalLink } from 'lucide-react'
 import { 项目表 } from '../../数据/项目'
-import type { Project } from '../../数据/类型'
+import type { 项目 } from '../../数据/类型'
 import { t } from '../../国际化/翻译'
 import { useJianShaoDongHua } from '../../钩子/useJianShaoDongHua'
 import { useBianQianFengLi } from '../../状态/便签风力仓库'
@@ -112,7 +112,7 @@ interface 晾衣绳便签属性 {
  * 自持 content ref 并调用 useBiQianZiShiYing，使每张便签按自身内容量独立二分适配字号。
  * DOM 结构、图片、物理引擎、银绳均不变。
  */
-function NoteContent({ 项目 }: { 项目: Project }) {
+function NoteContent({ 项目 }: { 项目: 项目 }) {
   const 内容Ref = useRef<HTMLDivElement>(null)
   useBiQianZiShiYing(内容Ref as RefObject<HTMLElement | null>, 0.6, 1.05)
   const link = 项目.links?.[0]

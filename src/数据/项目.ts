@@ -1,12 +1,12 @@
-import type { Project } from './类型'
+import type { 项目 } from './类型'
 import { ta } from '../国际化/翻译'
 
-export const lovewithmeGithubUrl = 'https://github.com/XuanRuiMu/HeWoLianAiBa'
-export const yangLaiWebUrl = 'https://xuanruimu.github.io/YangLai/'
+export const 恋爱吧GitHub地址 = 'https://github.com/XuanRuiMu/HeWoLianAiBa'
+export const 羊来官网地址 = 'https://xuanruimu.github.io/YangLai/'
 
 export const 暮澜链接 = 'https://github.com/XuanRuiMu/XRMChaJian'
 
-export const 项目表: Project[] = [
+export const 项目表: 项目[] = [
   {
     id: 'xrm',
     nameKey: 'data.projects.xrm.name',
@@ -21,7 +21,7 @@ export const 项目表: Project[] = [
     descKey: 'data.projects.lovewithme.desc',
     tags: ta('data.projects.lovewithme.tags'),
     metricKeys: ['data.projects.lovewithme.metrics.services', 'data.projects.lovewithme.metrics.security'],
-    links: [{ labelKey: 'projects.link.github', url: lovewithmeGithubUrl }],
+    links: [{ labelKey: 'projects.link.github', url: 恋爱吧GitHub地址 }],
   },
   {
     id: 'aiConsole',
@@ -37,6 +37,6 @@ export const 项目表: Project[] = [
     descKey: 'data.projects.yangLai.desc',
     tags: ta('data.projects.yangLai.tags'),
     metricKeys: ['data.projects.yangLai.metrics.stack', 'data.projects.yangLai.metrics.tests'],
-    links: [{ labelKey: 'projects.link.web', url: yangLaiWebUrl }],
+    links: [{ labelKey: 'projects.link.web', url: 羊来官网地址 }],
   },
 ]

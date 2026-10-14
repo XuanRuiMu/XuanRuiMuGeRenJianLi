@@ -115,7 +115,7 @@ describe('ClotheslineNotes 缩放往返（FP-01）', () => {
         get matches() {
           return query.includes('prefers-reduced-motion')
         },
-        media: query,
+        媒体: query,
         addEventListener: vi.fn(),
         removeEventListener: vi.fn(),
         addListener: vi.fn(),

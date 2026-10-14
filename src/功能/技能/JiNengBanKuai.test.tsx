@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, act, cleanup, fireEvent } from '@testing-library/react'
 import { JiNengBanKuai } from './JiNengBanKuai'
 import { 量化指标, 技能组表 } from '../../数据/技能分组'
-import { 雷达轴表, dimensionLabelKey, dimensionBasisKey } from '../../数据/雷达'
+import { 雷达轴表, 维度标题键, 维度依据键 } from '../../数据/雷达'
 import { t } from '../../国际化/翻译'
 
 /** 数字滚动只允许在 act 内推进；这里冻结 rAF 让终态文本稳定可读 */
@@ -11,7 +11,7 @@ async function 渲染技能板块({ 减少动画 = false }: { 减少动画?: boo
     () =>
       ({
         matches: 减少动画,
-        media: '(prefers-reduced-motion: reduce)',
+        媒体: '(prefers-reduced-motion: reduce)',
         addEventListener: vi.fn(),
         removeEventListener: vi.fn(),
         dispatchEvent: vi.fn(),
@@ -51,7 +51,7 @@ describe('FP-03 技能板块 - 量化指标', () => {
       () =>
         ({
           matches: false,
-          media: '(prefers-reduced-motion: reduce)',
+          媒体: '(prefers-reduced-motion: reduce)',
           addEventListener: vi.fn(),
           removeEventListener: vi.fn(),
           dispatchEvent: vi.fn(),
@@ -131,7 +131,7 @@ describe('FP-03 技能板块 - 量化指标', () => {
       () =>
         ({
           matches: false,
-          media: '(prefers-reduced-motion: reduce)',
+          媒体: '(prefers-reduced-motion: reduce)',
           addEventListener: vi.fn(),
           removeEventListener: vi.fn(),
           dispatchEvent: vi.fn(),
@@ -345,9 +345,9 @@ describe('FP-03 技能板块 - 雷达与残留', () => {
     expect(卡片表).toHaveLength(4)
     主轴表.forEach((轴, 索引) => {
       const 文本 = 卡片表[索引]?.textContent ?? ''
-      expect(文本).toContain(t(dimensionLabelKey(轴.id)))
+      expect(文本).toContain(t(维度标题键(轴.id)))
       expect(文本).toContain(String(轴.level))
-      expect(文本).toContain(t(dimensionBasisKey(轴.id)))
+      expect(文本).toContain(t(维度依据键(轴.id)))
     })
 
     const 悬停前 = 右侧.innerHTML

@@ -69,7 +69,7 @@ const TIMELINE_TITLE_KEYS: Record<NonNullable<时间线组件['scope']>, Transla
   education: 'education.title',
 }
 
-function getMediaTimelineEntries(): 时间线条目[] {
+function 取媒体时间线条目(): 时间线条目[] {
   return [
     { year: '2022', label: t('data.media.timeline.2022') },
     { year: '2023', label: t('data.media.timeline.2023') },
@@ -85,7 +85,7 @@ function getExperienceTimelineEntries(): 时间线条目[] {
   }))
 }
 
-function getEducationTimelineEntries(): 时间线条目[] {
+function 取教育时间线条目(): 时间线条目[] {
   const summary = 教育档案.summary
   return [
     { year: summary.period.split(' - ')[0] ?? summary.period, label: `${summary.school} · ${summary.major}` },
@@ -93,14 +93,14 @@ function getEducationTimelineEntries(): 时间线条目[] {
   ]
 }
 
-function getTimelineEntries(scope: 时间线组件['scope']): 时间线条目[] {
+function 取时间线条目(scope: 时间线组件['scope']): 时间线条目[] {
   switch (scope) {
     case 'experience':
       return getExperienceTimelineEntries()
     case 'education':
-      return getEducationTimelineEntries()
+      return 取教育时间线条目()
     case 'media':
-      return getMediaTimelineEntries()
+      return 取媒体时间线条目()
     default:
       return getExperienceTimelineEntries()
   }
@@ -108,7 +108,7 @@ function getTimelineEntries(scope: 时间线组件['scope']): 时间线条目[] 
 
 function TimelineRenderer({ component }: ComponentRendererProps<时间线组件>) {
   const title = component.scope ? t(TIMELINE_TITLE_KEYS[component.scope]) : t('experience.title')
-  const entries = getTimelineEntries(component.scope)
+  const entries = 取时间线条目(component.scope)
 
   return (
     <div className="rounded-xl border border-border bg-surface-elevated p-4">

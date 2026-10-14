@@ -1,5 +1,5 @@
 import { t, type TranslationKey } from '../国际化/翻译'
-import { yangLaiWebUrl } from './项目'
+import { 羊来官网地址 } from './项目'
 
 /**
  * 配图源目录（素材唯一源）。public/showcase/ 是 scripts/同步素材.js 生成的镜像产物，勿直接编辑。
@@ -198,7 +198,7 @@ const 源板块表: 板块声明[] = [
         id: 'yanglai',
         titleKey: 'showcase.cards.yanglai.title',
         descKey: 'showcase.cards.yanglai.desc',
-        href: yangLaiWebUrl,
+        href: 羊来官网地址,
       },
     ],
   },

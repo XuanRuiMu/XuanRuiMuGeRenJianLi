@@ -23,14 +23,14 @@ export const 雷达轴表: 雷达轴[] = [
   { id: 'artCreation', level: 65, minor: true },
 ]
 
-export function dimensionLabelKey(id: string): TranslationKey {
+export function 维度标题键(id: string): TranslationKey {
   return `data.radar.dimensions.${id}.label` as unknown as TranslationKey
 }
 
-export function dimensionBasisKey(id: string): TranslationKey {
+export function 维度依据键(id: string): TranslationKey {
   return `data.radar.dimensions.${id}.basis` as unknown as TranslationKey
 }
 
-export function dimensionDescriptionKey(id: string): TranslationKey {
+export function 维度描述键(id: string): TranslationKey {
   return `data.radar.dimensions.${id}.description` as unknown as TranslationKey
 }

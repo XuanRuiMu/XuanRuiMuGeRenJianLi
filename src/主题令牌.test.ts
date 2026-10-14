@@ -46,7 +46,7 @@ function 取配平块(文本: string, 起始: number, 用途: string): string {
   return 文本.slice(开, 闭 + 1)
 }
 
-/** 全表的 .light 系规则块（顶层块、@supports/@media 内的缩进块、`.light xxx` scoped 覆盖），带源码位置 */
+/** 全表的 .light 系规则块（顶层块、@supports/@媒体 内的缩进块、`.light xxx` scoped 覆盖），带源码位置 */
 function 取浅色规则块表(文本: string): Array<{ 位置: number; 令牌: Set<string> }> {
   return [...文本.matchAll(/(^|[,{\s])\.light(?![\w-])[^{};)]*\{/gm)].map((命中) => ({
     位置: 命中.index,
@@ -54,7 +54,7 @@ function 取浅色规则块表(文本: string): Array<{ 位置: number; 令牌: 
   }))
 }
 
-/** 全表的 :root 规则块（含 @supports/@media 内嵌套的那些）及其 --color-* 声明的源码位置 */
+/** 全表的 :root 规则块（含 @supports/@媒体 内嵌套的那些）及其 --color-* 声明的源码位置 */
 function 取根规则块表(文本: string): Array<Array<{ 令牌: string; 位置: number }>> {
   return [...文本.matchAll(/(^|[,{\s]):root(?![\w-])[^{};)]*\{/gm)].map((命中) => {
     const 块起 = 命中.index + 命中[0].length - 1
@@ -122,7 +122,7 @@ function 令牌值(块: string, 令牌: string): string | null {
  *    .glass-nav/.nav-link-pill 的底色/描边/文字/光晕/焦点环必须走 --color-nav-*。
  * 6) 渐变机制（FP-09 缺陷 1 根因守卫）：渐变图由 --渐变-* 自定义属性提供、clip 机制
  *    只在基线规则写一次；.light 覆盖只允许重新赋值自定义属性。
- * 7) :root 覆盖顺序（FP-11 R7）：任何 :root（含 @supports/@media 内那几份）改写的
+ * 7) :root 覆盖顺序（FP-11 R7）：任何 :root（含 @supports/@媒体 内那几份）改写的
  *    --color-*，都必须在其后再出现一条 .light 声明；同特异度只看源码顺序，
  *    写在 :root 之前的顶层 .light 会被压过，浅色主题直接变暗。
  *

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { Layout } from './BuJu'
+import { BuJu } from './BuJu'
 
 vi.mock('../组件/主题切换/ZhuTiQieHuan', () => ({
   ZhuTiQieHuan: () => <button type="button" data-testid="theme-toggle" />,
@@ -37,9 +37,9 @@ vi.mock('../库/分析接口', () => ({
 describe('Layout', () => {
   it('renders children and global starfield background', () => {
     render(
-      <Layout>
+      <BuJu>
         <section data-testid="page-content">content</section>
-      </Layout>
+      </BuJu>
     )
 
     expect(screen.getByTestId('page-content')).toBeInTheDocument()
@@ -49,9 +49,9 @@ describe('Layout', () => {
 
   it('renders navigation, theme toggle and overlays', () => {
     render(
-      <Layout>
+      <BuJu>
         <div>page</div>
-      </Layout>
+      </BuJu>
     )
 
     // 注：NavDock 组件已在先前工作中删除，导航现由 KeDiaoDaoHang 渲染（其契约见
@@ -65,9 +65,9 @@ describe('Layout', () => {
 
   it('页脚始终挂载访客人数徽章', () => {
     render(
-      <Layout>
+      <BuJu>
         <div>page</div>
-      </Layout>
+      </BuJu>
     )
     expect(screen.getByTestId('visitor-counter-card')).toBeInTheDocument()
   })

@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useJianShaoDongHua } from '../钩子/useJianShaoDongHua'
-import { SmoothScroll } from './PingHuaGunDong'
+import { PingHuaGunDong } from './PingHuaGunDong'
 import { useYingYongZhuangTai } from '../状态/应用状态仓库'
 import { useZhuTiXiTong } from '../组件/主题切换/useZhuTiXiTong'
 
@@ -35,12 +35,12 @@ interface ProvidersProps {
   children: ReactNode
 }
 
-export function Providers({ children }: ProvidersProps) {
+export function TiGongQi({ children }: ProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeSync />
       <ReducedMotionSync />
-      <SmoothScroll>{children}</SmoothScroll>
+      <PingHuaGunDong>{children}</PingHuaGunDong>
     </QueryClientProvider>
   )
 }

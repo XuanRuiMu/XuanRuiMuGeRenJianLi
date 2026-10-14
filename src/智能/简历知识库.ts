@@ -4,8 +4,8 @@ import { 技能组表, 量化指标 } from '../数据/技能分组'
 import { 项目表 } from '../数据/项目'
 import { 经历表 } from '../数据/经历'
 import { 教育档案 } from '../数据/教育'
-import { design } from '../数据/设计'
-import { media } from '../数据/媒体'
+import { 设计数据 } from '../数据/设计'
+import { 媒体数据 } from '../数据/媒体'
 import { GitHub仓库快照, GitHub快照元信息, GitHub快照生成时间 } from '../数据/GitHub快照'
 import { t } from '../国际化/翻译'
 
@@ -147,9 +147,9 @@ function buildEducationChunks(): 知识块[] {
 }
 
 function buildDesignChunks(): 知识块[] {
-  const workChunks = design.works.map((work) =>
+  const workChunks = 设计数据.works.map((work) =>
     chunk(
-      `design-work-${work.id}`,
+      `设计-work-${work.id}`,
       `设计作品：${t(work.nameKey)}。分类：${t(work.categoryKey)}。描述：${t(work.descKey)}。`,
       'design',
       'design.ts'
@@ -157,28 +157,28 @@ function buildDesignChunks(): 知识块[] {
   )
 
   return [
-    chunk('design-headline', `${t(design.headlineKey)}：${t(design.introKey)}`, 'design', 'design.ts'),
-    chunk('design-tools', `设计工具：${design.toolKeys.map((key) => t(key)).join('、')}。`, 'design', 'design.ts'),
+    chunk('design-headline', `${t(设计数据.headlineKey)}：${t(设计数据.introKey)}`, 'design', 'design.ts'),
+    chunk('design-tools', `设计工具：${设计数据.toolKeys.map((key) => t(key)).join('、')}。`, 'design', 'design.ts'),
     ...workChunks,
   ]
 }
 
 function buildMediaChunks(): 知识块[] {
-  const categoryChunks = media.categories.map((category) =>
+  const categoryChunks = 媒体数据.categories.map((category) =>
     chunk(
-      `media-category-${category.id}`,
+      `媒体-category-${category.id}`,
       `${t(category.labelKey)}：${category.itemKeys.map((key) => t(key)).join('、')}。`,
       'media',
       'media.ts'
     )
   )
 
-  const timelineChunks = media.timeline.map((event) =>
-    chunk(`media-timeline-${event.year}`, `${event.year}年：${t(event.eventKey)}`, 'media', 'media.ts')
+  const timelineChunks = 媒体数据.timeline.map((event) =>
+    chunk(`媒体-timeline-${event.year}`, `${event.year}年：${t(event.eventKey)}`, 'media', 'media.ts')
   )
 
   return [
-    chunk('media-headline', `${t(media.headlineKey)}：${t(media.introKey)}`, 'media', 'media.ts'),
+    chunk('media-headline', `${t(媒体数据.headlineKey)}：${t(媒体数据.introKey)}`, 'media', 'media.ts'),
     ...categoryChunks,
     ...timelineChunks,
   ]

@@ -16,7 +16,7 @@ export interface 星空星系场景接口 {
   setParallax: (scroll: number) => void
 }
 
-export const DEFAULT_EFFECT_PARAMS = {
+export const 默认特效参数 = {
   supernova: { frequency: 0.5, opacity: 0.25 },
   nebula: { count: 6, opacity: 0.5 },
   twinkle: { intensity: 0.6, speed: 1.85 },
@@ -89,16 +89,16 @@ const starryGuiState: 星空面板状态 = {
   colorBreath: { enabled: true },
   supernova: {
     enabled: true,
-    frequency: DEFAULT_EFFECT_PARAMS.supernova.frequency,
-    opacity: DEFAULT_EFFECT_PARAMS.supernova.opacity,
+    frequency: 默认特效参数.supernova.frequency,
+    opacity: 默认特效参数.supernova.opacity,
   },
-  nebula: { enabled: true, count: DEFAULT_EFFECT_PARAMS.nebula.count, opacity: DEFAULT_EFFECT_PARAMS.nebula.opacity },
+  nebula: { enabled: true, count: 默认特效参数.nebula.count, opacity: 默认特效参数.nebula.opacity },
   twinkle: {
     enabled: true,
-    intensity: DEFAULT_EFFECT_PARAMS.twinkle.intensity,
-    speed: DEFAULT_EFFECT_PARAMS.twinkle.speed,
+    intensity: 默认特效参数.twinkle.intensity,
+    speed: 默认特效参数.twinkle.speed,
   },
-  stardust: { enabled: true, opacity: DEFAULT_EFFECT_PARAMS.stardust.opacity },
+  stardust: { enabled: true, opacity: 默认特效参数.stardust.opacity },
   centerDim: { enabled: true, startOpacity: 0.9, endOpacity: 1.0, radius: 0.6, period: 5.0 },
 }
 // 活动场景的参数同步器：场景创建时注册，销毁时清空。GUI 变更时若存在则调用。
@@ -633,20 +633,20 @@ export function 创建星空星系场景(container: HTMLElement, options: 星空
     colorBreath: { enabled: true },
     supernova: {
       enabled: true,
-      frequency: DEFAULT_EFFECT_PARAMS.supernova.frequency,
-      opacity: DEFAULT_EFFECT_PARAMS.supernova.opacity,
+      frequency: 默认特效参数.supernova.frequency,
+      opacity: 默认特效参数.supernova.opacity,
     },
     nebula: {
       enabled: true,
-      count: DEFAULT_EFFECT_PARAMS.nebula.count,
-      opacity: DEFAULT_EFFECT_PARAMS.nebula.opacity,
+      count: 默认特效参数.nebula.count,
+      opacity: 默认特效参数.nebula.opacity,
     },
     twinkle: {
       enabled: true,
-      intensity: DEFAULT_EFFECT_PARAMS.twinkle.intensity,
-      speed: DEFAULT_EFFECT_PARAMS.twinkle.speed,
+      intensity: 默认特效参数.twinkle.intensity,
+      speed: 默认特效参数.twinkle.speed,
     },
-    stardust: { enabled: true, opacity: DEFAULT_EFFECT_PARAMS.stardust.opacity },
+    stardust: { enabled: true, opacity: 默认特效参数.stardust.opacity },
   }
 
   const supernovaTexture = makeSupernovaTexture()

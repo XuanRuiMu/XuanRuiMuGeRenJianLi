@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { 项目表, lovewithmeGithubUrl, yangLaiWebUrl, 暮澜链接 } from '../../数据/项目'
-import { 经历表, educatorBilibiliUrl, wowguildVideoUrl, 暮澜链接 as 经历暮澜链接 } from '../../数据/经历'
+import { 项目表, 恋爱吧GitHub地址, 羊来官网地址, 暮澜链接 } from '../../数据/项目'
+import { 经历表, 教育者B站地址, 公会视频地址, 暮澜链接 as 经历暮澜链接 } from '../../数据/经历'
 import { 暮澜链接 as 展示暮澜链接, 展示行表 } from '../../数据/展示'
 import { 个人信息 } from '../../数据/个人信息'
 
@@ -24,7 +24,7 @@ describe('项目链接完整性', () => {
   })
 
   it('羊来项目链接精确等于用户指定地址且显示网页链接', () => {
-    expect(yangLaiWebUrl).toBe('https://xuanruimu.github.io/YangLai/')
+    expect(羊来官网地址).toBe('https://xuanruimu.github.io/YangLai/')
     const 羊来 = 项目表.find((项目) => 项目.id === 'yangLai')
     expect(羊来).toBeDefined()
     expect(羊来?.links[0].url).toBe('https://xuanruimu.github.io/YangLai/')
@@ -33,15 +33,15 @@ describe('项目链接完整性', () => {
 
   it('恋爱吧项目链接常量全库唯一源', () => {
     const 恋爱吧项目 = 项目表.find((项目) => 项目.id === 'lovewithme')
-    expect(恋爱吧项目?.links[0].url).toBe(lovewithmeGithubUrl)
+    expect(恋爱吧项目?.links[0].url).toBe(恋爱吧GitHub地址)
   })
 
   it('FP-05：经历外链地址与用户指定一致', () => {
     const 教育 = 经历表.find((条目) => 条目.id === 'educator')
     expect(教育?.links?.[0].url).toBe('https://space.bilibili.com/383504924/upload/video')
-    expect(教育?.links?.[0].url).toBe(educatorBilibiliUrl)
+    expect(教育?.links?.[0].url).toBe(教育者B站地址)
     const 公会 = 经历表.find((条目) => 条目.id === 'wowguild')
-    expect(公会?.links?.[0].url).toBe(wowguildVideoUrl)
+    expect(公会?.links?.[0].url).toBe(公会视频地址)
     expect(公会?.links?.[0].url.startsWith('https://www.bilibili.com/video/BV18jS9YvEyC/')).toBe(true)
     const 独立开发 = 经历表.find((条目) => 条目.id === 'indie')
     expect(独立开发?.links?.[0].url).toBe(个人信息.github)

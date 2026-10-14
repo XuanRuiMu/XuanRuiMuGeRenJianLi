@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { BanKuai } from '../../组件/基础组件/BanKuai'
 import { XianXian } from '../../组件/显现'
 import { t } from '../../国际化/翻译'
-import { 雷达轴表, dimensionLabelKey, dimensionBasisKey, dimensionDescriptionKey, type 雷达轴 } from '../../数据/雷达'
+import { 雷达轴表, 维度标题键, 维度依据键, 维度描述键, type 雷达轴 } from '../../数据/雷达'
 import { 量化指标, 技能组表, type 量化指标项 } from '../../数据/技能分组'
 import { useShuZiGunDong } from '../../钩子/useShuZiGunDong'
 import { useJianShaoDongHua } from '../../钩子/useJianShaoDongHua'
@@ -197,7 +197,7 @@ function RadarTooltip({
       >
         <span aria-hidden="true" className={['absolute inset-0', 视觉.底色类].join(' ')} />
         <span aria-hidden="true" className={['absolute inset-y-0 left-0 w-0.5', 视觉.强调类].join(' ')} />
-        <div className="relative text-[13px] leading-6 text-text-secondary">{t(dimensionDescriptionKey(轴.id))}</div>
+        <div className="relative text-[13px] leading-6 text-text-secondary">{t(维度描述键(轴.id))}</div>
       </motion.div>
     </div>
   )
@@ -366,7 +366,7 @@ export function JiNengBanKuai() {
                       onMouseEnter={() => set悬停轴Id(轴.id)}
                       onMouseLeave={() => set悬停轴Id(null)}
                       role="img"
-                      aria-label={t(dimensionLabelKey(轴.id))}
+                      aria-label={t(维度标题键(轴.id))}
                     />
                   )
                 })}
@@ -383,7 +383,7 @@ export function JiNengBanKuai() {
                       className="fill-current text-text-secondary"
                       style={{ fontSize: 11 }}
                     >
-                      {t(dimensionLabelKey(轴.id))}
+                      {t(维度标题键(轴.id))}
                     </text>
                   )
                 })}
@@ -410,10 +410,10 @@ export function JiNengBanKuai() {
             <XianXian key={轴.id}>
               <div className="rounded-xl border border-border/60 bg-surface/40 p-3">
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="text-sm font-medium text-text-primary">{t(dimensionLabelKey(轴.id))}</span>
+                  <span className="text-sm font-medium text-text-primary">{t(维度标题键(轴.id))}</span>
                   <span className="font-mono text-xs text-primary">{轴.level}</span>
                 </div>
-                <p className="mt-1 text-xs leading-relaxed text-text-secondary">{t(dimensionBasisKey(轴.id))}</p>
+                <p className="mt-1 text-xs leading-relaxed text-text-secondary">{t(维度依据键(轴.id))}</p>
               </div>
             </XianXian>
           ))}

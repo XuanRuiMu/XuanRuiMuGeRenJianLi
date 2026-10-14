@@ -57,7 +57,7 @@ interface SmoothScrollProps {
   children: ReactNode
 }
 
-export function SmoothScroll({ children }: SmoothScrollProps) {
+export function PingHuaGunDong({ children }: SmoothScrollProps) {
   const 减少动画 = useJianShaoDongHua()
 
   // 根因修复（FP-03）：禁用浏览器滚动恢复，避免 Ctrl+Shift+R 硬刷新后停留在非顶部位置。

@@ -28,7 +28,7 @@ export interface 项目链接 {
   url: string
 }
 
-export interface Project {
+export interface 项目 {
   id: string
   nameKey: TranslationKey
   descKey: TranslationKey

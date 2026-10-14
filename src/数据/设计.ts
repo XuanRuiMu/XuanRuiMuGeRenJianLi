@@ -1,6 +1,6 @@
 import type { 设计 } from './类型'
 
-export const design: 设计 = {
+export const 设计数据: 设计 = {
   headlineKey: 'data.design.headline',
   introKey: 'data.design.intro',
   works: [

@@ -4,7 +4,7 @@ import { 启动视图过渡, 启动圆形揭示过渡, type 圆形揭示原点 }
 
 const STORAGE_KEY = 'xrm-theme'
 
-export interface SetThemeOptions {
+export interface 设置主题选项 {
   origin?: 圆形揭示原点
 }
 
@@ -70,7 +70,7 @@ export function useZhuTiXiTong() {
   }, [setThemeStore])
 
   const setTheme = useCallback(
-    (next: 应用主题, options?: SetThemeOptions) => {
+    (next: 应用主题, options?: 设置主题选项) => {
       pendingOriginRef.current = options?.origin ?? null
       setThemeStore(next)
       try {

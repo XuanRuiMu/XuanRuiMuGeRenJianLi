@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import zhCN from '../国际化/zh-CN.json'
 import { t } from '../国际化/翻译'
-import { 雷达轴表, dimensionLabelKey, dimensionBasisKey, dimensionDescriptionKey } from './雷达'
+import { 雷达轴表, 维度标题键, 维度依据键, 维度描述键 } from './雷达'
 
 const 维度表 = zhCN.data.radar.dimensions as Record<string, { label: string; description: string; basis: string }>
 
@@ -34,7 +34,7 @@ describe('FP-03 技能雷达 6 轴', () => {
     expect('devops' in 维度表).toBe(false)
     const 合并轴 = 雷达轴表.find((轴) => 轴.id === 'devopsDelivery')
     expect(合并轴?.level).toBe(78)
-    const 依据 = t(dimensionBasisKey('devopsDelivery'))
+    const 依据 = t(维度依据键('devopsDelivery'))
     expect(依据).toContain('docker-compose')
     expect(依据).toContain('运维多台服务器')
     expect(依据).toContain('用户培训')
@@ -48,7 +48,7 @@ describe('FP-03 技能雷达 6 轴', () => {
     for (const 轴 of 雷达轴表) {
       const 维度 = 维度表[轴.id]
       expect(维度, `${轴.id} 缺翻译节点`).toBeDefined()
-      expect(t(dimensionLabelKey(轴.id))).toBe(维度.label)
+      expect(t(维度标题键(轴.id))).toBe(维度.label)
       expect(维度.label.trim()).not.toBe('')
       expect(维度.description.trim()).not.toBe('')
       expect(维度.basis.trim()).not.toBe('')
@@ -74,7 +74,7 @@ describe('FP-03 技能雷达 6 轴', () => {
     } as const
     const 归一 = (文本: string) => 文本.replace(/\s+/g, '')
     for (const 轴 of 雷达轴表) {
-      const 描述 = 归一(t(dimensionDescriptionKey(轴.id)))
+      const 描述 = 归一(t(维度描述键(轴.id)))
       const 依据 = 归一(维度表[轴.id].basis)
       for (const 关键词 of 事实关键词[轴.id as keyof typeof 事实关键词]) {
         const 归一关键词 = 归一(关键词)

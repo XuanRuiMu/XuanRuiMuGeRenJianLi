@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Layout } from './BuJu'
+import { BuJu } from './BuJu'
 import { ShouPingBanKuai } from '../功能/首屏/ShouPingBanKuai'
 
 const GuanYuWoBanKuai = lazy(() =>
@@ -30,7 +30,7 @@ function SectionFallback() {
 
 export default function App() {
   return (
-    <Layout>
+    <BuJu>
       <ShouPingBanKuai />
       <Suspense fallback={<SectionFallback />}>
         <GuanYuWoBanKuai />
@@ -41,6 +41,6 @@ export default function App() {
         <ZhanShiBanKuai />
         <LianXiBanKuai />
       </Suspense>
-    </Layout>
+    </BuJu>
   )
 }
