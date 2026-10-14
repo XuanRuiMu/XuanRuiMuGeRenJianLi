@@ -13,13 +13,13 @@
  */
 
 // 取值集合直接写进类型联合：组件不再来自模型，没有第二个消费方需要独立的常量
-export type ProjectCardComponent = {
+export type 项目卡片组件 = {
   type: 'ProjectCard'
   projectId: 'xrm' | 'lovewithme' | 'aiConsole' | 'yangLai'
 }
-export type TimelineComponent = { type: 'Timeline'; scope?: 'experience' | 'media' | 'education' }
-export type ContactLinksComponent = { type: 'ContactLinks' }
-export type UiComponent = ProjectCardComponent | TimelineComponent | ContactLinksComponent
+export type 时间线组件 = { type: 'Timeline'; scope?: 'experience' | 'media' | 'education' }
+export type 联系方式组件 = { type: 'ContactLinks' }
+export type 界面组件 = 项目卡片组件 | 时间线组件 | 联系方式组件
 
 /**
  * 渲染宽度为 0 的字符：控制符、格式符（含零宽字符族）、组合记号、非换行空白。

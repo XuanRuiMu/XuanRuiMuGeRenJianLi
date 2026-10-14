@@ -9,7 +9,7 @@ import { media } from '../data/媒体'
 import { GitHub仓库快照, GitHub快照元信息, GitHub快照生成时间 } from '../data/GitHub快照'
 import { t } from '../i18n/翻译'
 
-export interface KnowledgeChunk {
+export interface 知识块 {
   id: string
   content: string
   metadata: {
@@ -18,7 +18,7 @@ export interface KnowledgeChunk {
   }
 }
 
-function chunk(id: string, content: string, category: string, source: string): KnowledgeChunk {
+function chunk(id: string, content: string, category: string, source: string): 知识块 {
   return {
     id,
     content: content.trim(),
@@ -26,7 +26,7 @@ function chunk(id: string, content: string, category: string, source: string): K
   }
 }
 
-function buildPersonalInfoChunks(): KnowledgeChunk[] {
+function buildPersonalInfoChunks(): 知识块[] {
   const info = 个人信息
   return [
     chunk(
@@ -50,7 +50,7 @@ function buildPersonalInfoChunks(): KnowledgeChunk[] {
   ]
 }
 
-function buildProjectChunks(): KnowledgeChunk[] {
+function buildProjectChunks(): 知识块[] {
   return 项目表.map((project) => {
     const metrics = project.metricKeys?.map((key) => t(key)).join('，') ?? ''
     const links = project.links?.map((link) => `${t(link.labelKey)}：${link.url}`).join('，') ?? ''
@@ -63,7 +63,7 @@ function buildProjectChunks(): KnowledgeChunk[] {
   })
 }
 
-function buildTechStackChunks(): KnowledgeChunk[] {
+function buildTechStackChunks(): 知识块[] {
   return [
     chunk(
       'tech-stack-core',
@@ -80,7 +80,7 @@ function buildTechStackChunks(): KnowledgeChunk[] {
   ]
 }
 
-function buildWorkspaceChunks(): KnowledgeChunk[] {
+function buildWorkspaceChunks(): 知识块[] {
   return [
     chunk(
       'workspace-overview',
@@ -97,7 +97,7 @@ function buildWorkspaceChunks(): KnowledgeChunk[] {
   ]
 }
 
-function buildSkillChunks(): KnowledgeChunk[] {
+function buildSkillChunks(): 知识块[] {
   const 指标块 = chunk(
     'skills-metrics',
     `量化指标：${量化指标()
@@ -117,7 +117,7 @@ function buildSkillChunks(): KnowledgeChunk[] {
   return [指标块, ...分组块]
 }
 
-function buildExperienceChunks(): KnowledgeChunk[] {
+function buildExperienceChunks(): 知识块[] {
   return 经历表.map((entry) => {
     const 成就 = (entry.achievementKeys ?? []).map((key) => t(key)).join('；')
     return chunk(
@@ -129,7 +129,7 @@ function buildExperienceChunks(): KnowledgeChunk[] {
   })
 }
 
-function buildEducationChunks(): KnowledgeChunk[] {
+function buildEducationChunks(): 知识块[] {
   const summary = 教育档案.summary
   const courses = 教育档案.courses.map((course) => `${t(course.nameKey)}（${t(course.levelKey)}）`).join('、')
   const achievements = 教育档案.achievementKeys.map((key) => t(key)).join('；')
@@ -146,7 +146,7 @@ function buildEducationChunks(): KnowledgeChunk[] {
   ]
 }
 
-function buildDesignChunks(): KnowledgeChunk[] {
+function buildDesignChunks(): 知识块[] {
   const workChunks = design.works.map((work) =>
     chunk(
       `design-work-${work.id}`,
@@ -163,7 +163,7 @@ function buildDesignChunks(): KnowledgeChunk[] {
   ]
 }
 
-function buildMediaChunks(): KnowledgeChunk[] {
+function buildMediaChunks(): 知识块[] {
   const categoryChunks = media.categories.map((category) =>
     chunk(
       `media-category-${category.id}`,
@@ -188,7 +188,7 @@ function buildMediaChunks(): KnowledgeChunk[] {
  * GitHub 仓库快照chunk（构建期由 scripts/同步GitHub快照.js 拉取）。
  * 只写快照里有的字段：没有 README 或没有语言的仓库不补空话，避免 AI 拿空字段编故事。
  */
-function buildGitHubChunks(): KnowledgeChunk[] {
+function buildGitHubChunks(): 知识块[] {
   if (!Array.isArray(GitHub仓库快照) || GitHub仓库快照.length === 0) return []
   const 纳入数 = GitHub快照元信息?.纳入仓库数 ?? GitHub仓库快照.length
   const 总数 = GitHub快照元信息?.公开仓库总数 ?? 纳入数
@@ -214,7 +214,7 @@ function buildGitHubChunks(): KnowledgeChunk[] {
   return [总览, ...仓库块]
 }
 
-export function buildResumeKnowledgeBase(): KnowledgeChunk[] {
+export function 构建简历知识库(): 知识块[] {
   return [
     ...buildPersonalInfoChunks(),
     ...buildProjectChunks(),
@@ -229,4 +229,4 @@ export function buildResumeKnowledgeBase(): KnowledgeChunk[] {
   ]
 }
 
-export const resumeKnowledgeBase: KnowledgeChunk[] = buildResumeKnowledgeBase()
+export const 简历知识库: 知识块[] = 构建简历知识库()

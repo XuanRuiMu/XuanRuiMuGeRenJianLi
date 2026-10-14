@@ -2,22 +2,22 @@ import type { AI消息 } from '../store/应用状态仓库'
 import { t, type TranslationKey } from '../i18n/翻译'
 import { 个人信息 } from '../data/个人信息'
 import { 求职方向 } from '../data/职业方向'
-import type { UiComponent } from './structuredOutput'
-import { 是否纯问候, 是否感谢, 是否告别, 检测项目卡片, 命中兜底意图 } from './intentTable'
+import type { 界面组件 } from './结构化输出'
+import { 是否纯问候, 是否感谢, 是否告别, 检测项目卡片, 命中兜底意图 } from './意图表'
 
-interface LocalRule {
+interface 本地规则 {
   意图ID: string
   /** 与主意图共用同一段预制答案的意图（项目类意图统一答"做过哪些项目"） */
   聚合意图ID?: string[]
   key: 'name' | 'target' | 'contact' | 'projects' | 'skills' | 'education' | 'experience'
-  component?: UiComponent
+  component?: 界面组件
 }
 
 /** 项目类意图共用的规则 ID：具体卡片标识由提问决定，答案文案统一 */
 const 项目通用规则ID = 'projects-通用'
 
 /** 兜底作答规则表：与 共享意图表 中兜底触发词非空的意图一一对应（一致性由 localEngine.test.ts 锁死） */
-export const RULES: LocalRule[] = [
+export const 规则表: 本地规则[] = [
   { 意图ID: 'name', key: 'name' },
   { 意图ID: 'target', key: 'target' },
   { 意图ID: 'contact', key: 'contact', component: { type: 'ContactLinks' } },
@@ -36,7 +36,7 @@ export const RULES: LocalRule[] = [
   },
 ]
 
-function formatAnswer(key: LocalRule['key']): string {
+function formatAnswer(key: 本地规则['key']): string {
   const base = t(`chat.answers.${key}` as unknown as TranslationKey)
   return base
     .replace('{name}', 个人信息.name)
@@ -47,7 +47,7 @@ function formatAnswer(key: LocalRule['key']): string {
     .replace('{period}', 个人信息.教育背景.period)
 }
 
-function 命中意图(规则: LocalRule, 文本: string): boolean {
+function 命中意图(规则: 本地规则, 文本: string): boolean {
   if (命中兜底意图(规则.意图ID, 文本)) return true
   return (规则.聚合意图ID ?? []).some((意图ID) => 命中兜底意图(意图ID, 文本))
 }
@@ -86,9 +86,9 @@ function 是否否定或比较(文本: string): boolean {
 
 interface 回答路由 {
   /** 命中的预制答案档位；问候/感谢/告别与无关问题为 undefined */
-  key?: LocalRule['key']
+  key?: 本地规则['key']
   /** 访客可见的交互组件：项目卡片 / 时间线 / 联系方式 */
-  component?: UiComponent
+  component?: 界面组件
   /** 命中的规则带了组件，但被否定/比较闸门抑制（文案里不能承诺一个不会出现的按钮） */
   组件被抑制?: boolean
 }
@@ -106,14 +106,14 @@ function 路由回答(输入: string): 回答路由 {
   const 否定或比较 = 是否否定或比较(文本)
   const 项目标识 = 检测项目卡片(输入)
   if (项目标识) {
-    const 项目规则 = RULES.find((规则) => 规则.意图ID === 项目通用规则ID)
+    const 项目规则 = 规则表.find((规则) => 规则.意图ID === 项目通用规则ID)
     return {
       key: 项目规则?.key,
       component: 否定或比较 ? undefined : { type: 'ProjectCard', projectId: 项目标识 },
       ...(否定或比较 ? { 组件被抑制: true } : {}),
     }
   }
-  const 规则 = RULES.find((item) => 命中意图(item, 文本))
+  const 规则 = 规则表.find((item) => 命中意图(item, 文本))
   const 带组件 = 规则?.component !== undefined
   return {
     key: 规则?.key,
@@ -123,11 +123,11 @@ function 路由回答(输入: string): 回答路由 {
 }
 
 /** 挂给在线回答的组件（无命中即 undefined，绝不猜） */
-export function 选择组件(输入: string): UiComponent | undefined {
+export function 选择组件(输入: string): 界面组件 | undefined {
   return 路由回答(输入).component
 }
 
-export function getLocalAnswer(input: string): AI消息 {
+export function 取本地答案(input: string): AI消息 {
   if (是否纯问候(input) || 是否感谢(input) || 是否告别(input)) {
     if (是否感谢(input)) return { role: 'assistant', content: t('chat.answers.thanks') }
     if (是否告别(input)) return { role: 'assistant', content: t('chat.answers.farewell') }

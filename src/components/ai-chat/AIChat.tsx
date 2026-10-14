@@ -4,11 +4,11 @@ import { useYingYongZhuangTai } from '../../store/应用状态仓库'
 import type { AI消息 } from '../../store/应用状态仓库'
 import { 合并类名 } from '../../lib/工具'
 import { t, ta } from '../../i18n/翻译'
-import { useChatService, compactConversation, 是否中断错误 } from '../../ai/chatService'
-import { 有可见正文 } from '../../ai/structuredOutput'
-import { 模型列表, 循环思考强度, 步进思考强度, 思考强度顺序, type 思考强度 } from '../../ai/models'
+import { useLiaoTianFuWu, 压缩对话, 是否中断错误 } from '../../ai/聊天服务'
+import { 有可见正文 } from '../../ai/结构化输出'
+import { 模型列表, 循环思考强度, 步进思考强度, 思考强度顺序, type 思考强度 } from '../../ai/模型'
 import { UiComponentRenderer } from './UiComponentRegistry'
-import { 生成追问建议 } from '../../ai/followUpSuggestions'
+import { 生成追问建议 } from '../../ai/追问建议'
 
 interface AIChatProps {
   className?: string
@@ -202,7 +202,7 @@ export function AIChat({ className }: AIChatProps) {
   // 仅靠「先 abort 后 clear」的顺序无法阻止孤儿请求写入已清空的新会话；
   // 所有异步写入前比对代数，代数已变则丢弃。
   const generationRef = useRef(0)
-  const chatMutation = useChatService()
+  const chatMutation = useLiaoTianFuWu()
   const isPending = chatMutation.isPending
 
   const aiThinking = useYingYongZhuangTai((state) => state.aiThinking)
@@ -545,7 +545,7 @@ export function AIChat({ className }: AIChatProps) {
           setSystemLines([t('ai.commands.compacting')])
           try {
             const 聚焦 = raw.slice('/compact'.length).trim()
-            const 摘要 = await compactConversation(aiMessagesRef.current, {
+            const 摘要 = await 压缩对话(aiMessagesRef.current, {
               signal: controller.signal,
               ...(会话模型Ref.current ? { model: 会话模型Ref.current } : {}),
               ...(聚焦 ? { focus: 聚焦 } : {}),

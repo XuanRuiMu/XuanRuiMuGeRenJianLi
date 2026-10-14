@@ -38,10 +38,10 @@ vi.mock('../../store/应用状态仓库', () => ({
   useYingYongZhuangTai: vi.fn(),
 }))
 
-vi.mock('../../ai/chatService', async () => {
+vi.mock('../../ai/聊天服务', async () => {
   const { useEffect, useReducer } = await import('react')
   return {
-    useChatService: () => {
+    useLiaoTianFuWu: () => {
       const [, forceRender] = useReducer((x: number) => x + 1, 0)
       useEffect(() => {
         mockRuntime.listeners.add(forceRender)
@@ -58,7 +58,7 @@ vi.mock('../../ai/chatService', async () => {
         error: null,
       }
     },
-    compactConversation: (...args: unknown[]) => mockCompact(...args),
+    压缩对话: (...args: unknown[]) => mockCompact(...args),
     是否中断错误: (err: unknown) => err instanceof DOMException && err.name === 'AbortError',
   }
 })

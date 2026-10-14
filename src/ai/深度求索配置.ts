@@ -5,16 +5,16 @@
  */
 
 /** 唯一模型：vision 实验版，支持文本+图片输入（官方文档：JPEG/PNG/GIF/WebP，仅 user 消息可带图）。 */
-export const DEEPSEEK_MODEL = 'deepseek-v4.1-flash-expires-on-0910'
+export const 深度求索模型 = 'deepseek-v4.1-flash-expires-on-0910'
 
 /** v4 上下文上限（token），状态栏「上下文默认最大」指示用。 */
-export const DEEPSEEK_CONTEXT_MAX = 1_000_000
+export const 深度求索上下文上限 = 1_000_000
 
 /** v4 系列默认启用 thinking，max_tokens 需 ≥500，此处开满以承载长思考。 */
-export const DEEPSEEK_MAX_TOKENS = 8192
+export const 深度求索最大令牌 = 8192
 
 /** RAG 检索召回数：开满上下文，让模型基于工作区知识作答。 */
-export const DEEPSEEK_RETRIEVE_TOP_K = 8
+export const 深度求索检索条数 = 8
 
 function 读取浮点环境变量(原始值: string | undefined, 默认值: number): number {
   if (原始值 === undefined || 原始值 === '') return 默认值
@@ -27,4 +27,4 @@ function 读取浮点环境变量(原始值: string | undefined, 默认值: numb
 export const RAG检索最低分 = 读取浮点环境变量(import.meta.env.VITE_RAG_MIN_SCORE, 0.3)
 
 /** 同源 AI 端点：dev 由 Vite 代理转发，prod 由 nginx 反代并注入凭据。 */
-export const DEEPSEEK_ENDPOINT = '/api/ai/deepseek'
+export const 深度求索端点 = '/api/ai/deepseek'

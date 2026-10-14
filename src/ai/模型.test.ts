@@ -9,7 +9,7 @@ import {
   默认思考强度,
   读取已选模型ID,
   持久化已选模型ID,
-} from './models'
+} from './模型'
 
 describe('模型注册表', () => {
   it('仅保留 DeepSeek 默认模型', () => {

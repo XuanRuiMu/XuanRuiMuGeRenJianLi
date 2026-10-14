@@ -1,14 +1,14 @@
 import { useMutation } from '@tanstack/react-query'
 import type { AI消息, AI工具元数据 } from '../store/应用状态仓库'
-import { retrieveChunks } from './ragEngine'
-import { 提取信封正文, 有可见正文 } from './structuredOutput'
-import { DEEPSEEK_MAX_TOKENS, DEEPSEEK_RETRIEVE_TOP_K } from './deepseekConfig'
-import { 解析模型, 聊天超时毫秒, type 思考强度, type 模型定义 } from './models'
-import { getLocalAnswer, 选择组件 } from './localEngine'
+import { 检索知识块 } from './检索引擎'
+import { 提取信封正文, 有可见正文 } from './结构化输出'
+import { 深度求索最大令牌, 深度求索检索条数 } from './深度求索配置'
+import { 解析模型, 聊天超时毫秒, type 思考强度, type 模型定义 } from './模型'
+import { 取本地答案, 选择组件 } from './本地引擎'
 import { useYingYongZhuangTai, type 回退原因 } from '../store/应用状态仓库'
 import { t, type TranslationKey } from '../i18n/翻译'
 
-export interface ChatOptions {
+export interface 聊天选项 {
   model?: string
   /** /compact 可选聚焦说明 */
   focus?: string
@@ -18,7 +18,7 @@ export interface ChatOptions {
   onProgress?: (进度: { reasoning: string; content: string }) => void
 }
 
-export interface ChatServiceResult {
+export interface 聊天服务结果 {
   message: AI消息
   /** 检索轨迹元数据 */
   meta: AI工具元数据
@@ -143,7 +143,7 @@ function 分类回退原因(err: unknown): { 回退原因: 回退原因; http状
  * 没有任何回答的空回合。原因随实测传入（预算耗尽与格式异常不是一回事）。
  */
 function 构造无正文兜底(用户问题: string, 思考流: string, 检索命中数: number, 原因: 回退原因): AI消息 {
-  const 兜底正文 = getLocalAnswer(用户问题)
+  const 兜底正文 = 取本地答案(用户问题)
   if (思考流.length > 0) 兜底正文.reasoning = 思考流
   兜底正文.meta = {
     命中数: 检索命中数,
@@ -245,7 +245,7 @@ async function callOpenAICompletions(
     model: 模型.id,
     messages: [{ role: 'system', content: systemPrompt }, ...messages.map(到Api消息)],
     temperature: 0.6,
-    max_tokens: DEEPSEEK_MAX_TOKENS,
+    max_tokens: 深度求索最大令牌,
     stream: true,
     ...思考体OpenAI(思考强度档),
   }
@@ -343,7 +343,7 @@ async function callOpenAICompletions(
   return 消息
 }
 
-function 解析本次模型(options: ChatOptions): 模型定义 {
+function 解析本次模型(options: 聊天选项): 模型定义 {
   const storeModel = useYingYongZhuangTai.getState().aiModel
   return 解析模型(options.model ?? storeModel)
 }
@@ -352,7 +352,7 @@ async function callChatModel(
   messages: AI消息[],
   systemPrompt: string,
   思考强度档: 思考强度,
-  options: ChatOptions,
+  options: 聊天选项,
   检索命中数 = 0
 ): Promise<AI消息> {
   return callOpenAICompletions(
@@ -366,9 +366,9 @@ async function callChatModel(
   )
 }
 
-export async function sendChatMessage(messages: AI消息[], options: ChatOptions = {}): Promise<ChatServiceResult> {
+export async function 发送聊天消息(messages: AI消息[], options: 聊天选项 = {}): Promise<聊天服务结果> {
   const userQuestion = 获取最后用户内容(messages)
-  const contextChunks = retrieveChunks(userQuestion, DEEPSEEK_RETRIEVE_TOP_K)
+  const contextChunks = 检索知识块(userQuestion, 深度求索检索条数)
   const 安全上下文块 = contextChunks.filter((块) => 块.id !== 'personal-info-contact')
   const context = 安全上下文块.map((chunk, index) => `[${index + 1}] ${chunk.content}`).join('\n\n')
   const 依据来源 = 取依据来源(安全上下文块)
@@ -380,7 +380,7 @@ export async function sendChatMessage(messages: AI消息[], options: ChatOptions
     const answer = await callChatModel(messages, buildSystemPrompt(context), aiThinking, options, 安全上下文块.length)
     const 落定耗时 = Date.now() - 开始毫秒
     // 组件由意图表判定后挂载（模型不再产出组件，见 思考体OpenAI 注释）：在线与本地兜底同源。
-    // 本地兜底路径 getLocalAnswer 已带 component，短路避免重复判定。
+    // 本地兜底路径 取本地答案 已带 component，短路避免重复判定。
     const 组件 = answer.component ?? 选择组件(userQuestion)
     const 挂载 = 组件 ? { component: 组件 } : {}
     const 截断标注 = answer.meta?.截断 ? { 截断: true } : {}
@@ -404,7 +404,7 @@ export async function sendChatMessage(messages: AI消息[], options: ChatOptions
     if (是否中断错误(err)) throw err
     const 分类 = 分类回退原因(err)
     return {
-      message: getLocalAnswer(userQuestion),
+      message: 取本地答案(userQuestion),
       meta: {
         命中数: 安全上下文块.length,
         耗时毫秒: Date.now() - 开始毫秒,
@@ -424,7 +424,7 @@ export async function sendChatMessage(messages: AI消息[], options: ChatOptions
  * 这里保留 json_object：它是官方推荐的「thinking.disabled + json_object」组合，
  * JSON 是硬要求（摘要必须是结构化文本），与聊天链路不同，故不受同开冲突影响。
  */
-export async function compactConversation(messages: AI消息[], options: ChatOptions = {}): Promise<string> {
+export async function 压缩对话(messages: AI消息[], options: 聊天选项 = {}): Promise<string> {
   const 对话序列化 = messages
     .map((message) => `${message.role === 'user' ? '用户' : '助手'}：${message.content}`)
     .join('\n')
@@ -469,7 +469,7 @@ export async function compactConversation(messages: AI消息[], options: ChatOpt
   return 摘要
 }
 
-export function useChatService(options: ChatOptions = {}) {
+export function useLiaoTianFuWu(options: 聊天选项 = {}) {
   return useMutation({
     mutationFn: async ({
       messages,
@@ -482,7 +482,7 @@ export function useChatService(options: ChatOptions = {}) {
       model?: string
       onProgress?: (进度: { reasoning: string; content: string }) => void
     }) => {
-      return sendChatMessage(messages, {
+      return 发送聊天消息(messages, {
         ...options,
         ...(model ? { model } : {}),
         signal,

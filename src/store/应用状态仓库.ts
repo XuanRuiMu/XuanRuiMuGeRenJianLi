@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { 性能指标, 帧指标, 画质档位值 } from '../domain/类型'
-import type { UiComponent } from '../ai/structuredOutput'
-import { 读取已选模型ID, 持久化已选模型ID, 默认模型ID, 默认思考强度, type 思考强度 } from '../ai/models'
+import type { 界面组件 } from '../ai/结构化输出'
+import { 读取已选模型ID, 持久化已选模型ID, 默认模型ID, 默认思考强度, type 思考强度 } from '../ai/模型'
 import { 平滑滚动引用 } from '../lib/平滑滚动实例'
 
 export type 应用主题 = 'dark' | 'light' | 'system'
@@ -28,7 +28,7 @@ export interface AI消息 {
   content: string
   /** vision 输入：用户随消息携带的图片（data URL）；仅在 user 消息中有效（API 限制） */
   images?: string[]
-  component?: UiComponent
+  component?: 界面组件
   /** 流式思考原文（reasoning_content 增量拼出的完整思考流；历史消息无该字段时回退兼容为不渲染） */
   reasoning?: string
   /** 检索轨迹：命中数/耗时/是否本地兜底 */

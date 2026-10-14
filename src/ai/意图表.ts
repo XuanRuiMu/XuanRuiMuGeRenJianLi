@@ -1,6 +1,6 @@
-import type { ProjectCardComponent } from './structuredOutput'
+import type { 项目卡片组件 } from './结构化输出'
 
-export type 项目卡片标识 = ProjectCardComponent['projectId']
+export type 项目卡片标识 = 项目卡片组件['projectId']
 
 /**
  * 意图表两套触发词的职责边界（不可混用）：

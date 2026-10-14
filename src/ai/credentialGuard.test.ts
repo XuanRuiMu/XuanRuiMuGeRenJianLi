@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
-import { DEEPSEEK_ENDPOINT } from './deepseekConfig'
-import { 模型列表, 解析模型 } from './models'
+import { 深度求索端点 } from './深度求索配置'
+import { 模型列表, 解析模型 } from './模型'
 
 const 项目根 = path.resolve(__dirname, '../..')
 
@@ -61,7 +61,7 @@ describe('FP-05 前端零密钥守卫', () => {
   })
 
   it('端点恒为同源相对路径（由代理层转发并注入凭据）', () => {
-    expect(DEEPSEEK_ENDPOINT).toMatch(/^\/api\//)
+    expect(深度求索端点).toMatch(/^\/api\//)
     expect(解析模型().endpoint).toMatch(/^\/api\//)
   })
 

@@ -1,8 +1,8 @@
-import { resumeKnowledgeBase, type KnowledgeChunk } from './resumeKnowledgeBase'
-import { 共享意图表, 命中共享意图, 是否纯问候 } from './intentTable'
-import { RAG检索最低分 } from './deepseekConfig'
+import { 简历知识库, type 知识块 } from './简历知识库'
+import { 共享意图表, 命中共享意图, 是否纯问候 } from './意图表'
+import { RAG检索最低分 } from './深度求索配置'
 
-export interface RetrievedChunk extends KnowledgeChunk {
+export interface 检索结果块 extends 知识块 {
   score: number
 }
 
@@ -77,7 +77,7 @@ function cosineSimilarity(a: Map<string, number>, b: Map<string, number>): numbe
   return dot / (Math.sqrt(normA) * Math.sqrt(normB))
 }
 
-function applyPatternBoost(question: string, score: number, chunk: KnowledgeChunk): number {
+function applyPatternBoost(question: string, score: number, chunk: 知识块): number {
   let bonus = 0
   for (const 定义 of 共享意图表) {
     if (命中共享意图(定义.id, question)) {
@@ -88,16 +88,16 @@ function applyPatternBoost(question: string, score: number, chunk: KnowledgeChun
   return score + bonus
 }
 
-export function retrieveChunks(question: string, topK = 5, 最低分: number = RAG检索最低分): RetrievedChunk[] {
+export function 检索知识块(question: string, topK = 5, 最低分: number = RAG检索最低分): 检索结果块[] {
   if (是否纯问候(question)) return []
   const queryTokens = tokenize(question)
   if (queryTokens.length === 0) return []
 
-  const docTokens = resumeKnowledgeBase.map((chunk) => tokenize(chunk.content))
+  const docTokens = 简历知识库.map((chunk) => tokenize(chunk.content))
   const idf = computeIdf([queryTokens, ...docTokens])
   const queryVector = vectorize(queryTokens, idf)
 
-  const scored = resumeKnowledgeBase.map((chunk, index) => {
+  const scored = 简历知识库.map((chunk, index) => {
     const docVector = vectorize(docTokens[index], idf)
     const baseScore = cosineSimilarity(queryVector, docVector)
     const boostedScore = applyPatternBoost(question, baseScore, chunk)

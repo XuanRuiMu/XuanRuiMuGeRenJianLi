@@ -11,7 +11,7 @@ import { test, expect, type Page, type Route } from '@playwright/test'
  *
  * 本用例用确定性 SSE 夹具复现该上游形态（不依赖真实密钥与网络），断言「访客必须拿到可见正文」。
  * 局限：Playwright 的 route.fulfill 是一次性投喂，无法真正分帧，因此逐帧流式行为由
- * src/ai/chatService.test.ts 的逐帧单测覆盖，两者互补。
+ * src/ai/聊天服务.test.ts 的逐帧单测覆盖，两者互补。
  */
 
 function sse帧(delta: Record<string, string>): string {

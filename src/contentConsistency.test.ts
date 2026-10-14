@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import zhCN from './i18n/zh-CN.json'
 import { t } from './i18n/翻译'
-import { buildResumeKnowledgeBase } from './ai/resumeKnowledgeBase'
+import { 构建简历知识库 } from './ai/简历知识库'
 
 function collectStrings(value: unknown): string[] {
   if (typeof value === 'string') return [value]
@@ -14,7 +14,7 @@ function collectStrings(value: unknown): string[] {
 }
 
 const 翻译文本 = collectStrings(zhCN).join('\n')
-const 知识库文本 = buildResumeKnowledgeBase()
+const 知识库文本 = 构建简历知识库()
   .map((chunk) => chunk.content)
   .join('\n')
 

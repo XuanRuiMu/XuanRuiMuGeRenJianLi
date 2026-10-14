@@ -1,6 +1,6 @@
-﻿import { describe, it, expect } from 'vitest'
-import { 生成追问建议 } from './followUpSuggestions'
-import { getLocalAnswer } from './localEngine'
+import { describe, it, expect } from 'vitest'
+import { 生成追问建议 } from './追问建议'
+import { 取本地答案 } from './本地引擎'
 import { t, ta } from '../i18n/翻译'
 
 describe('追问建议根因：每次回答后3个可继续选项', () => {
@@ -93,7 +93,7 @@ describe('兜底答案的追问分组（FP-04b）：诚实兜底与预制答案�
 
   it('答非所问句整条链路同时诚实：答案诚实兜底 + 追问回落 fallback 组', () => {
     for (const 问句 of 答非所问句) {
-      const 助手消息 = getLocalAnswer(问句)
+      const 助手消息 = 取本地答案(问句)
       expect(助手消息.content, `「${问句}」应诚实兜底`).toBe(诚实兜底)
       expect(生成追问建议(问句, 助手消息), `「${问句}」的追问不该假装相关`).toEqual(ta('ai.followUps.fallback'))
     }
@@ -101,7 +101,7 @@ describe('兜底答案的追问分组（FP-04b）：诚实兜底与预制答案�
 
   it('真实简历意图的追问各自归组', () => {
     for (const 项 of 真实简历意图追问组) {
-      expect(生成追问建议(项.问句, getLocalAnswer(项.问句)), `「${项.问句}」的追问组不符`).toEqual(
+      expect(生成追问建议(项.问句, 取本地答案(项.问句)), `「${项.问句}」的追问组不符`).toEqual(
         ta(`ai.followUps.${项.组}` as never)
       )
     }

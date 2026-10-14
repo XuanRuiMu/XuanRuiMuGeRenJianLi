@@ -8,7 +8,7 @@ import {
   命中共享意图,
   命中兜底意图,
   触发词命中,
-} from './intentTable'
+} from './意图表'
 
 describe('intentTable（RAG与本地共享意图表）', () => {
   it('无重复暮澜规则（暮澜纪元只出现一次）', () => {

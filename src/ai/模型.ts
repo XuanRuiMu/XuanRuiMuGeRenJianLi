@@ -1,4 +1,4 @@
-import { DEEPSEEK_ENDPOINT, DEEPSEEK_MODEL } from './deepseekConfig'
+import { 深度求索端点, 深度求索模型 } from './深度求索配置'
 
 export type 模型供应商 = 'openai'
 
@@ -35,7 +35,7 @@ export interface 模型定义 {
   endpoint: string
 }
 
-export const 默认模型ID = DEEPSEEK_MODEL
+export const 默认模型ID = 深度求索模型
 
 function 读取正整数环境变量(原始值: string | undefined, 默认值: number): number {
   const 解析值 = Number(原始值)
@@ -75,7 +75,7 @@ export function 模型列表(): 模型定义[] {
       id: 默认模型ID,
       provider: 'openai',
       contextLabel: 'CTX 1M',
-      endpoint: DEEPSEEK_ENDPOINT,
+      endpoint: 深度求索端点,
     },
   ]
 }

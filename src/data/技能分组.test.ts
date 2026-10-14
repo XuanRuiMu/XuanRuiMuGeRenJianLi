@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import zhCN from '../i18n/zh-CN.json'
 import { ta } from '../i18n/翻译'
-import { buildResumeKnowledgeBase } from '../ai/resumeKnowledgeBase'
+import { 构建简历知识库 } from '../ai/简历知识库'
 import { 量化指标, 技能组表 } from './技能分组'
 
 const 项目根 = path.resolve(__dirname, '../..')
@@ -165,7 +165,7 @@ describe('FP-03 技能分组数据源', () => {
     expect(Object.keys(技能组表()[0])).not.toContain('description')
     const 源码 = fs.readFileSync(path.resolve(项目根, 'src/features/skills/SkillsSection.tsx'), 'utf-8')
     expect(源码).not.toContain('组.description')
-    const 知识库 = buildResumeKnowledgeBase()
+    const 知识库 = 构建简历知识库()
       .map((块) => 块.content)
       .join('\n')
     expect(知识库).not.toContain('把AI当一支开发团队')

@@ -1,21 +1,21 @@
 import { describe, it, expect } from 'vitest'
-import { getLocalAnswer, 选择组件, RULES } from './localEngine'
-import { 共享意图表 } from './intentTable'
-import type { UiComponent } from './structuredOutput'
+import { 取本地答案, 选择组件, 规则表 } from './本地引擎'
+import { 共享意图表 } from './意图表'
+import type { 界面组件 } from './结构化输出'
 import { 个人信息 } from '../data/个人信息'
 import { 求职方向 } from '../data/职业方向'
 import { t, type TranslationKey } from '../i18n/翻译'
 
 describe('localEngine', () => {
   it('returns text answer for name question', () => {
-    const result = getLocalAnswer('你叫什么')
+    const result = 取本地答案('你叫什么')
     expect(result.role).toBe('assistant')
     expect(result.content).toContain(个人信息.name)
     expect(result.component).toBeUndefined()
   })
 
   it('returns ContactLinks for contact question', () => {
-    const result = getLocalAnswer('联系方式')
+    const result = 取本地答案('联系方式')
     expect(result.content).not.toContain(个人信息.email)
     expect(result.content).not.toContain(个人信息.phone)
     expect(result.component).toEqual({ type: 'ContactLinks' })
@@ -23,7 +23,7 @@ describe('localEngine', () => {
 
   it('qq微信手机稳定命中ContactLinks且无直给', () => {
     for (const q of ['怎么联系你', '你的微信是多少', 'qq多少', '手机号多少', '邮箱是什么']) {
-      const result = getLocalAnswer(q)
+      const result = 取本地答案(q)
       expect(result.component).toEqual({ type: 'ContactLinks' })
       expect(result.content).not.toContain(个人信息.email)
       expect(result.content).not.toContain(个人信息.phone)
@@ -31,48 +31,48 @@ describe('localEngine', () => {
   })
 
   it('github项目问法不被联系意图污染', () => {
-    const result = getLocalAnswer('你的github项目有哪些')
+    const result = 取本地答案('你的github项目有哪些')
     expect(result.component).not.toEqual({ type: 'ContactLinks' })
   })
 
   it('returns ProjectCard with xrm for project name question', () => {
-    const result = getLocalAnswer('介绍一下暮澜纪元')
+    const result = 取本地答案('介绍一下暮澜纪元')
     expect(result.component).toEqual({ type: 'ProjectCard', projectId: 'xrm' })
   })
 
   it('detects lovewithme project from input', () => {
-    const result = getLocalAnswer('介绍一下和我恋爱吧')
+    const result = 取本地答案('介绍一下和我恋爱吧')
     expect(result.component).toEqual({ type: 'ProjectCard', projectId: 'lovewithme' })
   })
 
   it('羊来问法落到羊来项目卡片', () => {
-    const result = getLocalAnswer('羊来是做什么的')
+    const result = 取本地答案('羊来是做什么的')
     expect(result.component).toEqual({ type: 'ProjectCard', projectId: 'yangLai' })
   })
 
   it('detects aiConsole project from input', () => {
-    const result = getLocalAnswer('介绍一下循环工程skill')
+    const result = 取本地答案('介绍一下循环工程skill')
     expect(result.component).toEqual({ type: 'ProjectCard', projectId: 'aiConsole' })
   })
 
   it('returns skills text answer (no component) for skill question', () => {
-    const result = getLocalAnswer('你的技术栈')
+    const result = 取本地答案('你的技术栈')
     expect(result.role).toBe('assistant')
     expect(result.component).toBeUndefined()
   })
 
   it('returns Timeline with education scope for education question', () => {
-    const result = getLocalAnswer('教育背景')
+    const result = 取本地答案('教育背景')
     expect(result.component).toEqual({ type: 'Timeline', scope: 'education' })
   })
 
   it('returns Timeline with experience scope for experience question', () => {
-    const result = getLocalAnswer('工作经历')
+    const result = 取本地答案('工作经历')
     expect(result.component).toEqual({ type: 'Timeline', scope: 'experience' })
   })
 
   it('returns fallback text for unknown question', () => {
-    const result = getLocalAnswer('宇宙终极答案')
+    const result = 取本地答案('宇宙终极答案')
     expect(result.content).not.toContain(个人信息.email)
     expect(result.content).not.toContain(个人信息.phone)
     expect(result.component).toBeUndefined()
@@ -81,7 +81,7 @@ describe('localEngine', () => {
   it('问候语返回问候终态而非没准备答案（你好/您好/hi/hello）', () => {
     const 期望问候 = t('chat.answers.greeting')
     for (const q of ['你好', '您好', 'hi', 'hello']) {
-      const result = getLocalAnswer(q)
+      const result = 取本地答案(q)
       expect(result.role).toBe('assistant')
       expect(result.content).toBe(期望问候)
       expect(result.content).not.toContain('没准备答案')
@@ -90,13 +90,13 @@ describe('localEngine', () => {
   })
 
   it('谢谢返回感谢终态', () => {
-    const result = getLocalAnswer('谢谢')
+    const result = 取本地答案('谢谢')
     expect(result.content).toBe(t('chat.answers.thanks'))
     expect(result.content).not.toContain('没准备答案')
   })
 
   it('再见返回告别终态', () => {
-    const result = getLocalAnswer('再见')
+    const result = 取本地答案('再见')
     expect(result.content).toBe(t('chat.answers.farewell'))
   })
 })
@@ -136,7 +136,7 @@ describe('本地兜底答非所问根因（FP-04b）：只认话题独占的问�
   const 真实简历意图问句: Array<{
     问句: string
     key: 'name' | 'target' | 'contact' | 'projects' | 'skills' | 'education' | 'experience'
-    component?: UiComponent
+    component?: 界面组件
   }> = [
     { 问句: '你是谁', key: 'name' },
     { 问句: '你的目标岗位是什么', key: 'target' },
@@ -166,7 +166,7 @@ describe('本地兜底答非所问根因（FP-04b）：只认话题独占的问�
 
   it('答非所问类问句全部落到诚实兜底且不弹任何组件', () => {
     for (const 问句 of 答非所问句) {
-      const result = getLocalAnswer(问句)
+      const result = 取本地答案(问句)
       expect(result.content, `「${问句}」应诚实兜底`).toBe(诚实兜底)
       expect(result.component, `「${问句}」不应弹组件`).toBeUndefined()
     }
@@ -174,7 +174,7 @@ describe('本地兜底答非所问根因（FP-04b）：只认话题独占的问�
 
   it('真实简历意图问句全部命中对应预制答案与组件契约', () => {
     for (const 项 of 真实简历意图问句) {
-      const result = getLocalAnswer(项.问句)
+      const result = 取本地答案(项.问句)
       expect(result.content, `「${项.问句}」应给出 ${项.key} 预制答案`).toBe(期望答案(项.key))
       expect(result.component, `「${项.问句}」组件契约不符`).toEqual(项.component)
     }
@@ -182,7 +182,7 @@ describe('本地兜底答非所问根因（FP-04b）：只认话题独占的问�
 
   it('联系方式预制答案不直给邮箱与电话', () => {
     for (const 问句 of ['联系方式', '怎么联系你', '你的微信是多少', '邮箱是什么']) {
-      const result = getLocalAnswer(问句)
+      const result = 取本地答案(问句)
       expect(result.content).not.toContain(个人信息.email)
       expect(result.content).not.toContain(个人信息.phone)
     }
@@ -191,7 +191,7 @@ describe('本地兜底答非所问根因（FP-04b）：只认话题独占的问�
 
 describe('兜底意图与预制答案的一致性不变量（FP-04b：不留死数据）', () => {
   const 诚实兜底 = t('chat.answers.fallback')
-  const 规则覆盖意图 = RULES.flatMap((规则) => [规则.意图ID, ...(规则.聚合意图ID ?? [])])
+  const 规则覆盖意图 = 规则表.flatMap((规则) => [规则.意图ID, ...(规则.聚合意图ID ?? [])])
   const 有触发词意图 = 共享意图表.filter((项) => 项.兜底触发词.length > 0).map((项) => 项.id)
 
   it('兜底触发词非空的意图 ⇔ RULES 里有对应规则（双向）', () => {
@@ -203,7 +203,7 @@ describe('兜底意图与预制答案的一致性不变量（FP-04b：不留死�
   it('每条兜底触发词都能产出非诚实兜底的预制答案', () => {
     for (const 定义 of 共享意图表) {
       for (const 词 of 定义.兜底触发词) {
-        const result = getLocalAnswer(词)
+        const result = 取本地答案(词)
         expect(result.content, `触发词「${词}」命中了意图却落回诚实兜底`).not.toBe(诚实兜底)
         expect(result.content.length).toBeGreaterThan(0)
       }
@@ -212,11 +212,11 @@ describe('兜底意图与预制答案的一致性不变量（FP-04b：不留死�
 
   it('无预制答案的意图（design/music/media）永不走兜底作答', () => {
     for (const 意图ID of ['design', 'music', 'media']) {
-      expect(规则覆盖意图.includes(意图ID), `意图「${意图ID}」不该出现在 RULES 里`).toBe(false)
+      expect(规则覆盖意图.includes(意图ID), `意图「${意图ID}」不该出现在 规则表 里`).toBe(false)
     }
-    expect(getLocalAnswer('你的ui设计能力').content).toBe(诚实兜底)
-    expect(getLocalAnswer('你会乐器吗').content).toBe(诚实兜底)
-    expect(getLocalAnswer('你在b站发视频吗').content).toBe(诚实兜底)
+    expect(取本地答案('你的ui设计能力').content).toBe(诚实兜底)
+    expect(取本地答案('你会乐器吗').content).toBe(诚实兜底)
+    expect(取本地答案('你在b站发视频吗').content).toBe(诚实兜底)
   })
 })
 
@@ -249,7 +249,7 @@ describe('选择组件：在线与本地兜底共用的唯一组件判定（单�
       '我不想公开联系方式',
     ]
     for (const 问句 of 问句集) {
-      expect(选择组件(问句), `「${问句}」组件判定与本地兜底分叉`).toEqual(getLocalAnswer(问句).component)
+      expect(选择组件(问句), `「${问句}」组件判定与本地兜底分叉`).toEqual(取本地答案(问句).component)
     }
   })
 
@@ -267,7 +267,7 @@ describe('选择组件：在线与本地兜底共用的唯一组件判定（单�
   })
 
   it('闸门只挡组件不挡答案（访客说「我没做过项目」问的是他自己，答案不矛盾）', () => {
-    const 结果 = getLocalAnswer('我没做过什么项目，能胜任大厂前端吗')
+    const 结果 = 取本地答案('我没做过什么项目，能胜任大厂前端吗')
     expect(结果.component).toBeUndefined()
     // 答案仍是项目类预制文案（人称上不矛盾），不是诚实兜底
     expect(结果.content).toContain('暮澜纪元')
@@ -286,14 +286,14 @@ describe('选择组件：在线与本地兜底共用的唯一组件判定（单�
   })
 
   it('组件被闸门抑制时联系方式文案不得承诺不存在的按钮（复审确认缺陷）', () => {
-    const 结果 = getLocalAnswer('我不想公开联系方式，可以匿名联系吗')
+    const 结果 = 取本地答案('我不想公开联系方式，可以匿名联系吗')
     expect(结果.component).toBeUndefined()
     expect(结果.content).toBe(t('chat.answers.contactNoButton' as never))
     expect(结果.content).not.toContain('点下方按钮')
   })
 
   it('未触发闸门时联系方式文案与按钮卡片同时给出', () => {
-    const 结果 = getLocalAnswer('怎么联系你')
+    const 结果 = 取本地答案('怎么联系你')
     expect(结果.component).toEqual({ type: 'ContactLinks' })
     expect(结果.content).toBe(t('chat.answers.contact'))
   })

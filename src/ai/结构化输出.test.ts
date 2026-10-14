@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { 有可见正文, 提取信封正文 } from './structuredOutput'
+import { 有可见正文, 提取信封正文 } from './结构化输出'
 
 describe('有可见正文（全站唯一「这算不算回答」判据）', () => {
   it('空串、纯空白、纯零宽都不算回答', () => {

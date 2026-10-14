@@ -11,7 +11,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { DEEPSEEK_ENDPOINT } from '../src/ai/deepseekConfig'
+import { 深度求索端点 } from '../src/ai/深度求索配置'
 import { 创建密钥注入钩子 } from './ai-proxy.js'
 
 const 项目根 = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
@@ -89,7 +89,7 @@ describe('AI 反代键名契约：vite.config.js ↔ .env.example', () => {
   })
 
   it('前端实际调用的同源端点必须有对应的反代通道（否则线上必然 404/401）', () => {
-    expect(通道表.map((通道) => 通道.端点路径)).toContain(DEEPSEEK_ENDPOINT)
+    expect(通道表.map((通道) => 通道.端点路径)).toContain(深度求索端点)
   })
 })
 
@@ -135,8 +135,8 @@ describe('本机 .env.local 键名契约（gitignored，CI 无此文件时跳过
 
   // 断言只看长度：任何失败信息都不许把密钥值带进测试输出
   it.skipIf(!有本地env)('在线通道（前端实际调用的端点）的密钥必须已声明且非空', () => {
-    const 在线通道 = 通道表.find((通道) => 通道.端点路径 === DEEPSEEK_ENDPOINT)
-    expect(在线通道, `前端端点 ${DEEPSEEK_ENDPOINT} 无对应反代通道`).toBeDefined()
+    const 在线通道 = 通道表.find((通道) => 通道.端点路径 === 深度求索端点)
+    expect(在线通道, `前端端点 ${深度求索端点} 无对应反代通道`).toBeDefined()
     const 匹配 = 读文本('.env.local').match(new RegExp(`^${在线通道.密钥变量名}=(.*)$`, 'm'))
     expect(匹配, `${在线通道.密钥变量名} 未在 .env.local 声明`).not.toBeNull()
     expect(匹配[1].trim().length, `${在线通道.密钥变量名} 为空值 → 代理不注入 → 上游 401`).toBeGreaterThan(0)

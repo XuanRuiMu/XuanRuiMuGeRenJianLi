@@ -6,13 +6,13 @@ import { 项目表 } from '../../data/项目'
 import { 经历表 } from '../../data/经历'
 import { 教育档案 } from '../../data/教育'
 import { 个人信息 } from '../../data/个人信息'
-import type { ProjectCardComponent, TimelineComponent, UiComponent } from '../../ai/structuredOutput'
+import type { 项目卡片组件, 时间线组件, 界面组件 } from '../../ai/结构化输出'
 
-interface ComponentRendererProps<T extends UiComponent> {
+interface ComponentRendererProps<T extends 界面组件> {
   component: T
 }
 
-function ProjectCardRenderer({ component }: ComponentRendererProps<ProjectCardComponent>) {
+function ProjectCardRenderer({ component }: ComponentRendererProps<项目卡片组件>) {
   const project = 项目表.find((item) => item.id === component.projectId)
 
   if (!project) {
@@ -63,7 +63,7 @@ interface TimelineEntry {
   label: string
 }
 
-const TIMELINE_TITLE_KEYS: Record<NonNullable<TimelineComponent['scope']>, TranslationKey> = {
+const TIMELINE_TITLE_KEYS: Record<NonNullable<时间线组件['scope']>, TranslationKey> = {
   experience: 'experience.title',
   media: 'media.title',
   education: 'education.title',
@@ -93,7 +93,7 @@ function getEducationTimelineEntries(): TimelineEntry[] {
   ]
 }
 
-function getTimelineEntries(scope: TimelineComponent['scope']): TimelineEntry[] {
+function getTimelineEntries(scope: 时间线组件['scope']): TimelineEntry[] {
   switch (scope) {
     case 'experience':
       return getExperienceTimelineEntries()
@@ -106,7 +106,7 @@ function getTimelineEntries(scope: TimelineComponent['scope']): TimelineEntry[] 
   }
 }
 
-function TimelineRenderer({ component }: ComponentRendererProps<TimelineComponent>) {
+function TimelineRenderer({ component }: ComponentRendererProps<时间线组件>) {
   const title = component.scope ? t(TIMELINE_TITLE_KEYS[component.scope]) : t('experience.title')
   const entries = getTimelineEntries(component.scope)
 
@@ -216,7 +216,7 @@ function ContactLinksRenderer() {
 }
 
 interface UiComponentRendererProps {
-  component: UiComponent
+  component: 界面组件
   className?: string
 }
 

@@ -6,8 +6,8 @@ import { t } from '../i18n/翻译'
 import { 个人信息 } from './个人信息'
 import { 职业方向, 岗位名表, 求职方向 } from './职业方向'
 import { 量化指标, 技能组表 } from './技能分组'
-import { getLocalAnswer } from '../ai/localEngine'
-import { buildResumeKnowledgeBase } from '../ai/resumeKnowledgeBase'
+import { 取本地答案 } from '../ai/本地引擎'
+import { 构建简历知识库 } from '../ai/简历知识库'
 
 const 项目根 = path.resolve(__dirname, '../..')
 
@@ -50,8 +50,8 @@ const 消费者源码表 = [
   'src/data/职业方向.ts',
   'src/features/hero/RoleTicker.tsx',
   'src/lib/简历.ts',
-  'src/ai/resumeKnowledgeBase.ts',
-  'src/ai/localEngine.ts',
+  'src/ai/简历知识库.ts',
+  'src/ai/本地引擎.ts',
   'src/data/个人信息.ts',
   'src/data/类型.ts',
   'src/features/about/AboutSection.tsx',
@@ -112,7 +112,7 @@ describe('FP-01 求职定位单一数据源守卫', () => {
   })
 
   it('知识库个人简介读单一源的求职方向与薪资', () => {
-    const 简介 = buildResumeKnowledgeBase().find((块) => 块.id === 'personal-info-bio')
+    const 简介 = 构建简历知识库().find((块) => 块.id === 'personal-info-bio')
     expect(简介?.content).toContain(`求职方向：${求职方向()}。`)
     expect(简介?.content).toContain('薪资期望：面议。')
   })
@@ -137,13 +137,13 @@ describe('FP-01 求职定位单一数据源守卫', () => {
   it('AI助手的目标岗位/自我介绍不复制定位文案，运行时由 职业方向 注入', () => {
     expect(t('chat.answers.name')).toContain('{direction}')
     expect(t('chat.answers.target')).toContain('{direction}')
-    expect(getLocalAnswer('你叫什么名字').content).toContain(求职方向())
-    expect(getLocalAnswer('你的目标岗位是什么').content).toBe(`我的求职方向：${求职方向()}。`)
-    expect(getLocalAnswer('你叫什么名字').content).not.toContain('{direction}')
+    expect(取本地答案('你叫什么名字').content).toContain(求职方向())
+    expect(取本地答案('你的目标岗位是什么').content).toBe(`我的求职方向：${求职方向()}。`)
+    expect(取本地答案('你叫什么名字').content).not.toContain('{direction}')
   })
 
   it('AI 知识库有技能板块语料（技能组 + 量化指标）', () => {
-    const 库 = buildResumeKnowledgeBase()
+    const 库 = 构建简历知识库()
     const 技能块 = 库.filter((块) => 块.metadata.source === 'skillGroups.ts')
     expect(技能块.length).toBe(技能组表().length + 1)
     const 全文 = 技能块.map((块) => 块.content).join('\n')
