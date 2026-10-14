@@ -124,7 +124,7 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
     const { 注册服务工作线程 } = await 导入SwRegister()
     const updateSW = 注册服务工作线程()
 
-    expect(mock.__register).toHaveBeenCalledWith('/sw.js')
+    expect(mock.__register).toHaveBeenCalledWith('/服务工作线程.js')
     expect(updateSW).toBeTypeOf('function')
   })
 

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Layout } from './layout'
+import { Layout } from './BuJu'
 import { ShouPingBanKuai } from '../features/hero/ShouPingBanKuai'
 
 const GuanYuWoBanKuai = lazy(() =>

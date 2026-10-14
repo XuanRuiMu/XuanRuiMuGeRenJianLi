@@ -20,7 +20,7 @@ import {
   轨道屏幕偏移,
   type 跑马灯控制,
   type 轨道槽位,
-} from './marqueeEngine'
+} from './PaoMaDengYinQing'
 
 const GRADIENTS = [
   'from-purple-500 to-blue-500',

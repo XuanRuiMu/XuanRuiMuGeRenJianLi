@@ -12,7 +12,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { 深度求索端点 } from '../src/ai/深度求索配置'
-import { 创建密钥注入钩子 } from './ai-proxy.js'
+import { 创建密钥注入钩子 } from './AIFanDai.js'
 
 const 项目根 = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const 读文本 = (相对路径) => fs.readFileSync(path.join(项目根, 相对路径), 'utf-8')
@@ -114,7 +114,7 @@ describe('AI 反代键名契约：deploy/nginx.conf 生产注入', () => {
   })
 
   it('契约链路上的文件都不含明文密钥形态', () => {
-    for (const 相对路径 of ['vite.config.js', '.env.example', 'deploy/nginx.conf', 'scripts/ai-proxy.js']) {
+    for (const 相对路径 of ['vite.config.js', '.env.example', 'deploy/nginx.conf', 'scripts/AIFanDai.js']) {
       expect(读文本(相对路径), 相对路径).not.toMatch(/sk-[A-Za-z0-9]{6,}/)
     }
   })

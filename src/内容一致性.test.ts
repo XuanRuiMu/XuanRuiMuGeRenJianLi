@@ -153,7 +153,7 @@ describe('FP-10 文案错误、口径不一致与死文案守卫', () => {
     const 源码 = 读文件('src/features/contact/WuZiQi.tsx')
     expect(源码).toContain(`aria-label={t('contact.gomoku.reset')}`)
     expect(源码).toContain(`{t('contact.gomoku.flipTable')}`)
-    expect(读文件('src/index.css')).toContain(`${可见文案}：`)
+    expect(读文件('src/入口样式.css')).toContain(`${可见文案}：`)
   })
 
   it('PWA 技能快捷方式说明与技能板块实际小标题同源，且不含已删概念', () => {

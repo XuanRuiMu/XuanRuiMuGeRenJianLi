@@ -5,7 +5,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const 测试目录 = path.dirname(fileURLToPath(import.meta.url))
-const 样式源码 = fs.readFileSync(path.resolve(测试目录, '../../index.css'), 'utf-8')
+const 样式源码 = fs.readFileSync(path.resolve(测试目录, '../../入口样式.css'), 'utf-8')
 const 组件源码 = fs.readFileSync(path.resolve(测试目录, './AI聊天.tsx'), 'utf-8')
 const 恒橙类名 = 'xuan-harness-fixed-orange'
 const 渐变类名 = 'xuan-harness-rolling-gradient'

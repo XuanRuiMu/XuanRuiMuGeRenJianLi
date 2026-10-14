@@ -6,9 +6,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { visualizer } from 'rollup-plugin-visualizer'
 import path from 'node:path'
 import fs from 'node:fs'
-import { observabilityPlugin } from './src/observability/vite-plugin-observability'
-import 开发数据接口插件 from './scripts/dev-api-plugin.js'
-import { 创建密钥注入钩子 } from './scripts/ai-proxy.js'
+import { 可观测性插件 } from './src/observability/可观测性Vite插件'
+import 开发数据接口插件 from './scripts/KaiFaShuJuJieKouCaJian.js'
+import { 创建密钥注入钩子 } from './scripts/AIFanDai.js'
 import { 开发端口, 预览端口 } from './scripts/端口配置.js'
 
 const isAnalyze = process.env.ANALYZE === 'true'
@@ -53,7 +53,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   return {
     plugins: [
-      observabilityPlugin(),
+      可观测性插件(),
       // dev 环境本地数据接口：/api/analytics 落盘到 data/（生产静态托管按 nginx 模板三选一处理）
       开发数据接口插件({ dataDir: path.resolve(__dirname, 'data') }),
       // Serve /skill-test/ 单页应用
@@ -81,11 +81,11 @@ export default defineConfig(({ mode }) => {
       }),
       tailwindcss(),
       VitePWA({
-        // 仅负责构建生产 SW 产物（src/sw.ts → dist/sw.js）；注册由 src/utils/注册服务工作线程.ts
+        // 仅负责构建生产 SW 产物（src/服务工作线程.ts → dist/sw.js）；注册由 src/utils/注册服务工作线程.ts
         // 用原生 navigator.serviceWorker 完成，业务代码不再依赖 virtual:pwa-register。
         strategies: 'injectManifest',
         srcDir: 'src',
-        filename: 'sw.ts',
+        filename: '服务工作线程.ts',
         // 业务侧自注册，禁止插件再向 HTML 注入注册脚本（否则与原生注册双轨）
         injectRegister: false,
         // 手写 manifest.json 由 index.html 引用，插件不再生成

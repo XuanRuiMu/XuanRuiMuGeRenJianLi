@@ -183,8 +183,8 @@ describe('佐证材料 dist 防回归守卫', () => {
     expect(植入('index-CxYz123.js'), '与基线无关的构建产物不得误报').toEqual([])
   })
 
-  it.skipIf(!有构建产物)('Workbox 预缓存清单（sw.js）不含 佐证材料.zip', () => {
-    const sw文件 = 收集文件(dist目录).filter((p) => /sw\.js$/.test(p))
+  it.skipIf(!有构建产物)('Workbox 预缓存清单（服务工作线程.js）不含 佐证材料.zip', () => {
+    const sw文件 = 收集文件(dist目录).filter((p) => /(sw|服务工作线程)\.js$/.test(p))
     expect(sw文件.length).toBeGreaterThan(0)
     for (const p of sw文件) {
       const 内容 = fs.readFileSync(p, 'utf8')

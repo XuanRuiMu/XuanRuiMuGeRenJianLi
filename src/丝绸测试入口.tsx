@@ -1,9 +1,9 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
+import './入口样式.css'
 import SkillTestApp from './features/skill-test/SiChouCeShiYe'
 import { CuoWuBianJie } from './components/错误边界'
-import { Providers } from './app/providers'
+import { Providers } from './app/TiGongQi'
 import { 初始化可观测性, 环形缓冲实例 } from './observability'
 
 // 根因修复：尽早禁用浏览器滚动恢复

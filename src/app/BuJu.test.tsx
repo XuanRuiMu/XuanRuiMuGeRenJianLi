@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { Layout } from './layout'
+import { Layout } from './BuJu'
 
 vi.mock('../components/theme-toggle/ZhuTiQieHuan', () => ({
   ZhuTiQieHuan: () => <button type="button" data-testid="theme-toggle" />,

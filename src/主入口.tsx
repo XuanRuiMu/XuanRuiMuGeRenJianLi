@@ -1,9 +1,9 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './app/App'
+import './入口样式.css'
+import App from './app/YingYong'
 import { CuoWuBianJie } from './components/错误边界'
-import { Providers } from './app/providers'
+import { Providers } from './app/TiGongQi'
 import { 注册服务工作线程 } from './utils/注册服务工作线程'
 import { 初始化可观测性, 环形缓冲实例, 初始化控制台仪表盘 } from './observability'
 

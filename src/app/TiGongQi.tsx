@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useJianShaoDongHua } from '../hooks/useJianShaoDongHua'
-import { SmoothScroll } from './SmoothScroll'
+import { SmoothScroll } from './PingHuaGunDong'
 import { useYingYongZhuangTai } from '../store/应用状态仓库'
 import { useZhuTiXiTong } from '../components/theme-toggle/useZhuTiXiTong'
 

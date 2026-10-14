@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test'
 import fs from 'node:fs'
 import path from 'node:path'
-import { 端部余量组数, 最小份数 } from '../src/features/showcase/marqueeEngine'
+import { 端部余量组数, 最小份数 } from '../src/features/showcase/PaoMaDengYinQing'
 
 const 证据目录 = path.resolve('.agents/evidence/traces')
 const 行名列表 = ['education', 'design', 'media', 'opensource'] as const

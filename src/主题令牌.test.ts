@@ -6,11 +6,11 @@ import { fileURLToPath } from 'node:url'
 const 源根 = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '.')
 const 读 = (相对路径: string) => fs.readFileSync(path.join(源根, 相对路径), 'utf-8')
 
-const 样式表 = 读('index.css')
+const 样式表 = 读('入口样式.css')
 
 function 索引(文本: string, 标记: string, 用途: string): number {
   const 位 = 文本.indexOf(标记)
-  expect(位, `index.css 里找不到标记「${标记}」（${用途}），守卫锚点需同步更新`).toBeGreaterThanOrEqual(0)
+  expect(位, `入口样式.css 里找不到标记「${标记}」（${用途}），守卫锚点需同步更新`).toBeGreaterThanOrEqual(0)
   return 位
 }
 
@@ -326,7 +326,7 @@ describe('浅色主题令牌守卫：暗色字面值必须走 @theme 令牌 + .l
     }
   )
 
-  it('index.css 棋盘样式区底色/描边/高亮改用令牌且令牌引用齐全', () => {
+  it('入口样式.css 棋盘样式区底色/描边/高亮改用令牌且令牌引用齐全', () => {
     const 棋盘区 = 取棋盘样式区(样式表)
     const 残留 = [
       '#0f1b2e',
@@ -367,7 +367,7 @@ describe('浅色主题令牌守卫：暗色字面值必须走 @theme 令牌 + .l
     expect(问题).toEqual([])
   })
 
-  it('受管文件与 index.css 引用的每个 var(--color-*) 都在 @theme 中声明', () => {
+  it('受管文件与 入口样式.css 引用的每个 var(--color-*) 都在 @theme 中声明', () => {
     const 暗色令牌 = new Set(令牌名列表(暗色主题块))
     const 源码 = [样式表, ...禁改清单.map((项) => 读(项.文件))].join('\n')
     const 引用 = [...new Set([...源码.matchAll(/var\(\s*(--color-[a-z0-9-]+)/g)].map((命中) => 命中[1]))]
@@ -375,7 +375,7 @@ describe('浅色主题令牌守卫：暗色字面值必须走 @theme 令牌 + .l
     expect(未声明, `引用了未声明的令牌（Tailwind 不会生成，值解析为空）：${未声明.join(', ')}`).toEqual([])
   })
 
-  it('index.css 导航样式区底色/描边/文字/光晕/焦点环改用 --color-nav-* 令牌', () => {
+  it('入口样式.css 导航样式区底色/描边/文字/光晕/焦点环改用 --color-nav-* 令牌', () => {
     const 导航区 = 取导航样式区(样式表)
     const 残留 = 导航区禁改字面值.filter((字面值) => 导航区.includes(字面值))
     expect(残留, `导航样式区又写死了暗色字面值，浅色主题必现低对比（缺陷 2 回归）：${残留.join(', ')}`).toEqual([])

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { createDevDataHandler, 校验访问, 登记访问, 读Json, 写Json } from './dev-api-plugin.js'
+import { createDevDataHandler, 校验访问, 登记访问, 读Json, 写Json } from './KaiFaShuJuJieKouCaJian.js'
 
 let dataDir
 let log

@@ -6,7 +6,7 @@ const { setOfflineReady, setUpdateAvailable, setCacheQuotaWarning } = useYingYon
 
 export type 更新服务工作线程类型 = (重载页面?: boolean) => Promise<void>
 
-const 服务工作线程路径 = `${import.meta.env.BASE_URL}sw.js`
+const 服务工作线程路径 = `${import.meta.env.BASE_URL}服务工作线程.js`
 
 let 服务线程更新实现: 更新服务工作线程类型 | null = null
 

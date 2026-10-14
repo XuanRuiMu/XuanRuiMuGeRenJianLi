@@ -22,7 +22,7 @@ import {
   最小份数,
   端部余量组数,
   轨道屏幕偏移,
-} from './marqueeEngine'
+} from './PaoMaDengYinQing'
 import { 展示行表, 暮澜链接 } from '../../data/展示'
 import { t } from '../../i18n/翻译'
 
