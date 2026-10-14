@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { useCountUp } from './useCountUp'
+import { useShuZiGunDong } from './useShuZiGunDong'
 
 /**
  * 手动推进 rAF 帧并把 performance.now 钉在指定时刻，
  * 让「半程仍在滚动 / 满程到终态」这类时长断言可重复。
  */
-function 挂载滚动(value: string, durationMs?: number, 选项?: { start?: boolean; zeroUntilStart?: boolean }) {
+function 挂载滚动(值: string, 时长毫秒?: number, 选项?: { 开始?: boolean; 开始前为零?: boolean }) {
   let 时钟 = 0
   let 帧队列: FrameRequestCallback[] = []
   vi.spyOn(performance, 'now').mockImplementation(() => 时钟)
@@ -16,12 +16,12 @@ function 挂载滚动(value: string, durationMs?: number, 选项?: { start?: boo
   })
 
   const 句柄 = renderHook(() =>
-    useCountUp({
-      value,
-      durationMs,
-      enabled: true,
-      start: 选项?.start ?? true,
-      zeroUntilStart: 选项?.zeroUntilStart ?? false,
+    useShuZiGunDong({
+      值,
+      时长毫秒,
+      启用: true,
+      开始: 选项?.开始 ?? true,
+      开始前为零: 选项?.开始前为零 ?? false,
     })
   )
 
@@ -34,14 +34,14 @@ function 挂载滚动(value: string, durationMs?: number, 选项?: { start?: boo
     })
   }
 
-  return { 显示: () => 句柄.result.current.display, 推进, 卸载: () => 句柄.unmount() }
+  return { 显示: () => 句柄.result.current.显示, 推进, 卸载: () => 句柄.unmount() }
 }
 
 afterEach(() => {
   vi.restoreAllMocks()
 })
 
-describe('useCountUp 量化指标格式', () => {
+describe('useShuZiGunDong 量化指标格式', () => {
   it('纯数字 "9"：从 0 滚到 9，满程终态就是 "9"', async () => {
     const { 显示, 推进, 卸载 } = 挂载滚动('9', 640)
     await 推进(0)
@@ -90,29 +90,29 @@ describe('useCountUp 量化指标格式', () => {
   })
 })
 
-describe('useCountUp zeroUntilStart（指标卡进视口前不剧透终态）', () => {
+describe('useShuZiGunDong zeroUntilStart（指标卡进视口前不剧透终态）', () => {
   it('未 start 时显示 0 同前后缀形态，而不是终态', async () => {
     const 句柄 = renderHook(() =>
-      useCountUp({ value: '400+', durationMs: 640, enabled: true, start: false, zeroUntilStart: true })
+      useShuZiGunDong({ 值: '400+', 时长毫秒: 640, 启用: true, 开始: false, 开始前为零: true })
     )
     await act(async () => {})
-    expect(句柄.result.current.display).toBe('0+')
+    expect(句柄.result.current.显示).toBe('0+')
 
     const 带后缀 = renderHook(() =>
-      useCountUp({ value: '7年', durationMs: 640, enabled: true, start: false, zeroUntilStart: true })
+      useShuZiGunDong({ 值: '7年', 时长毫秒: 640, 启用: true, 开始: false, 开始前为零: true })
     )
     await act(async () => {})
-    expect(带后缀.result.current.display).toBe('0年')
+    expect(带后缀.result.current.显示).toBe('0年')
 
     const 纯数字 = renderHook(() =>
-      useCountUp({ value: '9', durationMs: 640, enabled: true, start: false, zeroUntilStart: true })
+      useShuZiGunDong({ 值: '9', 时长毫秒: 640, 启用: true, 开始: false, 开始前为零: true })
     )
     await act(async () => {})
-    expect(纯数字.result.current.display).toBe('0')
+    expect(纯数字.result.current.显示).toBe('0')
   })
 
   it('zeroUntilStart 启动后从 0 滚到终态；关闭时未 start 直接终态（经历年份口径）', async () => {
-    const 指标 = 挂载滚动('400+', 640, { start: true, zeroUntilStart: true })
+    const 指标 = 挂载滚动('400+', 640, { 开始: true, 开始前为零: true })
     await 指标.推进(0)
     await 指标.推进(320)
     expect(指标.显示()).not.toBe('400+')
@@ -122,9 +122,9 @@ describe('useCountUp zeroUntilStart（指标卡进视口前不剧透终态）', 
     指标.卸载()
 
     const 年份 = renderHook(() =>
-      useCountUp({ value: '2022 - 至今', durationMs: 320, enabled: true, start: false, zeroUntilStart: false })
+      useShuZiGunDong({ 值: '2022 - 至今', 时长毫秒: 320, 启用: true, 开始: false, 开始前为零: false })
     )
     await act(async () => {})
-    expect(年份.result.current.display).toBe('2022 - 至今')
+    expect(年份.result.current.显示).toBe('2022 - 至今')
   })
 })

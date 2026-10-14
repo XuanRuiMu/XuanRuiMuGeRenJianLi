@@ -1,4 +1,4 @@
-import { t } from '../i18n/translations'
+import { t } from '../i18n/翻译'
 
 /** 佐证材料包的同源路径；部署时可用 VITE_EVIDENCE_ZIP 覆盖（如改走 CDN 或换文件名）。 */
 export const 佐证材料包路径 = import.meta.env.VITE_EVIDENCE_ZIP ?? '/佐证材料.zip'

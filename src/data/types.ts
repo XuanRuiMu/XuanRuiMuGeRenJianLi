@@ -1,4 +1,4 @@
-import type { TranslationKey } from '../i18n/translations'
+﻿import type { TranslationKey } from '../i18n/翻译'
 
 export interface PersonalInfo {
   name: string

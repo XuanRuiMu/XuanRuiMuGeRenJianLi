@@ -1,17 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 
-const { hookState, settings, createMock, panelMock } = vi.hoisted(() => {
-  const settings = { dpr: 1.5 }
+const { hookState, 设置, createMock, panelMock } = vi.hoisted(() => {
+  const 设置 = { dpr: 1.5 }
   const hookState = {
-    loading: false,
+    加载中: false,
     reducedMotion: false,
     isDark: true,
     starryHidden: false,
   }
   const createMock = vi.fn()
   const panelMock = vi.fn()
-  return { hookState, settings, createMock, panelMock }
+  return { hookState, 设置, createMock, panelMock }
 })
 
 vi.mock('../../store/useStarryUiStore', () => ({
@@ -24,16 +24,16 @@ vi.mock('./StarryGalaxyScene', () => ({
   createStarryControlPanel: panelMock,
 }))
 
-vi.mock('../../hooks/usePerformanceProfile', () => ({
-  usePerformanceProfile: () => ({
-    level: 'high',
-    settings,
-    loading: hookState.loading,
+vi.mock('../../hooks/useXingNengDangWei', () => ({
+  useXingNengDangWei: () => ({
+    等级: 'high',
+    设置,
+    加载中: hookState.加载中,
   }),
 }))
 
-vi.mock('../../hooks/useReducedMotion', () => ({
-  useReducedMotion: () => hookState.reducedMotion,
+vi.mock('../../hooks/useJianShaoDongHua', () => ({
+  useJianShaoDongHua: () => hookState.reducedMotion,
 }))
 
 vi.mock('./useIsDarkMode', () => ({
@@ -45,7 +45,7 @@ import { createStarryGalaxyScene } from './StarryGalaxyScene'
 
 describe('StarryGalaxyBackground', () => {
   beforeEach(() => {
-    hookState.loading = false
+    hookState.加载中 = false
     hookState.reducedMotion = false
     hookState.isDark = true
     hookState.starryHidden = false
@@ -113,7 +113,7 @@ describe('StarryGalaxyBackground', () => {
   })
 
   it('性能档案加载中渲染降级背景', () => {
-    hookState.loading = true
+    hookState.加载中 = true
     render(<StarryGalaxyBackground />)
 
     expect(screen.getByTestId('starry-background-fallback')).toBeInTheDocument()

@@ -1,9 +1,9 @@
-/**
+﻿/**
  * 我的技术栈数据 · 全栈均衡技术卡（后端 / 数据库 / 前端 / 工程化）。
  * 技术卡全部对应工作区真实使用的技术栈，logo 位于 public/logos。
  */
 
-import { t, type TranslationKey } from '../i18n/translations'
+import { t, type TranslationKey } from '../i18n/翻译'
 import 中文包 from '../i18n/zh-CN.json'
 
 function 键存在(节点: unknown, 路径: string): boolean {

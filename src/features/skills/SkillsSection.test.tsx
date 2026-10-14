@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+﻿import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, act, cleanup, fireEvent } from '@testing-library/react'
 import { SkillsSection } from './SkillsSection'
 import { 量化指标, 技能组表 } from '../../data/skillGroups'
 import { radarAxes, dimensionLabelKey, dimensionBasisKey } from '../../data/radar'
-import { t } from '../../i18n/translations'
+import { t } from '../../i18n/翻译'
 
 /** 数字滚动只允许在 act 内推进；这里冻结 rAF 让终态文本稳定可读 */
 async function 渲染技能板块({ 减少动画 = false }: { 减少动画?: boolean } = {}) {

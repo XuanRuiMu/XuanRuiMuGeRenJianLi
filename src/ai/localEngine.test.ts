@@ -1,10 +1,10 @@
-import { describe, it, expect } from 'vitest'
+﻿import { describe, it, expect } from 'vitest'
 import { getLocalAnswer, 选择组件, RULES } from './localEngine'
 import { 共享意图表 } from './intentTable'
 import type { UiComponent } from './structuredOutput'
 import { personalInfo } from '../data/personalInfo'
 import { 求职方向 } from '../data/careerFocus'
-import { t, type TranslationKey } from '../i18n/translations'
+import { t, type TranslationKey } from '../i18n/翻译'
 
 describe('localEngine', () => {
   it('returns text answer for name question', () => {

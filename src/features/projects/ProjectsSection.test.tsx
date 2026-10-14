@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { ProjectsSection } from './ProjectsSection'
 import { projects } from '../../data/projects'
-import { t } from '../../i18n/translations'
+import { t } from '../../i18n/翻译'
 import { useProjectsWindStore, 默认风力强度 } from '../../store/useProjectsWindStore'
 
 describe('ProjectsSection', () => {

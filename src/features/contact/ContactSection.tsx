@@ -2,8 +2,8 @@ import { useState, useCallback, useRef } from 'react'
 import { Mail, ExternalLink, Copy, Check, MessageCircle, MessagesSquare } from 'lucide-react'
 import { Section } from '../../components/ui/Section'
 import { personalInfo } from '../../data/personalInfo'
-import { cn } from '../../lib/utils'
-import { t } from '../../i18n/translations'
+import { 合并类名 } from '../../lib/工具'
+import { t } from '../../i18n/翻译'
 import { Gomoku } from './Gomoku'
 
 const BilibiliIcon = ({ className = 'h-5 w-5' }: { className?: string }) => (
@@ -45,7 +45,7 @@ export function ContactSection() {
       <button
         type="button"
         onClick={() => void handleCopy(id, 文本)}
-        className={cn('contact-pill contact-pill--copy', 命中 && 'is-copied')}
+        className={合并类名('contact-pill contact-pill--copy', 命中 && 'is-copied')}
         aria-label={`复制${标签}`}
       >
         {命中 ? <Check size={14} className="text-[#22d3ee]" /> : <Copy size={14} />}
@@ -145,7 +145,7 @@ export function ContactSection() {
           return (
             <div
               key={卡片.id}
-              className={cn(
+              className={合并类名(
                 'contact-item-link',
                 卡片.id === 'qq' ? 'lg:col-start-1 lg:row-start-2' : 'lg:col-start-2 lg:row-start-2'
               )}

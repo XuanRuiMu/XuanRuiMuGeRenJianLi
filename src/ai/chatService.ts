@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query'
+﻿import { useMutation } from '@tanstack/react-query'
 import type { AiMessage, AiToolMeta } from '../store/useAppStore'
 import { retrieveChunks } from './ragEngine'
 import { 提取信封正文, 有可见正文 } from './structuredOutput'
@@ -6,7 +6,7 @@ import { DEEPSEEK_MAX_TOKENS, DEEPSEEK_RETRIEVE_TOP_K } from './deepseekConfig'
 import { 解析模型, 聊天超时毫秒, type 思考强度, type 模型定义 } from './models'
 import { getLocalAnswer, 选择组件 } from './localEngine'
 import { useAppStore, type 回退原因 } from '../store/useAppStore'
-import { t, type TranslationKey } from '../i18n/translations'
+import { t, type TranslationKey } from '../i18n/翻译'
 
 export interface ChatOptions {
   model?: string

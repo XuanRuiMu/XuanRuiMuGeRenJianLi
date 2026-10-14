@@ -1,31 +1,31 @@
 import { useAppStore } from '../store/useAppStore'
 import { logger } from '../observability/logger'
-import { t } from '../i18n/translations'
+import { t } from '../i18n/翻译'
 
 const { setOfflineReady, setUpdateAvailable, setCacheQuotaWarning } = useAppStore.getState()
 
-export type UpdateServiceWorker = (reloadPage?: boolean) => Promise<void>
+export type 更新服务工作线程类型 = (重载页面?: boolean) => Promise<void>
 
 const 服务工作线程路径 = `${import.meta.env.BASE_URL}sw.js`
 
-let updateServiceWorkerImpl: UpdateServiceWorker | null = null
+let 服务线程更新实现: 更新服务工作线程类型 | null = null
 
-export async function updateServiceWorker(reloadPage = true): Promise<void> {
-  if (!updateServiceWorkerImpl) return
-  await updateServiceWorkerImpl(reloadPage)
+export async function 更新服务工作线程(重载页面 = true): Promise<void> {
+  if (!服务线程更新实现) return
+  await 服务线程更新实现(重载页面)
 }
 
-function bindMessageChannel(): void {
+function 绑定消息通道(): void {
   navigator.serviceWorker.addEventListener('message', (event) => {
     // 同源校验：只接受本站 Service Worker 的消息，拒绝跨窗口/跨源的伪造指令
     if (event.origin !== window.location.origin) return
-    const data = event.data as { type?: string; payload?: Record<string, unknown> } | undefined
-    if (!data?.type) return
+    const 消息数据 = event.data as { type?: string; payload?: Record<string, unknown> } | undefined
+    if (!消息数据?.type) return
 
-    switch (data.type) {
+    switch (消息数据.type) {
       case 'CACHE_QUOTA_WARNING':
         setCacheQuotaWarning(true)
-        logger.warn('Cache quota warning', data.payload)
+        logger.warn('Cache quota warning', 消息数据.payload)
         break
       case 'OFFLINE_READY':
         setOfflineReady(true)
@@ -36,18 +36,18 @@ function bindMessageChannel(): void {
   })
 }
 
-function watchForUpdates(registration: ServiceWorkerRegistration): void {
-  if (registration.waiting && navigator.serviceWorker.controller) {
+function 监听更新(注册信息: ServiceWorkerRegistration): void {
+  if (注册信息.waiting && navigator.serviceWorker.controller) {
     logger.info('Service Worker update available')
     setUpdateAvailable(true)
     return
   }
 
-  registration.addEventListener('updatefound', () => {
-    const installing = registration.installing
-    if (!installing) return
-    installing.addEventListener('statechange', () => {
-      if (installing.state !== 'installed') return
+  注册信息.addEventListener('updatefound', () => {
+    const 安装中 = 注册信息.installing
+    if (!安装中) return
+    安装中.addEventListener('statechange', () => {
+      if (安装中.state !== 'installed') return
       if (navigator.serviceWorker.controller) {
         logger.info('Service Worker update available')
         setUpdateAvailable(true)
@@ -59,13 +59,13 @@ function watchForUpdates(registration: ServiceWorkerRegistration): void {
   })
 }
 
-export function registerServiceWorker(): UpdateServiceWorker | null {
+export function 注册服务工作线程(): 更新服务工作线程类型 | null {
   if (!('serviceWorker' in navigator)) {
     logger.info('Service Worker not supported in this environment')
     return null
   }
 
-  bindMessageChannel()
+  绑定消息通道()
 
   // Vite 开发服务器不注册 SW：开发期无 SW 产物，强行注册会因 MIME/404 在浏览器
   // 控制台留下无法消除的报错。用 MODE 判定：dev=development 跳过；build=production 与
@@ -74,27 +74,27 @@ export function registerServiceWorker(): UpdateServiceWorker | null {
     return null
   }
 
-  const applyUpdate: UpdateServiceWorker = async (reloadPage = true) => {
-    const registration = await navigator.serviceWorker.getRegistration().catch(() => undefined)
-    const waiting = registration?.waiting
-    if (!waiting) return
-    waiting.postMessage({ type: 'SKIP_WAITING' })
-    if (reloadPage) {
+  const 应用更新: 更新服务工作线程类型 = async (重载页面 = true) => {
+    const 注册信息 = await navigator.serviceWorker.getRegistration().catch(() => undefined)
+    const 等待中 = 注册信息?.waiting
+    if (!等待中) return
+    等待中.postMessage({ type: 'SKIP_WAITING' })
+    if (重载页面) {
       window.location.reload()
     }
   }
-  updateServiceWorkerImpl = applyUpdate
+  服务线程更新实现 = 应用更新
 
   navigator.serviceWorker
     .register(服务工作线程路径)
-    .then((registration) => {
-      logger.info('Service Worker registered', { swUrl: 服务工作线程路径, scope: registration.scope })
-      watchForUpdates(registration)
+    .then((注册信息) => {
+      logger.info('Service Worker registered', { swUrl: 服务工作线程路径, scope: 注册信息.scope })
+      监听更新(注册信息)
     })
     .catch((error: unknown) => {
-      updateServiceWorkerImpl = null
+      服务线程更新实现 = null
       logger.warn(t('pwa.errorRegister'), { error: String(error) })
     })
 
-  return applyUpdate
+  return 应用更新
 }

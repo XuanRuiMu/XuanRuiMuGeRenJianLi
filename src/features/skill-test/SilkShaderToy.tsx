@@ -1,5 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { t } from '../../i18n/translations'
+﻿import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { t } from '../../i18n/翻译'
 
 interface ShaderToyProps {
   shaderCode: string

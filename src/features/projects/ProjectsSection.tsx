@@ -1,5 +1,5 @@
-import { Section } from '../../components/ui/Section'
-import { t } from '../../i18n/translations'
+﻿import { Section } from '../../components/ui/Section'
+import { t } from '../../i18n/翻译'
 import { ClotheslineNotes } from './ClotheslineNotes'
 
 export function ProjectsSection() {

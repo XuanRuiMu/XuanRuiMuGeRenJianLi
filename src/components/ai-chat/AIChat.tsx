@@ -1,9 +1,9 @@
-﻿import { useRef, useState, useEffect, useCallback, useMemo, startTransition } from 'react'
+import { useRef, useState, useEffect, useCallback, useMemo, startTransition } from 'react'
 import { X, Loader2, RefreshCw, ImagePlus, ChevronRight } from 'lucide-react'
 import { useAppStore } from '../../store/useAppStore'
 import type { AiMessage } from '../../store/useAppStore'
-import { cn } from '../../lib/utils'
-import { t, ta } from '../../i18n/translations'
+import { 合并类名 } from '../../lib/工具'
+import { t, ta } from '../../i18n/翻译'
 import { useChatService, compactConversation, 是否中断错误 } from '../../ai/chatService'
 import { 有可见正文 } from '../../ai/structuredOutput'
 import { 模型列表, 循环思考强度, 步进思考强度, 思考强度顺序, type 思考强度 } from '../../ai/models'
@@ -112,7 +112,7 @@ function ReasoningBlock({ 面板标识, 思考, 展开后 }: { 面板标识: str
         }}
         className="flex items-center gap-1 text-[11px] text-[#9aa0aa] transition-colors hover:text-[#d97757]"
       >
-        <ChevronRight size={11} aria-hidden="true" className={cn('transition-transform', 展开 && 'rotate-90')} />
+        <ChevronRight size={11} aria-hidden="true" className={合并类名('transition-transform', 展开 && 'rotate-90')} />
         <span>{t('ai.reasoningLabel')}</span>
       </button>
       {展开 && (
@@ -984,7 +984,7 @@ export function AIChat({ className }: AIChatProps) {
       <button
         type="button"
         onClick={() => setChatOpen(true)}
-        className={cn(
+        className={合并类名(
           'fixed bottom-4 right-4 z-[70] flex h-12 w-12 items-center justify-center rounded-xl',
           'bg-[#1a1a1a] text-[#d97757] shadow-2xl ring-1 ring-[#2a2a2a] transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d97757]',
           className
@@ -1000,7 +1000,7 @@ export function AIChat({ className }: AIChatProps) {
     <div
       // 面板内滚轮归面板：阻止 Lenis 根级 smoothWheel 劫持，对话列表改为原生滚动
       data-lenis-prevent=""
-      className={cn(
+      className={合并类名(
         'fixed bottom-4 right-4 z-[70] flex max-h-[calc(100dvh-2rem)] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-md border border-[#262626] bg-[#0a0a0a] font-mono text-[#e6e6e6] shadow-2xl',
         className
       )}
@@ -1324,7 +1324,7 @@ export function AIChat({ className }: AIChatProps) {
                     确认补全()
                   }}
                   onMouseEnter={() => set补全下标(下标)}
-                  className={cn(
+                  className={合并类名(
                     'flex w-full items-center gap-3 px-2.5 py-1.5 text-left text-[12px]',
                     下标 === 补全下标 ? 'text-[#b1b9f9]' : 'text-[#9aa0aa]'
                   )}
@@ -1343,7 +1343,7 @@ export function AIChat({ className }: AIChatProps) {
                 <img
                   src={图片.previewUrl}
                   alt=""
-                  className={cn(
+                  className={合并类名(
                     'h-12 w-12 rounded object-cover',
                     图片.ok ? 'ring-1 ring-[#2a2a2a]' : 'ring-2 ring-red-500'
                   )}
@@ -1421,7 +1421,7 @@ export function AIChat({ className }: AIChatProps) {
           />
           <span
             aria-hidden="true"
-            className={cn('inline-block h-4 w-[7px] bg-[#e6e6e6]', !isPending && 'animate-pulse')}
+            className={合并类名('inline-block h-4 w-[7px] bg-[#e6e6e6]', !isPending && 'animate-pulse')}
           />
         </div>
         <div className="mt-1.5 flex items-center justify-between gap-2 text-[10px]">

@@ -4,7 +4,7 @@ import { RoleTicker } from './RoleTicker'
 import { 字符渐变色 } from './roleGradient'
 
 // 顶层声明：vitest 5 起 vi.mock 只允许出现在模块顶层作用域（同 vi.hoisted 的提升语义）
-vi.mock('../../hooks/useReducedMotion', () => ({ useReducedMotion: () => true }))
+vi.mock('../../hooks/useJianShaoDongHua', () => ({ useJianShaoDongHua: () => true }))
 
 describe('字符渐变色（按完整词预分配最终颜色）', () => {
   it('首字符取渐变起点色，末字符取渐变终点色', () => {
@@ -48,7 +48,7 @@ describe('RoleTicker 组件渲染', () => {
 
   it('打字过程中已显字符颜色不随进度变化（组件级）', async () => {
     vi.resetModules()
-    vi.doMock('../../hooks/useReducedMotion', () => ({ useReducedMotion: () => false }))
+    vi.doMock('../../hooks/useJianShaoDongHua', () => ({ useJianShaoDongHua: () => false }))
     vi.useFakeTimers({ shouldAdvanceTime: true })
     try {
       const { RoleTicker: 动态组件 } = await import('./RoleTicker')
@@ -78,7 +78,7 @@ describe('RoleTicker 组件渲染', () => {
       }
     } finally {
       vi.useRealTimers()
-      vi.doUnmock('../../hooks/useReducedMotion')
+      vi.doUnmock('../../hooks/useJianShaoDongHua')
     }
   })
 })

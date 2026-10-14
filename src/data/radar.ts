@@ -1,4 +1,4 @@
-import type { TranslationKey } from '../i18n/translations'
+﻿import type { TranslationKey } from '../i18n/翻译'
 
 export interface RadarAxis {
   /** 对应 zh-CN.json 中 data.radar.dimensions.<id> 的维度 id */

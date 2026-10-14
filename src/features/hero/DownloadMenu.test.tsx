@@ -1,16 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { DownloadMenu } from './DownloadMenu'
-import { t } from '../../i18n/translations'
+import { t } from '../../i18n/翻译'
 
 const 下载简历 = vi.fn()
 const 下载佐证 = vi.fn()
 
-vi.mock('../../lib/resume', () => ({
-  downloadResume: () => 下载简历(),
-  buildResumeMarkdown: () => '',
+vi.mock('../../lib/简历', () => ({
+  下载简历: () => 下载简历(),
+  构建简历Markdown: () => '',
 }))
-vi.mock('../../lib/evidence', () => ({
+vi.mock('../../lib/佐证材料包', () => ({
   佐证材料包路径: '/佐证材料.zip',
   下载佐证材料包: () => 下载佐证(),
 }))

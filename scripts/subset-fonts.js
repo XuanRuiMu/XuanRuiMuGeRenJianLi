@@ -96,7 +96,7 @@ function 生成UnicodeRange(字符列表) {
 }
 
 async function 更新criticalCssUnicodeRange(新范围) {
-  const cssPath = path.join(root, 'src/styles/critical.css')
+  const cssPath = path.join(root, 'src/styles/关键样式.css')
   const 原内容 = await fs.readFile(cssPath, 'utf8')
   const 匹配 = 原内容.match(/^([ \t]*unicode-range:\s*)([^;]+)(;)/m)
   if (!匹配) {

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { sendChatMessage, compactConversation, 是否超时错误, 是否中断错误 } from './chatService'
 import { 有可见正文 } from './structuredOutput'
 import { personalInfo } from '../data/personalInfo'
@@ -440,7 +440,7 @@ describe('chatService', () => {
 
   it('你好失败回退为问候语非没准备答案且命中0诚实', async () => {
     mockFetch.mockRejectedValueOnce(new Error('network down'))
-    const { t } = await import('../i18n/translations')
+    const { t } = await import('../i18n/翻译')
     const result = await sendChatMessage([{ role: 'user', content: '你好' }])
     expect(result.message.content).toBe(t('chat.answers.greeting'))
     expect(result.message.content).not.toContain('没准备答案')

@@ -28,10 +28,10 @@ vi.mock('../components/starry-background', () => ({
   InkRevealOverlay: () => <div data-testid="ink-reveal-overlay" />,
 }))
 
-vi.mock('../lib/api', () => ({
-  ANALYTICS_ENABLED: false,
-  useAnalyticsStats: () => ({ data: null, isLoading: false }),
-  useTrackVisit: () => ({ mutate: vi.fn() }),
+vi.mock('../lib/分析接口', () => ({
+  访问统计开关: false,
+  useFangWenTongJi: () => ({ data: null, isLoading: false }),
+  useShangBaoFangWen: () => ({ mutate: vi.fn() }),
 }))
 
 describe('Layout', () => {

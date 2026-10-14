@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest'
+﻿import { describe, it, expect } from 'vitest'
 import { 生成追问建议 } from './followUpSuggestions'
 import { getLocalAnswer } from './localEngine'
-import { t, ta } from '../i18n/translations'
+import { t, ta } from '../i18n/翻译'
 
 describe('追问建议根因：每次回答后3个可继续选项', () => {
   it('技术栈问题返回技术追问三元', () => {

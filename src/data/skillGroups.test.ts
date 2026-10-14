@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import zhCN from '../i18n/zh-CN.json'
-import { ta } from '../i18n/translations'
+import { ta } from '../i18n/翻译'
 import { buildResumeKnowledgeBase } from '../ai/resumeKnowledgeBase'
 import { 量化指标, 技能组表 } from './skillGroups'
 
@@ -82,12 +82,12 @@ describe('FP-04 技能板块量化指标', () => {
     expect(量化指标()).toHaveLength(4)
   })
 
-  it('value 含可解析数字，useCountUp 能滚动到终态', () => {
+  it('value 含可解析数字，useShuZiGunDong 能滚动到终态', () => {
     for (const 指标 of 量化指标()) {
       expect(指标.value).toMatch(/\d+/)
       expect(指标.label.trim()).not.toBe('')
     }
-    // 「9」是纯数字（无前后缀），「7年」是数字+中文后缀：两类都要能被 useCountUp 解析出滚动目标
+    // 「9」是纯数字（无前后缀），「7年」是数字+中文后缀：两类都要能被 useShuZiGunDong 解析出滚动目标
     const 纯数字 = 量化指标().find((指标) => 指标.id === 'agentSkills')!.value
     const 带中文后缀 = 量化指标().find((指标) => 指标.id === 'serverOps')!.value
     expect(纯数字).toMatch(/^\d+$/)

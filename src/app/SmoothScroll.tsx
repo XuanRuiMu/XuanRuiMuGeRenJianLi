@@ -2,9 +2,9 @@ import { type ReactNode, useEffect } from 'react'
 import { ReactLenis, useLenis } from 'lenis/react'
 import type Lenis from 'lenis'
 import 'lenis/dist/lenis.css'
-import { useReducedMotion } from '../hooks/useReducedMotion'
-import { lenisRef } from '../lib/lenisInstance'
-import { starrySceneRef } from '../lib/starrySceneRef'
+import { useJianShaoDongHua } from '../hooks/useJianShaoDongHua'
+import { 平滑滚动引用 } from '../lib/平滑滚动实例'
+import { 星空场景引用 } from '../lib/星空场景引用'
 
 // 重度黏滞：lerp 越小越「黏」、缓冲越长。0.06 比 Lenis 默认 0.1 明显更拖、存在感更强。
 const 缓动系数 = 0.06
@@ -15,7 +15,7 @@ const 接管偏差阈值 = 2
 /**
  * 桥接组件：必须置于 <ReactLenis> 内部以访问上下文。
  * 1. 把 Lenis 实例写入模块级单例，供锚点跳转使用；
- * 2. 把每帧平滑后的滚动值喂给星空场景（starrySceneRef），由场景在 3D 内部偏移主星群，
+ * 2. 把每帧平滑后的滚动值喂给星空场景（星空场景引用），由场景在 3D 内部偏移主星群，
  *    制造「背景随滚动缓缓漂移」的纵深视差。背景容器固定为视口大小（inset-0），
  *    画布自带纯色背景始终铺满视口 → 不放大、不露底。
  * 3. 根因修复（FP-01）：惯性动画（isScrolling==='smooth'）进行中，若用户拖动原生滚动条
@@ -27,19 +27,19 @@ const 接管偏差阈值 = 2
  */
 function LenisBridge(): null {
   const lenis = useLenis((实例: Lenis) => {
-    lenisRef.current = 实例
-    starrySceneRef.current?.setParallax(实例.scroll)
+    平滑滚动引用.current = 实例
+    星空场景引用.current?.setParallax(实例.scroll)
   })
 
   useEffect(() => {
-    const 实例 = lenisRef.current
+    const 实例 = 平滑滚动引用.current
     if (!实例) return
 
     // 挂载归顶：立即吸附到顶部，不带动画。force 越过 stopped/locked 守卫。
     实例.scrollTo(0, { immediate: true, force: true })
 
     const 接管保护 = () => {
-      const 当前 = lenisRef.current
+      const 当前 = 平滑滚动引用.current
       if (!当前 || 当前.isScrolling !== 'smooth') return
       if (Math.abs(当前.actualScroll - 当前.animatedScroll) > 接管偏差阈值) {
         // 中止惯性并把 Lenis 状态吸附到用户拖到的原生位置；immediate 内部会 reset() 停止补间。
@@ -58,7 +58,7 @@ interface SmoothScrollProps {
 }
 
 export function SmoothScroll({ children }: SmoothScrollProps) {
-  const 减少动画 = useReducedMotion()
+  const 减少动画 = useJianShaoDongHua()
 
   // 根因修复（FP-03）：禁用浏览器滚动恢复，避免 Ctrl+Shift+R 硬刷新后停留在非顶部位置。
   useEffect(() => {

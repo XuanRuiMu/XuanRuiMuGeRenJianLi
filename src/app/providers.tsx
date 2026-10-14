@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useReducedMotion } from '../hooks/useReducedMotion'
+import { useJianShaoDongHua } from '../hooks/useJianShaoDongHua'
 import { SmoothScroll } from './SmoothScroll'
 import { useAppStore } from '../store/useAppStore'
 import { useThemeSystem } from '../components/theme-toggle/useThemeSystem'
@@ -20,7 +20,7 @@ function ThemeSync(): null {
 }
 
 function ReducedMotionSync(): null {
-  const reducedMotion = useReducedMotion()
+  const reducedMotion = useJianShaoDongHua()
   const setReducedMotion = useAppStore((state) => state.setReducedMotion)
 
   useEffect(() => {

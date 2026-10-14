@@ -19,7 +19,7 @@ function inlineCriticalCSS() {
     transformIndexHtml: {
       order: 'pre',
       handler(html) {
-        const criticalPath = path.resolve(__dirname, './src/styles/critical.css')
+        const criticalPath = path.resolve(__dirname, './src/styles/关键样式.css')
         if (!fs.existsSync(criticalPath)) {
           return html
         }
@@ -81,7 +81,7 @@ export default defineConfig(({ mode }) => {
       }),
       tailwindcss(),
       VitePWA({
-        // 仅负责构建生产 SW 产物（src/sw.ts → dist/sw.js）；注册由 src/utils/swRegister.ts
+        // 仅负责构建生产 SW 产物（src/sw.ts → dist/sw.js）；注册由 src/utils/注册服务工作线程.ts
         // 用原生 navigator.serviceWorker 完成，业务代码不再依赖 virtual:pwa-register。
         strategies: 'injectManifest',
         srcDir: 'src',

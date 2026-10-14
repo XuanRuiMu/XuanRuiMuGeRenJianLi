@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest'
+﻿import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import zhCN from './i18n/zh-CN.json'
-import { t } from './i18n/translations'
+import { t } from './i18n/翻译'
 import { buildResumeKnowledgeBase } from './ai/resumeKnowledgeBase'
 
 function collectStrings(value: unknown): string[] {

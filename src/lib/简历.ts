@@ -1,8 +1,8 @@
 import { personalInfo } from '../data/personalInfo'
 import { 求职方向 } from '../data/careerFocus'
-import { t } from '../i18n/translations'
+import { t } from '../i18n/翻译'
 
-export function buildResumeMarkdown(): string {
+export function 构建简历Markdown(): string {
   return `# ${personalInfo.name}
 
 ## ${t('resume.target')}
@@ -20,15 +20,15 @@ ${personalInfo.education.period}
 `
 }
 
-export function downloadResume(): void {
-  const content = buildResumeMarkdown()
-  const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `${personalInfo.name}-${t('resume.filename')}.md`
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
+export function 下载简历(): void {
+  const 内容 = 构建简历Markdown()
+  const 数据块 = new Blob([内容], { type: 'text/markdown;charset=utf-8' })
+  const 地址 = URL.createObjectURL(数据块)
+  const 链接 = document.createElement('a')
+  链接.href = 地址
+  链接.download = `${personalInfo.name}-${t('resume.filename')}.md`
+  document.body.appendChild(链接)
+  链接.click()
+  document.body.removeChild(链接)
+  URL.revokeObjectURL(地址)
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { t } from '../i18n/translations'
-import { 佐证材料包路径, 佐证材料包文件名, 下载佐证材料包 } from './evidence'
+import { t } from '../i18n/翻译'
+import { 佐证材料包路径, 佐证材料包文件名, 下载佐证材料包 } from './佐证材料包'
 
 interface 假锚点 {
   href: string

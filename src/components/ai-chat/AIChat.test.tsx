@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, cleanup, act } from '@testing-library/react'
 import { AIChat } from './AIChat'
 import { useAppStore } from '../../store/useAppStore'
-import { t, ta } from '../../i18n/translations'
+import { t, ta } from '../../i18n/翻译'
 
 const setChatOpen = vi.fn()
 const clearAiMessages = vi.fn()

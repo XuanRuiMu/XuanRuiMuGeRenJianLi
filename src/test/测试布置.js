@@ -2,42 +2,42 @@ import '@testing-library/jest-dom/vitest'
 import { vi } from 'vitest'
 
 // jsdom / node 测试环境均提供 ResizeObserver 最小实现，Three.js / R3F 依赖它
-class MockResizeObserver {
+class 模拟尺寸观察器 {
   observe = vi.fn()
   unobserve = vi.fn()
   disconnect = vi.fn()
 }
-globalThis.ResizeObserver = MockResizeObserver
+globalThis.ResizeObserver = 模拟尺寸观察器
 if (typeof window !== 'undefined') {
-  window.ResizeObserver = MockResizeObserver
+  window.ResizeObserver = 模拟尺寸观察器
 }
 
 // IntersectionObserver 在 jsdom 中不可用，提供最小实现以支持滚动触发动画测试
-class MockIntersectionObserver {
-  constructor(callback) {
-    this.callback = callback
+class 模拟交叉观察器 {
+  constructor(回调) {
+    this.回调 = 回调
   }
 
-  observe(element) {
-    this.callback([{ isIntersecting: true, target: element }])
+  observe(元素) {
+    this.回调([{ isIntersecting: true, target: 元素 }])
   }
 
   unobserve = vi.fn()
   disconnect = vi.fn()
 }
-globalThis.IntersectionObserver = MockIntersectionObserver
+globalThis.IntersectionObserver = 模拟交叉观察器
 if (typeof window !== 'undefined') {
-  window.IntersectionObserver = MockIntersectionObserver
+  window.IntersectionObserver = 模拟交叉观察器
 }
 
 // jsdom 不实现 Canvas getContext，提供最小 WebGL mock 以支持 Three.js 相关组件测试
 if (typeof HTMLCanvasElement !== 'undefined') {
-  const originalGetContext = HTMLCanvasElement.prototype.getContext
-  HTMLCanvasElement.prototype.getContext = function (contextId, options) {
-    if (contextId === 'webgl' || contextId === 'webgl2' || contextId === 'experimental-webgl') {
+  const 原始获取上下文 = HTMLCanvasElement.prototype.getContext
+  HTMLCanvasElement.prototype.getContext = function (上下文标识, 选项) {
+    if (上下文标识 === 'webgl' || 上下文标识 === 'webgl2' || 上下文标识 === 'experimental-webgl') {
       return {
-        getExtension: vi.fn((name) => {
-          if (name === 'WEBGL_debug_renderer_info') {
+        getExtension: vi.fn((名称) => {
+          if (名称 === 'WEBGL_debug_renderer_info') {
             return {
               UNMASKED_RENDERER_WEBGL: 0x9247,
               UNMASKED_VENDOR_WEBGL: 0x9245,
@@ -45,9 +45,9 @@ if (typeof HTMLCanvasElement !== 'undefined') {
           }
           return null
         }),
-        getParameter: vi.fn((param) => {
-          if (param === 0x9247) return 'ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 Direct3D11)'
-          if (param === 0x9245) return 'Google Inc.'
+        getParameter: vi.fn((参数) => {
+          if (参数 === 0x9247) return 'ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 Direct3D11)'
+          if (参数 === 0x9245) return 'Google Inc.'
           return 0
         }),
         createShader: vi.fn(),
@@ -81,7 +81,7 @@ if (typeof HTMLCanvasElement !== 'undefined') {
         uniform1i: vi.fn(),
       }
     }
-    if (contextId === '2d') {
+    if (上下文标识 === '2d') {
       return {
         canvas: this,
         clearRect: vi.fn(),
@@ -111,7 +111,7 @@ if (typeof HTMLCanvasElement !== 'undefined') {
         createLinearGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
       }
     }
-    return originalGetContext.call(this, contextId, options)
+    return 原始获取上下文.call(this, 上下文标识, 选项)
   }
 }
 
@@ -132,41 +132,41 @@ if (typeof window !== 'undefined') {
 // jsdom 在 opaque origin（about:blank）下不暴露 localStorage，提供最小内存实现
 // 以支持 zustand persist 中间件及直接访问 localStorage 的测试（如 useProjectsWindStore）
 if (typeof window !== 'undefined') {
-  let hasLocalStorage = false
+  let 有本地存储 = false
   try {
-    hasLocalStorage = window.localStorage != null
+    有本地存储 = window.localStorage != null
   } catch {
-    hasLocalStorage = false
+    有本地存储 = false
   }
-  if (!hasLocalStorage) {
-    const store = new Map()
-    const localStorageMock = {
+  if (!有本地存储) {
+    const 存储 = new Map()
+    const 本地存储模拟 = {
       get length() {
-        return store.size
+        return 存储.size
       },
-      key: (i) => Array.from(store.keys())[i] ?? null,
-      getItem: (k) => (store.has(String(k)) ? store.get(String(k)) : null),
+      key: (i) => Array.from(存储.keys())[i] ?? null,
+      getItem: (k) => (存储.has(String(k)) ? 存储.get(String(k)) : null),
       setItem: (k, v) => {
-        store.set(String(k), String(v))
+        存储.set(String(k), String(v))
       },
       removeItem: (k) => {
-        store.delete(String(k))
+        存储.delete(String(k))
       },
       clear: () => {
-        store.clear()
+        存储.clear()
       },
     }
     Object.defineProperty(window, 'localStorage', {
       writable: true,
       configurable: true,
-      value: localStorageMock,
+      value: 本地存储模拟,
     })
-    globalThis.localStorage = localStorageMock
+    globalThis.localStorage = 本地存储模拟
   }
 }
 
 // Service Worker 在 jsdom 中不可用，提供最小 mock
-const serviceWorkerListeners = new Map()
+const 服务工作线程监听器 = new Map()
 Object.defineProperty(global.navigator, 'serviceWorker', {
   writable: true,
   configurable: true,
@@ -188,13 +188,13 @@ Object.defineProperty(global.navigator, 'serviceWorker', {
       active: null,
     }),
     controller: null,
-    addEventListener: (event, handler) => {
-      serviceWorkerListeners.set(event, handler)
+    addEventListener: (事件, 处理器) => {
+      服务工作线程监听器.set(事件, 处理器)
     },
-    __triggerMessage: (data, origin) => {
-      const handler = serviceWorkerListeners.get('message')
-      if (handler)
-        handler({ data, origin: origin ?? (typeof window !== 'undefined' ? window.location.origin : undefined) })
+    __triggerMessage: (数据, 来源) => {
+      const 处理器 = 服务工作线程监听器.get('message')
+      if (处理器)
+        处理器({ data: 数据, origin: 来源 ?? (typeof window !== 'undefined' ? window.location.origin : undefined) })
     },
   },
 })

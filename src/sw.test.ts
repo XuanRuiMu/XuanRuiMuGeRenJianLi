@@ -93,7 +93,7 @@ function 移除ServiceWorker() {
 async function 导入SwRegister() {
   // 不 resetModules：reset 会让 swRegister 拿到另一份 useAppStore 实例，
   // 断言写在测试顶层 import 的 store 上永远为 false。共享同一 store 即可。
-  return import('./utils/swRegister')
+  return import('./utils/注册服务工作线程')
 }
 
 describe('swRegister 公共行为（原生注册，无 virtual 模块）', () => {
@@ -113,16 +113,16 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
 
   it('不支持 serviceWorker 时返回 null（降级，不抛出）', async () => {
     移除ServiceWorker()
-    const { registerServiceWorker, updateServiceWorker } = await 导入SwRegister()
-    const result = registerServiceWorker()
+    const { 注册服务工作线程, 更新服务工作线程 } = await 导入SwRegister()
+    const result = 注册服务工作线程()
     expect(result).toBeNull()
-    await expect(updateServiceWorker(true)).resolves.toBeUndefined()
+    await expect(更新服务工作线程(true)).resolves.toBeUndefined()
   })
 
   it('支持时调用原生 navigator.serviceWorker.register 并返回更新函数', async () => {
     const mock = 安装ServiceWorkerMock()
-    const { registerServiceWorker } = await 导入SwRegister()
-    const updateSW = registerServiceWorker()
+    const { 注册服务工作线程 } = await 导入SwRegister()
+    const updateSW = 注册服务工作线程()
 
     expect(mock.__register).toHaveBeenCalledWith('/sw.js')
     expect(updateSW).toBeTypeOf('function')
@@ -132,8 +132,8 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
     const waiting = 创建Worker('installed')
     const registration = 创建注册({ waiting, active: 创建Worker('activated') })
     安装ServiceWorkerMock({ registration, controller: {} })
-    const { registerServiceWorker } = await 导入SwRegister()
-    registerServiceWorker()
+    const { 注册服务工作线程 } = await 导入SwRegister()
+    注册服务工作线程()
     await vi.waitFor(() => {
       expect(useAppStore.getState().updateAvailable).toBe(true)
     })
@@ -143,8 +143,8 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
     const installing = 创建Worker('installing')
     const registration = 创建注册({ installing })
     安装ServiceWorkerMock({ registration, controller: null })
-    const { registerServiceWorker } = await 导入SwRegister()
-    registerServiceWorker()
+    const { 注册服务工作线程 } = await 导入SwRegister()
+    注册服务工作线程()
     await vi.waitFor(() => {
       expect(registration.addEventListener).toHaveBeenCalledWith('updatefound', expect.any(Function))
     })
@@ -160,8 +160,8 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
     const installing = 创建Worker('installing')
     const registration = 创建注册({ installing })
     安装ServiceWorkerMock({ registration, controller: {} })
-    const { registerServiceWorker } = await 导入SwRegister()
-    registerServiceWorker()
+    const { 注册服务工作线程 } = await 导入SwRegister()
+    注册服务工作线程()
     await vi.waitFor(() => {
       expect(registration.addEventListener).toHaveBeenCalledWith('updatefound', expect.any(Function))
     })
@@ -174,69 +174,69 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
 
   it('SW 消息 CACHE_QUOTA_WARNING → 置 cacheQuotaWarning', async () => {
     const mock = 安装ServiceWorkerMock()
-    const { registerServiceWorker } = await 导入SwRegister()
-    registerServiceWorker()
+    const { 注册服务工作线程 } = await 导入SwRegister()
+    注册服务工作线程()
     mock.__triggerMessage({ type: 'CACHE_QUOTA_WARNING', payload: { ratio: 0.85 } })
     expect(useAppStore.getState().cacheQuotaWarning).toBe(true)
   })
 
   it('SW 消息 OFFLINE_READY → 置 offlineReady', async () => {
     const mock = 安装ServiceWorkerMock()
-    const { registerServiceWorker } = await 导入SwRegister()
-    registerServiceWorker()
+    const { 注册服务工作线程 } = await 导入SwRegister()
+    注册服务工作线程()
     mock.__triggerMessage({ type: 'OFFLINE_READY' })
     expect(useAppStore.getState().offlineReady).toBe(true)
   })
 
   it('跨源伪造的 SW 消息被同源校验拒绝，不得改写应用状态', async () => {
     const mock = 安装ServiceWorkerMock()
-    const { registerServiceWorker } = await 导入SwRegister()
-    registerServiceWorker()
+    const { 注册服务工作线程 } = await 导入SwRegister()
+    注册服务工作线程()
     mock.__triggerMessage({ type: 'OFFLINE_READY' }, 'https://evil.example.com')
     mock.__triggerMessage({ type: 'CACHE_QUOTA_WARNING', payload: { ratio: 0.85 } }, 'https://evil.example.com')
     expect(useAppStore.getState().offlineReady).toBe(false)
     expect(useAppStore.getState().cacheQuotaWarning).toBe(false)
   })
 
-  it('updateServiceWorker 向 waiting 发送 SKIP_WAITING 并刷新', async () => {
+  it('更新服务工作线程 向 waiting 发送 SKIP_WAITING 并刷新', async () => {
     const waiting = 创建Worker('installed')
     const registration = 创建注册({ waiting, active: 创建Worker('activated') })
     安装ServiceWorkerMock({ registration, controller: {} })
     const reload = vi.fn()
     vi.stubGlobal('location', { ...window.location, reload })
 
-    const { registerServiceWorker, updateServiceWorker } = await 导入SwRegister()
-    registerServiceWorker()
-    await updateServiceWorker(true)
+    const { 注册服务工作线程, 更新服务工作线程 } = await 导入SwRegister()
+    注册服务工作线程()
+    await 更新服务工作线程(true)
 
     expect(waiting.postMessage).toHaveBeenCalledWith({ type: 'SKIP_WAITING' })
     expect(reload).toHaveBeenCalled()
   })
 
-  it('无 waiting 时 updateServiceWorker 为 no-op（不刷新）', async () => {
+  it('无 waiting 时 更新服务工作线程 为 no-op（不刷新）', async () => {
     const registration = 创建注册({ waiting: null })
     安装ServiceWorkerMock({ registration })
     const reload = vi.fn()
     vi.stubGlobal('location', { ...window.location, reload })
 
-    const { registerServiceWorker, updateServiceWorker } = await 导入SwRegister()
-    registerServiceWorker()
-    await updateServiceWorker(true)
+    const { 注册服务工作线程, 更新服务工作线程 } = await 导入SwRegister()
+    注册服务工作线程()
+    await 更新服务工作线程(true)
 
     expect(reload).not.toHaveBeenCalled()
   })
 
-  it('注册失败时降级为 no-op，updateServiceWorker 不抛出', async () => {
+  it('注册失败时降级为 no-op，更新服务工作线程 不抛出', async () => {
     安装ServiceWorkerMock({
       register: vi.fn(() => Promise.reject(new Error('register failed'))),
     })
-    const { registerServiceWorker, updateServiceWorker } = await 导入SwRegister()
-    const updateSW = registerServiceWorker()
+    const { 注册服务工作线程, 更新服务工作线程 } = await 导入SwRegister()
+    const updateSW = 注册服务工作线程()
     expect(updateSW).toBeTypeOf('function')
     await vi.waitFor(() => {
       expect(useAppStore.getState().updateAvailable).toBe(false)
     })
-    await expect(updateServiceWorker(true)).resolves.toBeUndefined()
+    await expect(更新服务工作线程(true)).resolves.toBeUndefined()
   })
 
   it('Vite 开发态（import.meta.hot）跳过注册，返回 null', async () => {
@@ -246,8 +246,8 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
     // 因此用动态 import 前注入 import.meta.hot 等价开关：通过 vi.doMock 不可行，
     // 改为验证「无 hot 时会注册」的反面已在上一用例覆盖；本用例验证热更新上下文的返回契约。
     // 若环境无 import.meta.hot，则 register 会被调用——此时断言仍为「返回函数」以兼容两种环境。
-    const { registerServiceWorker } = await 导入SwRegister()
-    const result = registerServiceWorker()
+    const { 注册服务工作线程 } = await 导入SwRegister()
+    const result = 注册服务工作线程()
     if (result === null) {
       expect(mock.__register).not.toHaveBeenCalled()
     } else {

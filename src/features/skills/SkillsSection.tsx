@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { Section } from '../../components/ui/Section'
 import { Reveal } from '../../components/Reveal'
-import { t } from '../../i18n/translations'
+import { t } from '../../i18n/翻译'
 import {
   radarAxes,
   dimensionLabelKey,
@@ -10,8 +10,8 @@ import {
   type RadarAxis,
 } from '../../data/radar'
 import { 量化指标, 技能组表, type 量化指标项 } from '../../data/skillGroups'
-import { useCountUp } from '../../hooks/useCountUp'
-import { useReducedMotion } from '../../hooks/useReducedMotion'
+import { useShuZiGunDong } from '../../hooks/useShuZiGunDong'
+import { useJianShaoDongHua } from '../../hooks/useJianShaoDongHua'
 import { AnimatePresence, motion } from 'framer-motion'
 
 const SIZE = 320
@@ -135,16 +135,16 @@ const 气泡视觉表: Record<string, 气泡视觉> = {
 }
 
 function SkillMetricCard({ 指标, 启动, 动画 }: { 指标: 量化指标项; 启动: boolean; 动画: boolean }) {
-  const { display } = useCountUp({
-    value: 指标.value,
-    durationMs: 指标滚动时长,
-    enabled: 动画,
-    start: 启动,
-    zeroUntilStart: true,
+  const { 显示 } = useShuZiGunDong({
+    值: 指标.value,
+    时长毫秒: 指标滚动时长,
+    启用: 动画,
+    开始: 启动,
+    开始前为零: true,
   })
   return (
     <div data-skill-metric={指标.id} className="rounded-xl border border-border/60 bg-surface/40 px-4 py-4 text-center">
-      <div className="font-display text-2xl font-bold tabular-nums text-primary text-shadow-readable">{display}</div>
+      <div className="font-display text-2xl font-bold tabular-nums text-primary text-shadow-readable">{显示}</div>
       <div className="mt-1 text-xs text-muted">{指标.label}</div>
     </div>
   )
@@ -210,7 +210,7 @@ function RadarTooltip({
 }
 
 export function SkillsSection() {
-  const reduced = useReducedMotion()
+  const reduced = useJianShaoDongHua()
   const count = radarAxes.length
   const dataPoints = polygonPoints(radarAxes.map((a) => a.level))
   const 指标表 = 量化指标()

@@ -1,10 +1,10 @@
-﻿import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { cn } from '../../lib/utils'
-import { useReducedMotion } from '../../hooks/useReducedMotion'
-import { usePerformanceProfile } from '../../hooks/usePerformanceProfile'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { 合并类名 } from '../../lib/工具'
+import { useJianShaoDongHua } from '../../hooks/useJianShaoDongHua'
+import { useXingNengDangWei } from '../../hooks/useXingNengDangWei'
 import { createStarryControlPanel, createStarryGalaxyScene, type StarryGalaxySceneApi } from './StarryGalaxyScene'
 import { useIsDarkMode } from './useIsDarkMode'
-import { starrySceneRef } from '../../lib/starrySceneRef'
+import { 星空场景引用 } from '../../lib/星空场景引用'
 import { useStarryUiStore } from '../../store/useStarryUiStore'
 
 interface StarryGalaxyBackgroundProps {
@@ -91,8 +91,8 @@ function LightWallpaper({ reducedMotion }: { reducedMotion: boolean }) {
 export function StarryGalaxyBackground({ className, children }: StarryGalaxyBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [, setApi] = useState<StarryGalaxySceneApi | null>(null)
-  const { settings, loading } = usePerformanceProfile()
-  const reducedMotion = useReducedMotion()
+  const { 设置, 加载中 } = useXingNengDangWei()
+  const reducedMotion = useJianShaoDongHua()
   const isDark = useIsDarkMode()
   const starryHidden = useStarryUiStore((s) => s.starryHidden)
 
@@ -109,19 +109,19 @@ export function StarryGalaxyBackground({ className, children }: StarryGalaxyBack
     const container = containerRef.current
     if (!container) return
 
-    const dpr = Array.isArray(settings.dpr) ? settings.dpr[0] : settings.dpr
+    const dpr = Array.isArray(设置.dpr) ? 设置.dpr[0] : 设置.dpr
     const scene = createStarryGalaxyScene(container, { dpr })
     setApi(scene)
-    starrySceneRef.current = scene
+    星空场景引用.current = scene
 
     return () => {
       scene.destroy()
-      starrySceneRef.current = null
+      星空场景引用.current = null
       setApi(null)
     }
-  }, [settings, reducedMotion, isDark, starryHidden])
+  }, [设置, reducedMotion, isDark, starryHidden])
 
-  const showCanvas = isDark && !loading && !reducedMotion && !starryHidden
+  const showCanvas = isDark && !加载中 && !reducedMotion && !starryHidden
   // 浅色模式壁纸：星空隐藏开关同时管住壁纸（控制面板文案"彻底隐藏星空背景和壁纸"）
   const showWallpaper = !isDark && !starryHidden
 
@@ -131,7 +131,7 @@ export function StarryGalaxyBackground({ className, children }: StarryGalaxyBack
   return (
     <div
       ref={containerRef}
-      className={cn('fixed inset-0 z-0', showCanvas ? '' : fallbackClass, className)}
+      className={合并类名('fixed inset-0 z-0', showCanvas ? '' : fallbackClass, className)}
       aria-hidden="true"
       data-testid={showCanvas ? 'starry-background-canvas' : 'starry-background-fallback'}
     >

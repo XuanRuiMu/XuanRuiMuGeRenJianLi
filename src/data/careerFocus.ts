@@ -1,5 +1,5 @@
-import { t } from '../i18n/translations'
-import type { TranslationKey } from '../i18n/translations'
+﻿import { t } from '../i18n/翻译'
+import type { TranslationKey } from '../i18n/翻译'
 import 岗位清单原文 from './职业定位.txt?raw'
 
 /**

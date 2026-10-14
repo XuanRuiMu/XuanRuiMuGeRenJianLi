@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { cn } from '@/lib/utils'
+import { 合并类名 } from '@/lib/工具'
 
 interface CardProps {
   children: ReactNode
@@ -14,7 +14,7 @@ export function Card({ children, header, footer, glass: _glass, hover = false, c
   void _glass
   return (
     <div
-      className={cn(
+      className={合并类名(
         'card-container relative rounded-2xl bg-transparent p-6',
         hover && 'transition-transform duration-300 hover:-translate-y-1',
         className

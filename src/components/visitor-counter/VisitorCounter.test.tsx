@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, act } from '@testing-library/react'
-import { t } from '../../i18n/translations'
+import { t } from '../../i18n/翻译'
 
 const 状态 = vi.hoisted(() => ({
   enabled: true,
@@ -8,14 +8,17 @@ const 状态 = vi.hoisted(() => ({
   total: 128 as number | null | undefined,
 }))
 
-vi.mock('../../lib/api', () => ({
+vi.mock('../../lib/分析接口', () => ({
   // 根因：mock 工厂在模块实例化时求值，直接写死常量会固化开关值；
   // 用 getter 按访问时取值，测试间切换 状态.enabled 才会生效
-  get ANALYTICS_ENABLED() {
+  get 访问统计开关() {
     return 状态.enabled
   },
-  useAnalyticsStats: () => ({ data: 状态.total == null ? null : { total: 状态.total, last24h: 9 }, isLoading: false }),
-  useTrackVisit: () => ({ mutate: 状态.mutate }),
+  useFangWenTongJi: () => ({
+    data: 状态.total == null ? null : { 总数: 状态.total, 近一日: 9, 已存储: true },
+    isLoading: false,
+  }),
+  useShangBaoFangWen: () => ({ mutate: 状态.mutate }),
 }))
 
 async function 载入组件() {
@@ -56,13 +59,13 @@ describe('VisitorCounter（页脚访问人数）', () => {
     expect(状态.mutate).toHaveBeenCalledTimes(1)
     expect(状态.mutate).toHaveBeenCalledWith(
       expect.objectContaining({
-        path: '/',
-        timestamp: expect.any(Number),
+        路径: '/',
+        时间戳: expect.any(Number),
       })
     )
   })
 
-  it('ANALYTICS_ENABLED 关闭时仍渲染徽章，并用 localStorage 累计本机访问', async () => {
+  it('访问统计开关 关闭时仍渲染徽章，并用 localStorage 累计本机访问', async () => {
     状态.enabled = false
     状态.total = null
     const VisitorCounter = await 载入组件()

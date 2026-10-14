@@ -1,8 +1,8 @@
-import { describe, it, expect, afterEach } from 'vitest'
+﻿import { describe, it, expect, afterEach } from 'vitest'
 import { render, act, cleanup } from '@testing-library/react'
 import { TestimonialsSection } from './TestimonialsSection'
 import { 推荐语列表 } from '../../data/testimonials'
-import { t } from '../../i18n/translations'
+import { t } from '../../i18n/翻译'
 
 /** Reveal 在不支持 IntersectionObserver 的环境里用 queueMicrotask 点亮，渲染须在 act 内冲刷 */
 async function 渲染推荐语(): Promise<HTMLElement> {

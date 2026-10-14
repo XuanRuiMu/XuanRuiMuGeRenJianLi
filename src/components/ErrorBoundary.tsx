@@ -1,6 +1,6 @@
-import { Component, type ErrorInfo, type ReactNode } from 'react'
+﻿import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { errorReporter } from '../observability/errorReporter'
-import { t } from '../i18n/translations'
+import { t } from '../i18n/翻译'
 
 interface ErrorBoundaryProps {
   children: ReactNode

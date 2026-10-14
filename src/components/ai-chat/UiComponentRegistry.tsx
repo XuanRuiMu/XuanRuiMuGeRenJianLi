@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { Check, Copy, ExternalLink } from 'lucide-react'
-import { t, type TranslationKey } from '../../i18n/translations'
-import { cn } from '../../lib/utils'
+import { t, type TranslationKey } from '../../i18n/翻译'
+import { 合并类名 } from '../../lib/工具'
 import { projects } from '../../data/projects'
 import { experiences } from '../../data/experience'
 import { education } from '../../data/education'
@@ -204,7 +204,7 @@ function ContactLinksRenderer() {
           type="button"
           aria-label={`${t('ai.contactLinks.phone')}${t('ai.contactLinks.copy')}`}
           onClick={() => void 复制文本('phone', personalInfo.phone)}
-          className={cn(按钮样式, 'col-span-2')}
+          className={合并类名(按钮样式, 'col-span-2')}
         >
           {已复制 === 'phone' ? <Check size={12} /> : <Copy size={12} />}
           <span className="truncate">
@@ -224,7 +224,7 @@ interface UiComponentRendererProps {
 
 export function UiComponentRenderer({ component, className }: UiComponentRendererProps) {
   return (
-    <div className={cn('mt-2', className)} data-testid={`ui-component-${component.type}`}>
+    <div className={合并类名('mt-2', className)} data-testid={`ui-component-${component.type}`}>
       {component.type === 'ProjectCard' && <ProjectCardRenderer component={component} />}
       {component.type === 'Timeline' && <TimelineRenderer component={component} />}
       {component.type === 'ContactLinks' && <ContactLinksRenderer />}

@@ -2,8 +2,8 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { Sun, Moon, Monitor, ChevronDown } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useThemeSystem } from './useThemeSystem'
-import { cn } from '../../lib/utils'
-import { t } from '../../i18n/translations'
+import { 合并类名 } from '../../lib/工具'
+import { t } from '../../i18n/翻译'
 import type { AppTheme } from '../../store/useAppStore'
 
 const THEMES: AppTheme[] = ['dark', 'light', 'system']
@@ -50,7 +50,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
   const handleSelect = (event: React.MouseEvent<HTMLButtonElement>, value: AppTheme) => {
     event.stopPropagation()
     if (value !== theme) {
-      setTheme(value, { origin: { x: event.clientX, y: event.clientY } })
+      setTheme(value, { origin: { 横: event.clientX, 纵: event.clientY } })
     }
     setOpen(false)
     triggerRef.current?.focus()
@@ -105,8 +105,8 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       const element = optionRefs.current[index]
       const rect = element?.getBoundingClientRect()
       const origin = rect
-        ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
-        : { x: window.innerWidth / 2, y: window.innerHeight / 2 }
+        ? { 横: rect.left + rect.width / 2, 纵: rect.top + rect.height / 2 }
+        : { 横: window.innerWidth / 2, 纵: window.innerHeight / 2 }
       setTheme(option.value, { origin })
     }
     setOpen(false)
@@ -140,7 +140,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
   }, [open, activeIndex])
 
   return (
-    <div ref={containerRef} className={cn('relative', className)}>
+    <div ref={containerRef} className={合并类名('relative', className)}>
       <button
         ref={triggerRef}
         type="button"
@@ -153,14 +153,17 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
         aria-expanded={open}
         aria-controls={listboxId}
         aria-label={t('theme.select')}
-        className={cn(
+        className={合并类名(
           'inline-flex h-9 items-center gap-1.5 rounded-full pl-3 pr-2',
           'bg-surface text-text-primary border border-border',
           'transition-colors hover:bg-surface-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
         )}
       >
         <CurrentIcon size={16} />
-        <ChevronDown size={14} className={cn('text-muted transition-transform duration-200', open && 'rotate-180')} />
+        <ChevronDown
+          size={14}
+          className={合并类名('text-muted transition-transform duration-200', open && 'rotate-180')}
+        />
       </button>
 
       <AnimatePresence>
@@ -173,7 +176,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.96 }}
             transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-            className={cn(
+            className={合并类名(
               'absolute right-0 top-full z-50 mt-2 min-w-[10rem] overflow-hidden rounded-2xl',
               'border border-border bg-surface p-1.5 shadow-lg'
             )}
@@ -194,7 +197,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
                   onClick={(event) => handleSelect(event, option.value)}
                   onKeyDown={handleKeyDown}
                   onMouseEnter={() => setActiveIndex(index)}
-                  className={cn(
+                  className={合并类名(
                     'relative flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm',
                     'text-text-primary transition-colors focus-visible:outline-none',
                     selected ? 'font-medium' : 'hover:text-text-primary'

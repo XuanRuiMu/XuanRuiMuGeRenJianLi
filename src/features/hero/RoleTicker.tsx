@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { cn } from '../../lib/utils'
-import { useReducedMotion } from '../../hooks/useReducedMotion'
-import { t } from '../../i18n/translations'
+import { 合并类名 } from '../../lib/工具'
+import { useJianShaoDongHua } from '../../hooks/useJianShaoDongHua'
+import { t } from '../../i18n/翻译'
 import { careerFocus, 岗位名表 } from '../../data/careerFocus'
 import { 字符渐变色 } from './roleGradient'
 
@@ -29,7 +29,7 @@ export function RoleTicker({
   backSpeed = 80,
   backDelay = 3000,
 }: RoleTickerProps) {
-  const reducedMotion = useReducedMotion()
+  const reducedMotion = useJianShaoDongHua()
   // 岗位清单可为空（职业定位.txt 被删空或只剩注释）：退回同一 career 节点的方向串，
   // 既不渲染 undefined 也不留空白
   const 有岗位 = roles.length > 0
@@ -103,7 +103,7 @@ export function RoleTicker({
             {char}
           </span>
         ))}
-        <span aria-hidden="true" className={cn('ml-0.5 text-[#f0abfc]', !reducedMotion && 'caret-blink')}>
+        <span aria-hidden="true" className={合并类名('ml-0.5 text-[#f0abfc]', !reducedMotion && 'caret-blink')}>
           {reducedMotion ? '' : '|'}
         </span>
       </span>

@@ -2,8 +2,8 @@ import { useEffect, useRef, type RefObject } from 'react'
 import { ExternalLink } from 'lucide-react'
 import { projects } from '../../data/projects'
 import type { Project } from '../../data/types'
-import { t } from '../../i18n/translations'
-import { useReducedMotion } from '../../hooks/useReducedMotion'
+import { t } from '../../i18n/翻译'
+import { useJianShaoDongHua } from '../../hooks/useJianShaoDongHua'
 import { useProjectsWindStore } from '../../store/useProjectsWindStore'
 import { 晾衣架物理引擎, 晾衣架配置, type 晾衣架快照 } from './clotheslinePhysics'
 import { 应用晾衣架布局 } from './clotheslineLayout'
@@ -137,7 +137,7 @@ function NoteContent({ 项目 }: { 项目: Project }) {
 }
 
 export function ClotheslineNotes({ 填充 = false }: ClotheslineNotesProps) {
-  const reducedMotion = useReducedMotion()
+  const reducedMotion = useJianShaoDongHua()
   const 风力强度 = useProjectsWindStore((s) => s.风力强度)
   const 容器Ref = useRef<HTMLDivElement>(null)
   const 画布Ref = useRef<HTMLCanvasElement>(null)
@@ -259,7 +259,7 @@ export function ClotheslineNotes({ 填充 = false }: ClotheslineNotesProps) {
       }
     }
 
-    // 页面滚动速度 → 便签受力：直接监听原生 scroll（Lenis 滚动真实 window，与 lenisRef 初始化时机解耦），
+    // 页面滚动速度 → 便签受力：直接监听原生 scroll（Lenis 滚动真实 window，与 平滑滚动引用 初始化时机解耦），
     // 自算速度（px/帧）登记进物理引擎，由引擎施加带偏角的斜向力并惯性衰减。
     let 上次滚动Y = typeof window !== 'undefined' ? window.scrollY : 0
     let 上次滚动T = typeof performance !== 'undefined' ? performance.now() : 0

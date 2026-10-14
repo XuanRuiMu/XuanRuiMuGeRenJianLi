@@ -2,9 +2,9 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Gamepad2, Heart, BookOpen, GraduationCap, Swords, Bot, ExternalLink, type LucideIcon } from 'lucide-react'
 import { experiences } from '../../data/experience'
 import { Section } from '../../components/ui/Section'
-import { t } from '../../i18n/translations'
-import { useReducedMotion } from '../../hooks/useReducedMotion'
-import { useCountUp } from '../../hooks/useCountUp'
+import { t } from '../../i18n/翻译'
+import { useJianShaoDongHua } from '../../hooks/useJianShaoDongHua'
+import { useShuZiGunDong } from '../../hooks/useShuZiGunDong'
 
 const TIMELINE_PROGRESS_VAR = '--timeline-progress'
 
@@ -23,7 +23,7 @@ const ACHIEVEMENT_GRADIENTS = ['text-gradient-blue', 'text-gradient-green', 'tex
 
 /** 滚动驱动进度（0–1）：设置 CSS 变量供 ::after 发光使用，并维护 React 状态驱动 SVG 填充；同时激活节点。 */
 function useTimelineProgress(ref: React.RefObject<HTMLElement | null>, count: number): number {
-  const prefersReducedMotion = useReducedMotion()
+  const prefersReducedMotion = useJianShaoDongHua()
   const [progress, setProgress] = useState(prefersReducedMotion ? 1 : 0)
 
   useEffect(() => {
@@ -80,7 +80,7 @@ function useTimelineProgress(ref: React.RefObject<HTMLElement | null>, count: nu
 }
 
 function useTimelineItems(count: number) {
-  const prefersReducedMotion = useReducedMotion()
+  const prefersReducedMotion = useJianShaoDongHua()
 
   useEffect(() => {
     if (prefersReducedMotion) return
@@ -263,10 +263,10 @@ function ExperienceCard({ entry, isEven, reducedMotion }: ExperienceCardProps) {
     }
   }, [倾斜可用])
 
-  const { display: periodDisplay } = useCountUp({
-    value: t(entry.periodKey),
-    enabled: !reducedMotion,
-    start: inView,
+  const { 显示: periodDisplay } = useShuZiGunDong({
+    值: t(entry.periodKey),
+    启用: !reducedMotion,
+    开始: inView,
   })
 
   const iconConfig = ENTRY_ICONS[entry.id] ?? ENTRY_ICONS.mcserver
@@ -351,7 +351,7 @@ function ExperienceCard({ entry, isEven, reducedMotion }: ExperienceCardProps) {
 
 export function ExperienceSection() {
   const timelineRef = useRef<HTMLOListElement>(null)
-  const prefersReducedMotion = useReducedMotion()
+  const prefersReducedMotion = useJianShaoDongHua()
   useTimelineProgress(timelineRef, experiences.length)
   useTimelineItems(experiences.length)
 

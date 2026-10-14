@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { UiComponentRenderer } from './UiComponentRegistry'
-import { t } from '../../i18n/translations'
+import { t } from '../../i18n/翻译'
 import { personalInfo } from '../../data/personalInfo'
 
 describe('UiComponentRenderer', () => {

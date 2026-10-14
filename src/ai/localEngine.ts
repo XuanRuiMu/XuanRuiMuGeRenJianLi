@@ -1,5 +1,5 @@
-import type { AiMessage } from '../store/useAppStore'
-import { t, type TranslationKey } from '../i18n/translations'
+﻿import type { AiMessage } from '../store/useAppStore'
+import { t, type TranslationKey } from '../i18n/翻译'
 import { personalInfo } from '../data/personalInfo'
 import { 求职方向 } from '../data/careerFocus'
 import type { UiComponent } from './structuredOutput'

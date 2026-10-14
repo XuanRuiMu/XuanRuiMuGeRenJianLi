@@ -25,7 +25,7 @@ const 前端源码表 = 收集前端源码(path.join(项目根, 'src'))
 /** 任何一条命中前端源码，就意味着密钥或直连凭据会随 dist 暴露到公网 */
 const 禁止模式: Array<[RegExp, string]> = [
   [/VITE_[A-Z0-9_]*_(API_KEY|AUTH_TOKEN|SECRET|PASSWORD)/, '客户端读取密钥类环境变量'],
-  [/https?:\/\/api\.deepseek\.com|https?:\/\/open\.bigmodel\.cn/, '前端直连第三方 AI 域名'],
+  [/https?:\/\/api\.deepseek\.com|https?:\/\/open\.bigmodel\.合并类名/, '前端直连第三方 AI 域名'],
   [/\bapiKey\b/, '前端持有 apiKey 字段'],
   [/Authorization/, '前端构造鉴权请求头'],
   [/Bearer\s/, '前端拼接 Bearer 凭据'],

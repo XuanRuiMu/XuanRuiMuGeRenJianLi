@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest'
+﻿import { describe, it, expect } from 'vitest'
 import zhCN from '../i18n/zh-CN.json'
-import { t } from '../i18n/translations'
+import { t } from '../i18n/翻译'
 import { radarAxes, dimensionLabelKey, dimensionBasisKey, dimensionDescriptionKey } from './radar'
 
 const 维度表 = zhCN.data.radar.dimensions as Record<string, { label: string; description: string; basis: string }>

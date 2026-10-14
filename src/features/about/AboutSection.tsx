@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import { Section } from '../../components/ui/Section'
-import { t } from '../../i18n/translations'
+import { t } from '../../i18n/翻译'
 import { useTypewriter } from './useTypewriter'
 import { 关于我介绍行, type 文本片段, type 片段色调 } from '../../data/aboutLines'
 

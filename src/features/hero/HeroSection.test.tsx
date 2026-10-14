@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { HeroSection } from './HeroSection'
 import { personalInfo } from '../../data/personalInfo'
-import { t } from '../../i18n/translations'
+import { t } from '../../i18n/翻译'
 
 // jsdom 无 2D 画布实现，mock 掉变形器创建以保持测试输出零噪音
 vi.mock('./asciiMorph', async (importOriginal) => ({

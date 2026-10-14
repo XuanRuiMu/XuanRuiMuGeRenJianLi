@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import zhCN from '../i18n/zh-CN.json'
-import { t } from '../i18n/translations'
+import { t } from '../i18n/翻译'
 import { personalInfo } from './personalInfo'
 import { careerFocus, 岗位名表, 求职方向 } from './careerFocus'
 import { 量化指标, 技能组表 } from './skillGroups'
@@ -49,7 +49,7 @@ const 禁止硬编码字面量 = [
 const 消费者源码表 = [
   'src/data/careerFocus.ts',
   'src/features/hero/RoleTicker.tsx',
-  'src/lib/resume.ts',
+  'src/lib/简历.ts',
   'src/ai/resumeKnowledgeBase.ts',
   'src/ai/localEngine.ts',
   'src/data/personalInfo.ts',

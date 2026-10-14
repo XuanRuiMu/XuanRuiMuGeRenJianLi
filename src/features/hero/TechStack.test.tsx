@@ -13,8 +13,8 @@ const { hookState, createMock, 变形器假体 } = vi.hoisted(() => {
   return { hookState, createMock, 变形器假体 }
 })
 
-vi.mock('../../hooks/useReducedMotion', () => ({
-  useReducedMotion: () => hookState.reducedMotion,
+vi.mock('../../hooks/useJianShaoDongHua', () => ({
+  useJianShaoDongHua: () => hookState.reducedMotion,
 }))
 
 vi.mock('../../components/starry-background/useIsDarkMode', () => ({

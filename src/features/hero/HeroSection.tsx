@@ -1,5 +1,5 @@
-import { personalInfo } from '../../data/personalInfo'
-import { t } from '../../i18n/translations'
+﻿import { personalInfo } from '../../data/personalInfo'
+import { t } from '../../i18n/翻译'
 import { RoleTicker } from './RoleTicker'
 import { TechStack } from './TechStack'
 import { DownloadMenu } from './DownloadMenu'

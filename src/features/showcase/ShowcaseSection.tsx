@@ -2,8 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Shapes } from 'lucide-react'
 import { motion, useScroll, useSpring, useTransform } from 'framer-motion'
 import { showcaseRows, type ShowcaseCard } from '../../data/showcase'
-import { t } from '../../i18n/translations'
-import { useReducedMotion } from '../../hooks/useReducedMotion'
+import { t } from '../../i18n/翻译'
+import { useJianShaoDongHua } from '../../hooks/useJianShaoDongHua'
 import { 卡片图标表 } from './cardIcons'
 import { 解析副标题段 } from './副标题解析'
 import {
@@ -287,7 +287,7 @@ function 渲染副标题(副标题: string) {
 }
 
 export function ShowcaseSection() {
-  const reducedMotion = useReducedMotion()
+  const reducedMotion = useJianShaoDongHua()
   const ref = useRef<HTMLDivElement>(null)
 
   const [控制] = useState(创建跑马灯控制)

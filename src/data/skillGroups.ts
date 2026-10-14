@@ -1,4 +1,4 @@
-import { t, ta, type TranslationKey } from '../i18n/translations'
+import { t, ta, type TranslationKey } from '../i18n/翻译'
 
 /**
  * 技能板块的两个数据源：量化指标与能力分组。
@@ -10,7 +10,7 @@ import { t, ta, type TranslationKey } from '../i18n/translations'
 export interface 量化指标项 {
   /** skills.metrics 下的指标 id，同时用于 React key */
   id: string
-  /** 带单位的展示串（如 "85+"），数字部分交给 useCountUp 滚动 */
+  /** 带单位的展示串（如 "85+"），数字部分交给 useShuZiGunDong 滚动 */
   value: string
   label: string
 }

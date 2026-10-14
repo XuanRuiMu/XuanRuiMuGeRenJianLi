@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ResizableNav } from './ResizableNav'
-import { t } from '../../i18n/translations'
+import { t } from '../../i18n/翻译'
 
 const transitionToSection = vi.fn()
 const setCommandOpen = vi.fn()

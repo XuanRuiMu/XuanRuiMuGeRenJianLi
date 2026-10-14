@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { cn } from '../lib/utils'
+import { 合并类名 } from '../lib/工具'
 
 interface RevealProps {
   children: ReactNode
@@ -47,7 +47,7 @@ export function Reveal({ children, className, delay = 0, id }: RevealProps) {
     <div
       ref={ref}
       id={id}
-      className={cn('reveal', visible && 'reveal--visible', className)}
+      className={合并类名('reveal', visible && 'reveal--visible', className)}
       style={delay ? { transitionDelay: `${delay}ms` } : undefined}
     >
       {children}

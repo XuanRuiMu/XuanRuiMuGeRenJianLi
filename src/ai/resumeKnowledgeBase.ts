@@ -1,4 +1,4 @@
-import { personalInfo } from '../data/personalInfo'
+﻿import { personalInfo } from '../data/personalInfo'
 import { 求职方向 } from '../data/careerFocus'
 import { 技能组表, 量化指标 } from '../data/skillGroups'
 import { projects } from '../data/projects'
@@ -7,7 +7,7 @@ import { education } from '../data/education'
 import { design } from '../data/design'
 import { media } from '../data/media'
 import { GitHub仓库快照, GitHub快照元信息, GitHub快照生成时间 } from '../data/githubSnapshot'
-import { t } from '../i18n/translations'
+import { t } from '../i18n/翻译'
 
 export interface KnowledgeChunk {
   id: string

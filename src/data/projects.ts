@@ -1,5 +1,5 @@
-import type { Project } from './types'
-import { ta } from '../i18n/translations'
+﻿import type { Project } from './types'
+import { ta } from '../i18n/翻译'
 
 export const lovewithmeGithubUrl = 'https://github.com/XuanRuiMu/HeWoLianAiBa'
 export const yangLaiWebUrl = 'https://xuanruimu.github.io/YangLai/'

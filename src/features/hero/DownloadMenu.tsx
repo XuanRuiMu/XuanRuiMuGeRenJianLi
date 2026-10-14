@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Archive, ChevronDown, Download } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
-import { t, type TranslationKey } from '../../i18n/translations'
-import { downloadResume } from '../../lib/resume'
-import { 下载佐证材料包 } from '../../lib/evidence'
+import { t, type TranslationKey } from '../../i18n/翻译'
+import { 下载简历 } from '../../lib/简历'
+import { 下载佐证材料包 } from '../../lib/佐证材料包'
 
 /**
  * 图标以元素形式放进数据表：汉字标识符当 JSX 组件类型用时，经 React Compiler + 压缩后引用丢绑定，
@@ -14,7 +14,7 @@ const 菜单项表 = [
     id: 'resume',
     labelKey: 'hero.cta.downloadResume',
     icon: <Download size={18} aria-hidden="true" />,
-    run: downloadResume,
+    run: 下载简历,
   },
   {
     id: 'evidence',
@@ -117,7 +117,7 @@ export function DownloadMenu() {
     <div ref={容器引用} className="relative inline-flex" onKeyDown={菜单按键}>
       <Button
         variant="secondary"
-        onClick={downloadResume}
+        onClick={下载简历}
         icon={<Download size={32} />}
         className="h-16 rounded-r-none px-10 pr-8 text-lg"
       >

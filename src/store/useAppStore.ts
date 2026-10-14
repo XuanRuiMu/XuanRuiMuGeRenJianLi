@@ -1,8 +1,8 @@
 import { create } from 'zustand'
-import type { PerformanceMetrics, FrameMetrics, QualityLevel } from '../domain/types'
+import type { 性能指标, 帧指标, 画质档位值 } from '../domain/类型'
 import type { UiComponent } from '../ai/structuredOutput'
 import { 读取已选模型ID, 持久化已选模型ID, 默认模型ID, 默认思考强度, type 思考强度 } from '../ai/models'
-import { lenisRef } from '../lib/lenisInstance'
+import { 平滑滚动引用 } from '../lib/平滑滚动实例'
 
 export type AppTheme = 'dark' | 'light' | 'system'
 
@@ -50,9 +50,9 @@ export interface AppState {
   updateAvailable: boolean
   offlineReady: boolean
   cacheQuotaWarning: boolean
-  qualityLevel: QualityLevel
-  performanceMetrics: PerformanceMetrics
-  frameMetrics: FrameMetrics
+  qualityLevel: 画质档位值
+  performanceMetrics: 性能指标
+  frameMetrics: 帧指标
 
   setActiveSection: (section: AppSection | null) => void
   setTheme: (theme: AppTheme) => void
@@ -72,9 +72,9 @@ export interface AppState {
   setUpdateAvailable: (available: boolean) => void
   setOfflineReady: (ready: boolean) => void
   setCacheQuotaWarning: (warning: boolean) => void
-  setQualityLevel: (level: QualityLevel) => void
-  setPerformanceMetrics: (metrics: PerformanceMetrics) => void
-  setFrameMetrics: (metrics: Partial<FrameMetrics>) => void
+  setQualityLevel: (level: 画质档位值) => void
+  setPerformanceMetrics: (metrics: 性能指标) => void
+  setFrameMetrics: (metrics: Partial<帧指标>) => void
   transitionToSection: (section: AppSection) => void
   transitionToTheater: () => void
 }
@@ -153,7 +153,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     // 固定顶栏高度（glass-nav 胶囊 h-12 + py-2 = 64px，收缩态还有 y:20 位移），跳转时留出偏移
     const 顶栏偏移 = -80
     const scrollTo = (element: HTMLElement) => {
-      const lenis = lenisRef.current
+      const lenis = 平滑滚动引用.current
       if (lenis && !get().reducedMotion) {
         lenis.scrollTo(element, { offset: 顶栏偏移 })
       } else {

@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest'
+﻿import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
-import { t } from '../i18n/translations'
+import { t } from '../i18n/翻译'
 import { showcaseRows, type ShowcaseCard } from './showcase'
 
 const 项目根 = path.resolve(__dirname, '../..')

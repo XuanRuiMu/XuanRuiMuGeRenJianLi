@@ -4,7 +4,7 @@ import './index.css'
 import App from './app/App'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Providers } from './app/providers'
-import { registerServiceWorker } from './utils/swRegister'
+import { 注册服务工作线程 } from './utils/注册服务工作线程'
 import { initObservability, ringBuffer, initConsoleDashboard } from './observability'
 
 // 根因修复（FP-03）：尽早禁用浏览器滚动恢复，避免硬刷新后停留在非顶部位置。
@@ -16,7 +16,7 @@ initObservability().catch((err) => {
   ringBuffer.write('error', 1, 'Observability init failed', { error: String(err) })
 })
 
-registerServiceWorker()
+注册服务工作线程()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

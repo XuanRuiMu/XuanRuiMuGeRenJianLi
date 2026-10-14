@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useAppStore } from '../store/useAppStore'
 
-export function usePWAStatus(): void {
+export function usePWAZhuangTai(): void {
   const setOffline = useAppStore((state) => state.setOffline)
 
   useEffect(() => {

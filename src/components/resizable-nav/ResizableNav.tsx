@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Menu, X, SlidersHorizontal } from 'lucide-react'
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion'
-import { cn } from '../../lib/utils'
-import { t, type TranslationKey } from '../../i18n/translations'
+import { 合并类名 } from '../../lib/工具'
+import { t, type TranslationKey } from '../../i18n/翻译'
 import { useAppStore, type AppSection } from '../../store/useAppStore'
 import { ThemeToggle } from '../theme-toggle/ThemeToggle'
 import { personalInfo } from '../../data/personalInfo'
@@ -97,14 +97,14 @@ export function ResizableNav({ className }: ResizableNavProps) {
       key={section}
       type="button"
       onClick={() => goTo(section)}
-      className={cn('nav-link-pill cursor-pointer px-4 py-2 text-sm font-medium', extraClassName)}
+      className={合并类名('nav-link-pill cursor-pointer px-4 py-2 text-sm font-medium', extraClassName)}
     >
       {t(`nav.${section}` as TranslationKey)}
     </button>
   )
 
   return (
-    <div className={cn('fixed inset-x-0 top-0 z-50 w-full pt-2', className)}>
+    <div className={合并类名('fixed inset-x-0 top-0 z-50 w-full pt-2', className)}>
       <motion.div
         animate={{
           backdropFilter: visible ? 'blur(16px) saturate(180%)' : 'none',
@@ -116,7 +116,7 @@ export function ResizableNav({ className }: ResizableNavProps) {
         }}
         transition={{ type: 'spring', stiffness: 200, damping: 50 }}
         style={{ minWidth: 'min(800px, 100%)' }}
-        className={cn(
+        className={合并类名(
           'glass-nav relative z-[60] mx-auto flex w-full max-w-[calc(100vw-2rem)] flex-row items-center justify-between self-start rounded-full px-4 py-2 lg:max-w-7xl',
           visible && 'shadow-lg'
         )}

@@ -1,15 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAppStore, type AppTheme } from '../../store/useAppStore'
-import {
-  startViewTransition,
-  startCircularRevealTransition,
-  type CircularRevealOrigin,
-} from '../../utils/viewTransition'
+import { 启动视图过渡, 启动圆形揭示过渡, type 圆形揭示原点 } from '../../utils/视图过渡'
 
 const STORAGE_KEY = 'xrm-theme'
 
 export interface SetThemeOptions {
-  origin?: CircularRevealOrigin
+  origin?: 圆形揭示原点
 }
 
 function resolveTheme(theme: AppTheme): 'dark' | 'light' {
@@ -24,7 +20,7 @@ export function useThemeSystem() {
   const reducedMotion = useAppStore((state) => state.reducedMotion)
   const setThemeStore = useAppStore((state) => state.setTheme)
   const [resolvedTheme, setResolvedTheme] = useState<'dark' | 'light'>('dark')
-  const pendingOriginRef = useRef<CircularRevealOrigin | null>(null)
+  const pendingOriginRef = useRef<圆形揭示原点 | null>(null)
 
   const applyTheme = useCallback(
     (next: AppTheme) => {
@@ -39,9 +35,9 @@ export function useThemeSystem() {
       const origin = pendingOriginRef.current
       pendingOriginRef.current = null
       if (origin && !reducedMotion) {
-        startCircularRevealTransition(update, origin)
+        启动圆形揭示过渡(update, origin)
       } else {
-        startViewTransition(update)
+        启动视图过渡(update)
       }
     },
     [reducedMotion]

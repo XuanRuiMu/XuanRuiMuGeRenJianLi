@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest'
+﻿import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import zhCN from '../i18n/zh-CN.json'
-import { t, type TranslationKey } from '../i18n/translations'
+import { t, type TranslationKey } from '../i18n/翻译'
 import { 推荐语id表, 推荐语列表 } from './testimonials'
 
 const 项目根 = path.resolve(__dirname, '../..')

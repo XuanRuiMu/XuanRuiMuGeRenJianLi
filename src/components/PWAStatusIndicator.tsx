@@ -2,12 +2,12 @@ import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import { WifiOff, RefreshCw, CheckCircle, AlertTriangle, X } from 'lucide-react'
 import { useAppStore } from '../store/useAppStore'
-import { updateServiceWorker } from '../utils/swRegister'
-import { usePWAStatus } from '../hooks/usePWAStatus'
-import { t } from '../i18n/translations'
+import { 更新服务工作线程 } from '../utils/注册服务工作线程'
+import { usePWAZhuangTai } from '../hooks/usePWAZhuangTai'
+import { t } from '../i18n/翻译'
 
 export function PWAStatusIndicator(): ReactNode {
-  usePWAStatus()
+  usePWAZhuangTai()
   const isOffline = useAppStore((state) => state.isOffline)
   const updateAvailable = useAppStore((state) => state.updateAvailable)
   const offlineReady = useAppStore((state) => state.offlineReady)
@@ -43,7 +43,7 @@ export function PWAStatusIndicator(): ReactNode {
 
   const handleUpdate = async () => {
     setUpdateAvailable(false)
-    await updateServiceWorker(true)
+    await 更新服务工作线程(true)
   }
 
   const handleDismissUpdate = () => {

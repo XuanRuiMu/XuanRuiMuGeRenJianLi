@@ -3,12 +3,12 @@ import { Command } from 'cmdk'
 import { Search, Sun, Moon, Monitor, MessageSquare, Mail, Link, Download } from 'lucide-react'
 import { useAppStore, SECTION_ORDER, type AppSection, type AppTheme } from '../../store/useAppStore'
 import { useThemeSystem } from '../theme-toggle/useThemeSystem'
-import { t, type TranslationKey } from '../../i18n/translations'
+import { t, type TranslationKey } from '../../i18n/翻译'
 import { personalInfo } from '../../data/personalInfo'
-import { downloadResume } from '../../lib/resume'
-import { cn } from '../../lib/utils'
-import { startViewTransition } from '../../utils/viewTransition'
-import { lenisRef } from '../../lib/lenisInstance'
+import { 下载简历 } from '../../lib/简历'
+import { 合并类名 } from '../../lib/工具'
+import { 启动视图过渡 } from '../../utils/视图过渡'
+import { 平滑滚动引用 } from '../../lib/平滑滚动实例'
 
 function sectionLabel(section: AppSection): string {
   return t(`nav.${section}` as unknown as TranslationKey)
@@ -78,7 +78,7 @@ export function CommandPalette() {
         触发元素引用.current = 当前焦点 instanceof HTMLElement ? 当前焦点 : null
       }
       if (value) {
-        void startViewTransition(() => {
+        void 启动视图过渡(() => {
           if (切换序号 !== 切换序号引用.current || !目标打开状态引用.current) return
           setOpen(value)
         })
@@ -120,7 +120,7 @@ export function CommandPalette() {
     if (!open) return
     const 原滚动位置 = window.scrollY
     const 原页面溢出 = document.body.style.overflow
-    const 滚动实例 = lenisRef.current
+    const 滚动实例 = 平滑滚动引用.current
     滚动实例?.stop()
     document.body.style.overflow = 'hidden'
     return () => {
@@ -180,7 +180,7 @@ export function CommandPalette() {
   }, [])
 
   const handleDownloadResume = useCallback(() => {
-    downloadResume()
+    下载简历()
   }, [])
 
   if (!open) return null
@@ -196,7 +196,7 @@ export function CommandPalette() {
       style={{ viewTransitionName: 'command-palette' }}
     >
       <Command
-        className={cn(
+        className={合并类名(
           'flex min-w-0 max-h-[calc(90dvh-1.5rem)] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-border/90 bg-surface/95 shadow-[0_24px_80px_-24px_var(--color-panel-shadow)] ring-1 ring-inset ring-border/70 backdrop-blur-xl',
           'sm:max-h-[calc(88dvh-1.5rem)]'
         )}

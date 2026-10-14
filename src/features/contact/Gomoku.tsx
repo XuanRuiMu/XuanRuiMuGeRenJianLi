@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { RotateCcw } from 'lucide-react'
-import { cn } from '../../lib/utils'
-import { t, 填充 } from '../../i18n/translations'
+import { 合并类名 } from '../../lib/工具'
+import { t, 填充 } from '../../i18n/翻译'
 
 const SIZE = 15
 const EMPTY = 0
@@ -284,7 +284,7 @@ export function Gomoku() {
             type="button"
             onClick={() => switchMode('pve')}
             aria-pressed={mode === 'pve'}
-            className={cn(
+            className={合并类名(
               'rounded-full px-2.5 py-1 text-xs transition-colors',
               mode === 'pve'
                 ? 'bg-gradient-to-r from-[#d97757] to-[#fb7185] text-white shadow-[0_2px_10px_rgba(217,119,87,0.5)]'
@@ -297,7 +297,7 @@ export function Gomoku() {
             type="button"
             onClick={() => switchMode('pvp')}
             aria-pressed={mode === 'pvp'}
-            className={cn(
+            className={合并类名(
               'rounded-full px-2.5 py-1 text-xs transition-colors',
               mode === 'pvp'
                 ? 'bg-gradient-to-r from-[#d97757] to-[#fb7185] text-white shadow-[0_2px_10px_rgba(217,119,87,0.5)]'
@@ -326,7 +326,7 @@ export function Gomoku() {
       >
         {/* 3D 翻转容器：绕垂直轴（Y）旋转 180°，正面棋盘转到背面（根因修复：单面 rotateY 仅镜像、无「背面」语义） */}
         <div
-          className={cn('gomoku-flip', flipping && 'is-flipping')}
+          className={合并类名('gomoku-flip', flipping && 'is-flipping')}
           onAnimationEnd={(event) => {
             // 只响应翻转容器自身的 animationend；棋子入场等子元素动画冒泡上来会误触清盘
             if (flipping && event.target === event.currentTarget) {
@@ -370,7 +370,7 @@ export function Gomoku() {
                     >
                       {cell !== EMPTY && (
                         <span
-                          className={cn(
+                          className={合并类名(
                             'gomoku-stone',
                             cell === BLACK ? 'gomoku-stone--black' : 'gomoku-stone--white',
                             isLast && 'gomoku-stone--last',

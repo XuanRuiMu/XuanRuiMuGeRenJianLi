@@ -1,11 +1,11 @@
-import { type ReactNode } from 'react'
+﻿import { type ReactNode } from 'react'
 import { ResizableNav } from '../components/resizable-nav/ResizableNav'
 import { CommandPalette } from '../components/command-palette/CommandPalette'
 import { AIChat } from '../components/ai-chat/AIChat'
 import { PWAStatusIndicator } from '../components/PWAStatusIndicator'
 import { StarryGalaxyBackground, InkRevealOverlay } from '../components/starry-background'
 import { VisitorCounter } from '../components/visitor-counter/VisitorCounter'
-import { t } from '../i18n/translations'
+import { t } from '../i18n/翻译'
 
 interface LayoutProps {
   children: ReactNode

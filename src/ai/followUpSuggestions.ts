@@ -1,5 +1,5 @@
-import type { AiMessage } from '../store/useAppStore'
-import { ta } from '../i18n/translations'
+﻿import type { AiMessage } from '../store/useAppStore'
+import { ta } from '../i18n/翻译'
 import { 命中兜底意图, 检测项目卡片, 是否纯问候, 是否感谢, 是否告别 } from './intentTable'
 
 function 取组(键: string): string[] {

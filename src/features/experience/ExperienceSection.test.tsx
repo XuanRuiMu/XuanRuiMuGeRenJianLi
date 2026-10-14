@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { ExperienceSection } from './ExperienceSection'
 import { experiences, educatorBilibiliUrl, wowguildVideoUrl, 暮澜链接 } from '../../data/experience'
 import { personalInfo } from '../../data/personalInfo'
-import { t } from '../../i18n/translations'
+import { t } from '../../i18n/翻译'
 
 describe('ExperienceSection', () => {
   const originalMatchMedia = window.matchMedia

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import { render, screen, within, waitFor, cleanup } from '@testing-library/react'
@@ -24,7 +24,7 @@ import {
   轨道屏幕偏移,
 } from './marqueeEngine'
 import { showcaseRows, 暮澜链接 } from '../../data/showcase'
-import { t } from '../../i18n/translations'
+import { t } from '../../i18n/翻译'
 
 // 固定高度残留检测：覆盖任意变体前缀（sm:/md:/2xl:/任意变体:，以冒号分隔）与 min-h-/max-h- 前缀。
 // 旧正则 (^|\s)(sm:|md:|lg:)?h-\[ 抓不到 min-h-[…] 与 max-h-[…]，死白同类残留会从检测缝里漏掉

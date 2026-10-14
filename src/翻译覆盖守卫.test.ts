@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+﻿import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 
 /**
@@ -26,9 +26,11 @@ function 提取违例(源码: string, 文件: string): string[] {
   const 去注释 = 源码.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^[ \t]*\/\/.*$/gm, '')
   const 违例: string[] = []
   const 行表 = 去注释.split('\n')
+  // import/export ... from '...' 与 require() 是模块路径，不是玩家文案
+  const 模块路径行 = /^\s*(import|export)\b.*from\s|^\s*const\s+\w+\s*=\s*require\(/
   for (let i = 0; i < 行表.length; i++) {
     const 行 = 行表[i]
-    if (代码行.test(行)) continue
+    if (代码行.test(行) || 模块路径行.test(行)) continue
     for (const 匹配 of 行.matchAll(中文字符串)) {
       const 原文 = 匹配[0]
       if (原文.includes('${')) continue
@@ -53,7 +55,7 @@ describe('翻译文件优先：界面模块不得硬编码中文文案', () => {
   }
 
   it('丝绸测试页预设 id 均能在翻译文件解析（id 即 skillTest.presets 键名）', async () => {
-    const { t } = await import('./i18n/translations')
+    const { t } = await import('./i18n/翻译')
     const 源码 = fs.readFileSync('src/features/skill-test/SkillTestPage.tsx', 'utf-8')
     const 标识表 = 源码.match(/预设标识表 = \[([^\]]*)\]/)?.[1] ?? ''
     const 标识 = [...标识表.matchAll(/'([^']+)'/g)].map((m) => m[1])

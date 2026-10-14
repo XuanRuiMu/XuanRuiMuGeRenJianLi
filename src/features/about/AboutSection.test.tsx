@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, act } from '@testing-library/react'
 import { AboutSection } from './AboutSection'
 import { useTypewriter, type 打字机选项, type 打字机状态 } from './useTypewriter'
 import { 关于我介绍行, type 文本片段 } from '../../data/aboutLines'
-import { t } from '../../i18n/translations'
+import { t } from '../../i18n/翻译'
 
 type 打字机模块 = { useTypewriter: (选项: 打字机选项) => 打字机状态 }
 

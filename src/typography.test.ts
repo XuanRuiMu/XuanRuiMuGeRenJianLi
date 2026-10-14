@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest'
+﻿import { describe, it, expect } from 'vitest'
 import 中文包 from './i18n/zh-CN.json'
-import { t } from './i18n/translations'
+import { t } from './i18n/翻译'
 import { buildResumeKnowledgeBase } from './ai/resumeKnowledgeBase'
 
 const 中文字符 = '\\u4e00-\\u9fff\\u3400-\\u4dbf\\uf900-\\ufaff'

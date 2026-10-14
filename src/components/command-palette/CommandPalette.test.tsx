@@ -2,17 +2,17 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, cleanup, within } from '@testing-library/react'
 import { CommandPalette } from './CommandPalette'
 import { useAppStore } from '../../store/useAppStore'
-import { downloadResume } from '../../lib/resume'
-import { t } from '../../i18n/translations'
+import { 下载简历 } from '../../lib/简历'
+import { t } from '../../i18n/翻译'
 import { personalInfo } from '../../data/personalInfo'
 
-const startViewTransition = vi.fn((callback: () => void) => {
+const 启动视图过渡 = vi.fn((callback: () => void) => {
   callback()
   return Promise.resolve()
 })
 
-vi.mock('../../utils/viewTransition', () => ({
-  startViewTransition: (...args: unknown[]) => startViewTransition(args[0] as () => void),
+vi.mock('../../utils/视图过渡', () => ({
+  启动视图过渡: (...args: unknown[]) => 启动视图过渡(args[0] as () => void),
 }))
 
 const setCommandOpen = vi.fn()
@@ -29,8 +29,8 @@ vi.mock('../theme-toggle/useThemeSystem', () => ({
   useThemeSystem: () => ({ theme: 'system', setTheme }),
 }))
 
-vi.mock('../../lib/resume', () => ({
-  downloadResume: vi.fn(),
+vi.mock('../../lib/简历', () => ({
+  下载简历: vi.fn(),
 }))
 
 describe('CommandPalette', () => {
@@ -38,7 +38,7 @@ describe('CommandPalette', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    startViewTransition.mockClear()
+    启动视图过渡.mockClear()
     vi.stubGlobal(
       'ResizeObserver',
       class ResizeObserver {
@@ -204,14 +204,14 @@ describe('CommandPalette', () => {
     render(<CommandPalette />)
     fireEvent.keyDown(window, { key: 'Escape' })
     expect(setCommandOpen).toHaveBeenCalledWith(false)
-    expect(startViewTransition).not.toHaveBeenCalled()
+    expect(启动视图过渡).not.toHaveBeenCalled()
   })
 
   it('closes on Cmd+K shortcut when open', () => {
     render(<CommandPalette />)
     fireEvent.keyDown(window, { key: 'k', metaKey: true })
     expect(setCommandOpen).toHaveBeenCalledWith(false)
-    expect(startViewTransition).not.toHaveBeenCalled()
+    expect(启动视图过渡).not.toHaveBeenCalled()
   })
 
   it('opens on Ctrl+K shortcut when closed with view transition', () => {
@@ -226,12 +226,12 @@ describe('CommandPalette', () => {
     render(<CommandPalette />)
     fireEvent.keyDown(window, { key: 'k', ctrlKey: true })
     expect(setCommandOpen).toHaveBeenCalledWith(true)
-    expect(startViewTransition).toHaveBeenCalledOnce()
+    expect(启动视图过渡).toHaveBeenCalledOnce()
   })
 
   it('cancels a pending open transition when Escape arrives', () => {
     let 待执行: (() => void) | undefined
-    startViewTransition.mockImplementationOnce((回调: () => void) => {
+    启动视图过渡.mockImplementationOnce((回调: () => void) => {
       待执行 = 回调
       return Promise.resolve()
     })
@@ -302,7 +302,7 @@ describe('CommandPalette', () => {
   it('downloads resume when download item selected', () => {
     render(<CommandPalette />)
     fireEvent.click(screen.getByText(t('command.downloadResume')))
-    expect(downloadResume).toHaveBeenCalled()
+    expect(下载简历).toHaveBeenCalled()
     expect(setCommandOpen).toHaveBeenCalledWith(false)
   })
 })

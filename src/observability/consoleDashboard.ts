@@ -4,7 +4,7 @@ import { ringBuffer, logStore } from './globals'
 import { useAppStore } from '../store/useAppStore'
 import { encode } from '@msgpack/msgpack'
 import type { LogEntry, LogLevel } from './ringBuffer'
-import type { FrameMetrics, PerformanceMetrics, QualityLevel } from '../domain/types'
+import type { 帧指标, 性能指标, 画质档位值 } from '../domain/类型'
 
 // 等级配色（命令式复用旧浮窗语义，仅用于控制台着色）
 const 等级配色: Record<LogLevel, string> = {
@@ -20,9 +20,9 @@ const 最近日志: LogEntry[] = []
 
 // 最近一次来自 store 的快照，fps()/perf() 即时读取
 const 当前状态: {
-  frameMetrics: FrameMetrics
-  performanceMetrics: PerformanceMetrics
-  qualityLevel: QualityLevel
+  frameMetrics: 帧指标
+  performanceMetrics: 性能指标
+  qualityLevel: 画质档位值
 } = {
   frameMetrics: { fps: 0, p95: 0, avg: 0, downgradeCount: 0, upgradeCount: 0 },
   performanceMetrics: {},

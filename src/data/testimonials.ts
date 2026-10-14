@@ -1,4 +1,4 @@
-import { t, type TranslationKey } from '../i18n/translations'
+﻿import { t, type TranslationKey } from '../i18n/翻译'
 
 /**
  * 推荐语卡片：文案全部落在 zh-CN.json 的 testimonials.items 节点，此处只保留 id 与读取逻辑。

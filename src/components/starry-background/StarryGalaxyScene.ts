@@ -1,7 +1,7 @@
-import * as THREE from 'three'
+﻿import * as THREE from 'three'
 import GUI from 'three/addons/libs/lil-gui.module.min.js'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
-import { t as translate } from '../../i18n/translations'
+import { t as translate } from '../../i18n/翻译'
 import { useStarryUiStore } from '../../store/useStarryUiStore'
 import { useProjectsWindStore, 风力下限, 风力上限 } from '../../store/useProjectsWindStore'
 

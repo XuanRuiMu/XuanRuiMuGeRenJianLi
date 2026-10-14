@@ -1,7 +1,7 @@
-import { useState, useCallback, useMemo } from 'react'
+﻿import { useState, useCallback, useMemo } from 'react'
 import { ShaderToy } from './SilkShaderToy'
 import { Settings, X, RotateCcw, ChevronDown, ChevronRight } from 'lucide-react'
-import { t, 填充 } from '../../i18n/translations'
+import { t, 填充 } from '../../i18n/翻译'
 
 // ============ 类型定义 ============
 

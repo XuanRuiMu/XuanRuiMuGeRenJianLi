@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Eye } from 'lucide-react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { t } from '../../i18n/translations'
-import { ANALYTICS_ENABLED, useAnalyticsStats, useTrackVisit } from '../../lib/api'
+import { t } from '../../i18n/翻译'
+import { 访问统计开关, useFangWenTongJi, useShangBaoFangWen } from '../../lib/分析接口'
 
 // 模块级单例：组件随主题/布局重挂载不重建缓存；本次页面加载只上报一次
 // （StrictMode 双挂载、主题切换重渲染均被此标记挡下，杜绝浏览量虚增）
@@ -39,8 +39,8 @@ function 记一次本地访问(): number {
 }
 
 function VisitorCounterCore() {
-  const stats = useAnalyticsStats()
-  const trackVisit = useTrackVisit()
+  const stats = useFangWenTongJi()
+  const trackVisit = useShangBaoFangWen()
 
   // 一次页面加载只累加一次：状态初始化器内完成写本地，effect 只负责云端上报，
   // 两侧都不用「effect 内同步 setState」，避免级联重渲染（react-hooks/set-state-in-effect）
@@ -51,17 +51,17 @@ function VisitorCounterCore() {
   })
 
   useEffect(() => {
-    if (云端已上报 || !ANALYTICS_ENABLED) return
+    if (云端已上报 || !访问统计开关) return
     云端已上报 = true
     trackVisit.mutate({
-      path: window.location.pathname,
-      referrer: document.referrer,
-      userAgent: navigator.userAgent,
-      timestamp: Date.now(),
+      路径: window.location.pathname,
+      来源: document.referrer,
+      用户代理: navigator.userAgent,
+      时间戳: Date.now(),
     })
   }, [trackVisit])
 
-  const total = stats.data?.total ?? 本地计数
+  const total = stats.data?.总数 ?? 本地计数
   return (
     <div className="visitor-counter-card" data-testid="visitor-counter-card">
       <span className="inline-flex items-center gap-1.5" data-testid="visitor-counter">

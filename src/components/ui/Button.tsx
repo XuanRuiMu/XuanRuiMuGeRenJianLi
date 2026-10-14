@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { Loader2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { 合并类名 } from '@/lib/工具'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost'
@@ -36,7 +36,7 @@ export function Button({
 
   return (
     <button
-      className={cn(baseClasses, variantClasses[variant], sizeClasses[size], className)}
+      className={合并类名(baseClasses, variantClasses[variant], sizeClasses[size], className)}
       disabled={disabled || loading}
       {...props}
     >

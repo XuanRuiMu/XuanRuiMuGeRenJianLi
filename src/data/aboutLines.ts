@@ -1,4 +1,4 @@
-import { t, type TranslationKey } from '../i18n/translations'
+﻿import { t, type TranslationKey } from '../i18n/翻译'
 
 /**
  * 「关于我」正文行：文案在 zh-CN.json 的 about.introLines 节点。
