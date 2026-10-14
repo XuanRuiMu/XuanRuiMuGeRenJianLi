@@ -1,6 +1,6 @@
 /**
  * 构建期 GitHub 仓库快照：把本人公开仓库的元信息与 README 摘录落成
- * `src/data/GitHub快照.ts`，供询问 AI 的知识库检索使用。
+ * `src/数据/GitHub快照.ts`，供询问 AI 的知识库检索使用。
  *
  * 为什么走构建期快照而不是运行时拉取：GitHub 未鉴权 REST 限额是 60 次/小时且按访客出口 IP 计，
  * 多访客会打满；构建期跑一次（CI 里可用 GITHUB_TOKEN，1000 次/小时/仓库）零运行时代价、离线也可用。
@@ -23,7 +23,7 @@ const 令牌 = process.env.GITHUB_TOKEN || ''
 /** 单个仓库 README 摘录的字符上限 */
 const README摘录上限 = Number(process.env.GITHUB_README_LIMIT || 1200)
 
-const 输出路径 = path.resolve('src/data/GitHub快照.ts')
+const 输出路径 = path.resolve('src/数据/GitHub快照.ts')
 /** 不纳入简历知识库的仓库（仓库名或「owner/name」），见同目录 同步GitHub快照.排除清单.json */
 const 排除清单路径 = path.resolve('scripts/同步GitHub快照.排除清单.json')
 
@@ -191,7 +191,7 @@ async function 主流程() {
     生成时间,
   }
   fs.writeFileSync(输出路径, 渲染快照文件(快照表, 生成时间, 元信息), 'utf-8')
-  console.log(`已写入 ${快照表.length}/${元信息.公开仓库总数} 个仓库快照 → src/data/GitHub快照.ts（${生成时间}）`)
+  console.log(`已写入 ${快照表.length}/${元信息.公开仓库总数} 个仓库快照 → src/数据/GitHub快照.ts（${生成时间}）`)
 }
 
 // 仅在被直接执行时联网同步（被测试导入时不发请求）

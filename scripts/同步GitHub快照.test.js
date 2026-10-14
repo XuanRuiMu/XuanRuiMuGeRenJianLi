@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { 清洗README, 取语言分布, 按屏蔽词截断, 去除中英间空格 } from './同步GitHub快照.js'
 
-const 快照文件 = path.resolve('src/data/GitHub快照.ts')
+const 快照文件 = path.resolve('src/数据/GitHub快照.ts')
 
 describe('GitHub 快照同步脚本（纯函数）', () => {
   it('README 去噪：代码块、图片、链接、HTML 注释一律不留', () => {

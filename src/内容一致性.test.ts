@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
-import zhCN from './i18n/zh-CN.json'
-import { t } from './i18n/翻译'
-import { 构建简历知识库 } from './ai/简历知识库'
+import zhCN from './国际化/zh-CN.json'
+import { t } from './国际化/翻译'
+import { 构建简历知识库 } from './智能/简历知识库'
 
 function collectStrings(value: unknown): string[] {
   if (typeof value === 'string') return [value]
@@ -84,9 +84,9 @@ describe('FP-02内容一致性回归', () => {
   })
 
   it('FP-01：四处暮澜链接均为指定地址', async () => {
-    const { 项目表 } = await import('./data/项目')
-    const { 经历表 } = await import('./data/经历')
-    const { 展示行表 } = await import('./data/展示')
+    const { 项目表 } = await import('./数据/项目')
+    const { 经历表 } = await import('./数据/经历')
+    const { 展示行表 } = await import('./数据/展示')
     const 指定地址 = 'https://github.com/XuanRuiMu/XRMChaJian'
     expect(项目表.find((项目) => 项目.id === 'xrm')?.links[0].url).toBe(指定地址)
     expect(经历表.find((条目) => 条目.id === 'mcserver')?.links?.[0].url).toBe(指定地址)
@@ -114,10 +114,10 @@ describe('FP-02内容一致性回归', () => {
     for (const 残留 of ['架子鼓', '爵士乐', '乐理', '频谱', '音乐经历']) {
       expect(翻译文本, `翻译文本不得残留「${残留}」`).not.toContain(残留)
     }
-    const 展示卡id = (await import('./data/展示')).展示行表.flatMap((行) => 行.cards).map((卡) => 卡.id)
+    const 展示卡id = (await import('./数据/展示')).展示行表.flatMap((行) => 行.cards).map((卡) => 卡.id)
     expect(展示卡id).not.toContain('escape')
     expect(fs.existsSync(path.resolve('素材/showcase/爵士乐.png'))).toBe(false)
-    expect(fs.existsSync(path.resolve('src/data/music.ts'))).toBe(false)
+    expect(fs.existsSync(path.resolve('src/数据/music.ts'))).toBe(false)
     // 「9」这类单字符在整坨翻译文本里必然命中，等于没断言：改钉 skills.metrics 的真实指标值
     const { javaClasses, aiSkills, agentSkills, serverOps } = zhCN.skills.metrics
     expect([javaClasses.value, aiSkills.value, agentSkills.value, serverOps.value]).toEqual(['425', '85+', '9', '7年'])
@@ -150,7 +150,7 @@ describe('FP-10 文案错误、口径不一致与死文案守卫', () => {
     const 可见文案 = t('contact.gomoku.flipTable')
     expect(t('contact.gomoku.reset')).toContain(可见文案)
     expect(t('contact.gomoku.reset').indexOf(可见文案)).toBe(0)
-    const 源码 = 读文件('src/features/contact/WuZiQi.tsx')
+    const 源码 = 读文件('src/功能/联系/WuZiQi.tsx')
     expect(源码).toContain(`aria-label={t('contact.gomoku.reset')}`)
     expect(源码).toContain(`{t('contact.gomoku.flipTable')}`)
     expect(读文件('src/入口样式.css')).toContain(`${可见文案}：`)
@@ -208,21 +208,21 @@ describe('FP-10 文案错误、口径不一致与死文案守卫', () => {
     expect(提示).toContain('Ctrl/⌘+K')
     expect(提示).toContain('Ctrl')
     expect(提示).toContain('⌘')
-    const 绑定 = 读文件('src/components/command-palette/MingLingMianBan.tsx')
+    const 绑定 = 读文件('src/组件/命令面板/MingLingMianBan.tsx')
     expect(绑定).toContain('event.metaKey || event.ctrlKey')
   })
 
   it('AI 兜底回答引导的联系方式不超过联系板块实际提供的项', () => {
     expect(t('chat.answers.fallback')).not.toContain('手机')
     expect(t('chat.answers.fallback')).toContain('微信QQ')
-    const 板块 = 读文件('src/features/contact/LianXiBanKuai.tsx')
+    const 板块 = 读文件('src/功能/联系/LianXiBanKuai.tsx')
     expect(板块).not.toContain('contact.info.phone')
     expect(板块).toContain('contact.info.wechat')
     expect(板块).toContain('contact.info.qq')
   })
 
   it('职业定位.txt 不再自称改了就能改全站', () => {
-    const 原文 = 读文件('src/data/职业定位.txt')
+    const 原文 = 读文件('src/数据/职业定位.txt')
     expect(原文).not.toContain('改这里即可改站点')
     expect(原文).toContain('career.direction')
     expect(原文).toContain('manifest.json')

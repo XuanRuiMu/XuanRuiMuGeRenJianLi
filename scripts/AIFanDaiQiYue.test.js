@@ -4,14 +4,14 @@
  * 被这个测试锁住的真实缺陷：vite.config.js 的 dev 反代读 DEEPSEEK_API_KEY，
  * 而 .env.local 当初只写了 VITE_DEEPSEEK_API_KEY —— 键名不匹配时代理会「静默不注入」，
  * 上游恒 401，401 又被上层兜底吞成看起来正常的本地答案，缺陷可以无限期潜伏。
- * 现有 src/ai/credentialGuard.test.ts 只扫 src/**，覆盖不到 vite.config.js 与 .env 契约，
+ * 现有 src/智能/credentialGuard.test.ts 只扫 src/**，覆盖不到 vite.config.js 与 .env 契约，
  * 所以这里补齐机器校验：vite 读取的键名集合 === .env.example 声明的键名集合 === nginx 注入的变量。
  */
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { 深度求索端点 } from '../src/ai/深度求索配置'
+import { 深度求索端点 } from '../src/智能/深度求索配置'
 import { 创建密钥注入钩子 } from './AIFanDai.js'
 
 const 项目根 = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')

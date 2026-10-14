@@ -104,7 +104,7 @@ XuanRuiMuGeRenJianLi/
 ├── 素材/                    # single source of truth for assets (images / showcase / videos / logos / icons)
 │   └── 签字.png              # original signature art (source of images/签字-alpha.png, not synced)
 ├── scripts/                 # asset sync, font subsetting, dev-api-plugin, etc.
-├── e2e/ tests/              # Playwright E2E & Vitest
+├── 端到端测试/              # Playwright E2E & Vitest
 └── .github/workflows/ci.yml # CI
 ```
 

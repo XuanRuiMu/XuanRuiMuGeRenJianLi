@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { useYingYongZhuangTai } from './store/应用状态仓库'
+import { useYingYongZhuangTai } from './状态/应用状态仓库'
 
 type WorkerLike = {
   state: string
@@ -93,7 +93,7 @@ function 移除ServiceWorker() {
 async function 导入SwRegister() {
   // 不 resetModules：reset 会让 swRegister 拿到另一份 useYingYongZhuangTai 实例，
   // 断言写在测试顶层 import 的 store 上永远为 false。共享同一 store 即可。
-  return import('./utils/注册服务工作线程')
+  return import('./工具/注册服务工作线程')
 }
 
 describe('swRegister 公共行为（原生注册，无 virtual 模块）', () => {

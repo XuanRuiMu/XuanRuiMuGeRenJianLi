@@ -24,6 +24,6 @@
     },
     "types": ["vitest/globals", "@testing-library/jest-dom", "node", "vite/client"]
   },
-  "include": ["src/**/*", "scripts/**/*", "e2e/**/*", "*.config.js", "*.config.ts"],
+  "include": ["src/**/*", "scripts/**/*", "端到端测试/**/*", "*.config.js", "*.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

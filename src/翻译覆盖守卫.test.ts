@@ -13,10 +13,10 @@ import fs from 'node:fs'
  */
 
 const 守卫文件 = [
-  'src/features/skill-test/SiChouCeShiYe.tsx',
-  'src/features/skill-test/SiChouZhaoSeQi.tsx',
-  'src/features/contact/WuZiQi.tsx',
-  'src/components/starry-background/星空星系场景.ts',
+  'src/功能/丝绸测试/SiChouCeShiYe.tsx',
+  'src/功能/丝绸测试/SiChouZhaoSeQi.tsx',
+  'src/功能/联系/WuZiQi.tsx',
+  'src/组件/星空背景/星空星系场景.ts',
 ]
 
 const 中文字符串 = /'[^'\n]*[一-龥][^'\n]*'|"[^"\n]*[一-龥][^"\n]*"|`[^`]*[一-龥][^`]*`/g
@@ -55,8 +55,8 @@ describe('翻译文件优先：界面模块不得硬编码中文文案', () => {
   }
 
   it('丝绸测试页预设 id 均能在翻译文件解析（id 即 skillTest.presets 键名）', async () => {
-    const { t } = await import('./i18n/翻译')
-    const 源码 = fs.readFileSync('src/features/skill-test/SiChouCeShiYe.tsx', 'utf-8')
+    const { t } = await import('./国际化/翻译')
+    const 源码 = fs.readFileSync('src/功能/丝绸测试/SiChouCeShiYe.tsx', 'utf-8')
     const 标识表 = 源码.match(/预设标识表 = \[([^\]]*)\]/)?.[1] ?? ''
     const 标识 = [...标识表.matchAll(/'([^']+)'/g)].map((m) => m[1])
     expect(标识).toEqual(['经典白丝', '暗夜蓝丝', '暖金丝绸', '玫瑰粉丝', '翡翠绿丝', '极简灰丝'])

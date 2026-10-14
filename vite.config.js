@@ -6,7 +6,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { visualizer } from 'rollup-plugin-visualizer'
 import path from 'node:path'
 import fs from 'node:fs'
-import { 可观测性插件 } from './src/observability/可观测性Vite插件'
+import { 可观测性插件 } from './src/可观测/可观测性Vite插件'
 import 开发数据接口插件 from './scripts/KaiFaShuJuJieKouCaJian.js'
 import { 创建密钥注入钩子 } from './scripts/AIFanDai.js'
 import { 开发端口, 预览端口 } from './scripts/端口配置.js'
@@ -19,7 +19,7 @@ function inlineCriticalCSS() {
     transformIndexHtml: {
       order: 'pre',
       handler(html) {
-        const criticalPath = path.resolve(__dirname, './src/styles/关键样式.css')
+        const criticalPath = path.resolve(__dirname, './src/样式/关键样式.css')
         if (!fs.existsSync(criticalPath)) {
           return html
         }
@@ -81,7 +81,7 @@ export default defineConfig(({ mode }) => {
       }),
       tailwindcss(),
       VitePWA({
-        // 仅负责构建生产 SW 产物（src/服务工作线程.ts → dist/sw.js）；注册由 src/utils/注册服务工作线程.ts
+        // 仅负责构建生产 SW 产物（src/服务工作线程.ts → dist/服务工作线程.js）；注册由 src/工具/注册服务工作线程.ts
         // 用原生 navigator.serviceWorker 完成，业务代码不再依赖 virtual:pwa-register。
         strategies: 'injectManifest',
         srcDir: 'src',

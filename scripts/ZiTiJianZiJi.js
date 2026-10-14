@@ -11,7 +11,7 @@ const root = path.resolve(__dirname, '..')
 // 自动扫描后：任何 .tsx/.ts/.json/.html/.md 中出现的中文字符都会被纳入子集，
 // 新增/修改文案后下次 dev/build 自动重子集化，零手动维护。
 //
-// 同步更新 src/styles/关键样式.css 的 unicode-range，使浏览器字形映射永不漂移。
+// 同步更新 src/样式/关键样式.css 的 unicode-range，使浏览器字形映射永不漂移。
 
 const CJK_RANGES = [
   [0x4e00, 0x9fff], // CJK Unified Ideographs（主块，常用汉字）
@@ -96,7 +96,7 @@ function 生成UnicodeRange(字符列表) {
 }
 
 async function 更新criticalCssUnicodeRange(新范围) {
-  const cssPath = path.join(root, 'src/styles/关键样式.css')
+  const cssPath = path.join(root, 'src/样式/关键样式.css')
   const 原内容 = await fs.readFile(cssPath, 'utf8')
   const 匹配 = 原内容.match(/^([ \t]*unicode-range:\s*)([^;]+)(;)/m)
   if (!匹配) {

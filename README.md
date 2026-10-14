@@ -31,7 +31,7 @@
 - ⌘ **Cmd+K 命令面板**：像 IDE 一样，按 `Cmd+K` 快速跳转任意板块；
 - 🤖 **AI 问答**：直接向「简历」提问，AI 结合站内内容回答；
 - 📡 **技能雷达图**：自研 SVG 可视化展示技能熟练度分布；
-- 🌐 **单语中文**：界面文案统一简体中文（`src/i18n/zh-CN.json` 单一语言包）；
+- 🌐 **单语中文**：界面文案统一简体中文（`src/国际化/zh-CN.json` 单一语言包）；
 - 📱 **PWA 离线**：可安装到桌面 / 手机，离线可看；
 - ♿ **无障碍友好**：字体排版测试、可访问性优化。
 
@@ -98,23 +98,23 @@ npm run test:e2e    # Playwright 端到端
 ```text
 XuanRuiMuGeRenJianLi/
 ├── src/
-│   ├── app/                 # 应用入口（App / layout / providers / SmoothScroll）
-│   ├── components/          # 各板块组件（About / Skills / Showcase / Projects / Experience / Contact…）
-│   ├── data/                # 展示数据（showcase.ts 等，改数据刷新即生效）
-│   ├── i18n/                # 中英文翻译（zh-CN / en 等）
-│   ├── utils/               # deviceCapabilities / viewTransition / format / swRegister…
-│   └── types/               # TypeScript 类型
+│   ├── 应用/                # 应用入口（YingYong / BuJu / TiGongQi / PingHuaGunDong）
+│   ├── 组件/                # 各板块组件（AI聊天 / 命令面板 / 星空背景 / 主题切换 / 基础组件…）
+│   ├── 数据/                # 展示数据（展示.ts 等，改数据刷新即生效）
+│   ├── 国际化/              # 界面翻译（zh-CN.json 单一语言包）
+│   ├── 工具/                # 设备能力 / 视图过渡 / 注册服务工作线程…
+│   └── 类型/                # TypeScript 类型
 ├── public/                  # 静态资源（由 素材/ 经 scripts/同步素材.js 同步生成，勿直接编辑）
 │   ├── showcase/            # 作品集配图
 │   ├── logos/               # 技术栈 logo
 │   ├── images/              # 头像 / 签名 / 二维码
 │   ├── videos/ og-image.png # OG 图 / 背景视频
-│   ├── fonts/               # subset-fonts.js 产出的字体子集
+│   ├── fonts/               # ZiTiJianZiJi.js 产出的字体子集
 │   └── 佐证材料.zip         # 打包佐证材料.py --仅打包 产出的下载包
 ├── 素材/                    # 唯一素材源（images / showcase / videos / logos / icons）
 │   └── 签字.png              # 手写签字原图（images/签字-alpha.png 的来源，不参与同步）
-├── scripts/                 # 同步素材、subset-fonts 字体子集化、dev-api-plugin 等
-├── e2e/ tests/              # Playwright E2E 与 Vitest 测试
+├── scripts/                 # 同步素材、ZiTiJianZiJi 字体子集化、KaiFaShuJuJieKouCaJian 等
+├── 端到端测试/              # Playwright E2E 与 Vitest 测试
 └── .github/workflows/ci.yml # CI
 ```
 
@@ -124,13 +124,13 @@ XuanRuiMuGeRenJianLi/
 
 ## 内容更新（换图不用改代码）
 
-作品集配图**文件名 = 卡片项目名一字不差**（项目名即 `src/i18n/zh-CN.json` 中 `showcase.cards.<id>.title` 的字面值，含空格、间隔号「·」、书名号《》、全角括号（））。配图路径由项目名自动派生，代码里不写死路径，换图三步：
+作品集配图**文件名 = 卡片项目名一字不差**（项目名即 `src/国际化/zh-CN.json` 中 `showcase.cards.<id>.title` 的字面值，含空格、间隔号「·」、书名号《》、全角括号（））。配图路径由项目名自动派生，代码里不写死路径，换图三步：
 
 1. 把新图**重命名为项目名**（如 `羊来.png`），放进 `素材/showcase/`；
 2. 跑 `node scripts/同步素材.js`（或重启 `npm run dev`）把素材镜像到 `public/`；
 3. 刷新页面。
 
-`public/` 是构建产物，线上生效需重新构建并部署。项目名里的空格只在 URL 中编码成 `%20`，磁盘文件名照旧是带空格的项目名。增删卡片改 `src/data/showcase.ts`；`素材/showcase/` 下每个图片文件必须恰好被一张卡片引用，漏放图、多放图、项目名含非法文件名字符都会被 `src/data/showcase.test.ts` 拦下。
+`public/` 是构建产物，线上生效需重新构建并部署。项目名里的空格只在 URL 中编码成 `%20`，磁盘文件名照旧是带空格的项目名。增删卡片改 `src/数据/展示.ts`；`素材/showcase/` 下每个图片文件必须恰好被一张卡片引用，漏放图、多放图、项目名含非法文件名字符都会被 `src/data/showcase.test.ts` 拦下。
 
 ---
 

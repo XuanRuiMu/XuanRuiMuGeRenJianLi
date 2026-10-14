@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import 中文包 from './i18n/zh-CN.json'
-import { t } from './i18n/翻译'
-import { 构建简历知识库 } from './ai/简历知识库'
+import 中文包 from './国际化/zh-CN.json'
+import { t } from './国际化/翻译'
+import { 构建简历知识库 } from './智能/简历知识库'
 
 const 中文字符 = '\\u4e00-\\u9fff\\u3400-\\u4dbf\\uf900-\\ufaff'
 const 字母数字 = 'A-Za-z0-9⌘⏎✻○✕'

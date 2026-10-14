@@ -515,7 +515,7 @@ html.circular-reveal-active::view-transition-old(root) {
   }
 }
 
-/* 统一入场动画 — IntersectionObserver 驱动（见 components/显现.tsx） */
+/* 统一入场动画 — IntersectionObserver 驱动（见 组件/显现.tsx） */
 .reveal {
   opacity: 0;
   transform: translateY(28px);

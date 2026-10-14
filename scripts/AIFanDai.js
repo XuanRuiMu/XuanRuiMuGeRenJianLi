@@ -1,7 +1,7 @@
 /**
  * dev AI 反代的密钥注入钩子（与 deploy/nginx.conf 的 proxy_set_header 同契约）。
  *
- * 契约：前端只打同源 /api/ai/*，真实密钥由反代层注入，所以密钥变量名一律不带 VITE_ 前缀
+ * 契约：前端只打同源 /api/智能/*，真实密钥由反代层注入，所以密钥变量名一律不带 VITE_ 前缀
  * （带前缀的值会被 vite 打进前端产物，等于公开凭据）。键名清单的唯一声明处是 .env.example，
  * 由 scripts/ai-proxy-contract.test.js 机器校验三方（vite.config.js / .env.example / nginx.conf）一致。
  *

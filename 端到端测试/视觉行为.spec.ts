@@ -1,0 +1,375 @@
+import { test, expect, type Page } from '@playwright/test'
+
+/**
+ * FP-07 根因验证：联系图标 hover→unhover 后必须与初始帧逐像素一致。
+ * 旧缺陷：动画结束瞬间图标图案向左上「瞬移」约半像素——
+ * 合成层栅格化与静态绘制对齐不一致（transform 插值终态 ≠ 静止态）。
+ *
+ * 取证方式：图标自带不透明渐变底，裁剪其内部区域（内缩避开圆角抗锯齿边）
+ * 可隔离背后动态星空的干扰，使像素级对比只反映图标自身渲染。
+ */
+test('联系图标 hover→unhover 后无像素位移', async ({ page }) => {
+  await page.goto('/')
+  const icon = page.locator('.contact-item-icon').first()
+  await icon.scrollIntoViewIfNeeded()
+  // 等待懒加载区块、字体与合成层稳定
+  await page.waitForTimeout(1000)
+
+  const box = (await icon.boundingBox()) as { x: number; y: number; width: number; height: number }
+  expect(box).toBeTruthy()
+
+  // 内缩 8px：排除圆角 AA 与外发光边缘，仅比较不透明渐变底+SVG 图案本体
+  const clip = {
+    x: Math.round(box.x + 8),
+    y: Math.round(box.y + 8),
+    width: Math.round(box.width - 16),
+    height: Math.round(box.height - 16),
+  }
+
+  const before = await page.screenshot({ clip })
+
+  await icon.hover()
+  // 悬停过渡 0.3s + 余量：截取悬停态留档（不参与一致性断言）
+  await page.waitForTimeout(500)
+  await page.screenshot({ clip, path: 'test-results/icon-hovered.png' })
+
+  // 移出卡片触发 unhover（移到视口远角），等待回位过渡完成
+  await page.mouse.move(10, 10)
+  await page.waitForTimeout(800)
+  const after = await page.screenshot({ clip })
+
+  if (!before.equals(after)) {
+    await page.screenshot({ path: 'test-results/icon-shift-repro.png', fullPage: false })
+  }
+  expect(before.equals(after), '图标在动画结束后发生像素位移（瞬移复现）').toBe(true)
+})
+
+/**
+ * FP-06 行为级验证：三排跑马灯——
+ * 1) 鼠标悬停在两张卡片之间的缝隙 → 轨道继续移动；
+ * 2) 鼠标真正命中卡片方框 → 轨道缓停；
+ * 3) 移开后恢复移动。
+ */
+async function 轨道位移(page: Page, 行索引: number): Promise<number> {
+  const track = page.locator('.showcase-marquee').nth(行索引)
+  return track.evaluate((el) => {
+    const m = new DOMMatrixReadOnly(getComputedStyle(el).transform)
+    return m.m41
+  })
+}
+
+/** 等 Lenis 黏性滚动完全停稳（连续窗口内 scrollY 不变），否则滚动联动位移会污染静止断言 */
+async function 等待滚动停稳(page: Page): Promise<void> {
+  await page.evaluate(async () => {
+    let 上次 = window.scrollY
+    let 稳定起 = performance.now()
+    const 开始 = performance.now()
+    while (performance.now() - 开始 < 10000) {
+      await new Promise((r) => requestAnimationFrame(r))
+      if (window.scrollY !== 上次) {
+        上次 = window.scrollY
+        稳定起 = performance.now()
+      } else if (performance.now() - 稳定起 > 800) {
+        return
+      }
+    }
+  })
+}
+
+test('跑马灯：缝隙悬停不停，卡片悬停缓停', async ({ page }) => {
+  await page.goto('/')
+  const 区块 = page.locator('section[aria-label]:has(.showcase-marquee)').first()
+  await 区块.scrollIntoViewIfNeeded()
+  await 等待滚动停稳(page)
+  await page.waitForTimeout(1200)
+
+  // 轨道持续平移：固定索引的卡片会滑出视口（负坐标），必须动态选取「此刻完整可见」的卡片。
+  // 逐元素 locator.boundingBox() 会等待元素停止移动，而跑马灯永不停稳 → 整批读一次矩形，避免死等
+  type 盒型 = { x: number; y: number; width: number; height: number }
+  const 全部盒 = (): Promise<盒型[]> =>
+    区块.evaluate((根) =>
+      [...根.querySelectorAll('.group\\/card')].map((c) => {
+        const b = c.getBoundingClientRect()
+        return { x: b.x, y: b.y, width: b.width, height: b.height }
+      })
+    )
+  // 区块高于视口，最近对齐可能让 3D 跑马灯行恰好跨在断言带边缘；
+  // 用真实滚轮小幅微调直到有卡片完整落在带内（对页面高度变化鲁棒，不写死滚动量）
+  let 可见索引 = -1
+  let 盒: 盒型 | null = null
+  for (let 轮 = 0; 轮 < 10 && 可见索引 < 0; 轮++) {
+    const 盒表 = await 全部盒()
+    可见索引 = 盒表.findIndex((b) => b.x > 220 && b.x + b.width < 1220 && b.y > 130 && b.y + b.height < 860)
+    盒 = 可见索引 >= 0 ? (盒表[可见索引] ?? null) : null
+    if (可见索引 < 0) {
+      await page.mouse.move(720, 450)
+      await page.mouse.wheel(0, 160)
+      await page.waitForTimeout(450)
+    }
+  }
+  expect(可见索引, '应存在完整落在视口内的卡片').toBeGreaterThanOrEqual(0)
+
+  // —— 缝隙位置：该卡右缘 + 缝隙中点（gap-20 = 80px → 中点 +40px）——
+  const 缝隙X = 盒!.x + 盒!.width + 40
+  const 卡片中线Y = 盒!.y + 盒!.height / 2
+  await page.mouse.move(缝隙X, 卡片中线Y)
+
+  // 等惯性缓停窗口过去（悬停 τ≈0.4s）；若被误判为悬停，位移会趋近 0
+  const 缝隙前 = await 轨道位移(page, 0)
+  await page.waitForTimeout(2000)
+  const 缝隙后 = await 轨道位移(page, 0)
+  expect(Math.abs(缝隙后 - 缝隙前), '缝隙悬停不应停止轨道').toBeGreaterThan(10)
+
+  // —— 卡片中心：应触发整体缓停（重新取盒：缝隙阶段轨道又移动了一段）——
+  const 新盒 = (await 全部盒())[可见索引]
+  await page.mouse.move(新盒.x + 新盒.width / 2, 新盒.y + 新盒.height / 2)
+  await page.waitForTimeout(2500)
+  const 卡前 = await 轨道位移(page, 0)
+  await page.waitForTimeout(600)
+  const 卡后 = await 轨道位移(page, 0)
+  expect(Math.abs(卡后 - 卡前), '命中卡片方框应使轨道静止').toBeLessThan(1)
+
+  // —— 移出后恢复 ——
+  await page.mouse.move(10, 10)
+  await page.waitForTimeout(2000)
+  const 恢复前 = await 轨道位移(page, 0)
+  await page.waitForTimeout(600)
+  const 恢复后 = await 轨道位移(page, 0)
+  expect(Math.abs(恢复后 - 恢复前), '移出后轨道应恢复移动').toBeGreaterThan(15)
+})
+
+/**
+ * 按压残留线根因验证：wrapper 不得自带悬停描边。
+ * 旧缺陷：.timeline-card-wrapper::before 在 hover/focus-within 时画青色描边，
+ * 该层不随 is-pressed 的 scale(0.985) 缩小，按压后于卡外露出「未按压位置」的残留线。
+ * 修复：删除该 ::before；描边只由卡片自身的 .experience-gradient-border 承担。
+ */
+test('经历卡片按压后无 wrapper 描边残留线', async ({ page }) => {
+  await page.goto('/')
+  const card = page.locator('[data-experience-card="mcserver"]').first()
+  await card.scrollIntoViewIfNeeded()
+  await page.waitForTimeout(1500)
+
+  const wrapper = page.locator('.timeline-card-wrapper').first()
+
+  // wrapper ::before 不得绘制可见描边
+  await card.hover()
+  await page.waitForTimeout(400)
+  const before = await wrapper.evaluate((el) => {
+    const cs = getComputedStyle(el, '::before')
+    return {
+      content: cs.content,
+      opacity: cs.opacity,
+      backgroundImage: cs.backgroundImage,
+    }
+  })
+  expect(before.content === 'none' || before.content === '""' || before.content === "''").toBe(true)
+
+  const box = await card.boundingBox()
+  expect(box).toBeTruthy()
+  await page.mouse.move(box!.x + box!.width * 0.1, box!.y + box!.height * 0.12, { steps: 8 })
+  await page.waitForTimeout(300)
+  await page.mouse.down()
+  await page.waitForTimeout(800)
+
+  const pressed = await card.evaluate((el) => el.classList.contains('is-pressed'))
+  expect(pressed).toBe(true)
+
+  // 按压态：wrapper 仍不得有可绘制的 ::before
+  const pressedBefore = await wrapper.evaluate((el) => {
+    const cs = getComputedStyle(el, '::before')
+    return { content: cs.content, opacity: cs.opacity, backgroundImage: cs.backgroundImage }
+  })
+  expect(pressedBefore.content === 'none' || pressedBefore.content === '""' || pressedBefore.content === "''").toBe(
+    true
+  )
+
+  await page.screenshot({
+    clip: {
+      x: Math.max(0, box!.x - 24),
+      y: Math.max(0, box!.y - 24),
+      width: box!.width + 48,
+      height: 180,
+    },
+    path: 'test-results/experience-card-pressed-no-ghost.png',
+  })
+
+  await page.mouse.up()
+})
+
+test('项目作品在放大后由局部横向滚动容器承载溢出', async ({ page }) => {
+  const 控制台错误: string[] = []
+  page.on('pageerror', (错误) => 控制台错误.push(String(错误).slice(0, 200)))
+  page.on('console', (消息) => {
+    if (消息.type() === 'error') 控制台错误.push(消息.text().slice(0, 200))
+  })
+  await page.setViewportSize({ width: 1920, height: 900 })
+  await page.goto('/')
+  const 滚动容器 = page.locator('.clothesline-scroll')
+  await 滚动容器.scrollIntoViewIfNeeded()
+  const 样式 = await 滚动容器.evaluate((元素) => getComputedStyle(元素).overflowX)
+  expect(样式).toBe('auto')
+  const 初始尺寸 = await 滚动容器.evaluate((元素) => ({ 宽度: 元素.scrollWidth, 可视宽: 元素.clientWidth }))
+  expect(初始尺寸.宽度).toBe(初始尺寸.可视宽)
+  const 视口 = page.viewportSize()
+  expect(视口).not.toBeNull()
+  await page.setViewportSize({ width: Math.round(视口!.width * 1.1), height: 视口!.height })
+  await page.waitForTimeout(300)
+  const 缩小后 = await 滚动容器.evaluate((元素) => ({ 宽度: 元素.scrollWidth, 可视宽: 元素.clientWidth }))
+  expect(缩小后.宽度).toBe(缩小后.可视宽)
+  // 高于最小带宽(768)的窄视口：区域 min-width 必须跟随容器回落，不得钉死在更宽视口留下的旧值。
+  // FP-01 根因：旧实现观察区域自身，而区域宽度被自己写下的 min-width 钉住 → 观察器永不再触发，
+  // 旧 min-width 永久残留（实测 1920→2112→960 后 min-width 停在 2112px 不回落）。
+  await page.setViewportSize({ width: 960, height: 视口!.height })
+  await page.waitForTimeout(300)
+  const 高于最小带宽 = await 滚动容器.evaluate((元素) => ({
+    宽度: 元素.scrollWidth,
+    可视宽: 元素.clientWidth,
+    区域最小宽: (元素.querySelector('.clothesline-region') as HTMLElement).offsetWidth,
+  }))
+  expect(高于最小带宽.宽度).toBe(高于最小带宽.可视宽)
+  expect(高于最小带宽.区域最小宽).toBeLessThanOrEqual(960)
+  // 真正放大（≈300% 缩放 → CSS 视口 640，低于最小带宽 768）：溢出必须由局部横向滚动承载
+  await page.setViewportSize({ width: 640, height: 视口!.height })
+  await page.waitForTimeout(300)
+  const 放大后 = await 滚动容器.evaluate((元素) => ({ 宽度: 元素.scrollWidth, 可视宽: 元素.clientWidth }))
+  expect(放大后.宽度).toBeGreaterThan(放大后.可视宽)
+  const 滚动后 = await 滚动容器.evaluate((元素) => {
+    元素.scrollLeft = 元素.clientWidth / 2
+    return 元素.scrollLeft
+  })
+  expect(滚动后).toBeGreaterThan(0)
+  const 便签裁切 = await page.locator('.clothesline-note').evaluateAll((便签们) =>
+    便签们.map((便签) => {
+      const 内容 = 便签.querySelector('.clothesline-note-content') as HTMLElement | null
+      const 链接 = 便签.querySelector('.clothesline-note-link') as HTMLElement | null
+      if (!内容) return { 内容溢出: true, 链接溢出: true }
+      const 内容盒 = 内容.getBoundingClientRect()
+      const 内容溢出 = 内容.scrollHeight > 内容.clientHeight + 1
+      const 链接底 = 链接 ? 链接.offsetTop + 链接.offsetHeight : 内容.scrollHeight
+      const 链接溢出 = 链接底 > 内容.clientHeight + 1
+      const 链接在卷内 = !链接 || 链接.getBoundingClientRect().bottom <= 内容盒.bottom + 2
+      return { 内容溢出, 链接溢出, 链接在卷内 }
+    })
+  )
+  expect(便签裁切.length).toBeGreaterThan(0)
+  for (const 项 of 便签裁切) {
+    expect(项.内容溢出).toBe(false)
+    expect(项.链接溢出).toBe(false)
+    expect(项.链接在卷内).toBe(true)
+  }
+  expect(控制台错误).toEqual([])
+})
+
+/**
+ * FP-01 根因验证：窄视口（≈300% 缩放后的 CSS 视口宽）→ 宽视口往返后，
+ * 晾衣架区域必须完全回到初始态，不留横向滚动条、不留滚动偏移、便签集群仍水平居中。
+ * 旧实现的基准宽读的是含上一轮内联 min-width 的 区域.offsetWidth（自污染），
+ * 且 min-width 只写不清零，同一视口宽的终态取决于经过的路径。
+ */
+test('晾衣架缩放往返后无残留滚动条、scrollLeft 归零、便签集群居中', async ({ page }) => {
+  const 控制台错误: string[] = []
+  page.on('pageerror', (错误) => 控制台错误.push(String(错误).slice(0, 200)))
+  page.on('console', (消息) => {
+    if (消息.type() === 'error') 控制台错误.push(消息.text().slice(0, 200))
+  })
+  // 减少动画：物理循环不启动，便签停在静止挂点，居中断言只反映布局而非摆动
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.setViewportSize({ width: 1920, height: 900 })
+  await page.goto('/')
+  const 滚动容器 = page.locator('.clothesline-scroll')
+  await 滚动容器.scrollIntoViewIfNeeded()
+  await page.waitForTimeout(1200)
+
+  const 采样 = () =>
+    滚动容器.evaluate((元素) => {
+      const 区域 = 元素.querySelector('.clothesline-region') as HTMLElement
+      const 滚动盒 = 元素.getBoundingClientRect()
+      const 便签们 = [...元素.querySelectorAll('.clothesline-note')] as HTMLElement[]
+      const 盒表 = 便签们.map((便签) => 便签.getBoundingClientRect())
+      const 集群左 = Math.min(...盒表.map((盒) => 盒.left))
+      const 集群右 = Math.max(...盒表.map((盒) => 盒.right))
+      return {
+        scrollWidth: 元素.scrollWidth,
+        clientWidth: 元素.clientWidth,
+        scrollLeft: 元素.scrollLeft,
+        区域最小宽: 区域.offsetWidth,
+        集群中心偏移: (集群左 + 集群右) / 2 - (滚动盒.left + 滚动盒.width / 2),
+        便签数: 便签们.length,
+      }
+    })
+
+  const 初始 = await 采样()
+  expect(初始.便签数).toBeGreaterThan(0)
+  expect(Math.abs(初始.scrollWidth - 初始.clientWidth)).toBeLessThanOrEqual(1)
+  expect(初始.scrollLeft).toBe(0)
+  // 静止挂点关于主跨对称 → 便签集群精确落在可视区中线
+  expect(Math.abs(初始.集群中心偏移)).toBeLessThanOrEqual(2)
+
+  // —— 窄视口：溢出由局部横向滚动承载，绳与便签同源同宽一起滚动 ——
+  await page.setViewportSize({ width: 640, height: 900 })
+  await page.waitForTimeout(600)
+  const 窄态 = await 采样()
+  expect(窄态.scrollWidth).toBeGreaterThan(窄态.clientWidth)
+  // 滚动到最右端：便签集群随之右移，绳（canvas）与便签同属一个滚动内容，一起位移
+  const 窄态滚动 = await 滚动容器.evaluate((元素) => {
+    元素.scrollLeft = 99999
+    return 元素.scrollLeft
+  })
+  expect(窄态滚动).toBeGreaterThan(0)
+  const 右移后 = await 采样()
+  expect(右移后.scrollLeft).toBeGreaterThan(0)
+  expect(右移后.scrollWidth - 右移后.clientWidth).toBeCloseTo(窄态.scrollWidth - 窄态.clientWidth, 0)
+
+  // —— 恢复宽视口：溢出必须彻底消失，滚动偏移归零，集群回到初始位置 ——
+  await page.setViewportSize({ width: 1920, height: 900 })
+  await page.waitForTimeout(600)
+  const 恢复 = await 采样()
+  expect(Math.abs(恢复.scrollWidth - 恢复.clientWidth)).toBeLessThanOrEqual(1)
+  expect(恢复.scrollLeft).toBe(0)
+  expect(Math.abs(恢复.区域最小宽 - 初始.区域最小宽)).toBeLessThanOrEqual(1)
+  expect(Math.abs(恢复.集群中心偏移 - 初始.集群中心偏移)).toBeLessThanOrEqual(1)
+  expect(Math.abs(恢复.集群中心偏移)).toBeLessThanOrEqual(2)
+
+  // —— 再往返一轮：min-width 无单调残留，第二次恢复与第一次逐位一致 ——
+  await page.setViewportSize({ width: 640, height: 900 })
+  await page.waitForTimeout(600)
+  await page.setViewportSize({ width: 1920, height: 900 })
+  await page.waitForTimeout(600)
+  const 二次恢复 = await 采样()
+  expect(二次恢复.区域最小宽).toBe(恢复.区域最小宽)
+  expect(Math.abs(二次恢复.scrollWidth - 二次恢复.clientWidth)).toBeLessThanOrEqual(1)
+  expect(二次恢复.scrollLeft).toBe(0)
+
+  expect(控制台错误).toEqual([])
+})
+
+test('多维创作每排副本保持同一二维周期，接缝不产生断代', async ({ page }) => {
+  await page.goto('/')
+  const 区域 = page.locator('section[data-showcase="true"]')
+  await 区域.scrollIntoViewIfNeeded()
+  await page.waitForTimeout(900)
+  // 用布局空间（offsetLeft/offsetWidth）而非 getBoundingClientRect：
+  // 整排卡片作为同一块 3D 平面倾斜时，屏幕空间坐标随位置线性变化（这是原版观感，不是断代）；
+  // 真循环的不变量必须在布局空间里检验：副本等宽、首尾相接、垂直不错位。
+  const 结果 = await 区域.evaluate((元素) => {
+    return [...元素.querySelectorAll('.showcase-marquee')].map((轨道) => {
+      const 组表 = [...轨道.children].map((组) => ({
+        宽: (组 as HTMLElement).offsetWidth,
+        左: (组 as HTMLElement).offsetLeft,
+        顶: (组 as HTMLElement).offsetTop,
+      }))
+      return 组表
+    })
+  })
+  for (const 组表 of 结果) {
+    expect(组表.length).toBeGreaterThanOrEqual(2)
+    const 周期 = 组表[0].宽
+    expect(周期).toBeGreaterThan(0)
+    for (let 索引 = 1; 索引 < 组表.length; 索引 += 1) {
+      expect(组表[索引].宽).toBe(周期)
+      expect(组表[索引].左 - 组表[索引 - 1].左).toBe(周期)
+      expect(Math.abs(组表[索引].顶 - 组表[0].顶)).toBeLessThan(2)
+    }
+  }
+})

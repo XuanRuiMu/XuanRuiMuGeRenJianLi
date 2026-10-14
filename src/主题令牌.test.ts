@@ -192,12 +192,12 @@ const 令牌值清单: Array<{ 令牌: string; 暗色值: string; 浅色值: str
 
 const 禁改清单: Array<{ 文件: string; 已令牌化字面值: string[] }> = [
   {
-    文件: 'features/experience/JingLiBanKuai.tsx',
+    文件: '功能/经历/JingLiBanKuai.tsx',
     // text-white/70 是 text-white 的超串，一条即可覆盖
     已令牌化字面值: ['#151030', '#211e35', '#aaa6c3', 'text-white', 'border-white/10'],
   },
   {
-    文件: 'features/contact/WuZiQi.tsx',
+    文件: '功能/联系/WuZiQi.tsx',
     已令牌化字面值: [
       'rgba(255,255,255,0.16)',
       'rgba(255,255,255,0.4)',
@@ -219,7 +219,7 @@ const 禁改清单: Array<{ 文件: string; 已令牌化字面值: string[] }> =
   // FP-05 推荐语卡片：卡面底色复用 bg-panel（暗值即 #151030，暗色零变化），
   // 正文/头衔色复用 text-text-secondary / text-text-primary
   {
-    文件: 'features/testimonials/TuiJianYuBanKuai.tsx',
+    文件: '功能/推荐语/TuiJianYuBanKuai.tsx',
     已令牌化字面值: ['#151030', '#cfc9e6', '#aaa6c3', 'text-white', 'border-white/10'],
   },
 ]
