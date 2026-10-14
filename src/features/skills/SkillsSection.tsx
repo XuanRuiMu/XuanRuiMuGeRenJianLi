@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { Section } from '../../components/ui/Section'
-import { Reveal } from '../../components/Reveal'
+import { BanKuai } from '../../components/ui/BanKuai'
+import { XianXian } from '../../components/显现'
 import { t } from '../../i18n/翻译'
 import { 雷达轴表, dimensionLabelKey, dimensionBasisKey, dimensionDescriptionKey, type 雷达轴 } from '../../data/雷达'
 import { 量化指标, 技能组表, type 量化指标项 } from '../../data/技能分组'
@@ -242,7 +242,7 @@ export function SkillsSection() {
   }, [指标区引用])
 
   return (
-    <Section id="skills" title={t('skills.title')}>
+    <BanKuai id="skills" title={t('skills.title')}>
       <div ref={指标区引用} data-skill-metrics="true" className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {指标表.map((指标) => (
           <SkillMetricCard key={指标.id} 指标={指标} 启动={进入视口} 动画={!reduced} />
@@ -253,7 +253,7 @@ export function SkillsSection() {
         <h3 className="mb-4 text-sm font-medium text-text-primary text-shadow-readable">{t('skills.groupsTitle')}</h3>
         <div className="grid gap-5 md:grid-cols-2">
           {分组表.map((组) => (
-            <Reveal key={组.id}>
+            <XianXian key={组.id}>
               <div data-skill-group={组.id} className="h-full rounded-2xl border border-border/60 bg-surface/40 p-5">
                 <h4 className="text-base font-medium text-text-primary">{组.label}</h4>
                 <ul className="mt-3 space-y-2">
@@ -276,13 +276,13 @@ export function SkillsSection() {
                   ))}
                 </ul>
               </div>
-            </Reveal>
+            </XianXian>
           ))}
         </div>
       </div>
 
       <div className="mt-12 grid items-start gap-10 md:grid-cols-2">
-        <Reveal className="flex justify-center">
+        <XianXian className="flex justify-center">
           <figure className="relative w-full max-w-sm">
             <figcaption className="mb-3 text-center text-sm font-medium text-muted">
               {t('skills.radarTitle')}
@@ -402,12 +402,12 @@ export function SkillsSection() {
               </AnimatePresence>
             </div>
           </figure>
-        </Reveal>
+        </XianXian>
 
         {/* 图例只列主轴；附轴（设计/艺术）仅在雷达上，悬停浮窗看说明 */}
         <div className="space-y-3">
           {主轴表.map((轴) => (
-            <Reveal key={轴.id}>
+            <XianXian key={轴.id}>
               <div className="rounded-xl border border-border/60 bg-surface/40 p-3">
                 <div className="flex items-baseline justify-between gap-3">
                   <span className="text-sm font-medium text-text-primary">{t(dimensionLabelKey(轴.id))}</span>
@@ -415,10 +415,10 @@ export function SkillsSection() {
                 </div>
                 <p className="mt-1 text-xs leading-relaxed text-text-secondary">{t(dimensionBasisKey(轴.id))}</p>
               </div>
-            </Reveal>
+            </XianXian>
           ))}
         </div>
       </div>
-    </Section>
+    </BanKuai>
   )
 }

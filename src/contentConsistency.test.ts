@@ -208,7 +208,7 @@ describe('FP-10 文案错误、口径不一致与死文案守卫', () => {
     expect(提示).toContain('Ctrl/⌘+K')
     expect(提示).toContain('Ctrl')
     expect(提示).toContain('⌘')
-    const 绑定 = 读文件('src/components/command-palette/CommandPalette.tsx')
+    const 绑定 = 读文件('src/components/command-palette/MingLingMianBan.tsx')
     expect(绑定).toContain('event.metaKey || event.ctrlKey')
   })
 

@@ -18,7 +18,7 @@ vi.mock('../../hooks/useJianShaoDongHua', () => ({
 }))
 
 vi.mock('../../components/starry-background/useIsDarkMode', () => ({
-  useIsDarkMode: () => hookState.isDark,
+  useShiFouAnSe: () => hookState.isDark,
 }))
 
 vi.mock('./asciiMorph', async (importOriginal) => ({

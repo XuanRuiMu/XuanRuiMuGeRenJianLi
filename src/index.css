@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-/* 主题变体与 useThemeSystem 的 class 切换体系对齐（documentElement .light/.dark），
+/* 主题变体与 useZhuTiXiTong 的 class 切换体系对齐（documentElement .light/.dark），
    覆盖 Tailwind v4 默认的 prefers-color-scheme 媒体查询语义 */
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant light (&:where(.light, .light *));
@@ -217,9 +217,9 @@ body,
     --autofill-text: #0b0c15;
   }
 
-  /* 锚点例外：AIChat 输入框为终端风组件，容器 bg-[#121212]/文字 text-[#e6e6e6]
+  /* 锚点例外：AI聊天 输入框为终端风组件，容器 bg-[#121212]/文字 text-[#e6e6e6]
      写死于 JSX 不随主题切换，浅色主题下若沿用白色铺底会在深色终端框内出现白块——
-     正是本需求要根除的缺陷。name="message" 为全站唯一锚点（AIChat.tsx），
+     正是本需求要根除的缺陷。name="message" 为全站唯一锚点（AI聊天.tsx），
      元素级重声明变量优先于 .light 的继承值，使该框双主题恒用终端深色配对 */
   input[name='message'],
   textarea[name='message'],
@@ -515,7 +515,7 @@ html.circular-reveal-active::view-transition-old(root) {
   }
 }
 
-/* 统一入场动画 — IntersectionObserver 驱动（见 components/Reveal.tsx） */
+/* 统一入场动画 — IntersectionObserver 驱动（见 components/显现.tsx） */
 .reveal {
   opacity: 0;
   transform: translateY(28px);
@@ -1293,7 +1293,7 @@ html.circular-reveal-active::view-transition-old(root) {
   animation: gomoku-win-pulse 1.2s ease-in-out infinite;
 }
 
-/* Ink Reveal Overlay — 100% mimo.xiaomi.com algorithm */
+/* 水墨显现遮罩 — 100% mimo.xiaomi.com algorithm */
 .ink-reveal-overlay {
   position: fixed;
   inset: 0;

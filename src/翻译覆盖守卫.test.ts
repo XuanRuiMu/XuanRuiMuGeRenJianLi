@@ -16,7 +16,7 @@ const 守卫文件 = [
   'src/features/skill-test/SkillTestPage.tsx',
   'src/features/skill-test/SilkShaderToy.tsx',
   'src/features/contact/Gomoku.tsx',
-  'src/components/starry-background/StarryGalaxyScene.ts',
+  'src/components/starry-background/星空星系场景.ts',
 ]
 
 const 中文字符串 = /'[^'\n]*[一-龥][^'\n]*'|"[^"\n]*[一-龥][^"\n]*"|`[^`]*[一-龥][^`]*`/g

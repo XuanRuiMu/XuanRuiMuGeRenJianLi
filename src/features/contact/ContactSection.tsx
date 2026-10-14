@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react'
 import { Mail, ExternalLink, Copy, Check, MessageCircle, MessagesSquare } from 'lucide-react'
-import { Section } from '../../components/ui/Section'
+import { BanKuai } from '../../components/ui/BanKuai'
 import { 个人信息 } from '../../data/个人信息'
 import { 合并类名 } from '../../lib/工具'
 import { t } from '../../i18n/翻译'
@@ -98,7 +98,7 @@ export function ContactSection() {
   ]
 
   return (
-    <Section id="contact" title={t('contact.title')} subtitle={t('contact.subtitle')}>
+    <BanKuai id="contact" title={t('contact.title')} subtitle={t('contact.subtitle')}>
       <div className="grid gap-6 lg:gap-8 lg:grid-cols-2">
         {/* 上排左：三链接卡 */}
         <div className="flex flex-col gap-6 lg:col-start-1 lg:row-start-1">
@@ -185,6 +185,6 @@ export function ContactSection() {
           </div>
         </div>
       </div>
-    </Section>
+    </BanKuai>
   )
 }

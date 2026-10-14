@@ -1,5 +1,5 @@
-import { Section } from '../../components/ui/Section'
-import { Reveal } from '../../components/Reveal'
+import { BanKuai } from '../../components/ui/BanKuai'
+import { XianXian } from '../../components/显现'
 import { t } from '../../i18n/翻译'
 import { 推荐语列表 } from '../../data/推荐语'
 
@@ -9,10 +9,10 @@ const 便签角度 = ['-1.6deg', '1.2deg', '-0.8deg', '1.5deg'] as const
 export function TestimonialsSection() {
   const 卡片表 = 推荐语列表()
   return (
-    <Section id="testimonials" title={t('testimonials.title')} ariaLabel={t('testimonials.ariaLabel')}>
+    <BanKuai id="testimonials" title={t('testimonials.title')} ariaLabel={t('testimonials.ariaLabel')}>
       <div className="grid gap-6 md:grid-cols-2">
         {卡片表.map((卡片, 序号) => (
-          <Reveal key={卡片.id} className="testimonial-reveal">
+          <XianXian key={卡片.id} className="testimonial-reveal">
             <figure
               className="relative h-full rounded-md border border-border bg-panel px-6 py-5 shadow-sm transition-transform duration-300 ease-out hover:scale-[1.04]"
               style={{
@@ -34,9 +34,9 @@ export function TestimonialsSection() {
                 <span className="text-xs text-muted">{卡片.context}</span>
               </figcaption>
             </figure>
-          </Reveal>
+          </XianXian>
         ))}
       </div>
-    </Section>
+    </BanKuai>
   )
 }

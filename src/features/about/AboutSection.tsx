@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Section } from '../../components/ui/Section'
+import { BanKuai } from '../../components/ui/BanKuai'
 import { t } from '../../i18n/翻译'
 import { useTypewriter } from './useTypewriter'
 import { 关于我介绍行, type 文本片段, type 片段色调 } from '../../data/关于我介绍行'
@@ -90,7 +90,7 @@ export function AboutSection({ 介绍行表 }: AboutSectionProps = {}) {
   const 已完成行表 = 行起点表.map((行起点, 行号) => 已显字符数 >= 行起点 + (纯文本表[行号]?.length ?? 0))
 
   return (
-    <Section id="about" title={t('about.title')} className="pt-12 pb-6 md:pt-16 md:pb-8">
+    <BanKuai id="about" title={t('about.title')} className="pt-12 pb-6 md:pt-16 md:pb-8">
       <div ref={区块引用} className="relative mx-auto max-w-4xl">
         <div
           data-about-console="true"
@@ -246,6 +246,6 @@ export function AboutSection({ 介绍行表 }: AboutSectionProps = {}) {
           </div>
         </div>
       </div>
-    </Section>
+    </BanKuai>
   )
 }

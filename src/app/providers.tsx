@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useJianShaoDongHua } from '../hooks/useJianShaoDongHua'
 import { SmoothScroll } from './SmoothScroll'
 import { useYingYongZhuangTai } from '../store/应用状态仓库'
-import { useThemeSystem } from '../components/theme-toggle/useThemeSystem'
+import { useZhuTiXiTong } from '../components/theme-toggle/useZhuTiXiTong'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,7 +15,7 @@ const queryClient = new QueryClient({
 })
 
 function ThemeSync(): null {
-  useThemeSystem()
+  useZhuTiXiTong()
   return null
 }
 

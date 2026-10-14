@@ -186,7 +186,7 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
     expect(外层.className).toContain('[perspective:1000px]')
     // FP-06 尾部节奏契约：外层不得再有底部 padding（pb-40 是旧固定高度时代的尾部填充残留，
     // 固定高度删除后已无职责）。现契约 = 末排 mb-20(80) + #contact py-16/md:py-24(96) ≈176px，
-    // 与站点其它区块的 Section py 节奏一致
+    // 与站点其它区块的 BanKuai py 节奏一致
     expect(外层.className).not.toMatch(/(^|\s)([^\s:]+:)*pb-(\d|\[)/)
   })
 

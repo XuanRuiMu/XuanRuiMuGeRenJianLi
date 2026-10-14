@@ -66,11 +66,11 @@ function 取根规则块表(文本: string): Array<Array<{ 令牌: string; 位�
   })
 }
 
-/** 棋盘样式区：连珠脉冲关键帧起，到 Ink Reveal 注释前止（覆盖正/背面、棋子、高亮全部规则） */
+/** 棋盘样式区：连珠脉冲关键帧起，到水墨显现遮罩注释前止（覆盖正/背面、棋子、高亮全部规则） */
 function 取棋盘样式区(文本: string): string {
   return 文本.slice(
     索引(文本, '@keyframes gomoku-win-pulse', '棋盘样式区起点'),
-    索引(文本, '/* Ink Reveal Overlay', '棋盘样式区终点')
+    索引(文本, '/* 水墨显现遮罩', '棋盘样式区终点')
   )
 }
 

@@ -1,11 +1,11 @@
-﻿import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { ShaderToy } from './SilkShaderToy'
 import { Settings, X, RotateCcw, ChevronDown, ChevronRight } from 'lucide-react'
 import { t, 填充 } from '../../i18n/翻译'
 
 // ============ 类型定义 ============
 
-interface SilkParams {
+interface 丝绸参数 {
   speed: number
   waveAmp: number
   waveFreq: number
@@ -35,7 +35,7 @@ interface PageParams {
 
 // ============ 默认参数 ============
 
-const DEFAULT_SILK: SilkParams = {
+const DEFAULT_SILK: 丝绸参数 = {
   speed: 1.0,
   waveAmp: 0.03,
   waveFreq: 8.0,
@@ -70,7 +70,7 @@ const 预设标识表 = ['经典白丝', '暗夜蓝丝', '暖金丝绸', '玫瑰
 
 type 预设标识 = (typeof 预设标识表)[number]
 
-const PRESETS: Record<预设标识, { silk: Partial<SilkParams>; page: Partial<PageParams> }> = {
+const PRESETS: Record<预设标识, { silk: Partial<丝绸参数>; page: Partial<PageParams> }> = {
   经典白丝: {
     silk: {},
     page: {},
@@ -332,13 +332,13 @@ function ColorPicker({ label, value, onChange }: ColorPickerProps) {
   )
 }
 
-interface SectionProps {
+interface 板块组件属性 {
   title: string
   defaultOpen?: boolean
   children: React.ReactNode
 }
 
-function ControlSection({ title, defaultOpen = true, children }: SectionProps) {
+function ControlSection({ title, defaultOpen = true, children }: 板块组件属性) {
   const [open, setOpen] = useState(defaultOpen)
   return (
     <div className="border-b border-[var(--ctrl-border)] pb-3 mb-3">
@@ -360,12 +360,12 @@ function ControlSection({ title, defaultOpen = true, children }: SectionProps) {
 // ============ 主组件 ============
 
 export function SkillTestPage() {
-  const [silk, setSilk] = useState<SilkParams>(DEFAULT_SILK)
+  const [silk, setSilk] = useState<丝绸参数>(DEFAULT_SILK)
   const [page, setPage] = useState<PageParams>(DEFAULT_PAGE)
   const [panelOpen, setPanelOpen] = useState(true)
   const [activePreset, setActivePreset] = useState<预设标识>(预设标识表[0])
 
-  const updateSilk = useCallback(<K extends keyof SilkParams>(key: K, value: SilkParams[K]) => {
+  const updateSilk = useCallback(<K extends keyof 丝绸参数>(key: K, value: 丝绸参数[K]) => {
     setSilk((prev) => ({ ...prev, [key]: value }))
   }, [])
 

@@ -181,6 +181,6 @@ describe('FP-05 推荐语组件：不再硬编码卡片清单与文案', () => {
   })
 
   it('板块契约 id 未变', () => {
-    expect(源码).toContain('<Section id="testimonials"')
+    expect(源码).toContain('<BanKuai id="testimonials"')
   })
 })

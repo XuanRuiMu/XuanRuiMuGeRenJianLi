@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { 技术卡表, 取项目归属名 } from '../../data/技术栈'
 import { useJianShaoDongHua } from '../../hooks/useJianShaoDongHua'
-import { useIsDarkMode } from '../../components/starry-background/useIsDarkMode'
+import { useShiFouAnSe } from '../../components/starry-background/useIsDarkMode'
 import { t } from '../../i18n/翻译'
 import { 创建点阵变形器, 技术字形, type 点阵图标定义 } from './asciiMorph'
 
@@ -20,7 +20,7 @@ const 浅色字形颜色 = '#1e293b'
 
 export function TechStack() {
   const reducedMotion = useJianShaoDongHua()
-  const isDark = useIsDarkMode()
+  const isDark = useShiFouAnSe()
   const 画布引用 = useRef<HTMLCanvasElement>(null)
   const 变形器引用 = useRef<ReturnType<typeof 创建点阵变形器>>(null)
   const [当前, 设当前] = useState<{ 序号: number; 名称: string; 总数: number } | null>(null)

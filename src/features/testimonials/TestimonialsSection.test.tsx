@@ -4,7 +4,7 @@ import { TestimonialsSection } from './TestimonialsSection'
 import { 推荐语列表 } from '../../data/推荐语'
 import { t } from '../../i18n/翻译'
 
-/** Reveal 在不支持 IntersectionObserver 的环境里用 queueMicrotask 点亮，渲染须在 act 内冲刷 */
+/** XianXian 在不支持 IntersectionObserver 的环境里用 queueMicrotask 点亮，渲染须在 act 内冲刷 */
 async function 渲染推荐语(): Promise<HTMLElement> {
   let 容器: HTMLElement = document.createElement('div')
   await act(async () => {

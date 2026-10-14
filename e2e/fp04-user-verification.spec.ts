@@ -34,7 +34,7 @@ test.describe('FP-04 用户端视角测试验证', () => {
     await page.waitForTimeout(1500)
 
     // 验收标准1：水墨屏颜色为浅肤色 #F5D0C5
-    // InkRevealOverlay 使用 JS 变量 墨色浅 = '#F5D0C5'，不直接写入 CSS
+    // ShuiMoXianXianZheZhao 使用 JS 变量 墨色浅 = '#F5D0C5'，不直接写入 CSS
     // 通过截图 + 源码确认验证
 
     // 截图验证水墨屏效果
@@ -44,12 +44,12 @@ test.describe('FP-04 用户端视角测试验证', () => {
     const bodyClasses = await page.evaluate(() => document.documentElement.className)
     expect(bodyClasses, '应切换到浅色模式').toContain('light')
 
-    // 验证 InkRevealOverlay 组件已挂载（渲染 null 但会挂载 canvas 到 body）
+    // 验证 ShuiMoXianXianZheZhao 组件已挂载（渲染 null 但会挂载 canvas 到 body）
     const overlayExists = await page.evaluate(() => document.body.children.length > 0)
     expect(overlayExists, 'InkRevealOverlay 应已挂载').toBe(true)
 
     // 验证浅色模式墨色常量（源码确认：墨色浅 = '#F5D0C5'）
-    // InkRevealRenderer 接收 coverColor 参数，浅色模式传入 '#F5D0C5'
+    // 水墨显现渲染器 接收 coverColor 参数，浅色模式传入 '#F5D0C5'
     // 通过检查页面无运行时错误来间接验证颜色参数正确传递
 
     expect(页面错误, '页面不应有运行时错误').toHaveLength(0)
@@ -243,7 +243,7 @@ test.describe('FP-04 用户端视角测试验证', () => {
     await 截图(page, '06-dark-mode')
 
     // 验证深色模式下水墨屏颜色为墨黑 #05060f
-    // InkRevealOverlay 在深色模式使用 墨色深 = '#05060f'
+    // ShuiMoXianXianZheZhao 在深色模式使用 墨色深 = '#05060f'
 
     // 验证页面正常渲染
     const hasContent = await page.evaluate(() => {

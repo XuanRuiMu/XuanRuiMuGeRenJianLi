@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Gamepad2, Heart, BookOpen, GraduationCap, Swords, Bot, ExternalLink, type LucideIcon } from 'lucide-react'
 import { 经历表 } from '../../data/经历'
-import { Section } from '../../components/ui/Section'
+import { BanKuai } from '../../components/ui/BanKuai'
 import { t } from '../../i18n/翻译'
 import { useJianShaoDongHua } from '../../hooks/useJianShaoDongHua'
 import { useShuZiGunDong } from '../../hooks/useShuZiGunDong'
@@ -370,7 +370,7 @@ export function ExperienceSection() {
   }
 
   return (
-    <Section id="experience" title={t('experience.title')}>
+    <BanKuai id="experience" title={t('experience.title')}>
       <ol
         ref={timelineRef}
         className="timeline relative mx-auto max-w-5xl list-none py-4 md:py-8"
@@ -409,6 +409,6 @@ export function ExperienceSection() {
           )
         })}
       </ol>
-    </Section>
+    </BanKuai>
   )
 }

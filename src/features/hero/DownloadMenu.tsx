@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Archive, ChevronDown, Download } from 'lucide-react'
-import { Button } from '../../components/ui/Button'
+import { AnNiu } from '../../components/ui/AnNiu'
 import { t, type TranslationKey } from '../../i18n/翻译'
 import { 下载简历 } from '../../lib/简历'
 import { 下载佐证材料包 } from '../../lib/佐证材料包'
@@ -115,14 +115,14 @@ export function DownloadMenu() {
 
   return (
     <div ref={容器引用} className="relative inline-flex" onKeyDown={菜单按键}>
-      <Button
+      <AnNiu
         variant="secondary"
         onClick={下载简历}
         icon={<Download size={32} />}
         className="h-16 rounded-r-none px-10 pr-8 text-lg"
       >
         {t('hero.cta.downloadResume')}
-      </Button>
+      </AnNiu>
       <button
         ref={箭头引用}
         type="button"

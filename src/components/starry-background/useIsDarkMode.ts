@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-export function useIsDarkMode(): boolean {
+export function useShiFouAnSe(): boolean {
   const [isDark, setIsDark] = useState(() => {
     if (typeof document === 'undefined') return true
     return document.documentElement.classList.contains('dark')
