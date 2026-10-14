@@ -143,6 +143,16 @@ function ContactLinksRenderer() {
     }
   }
   const 尝试唤起 = (地址: string) => {
+    // 输入验证：只放行 https/http(s) 绝对地址与既有的应用 scheme（QQ/微信），
+    // 拒绝 javascript:/data: 等任意协议，防止将来数据源变化时的注入面
+    let 可打开 = false
+    try {
+      const 解析 = new URL(地址)
+      可打开 = 解析.protocol === 'https:' || 解析.protocol === 'http:' || 解析.protocol === 'tencent:' || 解析.protocol === 'weixin:'
+    } catch {
+      可打开 = false
+    }
+    if (!可打开) return
     try {
       window.open(地址, '_blank', 'noopener')
     } catch {
