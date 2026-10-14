@@ -1,27 +1,27 @@
 import { lazy, Suspense } from 'react'
 import { Layout } from './layout'
-import { HeroSection } from '../features/hero/HeroSection'
+import { ShouPingBanKuai } from '../features/hero/ShouPingBanKuai'
 
-const AboutSection = lazy(() =>
-  import('../features/about/AboutSection').then((module) => ({ default: module.AboutSection }))
+const GuanYuWoBanKuai = lazy(() =>
+  import('../features/about/GuanYuWoBanKuai').then((module) => ({ default: module.GuanYuWoBanKuai }))
 )
-const ProjectsSection = lazy(() =>
-  import('../features/projects/ProjectsSection').then((module) => ({ default: module.ProjectsSection }))
+const XiangMuBanKuai = lazy(() =>
+  import('../features/projects/XiangMuBanKuai').then((module) => ({ default: module.XiangMuBanKuai }))
 )
-const SkillsSection = lazy(() =>
-  import('../features/skills/SkillsSection').then((module) => ({ default: module.SkillsSection }))
+const JiNengBanKuai = lazy(() =>
+  import('../features/skills/JiNengBanKuai').then((module) => ({ default: module.JiNengBanKuai }))
 )
-const ExperienceSection = lazy(() =>
-  import('../features/experience/ExperienceSection').then((module) => ({ default: module.ExperienceSection }))
+const JingLiBanKuai = lazy(() =>
+  import('../features/experience/JingLiBanKuai').then((module) => ({ default: module.JingLiBanKuai }))
 )
-const TestimonialsSection = lazy(() =>
-  import('../features/testimonials/TestimonialsSection').then((module) => ({ default: module.TestimonialsSection }))
+const TuiJianYuBanKuai = lazy(() =>
+  import('../features/testimonials/TuiJianYuBanKuai').then((module) => ({ default: module.TuiJianYuBanKuai }))
 )
-const ShowcaseSection = lazy(() =>
-  import('../features/showcase/ShowcaseSection').then((module) => ({ default: module.ShowcaseSection }))
+const ZhanShiBanKuai = lazy(() =>
+  import('../features/showcase/ZhanShiBanKuai').then((module) => ({ default: module.ZhanShiBanKuai }))
 )
-const ContactSection = lazy(() =>
-  import('../features/contact/ContactSection').then((module) => ({ default: module.ContactSection }))
+const LianXiBanKuai = lazy(() =>
+  import('../features/contact/LianXiBanKuai').then((module) => ({ default: module.LianXiBanKuai }))
 )
 
 function SectionFallback() {
@@ -31,15 +31,15 @@ function SectionFallback() {
 export default function App() {
   return (
     <Layout>
-      <HeroSection />
+      <ShouPingBanKuai />
       <Suspense fallback={<SectionFallback />}>
-        <AboutSection />
-        <ProjectsSection />
-        <SkillsSection />
-        <ExperienceSection />
-        <TestimonialsSection />
-        <ShowcaseSection />
-        <ContactSection />
+        <GuanYuWoBanKuai />
+        <XiangMuBanKuai />
+        <JiNengBanKuai />
+        <JingLiBanKuai />
+        <TuiJianYuBanKuai />
+        <ZhanShiBanKuai />
+        <LianXiBanKuai />
       </Suspense>
     </Layout>
   )

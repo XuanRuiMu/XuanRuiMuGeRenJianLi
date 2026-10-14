@@ -8,7 +8,7 @@ import { 推荐语id表, 推荐语列表 } from './推荐语'
 const 项目根 = path.resolve(__dirname, '../..')
 const 板块节点 = zhCN.testimonials as Record<string, unknown>
 const 条目表 = zhCN.testimonials.items as Record<string, { role: string; quote: string; context: string }>
-const 组件路径 = 'src/features/testimonials/TestimonialsSection.tsx'
+const 组件路径 = 'src/features/testimonials/TuiJianYuBanKuai.tsx'
 
 /** 用户明令只留这两类推荐人，旧条目名再出现即为回潮 */
 const 已删除id表 = ['graduate', 'player', 'collaborator']

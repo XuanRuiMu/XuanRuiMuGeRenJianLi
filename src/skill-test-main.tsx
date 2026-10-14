@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import SkillTestApp from './features/skill-test/SkillTestPage'
+import SkillTestApp from './features/skill-test/SiChouCeShiYe'
 import { CuoWuBianJie } from './components/错误边界'
 import { Providers } from './app/providers'
 import { 初始化可观测性, 环形缓冲实例 } from './observability'

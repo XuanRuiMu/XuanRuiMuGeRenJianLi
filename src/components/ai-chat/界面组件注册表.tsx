@@ -58,7 +58,7 @@ function ProjectCardRenderer({ component }: ComponentRendererProps<项目卡片�
   )
 }
 
-interface TimelineEntry {
+interface 时间线条目 {
   year: string
   label: string
 }
@@ -69,7 +69,7 @@ const TIMELINE_TITLE_KEYS: Record<NonNullable<时间线组件['scope']>, Transla
   education: 'education.title',
 }
 
-function getMediaTimelineEntries(): TimelineEntry[] {
+function getMediaTimelineEntries(): 时间线条目[] {
   return [
     { year: '2022', label: t('data.media.timeline.2022') },
     { year: '2023', label: t('data.media.timeline.2023') },
@@ -78,14 +78,14 @@ function getMediaTimelineEntries(): TimelineEntry[] {
   ]
 }
 
-function getExperienceTimelineEntries(): TimelineEntry[] {
+function getExperienceTimelineEntries(): 时间线条目[] {
   return 经历表.map((entry) => ({
     year: t(entry.periodKey).split(' ')[0] ?? t(entry.periodKey),
     label: `${t(entry.titleKey)}${entry.organizationKey ? ` · ${t(entry.organizationKey)}` : ''}`,
   }))
 }
 
-function getEducationTimelineEntries(): TimelineEntry[] {
+function getEducationTimelineEntries(): 时间线条目[] {
   const summary = 教育档案.summary
   return [
     { year: summary.period.split(' - ')[0] ?? summary.period, label: `${summary.school} · ${summary.major}` },
@@ -93,7 +93,7 @@ function getEducationTimelineEntries(): TimelineEntry[] {
   ]
 }
 
-function getTimelineEntries(scope: 时间线组件['scope']): TimelineEntry[] {
+function getTimelineEntries(scope: 时间线组件['scope']): 时间线条目[] {
   switch (scope) {
     case 'experience':
       return getExperienceTimelineEntries()

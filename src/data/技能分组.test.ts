@@ -163,7 +163,7 @@ describe('FP-03 技能分组数据源', () => {
       expect(键存在(`skills.groups.${id}.description`)).toBe(false)
     }
     expect(Object.keys(技能组表()[0])).not.toContain('description')
-    const 源码 = fs.readFileSync(path.resolve(项目根, 'src/features/skills/SkillsSection.tsx'), 'utf-8')
+    const 源码 = fs.readFileSync(path.resolve(项目根, 'src/features/skills/JiNengBanKuai.tsx'), 'utf-8')
     expect(源码).not.toContain('组.description')
     const 知识库 = 构建简历知识库()
       .map((块) => 块.content)
@@ -205,14 +205,14 @@ describe('FP-03 技能分组数据源', () => {
     expect('skills' in zhCN.data).toBe(false)
     // 注释里的说明性中文不算硬编码文案，先看出去注释后的源码
     const 源码 = fs
-      .readFileSync(path.resolve(项目根, 'src/features/skills/SkillsSection.tsx'), 'utf-8')
+      .readFileSync(path.resolve(项目根, 'src/features/skills/JiNengBanKuai.tsx'), 'utf-8')
       .replace(/\/\*[\s\S]*?\*\//g, '')
       .replace(/^\s*\/\/.*$/gm, '')
     for (const 文本 of [
       ...Object.values(分组表).map((组) => 组.label),
       ...Object.values(指标表).map((项) => 项.label),
     ]) {
-      expect(源码, `SkillsSection 不得硬编码「${文本}」`).not.toContain(文本)
+      expect(源码, `JiNengBanKuai 不得硬编码「${文本}」`).not.toContain(文本)
     }
   })
 })

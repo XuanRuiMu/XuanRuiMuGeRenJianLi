@@ -1,8 +1,8 @@
-﻿import { t, type TranslationKey } from '../i18n/翻译'
+import { t, type TranslationKey } from '../i18n/翻译'
 
 /**
  * 「关于我」正文行：文案在 zh-CN.json 的 about.introLines 节点。
- * 行内支持 {{tech|…}} / {{dim|…}} / {{accent|…}} 片段标记，由 AboutSection 解析成着色 span。
+ * 行内支持 {{tech|…}} / {{dim|…}} / {{accent|…}} 片段标记，由 GuanYuWoBanKuai 解析成着色 span。
  * id 表顺序即展示顺序。
  */
 

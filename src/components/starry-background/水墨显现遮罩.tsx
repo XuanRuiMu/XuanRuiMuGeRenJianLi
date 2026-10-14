@@ -12,7 +12,7 @@ interface InkRevealOverlayProps {
 // 浅色=动态丝绸遮罩（擦开见烈焰中的世界树）
 const 墨色深 = '#05060f'
 
-// 浅色丝绸遮罩着色器（与 skill-test 页 ShaderToy Classic Silk 同源）
+// 浅色丝绸遮罩着色器（与 skill-test 页 SiChouZhaoSeQi Classic Silk 同源）
 const 丝绸着色器 = `
 uniform float uSpeed;
 uniform float uWaveAmp;

@@ -150,7 +150,7 @@ describe('FP-10 文案错误、口径不一致与死文案守卫', () => {
     const 可见文案 = t('contact.gomoku.flipTable')
     expect(t('contact.gomoku.reset')).toContain(可见文案)
     expect(t('contact.gomoku.reset').indexOf(可见文案)).toBe(0)
-    const 源码 = 读文件('src/features/contact/Gomoku.tsx')
+    const 源码 = 读文件('src/features/contact/WuZiQi.tsx')
     expect(源码).toContain(`aria-label={t('contact.gomoku.reset')}`)
     expect(源码).toContain(`{t('contact.gomoku.flipTable')}`)
     expect(读文件('src/index.css')).toContain(`${可见文案}：`)
@@ -215,7 +215,7 @@ describe('FP-10 文案错误、口径不一致与死文案守卫', () => {
   it('AI 兜底回答引导的联系方式不超过联系板块实际提供的项', () => {
     expect(t('chat.answers.fallback')).not.toContain('手机')
     expect(t('chat.answers.fallback')).toContain('微信QQ')
-    const 板块 = 读文件('src/features/contact/ContactSection.tsx')
+    const 板块 = 读文件('src/features/contact/LianXiBanKuai.tsx')
     expect(板块).not.toContain('contact.info.phone')
     expect(板块).toContain('contact.info.wechat')
     expect(板块).toContain('contact.info.qq')

@@ -48,13 +48,13 @@ const 禁止硬编码字面量 = [
 
 const 消费者源码表 = [
   'src/data/职业方向.ts',
-  'src/features/hero/RoleTicker.tsx',
+  'src/features/hero/JiaSeLunBo.tsx',
   'src/lib/简历.ts',
   'src/ai/简历知识库.ts',
   'src/ai/本地引擎.ts',
   'src/data/个人信息.ts',
   'src/data/类型.ts',
-  'src/features/about/AboutSection.tsx',
+  'src/features/about/GuanYuWoBanKuai.tsx',
 ]
 
 describe('FP-01 求职定位单一数据源守卫', () => {
