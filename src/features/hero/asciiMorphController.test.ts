@@ -95,10 +95,13 @@ beforeEach(() => {
   )
   vi.stubGlobal(
     'fetch',
-    vi.fn(async () => ({
-      ok: true,
-      text: async () => '<svg viewBox="0 0 24 24"></svg>',
-    }))
+    // 失败图标必须让 fetch 也失败，地址才会保留原始 src（含 bad 标记）走 Image onerror；
+    // 否则地址被改写成不含 bad 的 blob URL，失败路径永远走不到（曾因 URL.createObjectURL 可用性变化踩坑）
+    vi.fn(async (地址: string) =>
+      String(地址).includes('bad')
+        ? { ok: false, text: async () => '' }
+        : { ok: true, text: async () => '<svg viewBox="0 0 24 24"></svg>' }
+    )
   )
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(() => {
     const ctx = 造2d上下文()

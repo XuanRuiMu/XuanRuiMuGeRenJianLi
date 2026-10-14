@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import { render, screen, within, waitFor, cleanup } from '@testing-library/react'
-import { ShowcaseSection, 解析副标题段 } from './ShowcaseSection'
+import { ShowcaseSection } from './ShowcaseSection'
+import { 解析副标题段 } from './副标题解析'
 import { 卡片图标表 } from './cardIcons'
 import {
   归一化位移,

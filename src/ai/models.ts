@@ -48,9 +48,12 @@ export const 聊天超时毫秒 = 读取正整数环境变量(import.meta.env.VI
 
 const AI模型存储键 = 'xuan-ai-model'
 
+/** 读取已选模型 ID：localStorage 属外部输入，取值必须在模型白名单内，否则回落默认模型 */
 export function 读取已选模型ID(): string {
   try {
-    return localStorage.getItem(AI模型存储键) ?? 默认模型ID
+    const 已存 = localStorage.getItem(AI模型存储键)
+    if (已存 === null) return 默认模型ID
+    return 模型列表().some((模型) => 模型.id === 已存) ? 已存 : 默认模型ID
   } catch {
     return 默认模型ID
   }
@@ -58,6 +61,8 @@ export function 读取已选模型ID(): string {
 
 export function 持久化已选模型ID(id: string): void {
   try {
+    // 只接受白名单内的模型 ID，防止非法值污染后续请求
+    if (!模型列表().some((模型) => 模型.id === id)) return
     localStorage.setItem(AI模型存储键, id)
   } catch {
     // 无痕/沙箱下持久化不可用时静默降级为内存态

@@ -6,6 +6,7 @@ import { DEEPSEEK_MAX_TOKENS, DEEPSEEK_RETRIEVE_TOP_K } from './deepseekConfig'
 import { 解析模型, 聊天超时毫秒, type 思考强度, type 模型定义 } from './models'
 import { getLocalAnswer, 选择组件 } from './localEngine'
 import { useAppStore, type 回退原因 } from '../store/useAppStore'
+import { t, type TranslationKey } from '../i18n/translations'
 
 export interface ChatOptions {
   model?: string
@@ -23,26 +24,21 @@ export interface ChatServiceResult {
   meta: AiToolMeta
 }
 
-/** 语料分类 → 访客可读的来源名（回答末尾标注依据用） */
-const 来源中文名: Record<string, string> = {
-  personalInfo: '个人信息',
-  projects: '项目作品',
-  techStack: '技术栈',
-  skills: '能力分组',
-  workspace: '工作区',
-  experience: '经历',
-  education: '教育背景',
-  design: '设计作品',
-  media: '媒体创作',
-  github: 'GitHub仓库',
-}
-
 /**
  * 依据来源取自本轮实际检索命中的语料（不是让模型自述），来源标注因此不可能被编造。
  * 保持检索排序、去重。
  */
 export function 取依据来源(块: Array<{ metadata: { category: string } }>): string[] {
-  return [...new Set(块.map((项) => 来源中文名[项.metadata.category] ?? 项.metadata.category))]
+  return [
+    ...new Set(
+      块.map((项) => {
+        const 键 = `ai.sources.${项.metadata.category}` as unknown as TranslationKey
+        const 译名 = t(键)
+        // 翻译缺失时 t() 原样返回键名，此时回退为分类 id，避免把键路径暴露给访客
+        return 译名 === 键 ? 项.metadata.category : 译名
+      })
+    ),
+  ]
 }
 
 function 获取最后用户内容(messages: AiMessage[]): string {
@@ -126,8 +122,9 @@ async function 带超时请求(
   }
 }
 
-function 抛出响应错误(响应: Response, 正文: string): never {
-  const 错误 = new Error(`LLM 请求失败：${响应.status} ${正文.slice(0, 300)}`) as Error & { http状态?: number }
+function 抛出响应错误(响应: Response): never {
+  // 安全：上游错误响应体可能含账号额度/请求 ID 等敏感信息，只保留状态码，不回显正文
+  const 错误 = new Error(`LLM 请求失败：HTTP ${响应.status}`) as Error & { http状态?: number }
   错误.http状态 = 响应.status
   throw 错误
 }
@@ -269,8 +266,7 @@ async function callOpenAICompletions(
   )
 
   if (!response.ok) {
-    const text = await response.text()
-    抛出响应错误(response, text)
+    抛出响应错误(response)
   }
 
   if (!response.body || typeof (response.body as ReadableStream<Uint8Array>).getReader !== 'function') {
@@ -460,8 +456,8 @@ export async function compactConversation(messages: AiMessage[], options: ChatOp
     聊天超时毫秒
   )
   if (!response.ok) {
-    const text = await response.text()
-    throw new Error(`压缩请求失败：${response.status} ${text.slice(0, 300)}`)
+    // 同上：不回显上游错误正文，只保留状态码
+    throw new Error(`压缩请求失败：HTTP ${response.status}`)
   }
   const data = await response.json()
   const rawContent: unknown = data.choices?.[0]?.message?.content

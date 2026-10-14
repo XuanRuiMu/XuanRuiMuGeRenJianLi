@@ -41,7 +41,11 @@ async function 渲染关于我(介绍行表?: 文本片段[][]) {
 describe('关于我 - 显现时序', () => {
   it('短视口进入关于我时仍启动显现', async () => {
     let 观察选项: IntersectionObserverInit | undefined
-    const 观察器构造 = vi.fn((回调: IntersectionObserverCallback, 选项?: IntersectionObserverInit) => {
+    const 观察器构造 = vi.fn(function (
+      this: unknown,
+      回调: IntersectionObserverCallback,
+      选项?: IntersectionObserverInit
+    ) {
       观察选项 = 选项
       return {
         observe: vi.fn(() => 回调([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver)),

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { techstackV2 } from '../../data/techStack'
+import { techstackV2, 取项目归属名 } from '../../data/techStack'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { useIsDarkMode } from '../../components/starry-background/useIsDarkMode'
 import { t } from '../../i18n/translations'
@@ -67,6 +67,7 @@ export function TechStack() {
   }, [字形颜色])
 
   const 当前卡片 = 当前 ? techstackV2.find((卡片) => 卡片.name === 当前.名称) : undefined
+  const 归属名表 = 当前卡片 ? 当前卡片.项目.map(取项目归属名) : []
 
   return (
     <div className="w-full flex flex-col items-center" aria-label={t('hero.techGroupAria')}>
@@ -94,11 +95,11 @@ export function TechStack() {
           href={当前卡片.url}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={`${当前卡片.name} ${t('hero.techLinkAria')}，${t('hero.techProjectAria')} ${当前卡片.项目.join('、')}`}
+          aria-label={`${当前卡片.name} ${t('hero.techLinkAria')}，${t('hero.techProjectAria')} ${归属名表.join('、')}`}
           data-testid="tech-current-link"
           className="mt-2 font-mono text-[11px] tracking-[0.1em] text-[#b9d5ff] no-underline transition-colors hover:text-[#7dd3fc] light:text-slate-600 light:hover:text-[#0369a1]"
         >
-          {当前卡片.name} ↗ <span className="font-sans opacity-60 light:opacity-100">· {当前卡片.项目.join('、')}</span>
+          {当前卡片.name} ↗ <span className="font-sans opacity-60 light:opacity-100">· {归属名表.join('、')}</span>
         </a>
       )}
       {失败 && (

@@ -1,6 +1,7 @@
 import { encode } from '@msgpack/msgpack'
 import type { RingBuffer, LogEntry } from './ringBuffer'
 import type { LogStore } from './persistence'
+import { 解析可信上报端点 } from './上报端点校验'
 
 const DEFAULT_INTERVAL = 30000
 const DEFAULT_ENDPOINT = '/api/observability/logs'
@@ -13,8 +14,11 @@ export class BeaconTransport {
 
   constructor(_ringBuffer: RingBuffer, store: LogStore, endpoint?: string) {
     this.store = store
+    // 外部输入（env 覆盖）必须过可信性校验，不信任则回落同源默认端点
     this.endpoint =
-      endpoint ?? (import.meta as { env?: Record<string, string> }).env?.VITE_OBSERVABILITY_ENDPOINT ?? DEFAULT_ENDPOINT
+      解析可信上报端点(
+        endpoint ?? (import.meta as { env?: Record<string, string> }).env?.VITE_OBSERVABILITY_ENDPOINT
+      ) ?? DEFAULT_ENDPOINT
   }
 
   start(intervalMs: number = DEFAULT_INTERVAL): void {

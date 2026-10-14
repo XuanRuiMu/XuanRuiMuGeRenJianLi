@@ -27,6 +27,17 @@ function 读取减少动画(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
+/** 每行起始字符下标（纯函数，渲染可重入） */
+function 算行起点表(纯文本表: string[]): number[] {
+  const 表: number[] = []
+  let 累计 = 0
+  for (const 行 of 纯文本表) {
+    表.push(累计)
+    累计 += 行.length
+  }
+  return 表
+}
+
 interface AboutSectionProps {
   /** 正文行片段表；默认取 about.introLines 数据源，供测试注入自定义行 */
   介绍行表?: 文本片段[][]
@@ -73,12 +84,9 @@ export function AboutSection({ 介绍行表 }: AboutSectionProps = {}) {
     每字毫秒: 总字数 > 0 ? 关于我显现总毫秒 / 总字数 : 48,
   })
 
-  let 累计字符数 = 0
-  const 行起点表 = 纯文本表.map((行) => {
-    const 行起点 = 累计字符数
-    累计字符数 += 行.length
-    return 行起点
-  })
+  // 行起点表：渲染期纯计算（外部变量在渲染中被就地修改会触发 immutability 告警，
+  // 且违反「渲染必须可重入」约束），提取为纯函数保持等价语义
+  const 行起点表 = 算行起点表(纯文本表)
   const 已完成行表 = 行起点表.map((行起点, 行号) => 已显字符数 >= 行起点 + (纯文本表[行号]?.length ?? 0))
 
   return (

@@ -11,7 +11,7 @@ ${求职方向()}
 ## ${t('resume.contact')}
 - ${t('contact.info.email')}：${personalInfo.email}
 - ${t('contact.info.phone')}：${personalInfo.phone}
-- GitHub：${personalInfo.github}
+- ${t('contact.info.github')}：${personalInfo.github}
 - ${t('contact.info.bilibili')}：${personalInfo.bilibili}
 
 ## ${t('resume.education')}

@@ -9,6 +9,7 @@ import fs from 'node:fs'
 import { observabilityPlugin } from './src/observability/vite-plugin-observability'
 import 开发数据接口插件 from './scripts/dev-api-plugin.js'
 import { 创建密钥注入钩子 } from './scripts/ai-proxy.js'
+import { 开发端口, 预览端口 } from './scripts/端口配置.js'
 
 const isAnalyze = process.env.ANALYZE === 'true'
 
@@ -115,7 +116,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: true,
-      port: 5180,
+      port: 开发端口,
       // 端口被占用时直接失败，禁止静默换端口（否则用户仍连旧僵尸进程上的 5180）
       strictPort: true,
       watch: {
@@ -141,7 +142,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     preview: {
-      port: 4173,
+      port: 预览端口,
     },
     build: {
       target: 'es2022',

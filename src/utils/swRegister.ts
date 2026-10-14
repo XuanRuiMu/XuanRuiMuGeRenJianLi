@@ -17,6 +17,8 @@ export async function updateServiceWorker(reloadPage = true): Promise<void> {
 
 function bindMessageChannel(): void {
   navigator.serviceWorker.addEventListener('message', (event) => {
+    // 同源校验：只接受本站 Service Worker 的消息，拒绝跨窗口/跨源的伪造指令
+    if (event.origin !== window.location.origin) return
     const data = event.data as { type?: string; payload?: Record<string, unknown> } | undefined
     if (!data?.type) return
 

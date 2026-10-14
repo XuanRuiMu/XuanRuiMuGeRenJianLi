@@ -1,5 +1,4 @@
 {
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
   "ignorePatterns": ["dist", "dev-dist", "playwright-report", "test-results", "coverage", "node_modules"],
   "plugins": ["react", "oxc"],
   "rules": {

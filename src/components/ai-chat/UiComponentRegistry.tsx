@@ -178,7 +178,9 @@ function ContactLinksRenderer() {
         <button
           type="button"
           aria-label={`${t('ai.contactLinks.qq')}${t('ai.contactLinks.copy')}`}
-          onClick={() => 复制并唤起('qq', personalInfo.qq, `tencent://message/?uin=${personalInfo.qq}`)}
+          onClick={() =>
+            复制并唤起('qq', personalInfo.qq, `tencent://message/?uin=${encodeURIComponent(personalInfo.qq)}`)
+          }
           className={按钮样式}
         >
           {已复制 === 'qq' ? <Check size={12} /> : <Copy size={12} />}

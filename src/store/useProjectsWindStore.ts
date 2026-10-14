@@ -11,13 +11,27 @@ interface ProjectsWindState {
   设置风力强度: (值: number) => void
 }
 
+/** 钳制到合法区间：非有限数回落默认值（与 设置风力强度 同一套规则，水合与运行时一致） */
+function 钳制风力(值: unknown): number {
+  if (typeof 值 !== 'number' || !Number.isFinite(值)) return 默认风力强度
+  return Math.min(Math.max(值, 风力下限), 风力上限)
+}
+
+/** 水合净化：持久化内容属外部输入，风力强度必须校验类型与范围后才进状态 */
+function 净化风力态(持久态: unknown, 当前态: ProjectsWindState): ProjectsWindState {
+  const 候选 = (持久态 ?? {}) as Partial<ProjectsWindState>
+  return {
+    ...当前态,
+    风力强度: 候选.风力强度 === undefined ? 当前态.风力强度 : 钳制风力(候选.风力强度),
+  }
+}
+
 export const useProjectsWindStore = create<ProjectsWindState>()(
   persist(
     (set) => ({
       风力强度: 默认风力强度,
-      设置风力强度: (值) =>
-        set({ 风力强度: Math.min(Math.max(Number.isFinite(值) ? 值 : 默认风力强度, 风力下限), 风力上限) }),
+      设置风力强度: (值) => set({ 风力强度: 钳制风力(值) }),
     }),
-    { name: 风力存储键 }
+    { name: 风力存储键, merge: 净化风力态 }
   )
 )

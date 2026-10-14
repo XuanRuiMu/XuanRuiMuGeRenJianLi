@@ -39,7 +39,7 @@ describe('InkRevealRenderer', () => {
         rotate: vi.fn(),
         scale: vi.fn(),
         getImageData: vi.fn(() => ({ data: new Uint8ClampedArray([252, 250, 248, 255]) })),
-      } as any
+      } as unknown as CanvasRenderingContext2D
       return mockCtx
     })
 

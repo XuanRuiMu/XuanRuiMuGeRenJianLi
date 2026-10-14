@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { ShaderToy } from './SilkShaderToy'
 import { Settings, X, RotateCcw, ChevronDown, ChevronRight } from 'lucide-react'
+import { t, 填充 } from '../../i18n/translations'
 
 // ============ 类型定义 ============
 
@@ -64,7 +65,12 @@ const DEFAULT_PAGE: PageParams = {
 
 // ============ 预设 ============
 
-const PRESETS: Record<string, { silk: Partial<SilkParams>; page: Partial<PageParams> }> = {
+/** 预设标识即翻译键名（skillTest.presets.<标识>），展示名一律走翻译文件 */
+const 预设标识表 = ['经典白丝', '暗夜蓝丝', '暖金丝绸', '玫瑰粉丝', '翡翠绿丝', '极简灰丝'] as const
+
+type 预设标识 = (typeof 预设标识表)[number]
+
+const PRESETS: Record<预设标识, { silk: Partial<SilkParams>; page: Partial<PageParams> }> = {
   经典白丝: {
     silk: {},
     page: {},
@@ -357,7 +363,7 @@ export function SkillTestPage() {
   const [silk, setSilk] = useState<SilkParams>(DEFAULT_SILK)
   const [page, setPage] = useState<PageParams>(DEFAULT_PAGE)
   const [panelOpen, setPanelOpen] = useState(true)
-  const [activePreset, setActivePreset] = useState('经典白丝')
+  const [activePreset, setActivePreset] = useState<预设标识>(预设标识表[0])
 
   const updateSilk = useCallback(<K extends keyof SilkParams>(key: K, value: SilkParams[K]) => {
     setSilk((prev) => ({ ...prev, [key]: value }))
@@ -370,15 +376,15 @@ export function SkillTestPage() {
   const resetAll = useCallback(() => {
     setSilk(DEFAULT_SILK)
     setPage(DEFAULT_PAGE)
-    setActivePreset('经典白丝')
+    setActivePreset(预设标识表[0])
   }, [])
 
   const applyPreset = useCallback((name: string) => {
-    const preset = PRESETS[name]
+    const preset = PRESETS[name as 预设标识]
     if (!preset) return
     setSilk((prev) => ({ ...prev, ...preset.silk }))
     setPage((prev) => ({ ...prev, ...preset.page }))
-    setActivePreset(name)
+    setActivePreset(name as 预设标识)
   }, [])
 
   const uniforms = useMemo(
@@ -443,10 +449,10 @@ export function SkillTestPage() {
       <header className="relative z-10 flex items-center justify-between px-6 py-4">
         <div>
           <h1 className="text-xl font-bold tracking-tight" style={{ color: page.textPrimary }}>
-            Silk Background Lab
+            {t('skillTest.title')}
           </h1>
           <p className="text-xs mt-0.5" style={{ color: page.muted }}>
-            ShaderToy Classic Silk · 实时参数调节
+            {t('skillTest.subtitle')}
           </p>
         </div>
         <button
@@ -459,7 +465,7 @@ export function SkillTestPage() {
           }}
         >
           {panelOpen ? <X size={16} /> : <Settings size={16} />}
-          {panelOpen ? '收起面板' : '打开面板'}
+          {panelOpen ? t('skillTest.panelToggleCollapse') : t('skillTest.panelToggleExpand')}
         </button>
       </header>
 
@@ -479,35 +485,34 @@ export function SkillTestPage() {
               className="px-3 py-1 text-xs font-bold rounded-full"
               style={{ backgroundColor: `${page.primary}20`, color: page.primary }}
             >
-              SHADERTOY
+              {t('skillTest.badge')}
             </span>
             <span className="text-xs font-mono" style={{ color: page.muted }}>
-              预设: {activePreset}
+              {填充(t('skillTest.presetLine'), { 名称: t(`skillTest.presets.${activePreset}` as never) })}
             </span>
           </div>
           <h2 className="text-2xl font-bold mb-2" style={{ color: page.textPrimary }}>
-            Classic Silk
+            {t('skillTest.heading')}
           </h2>
           <p className="text-sm mb-6 leading-relaxed" style={{ color: page.textSecondary }}>
-            基于ShaderToy经典丝绸着色器（MIT License, Giorgi Azmaipharashvili）。
-            右侧面板可实时调节动画速度、波动振幅、织物纹理、高光颜色、Gamma校正、页面配色等全部参数。
+            {t('skillTest.desc')}
           </p>
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div className="flex items-center gap-2" style={{ color: page.muted }}>
               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: page.primary }} />
-              动画速度: {silk.speed.toFixed(2)}x
+              {填充(t('skillTest.live.speed'), { 值: silk.speed.toFixed(2) })}
             </div>
             <div className="flex items-center gap-2" style={{ color: page.muted }}>
               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: page.primary }} />
-              波动振幅: {silk.waveAmp.toFixed(3)}
+              {填充(t('skillTest.live.waveAmp'), { 值: silk.waveAmp.toFixed(3) })}
             </div>
             <div className="flex items-center gap-2" style={{ color: page.muted }}>
               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: page.primary }} />
-              纹理强度: {silk.fabricIntensity.toFixed(2)}
+              {填充(t('skillTest.live.fabric'), { 值: silk.fabricIntensity.toFixed(2) })}
             </div>
             <div className="flex items-center gap-2" style={{ color: page.muted }}>
               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: page.primary }} />
-              柔化度: {silk.softness.toFixed(2)}
+              {填充(t('skillTest.live.softness'), { 值: silk.softness.toFixed(2) })}
             </div>
           </div>
         </div>
@@ -516,7 +521,7 @@ export function SkillTestPage() {
       {/* 底部提示 */}
       <div className="relative z-10 text-center pb-6">
         <p className="text-xs" style={{ color: page.muted }}>
-          鼠标在背景上移动并按住可交互 · 所有参数实时生效
+          {t('skillTest.hint')}
         </p>
       </div>
 
@@ -537,7 +542,7 @@ export function SkillTestPage() {
             <div className="flex items-center gap-2">
               <Settings size={16} style={{ color: page.primary }} />
               <span className="text-sm font-bold" style={{ color: page.textPrimary }}>
-                控制面板
+                {t('skillTest.panelTitle')}
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -545,10 +550,10 @@ export function SkillTestPage() {
                 onClick={resetAll}
                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all hover:scale-105"
                 style={{ backgroundColor: `${page.primary}15`, color: page.primary }}
-                title="重置全部参数"
+                title={t('skillTest.reset.title')}
               >
                 <RotateCcw size={12} />
-                重置
+                {t('skillTest.reset.label')}
               </button>
               <button
                 onClick={() => setPanelOpen(false)}
@@ -563,21 +568,21 @@ export function SkillTestPage() {
           {/* 预设选择 */}
           <div className="px-5 py-3 border-b" style={{ borderColor: page.border }}>
             <label className="text-xs font-bold uppercase tracking-wider block mb-2" style={{ color: page.primary }}>
-              预设主题
+              {t('skillTest.presetsTitle')}
             </label>
             <div className="flex flex-wrap gap-1.5">
-              {Object.keys(PRESETS).map((name) => (
+              {预设标识表.map((标识) => (
                 <button
-                  key={name}
-                  onClick={() => applyPreset(name)}
+                  key={标识}
+                  onClick={() => applyPreset(标识)}
                   className="px-2.5 py-1 rounded-md text-xs font-medium transition-all"
                   style={{
-                    backgroundColor: activePreset === name ? page.primary : `${page.primary}10`,
-                    color: activePreset === name ? page.cardBg : page.primary,
-                    border: `1px solid ${activePreset === name ? page.primary : page.border}`,
+                    backgroundColor: activePreset === 标识 ? page.primary : `${page.primary}10`,
+                    color: activePreset === 标识 ? page.cardBg : page.primary,
+                    border: `1px solid ${activePreset === 标识 ? page.primary : page.border}`,
                   }}
                 >
-                  {name}
+                  {t(`skillTest.presets.${标识}` as never)}
                 </button>
               ))}
             </div>
@@ -586,9 +591,9 @@ export function SkillTestPage() {
           {/* 可滚动参数区 */}
           <div className="flex-1 overflow-y-auto px-5 py-4">
             {/* 丝绸动画 */}
-            <ControlSection title="丝绸动画">
+            <ControlSection title={t('skillTest.sections.silk')}>
               <Slider
-                label="动画速度"
+                label={t('skillTest.sliders.speed')}
                 value={silk.speed}
                 min={0}
                 max={3}
@@ -597,7 +602,7 @@ export function SkillTestPage() {
                 unit="x"
               />
               <Slider
-                label="波动振幅"
+                label={t('skillTest.sliders.waveAmp')}
                 value={silk.waveAmp}
                 min={0}
                 max={0.2}
@@ -605,7 +610,7 @@ export function SkillTestPage() {
                 onChange={(v) => updateSilk('waveAmp', v)}
               />
               <Slider
-                label="波动频率"
+                label={t('skillTest.sliders.waveFreq')}
                 value={silk.waveFreq}
                 min={0}
                 max={20}
@@ -613,7 +618,7 @@ export function SkillTestPage() {
                 onChange={(v) => updateSilk('waveFreq', v)}
               />
               <Slider
-                label="主波纹频率"
+                label={t('skillTest.sliders.silkFreq1')}
                 value={silk.silkFreq1}
                 min={1}
                 max={15}
@@ -621,7 +626,7 @@ export function SkillTestPage() {
                 onChange={(v) => updateSilk('silkFreq1', v)}
               />
               <Slider
-                label="次波纹频率"
+                label={t('skillTest.sliders.silkFreq2')}
                 value={silk.silkFreq2}
                 min={4}
                 max={24}
@@ -631,9 +636,9 @@ export function SkillTestPage() {
             </ControlSection>
 
             {/* 丝绸纹理 */}
-            <ControlSection title="丝绸纹理">
+            <ControlSection title={t('skillTest.sections.fabric')}>
               <Slider
-                label="织物缩放"
+                label={t('skillTest.sliders.fabricScale')}
                 value={silk.fabricScale}
                 min={0.0001}
                 max={0.002}
@@ -641,7 +646,7 @@ export function SkillTestPage() {
                 onChange={(v) => updateSilk('fabricScale', v)}
               />
               <Slider
-                label="织物强度"
+                label={t('skillTest.sliders.fabricIntensity')}
                 value={silk.fabricIntensity}
                 min={0}
                 max={1.5}
@@ -651,14 +656,14 @@ export function SkillTestPage() {
             </ControlSection>
 
             {/* 丝绸颜色 */}
-            <ControlSection title="丝绸颜色">
+            <ControlSection title={t('skillTest.sections.color')}>
               <ColorPicker
-                label="高光颜色"
+                label={t('skillTest.sliders.highlightColor')}
                 value={rgb01ToHex(silk.highlightColor)}
                 onChange={(v) => updateSilk('highlightColor', hexToRgb01(v))}
               />
               <Slider
-                label="高光强度"
+                label={t('skillTest.sliders.highlightIntensity')}
                 value={silk.highlightIntensity}
                 min={0}
                 max={2}
@@ -666,7 +671,7 @@ export function SkillTestPage() {
                 onChange={(v) => updateSilk('highlightIntensity', v)}
               />
               <Slider
-                label="阴影强度"
+                label={t('skillTest.sliders.shadowIntensity')}
                 value={silk.shadowIntensity}
                 min={0}
                 max={2}
@@ -674,7 +679,7 @@ export function SkillTestPage() {
                 onChange={(v) => updateSilk('shadowIntensity', v)}
               />
               <Slider
-                label="Gamma R"
+                label={t('skillTest.sliders.gammaR')}
                 value={silk.gamma[0]}
                 min={0.1}
                 max={1}
@@ -682,7 +687,7 @@ export function SkillTestPage() {
                 onChange={(v) => updateSilk('gamma', [v, silk.gamma[1], silk.gamma[2]])}
               />
               <Slider
-                label="Gamma G"
+                label={t('skillTest.sliders.gammaG')}
                 value={silk.gamma[1]}
                 min={0.1}
                 max={1}
@@ -690,7 +695,7 @@ export function SkillTestPage() {
                 onChange={(v) => updateSilk('gamma', [silk.gamma[0], v, silk.gamma[2]])}
               />
               <Slider
-                label="Gamma B"
+                label={t('skillTest.sliders.gammaB')}
                 value={silk.gamma[2]}
                 min={0.1}
                 max={1}
@@ -698,7 +703,7 @@ export function SkillTestPage() {
                 onChange={(v) => updateSilk('gamma', [silk.gamma[0], silk.gamma[1], v])}
               />
               <Slider
-                label="柔化亮度"
+                label={t('skillTest.sliders.softness')}
                 value={silk.softness}
                 min={0.3}
                 max={1}
@@ -706,12 +711,12 @@ export function SkillTestPage() {
                 onChange={(v) => updateSilk('softness', v)}
               />
               <ColorPicker
-                label="染色颜色"
+                label={t('skillTest.sliders.tintColor')}
                 value={rgb01ToHex(silk.tintColor)}
                 onChange={(v) => updateSilk('tintColor', hexToRgb01(v))}
               />
               <Slider
-                label="染色强度"
+                label={t('skillTest.sliders.tintIntensity')}
                 value={silk.tintIntensity}
                 min={0}
                 max={1}
@@ -721,26 +726,42 @@ export function SkillTestPage() {
             </ControlSection>
 
             {/* 页面配色 */}
-            <ControlSection title="页面配色" defaultOpen={false}>
-              <ColorPicker label="主文字色" value={page.textPrimary} onChange={(v) => updatePage('textPrimary', v)} />
+            <ControlSection title={t('skillTest.sections.page')} defaultOpen={false}>
               <ColorPicker
-                label="次文字色"
+                label={t('skillTest.sliders.textPrimary')}
+                value={page.textPrimary}
+                onChange={(v) => updatePage('textPrimary', v)}
+              />
+              <ColorPicker
+                label={t('skillTest.sliders.textSecondary')}
                 value={page.textSecondary}
                 onChange={(v) => updatePage('textSecondary', v)}
               />
-              <ColorPicker label="弱化文字色" value={page.muted} onChange={(v) => updatePage('muted', v)} />
-              <ColorPicker label="卡片背景色" value={page.cardBg} onChange={(v) => updatePage('cardBg', v)} />
+              <ColorPicker
+                label={t('skillTest.sliders.muted')}
+                value={page.muted}
+                onChange={(v) => updatePage('muted', v)}
+              />
+              <ColorPicker
+                label={t('skillTest.sliders.cardBg')}
+                value={page.cardBg}
+                onChange={(v) => updatePage('cardBg', v)}
+              />
               <Slider
-                label="卡片透明度"
+                label={t('skillTest.sliders.cardOpacity')}
                 value={page.cardOpacity}
                 min={0.3}
                 max={1}
                 step={0.05}
                 onChange={(v) => updatePage('cardOpacity', v)}
               />
-              <ColorPicker label="主题强调色" value={page.primary} onChange={(v) => updatePage('primary', v)} />
+              <ColorPicker
+                label={t('skillTest.sliders.primary')}
+                value={page.primary}
+                onChange={(v) => updatePage('primary', v)}
+              />
               <Slider
-                label="上下遮罩强度"
+                label={t('skillTest.sliders.overlayOpacity')}
                 value={page.overlayOpacity}
                 min={0}
                 max={0.8}
@@ -753,7 +774,9 @@ export function SkillTestPage() {
           {/* 面板底部 */}
           <div className="px-5 py-3 border-t text-center" style={{ borderColor: page.border }}>
             <p className="text-xs" style={{ color: page.muted }}>
-              共{15 + 8}个可调节参数 · 实时生效
+              {填充(t('skillTest.footer'), {
+                数量: Object.keys(DEFAULT_SILK).length + Object.keys(DEFAULT_PAGE).length,
+              })}
             </p>
           </div>
         </div>

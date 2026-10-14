@@ -41,3 +41,13 @@ export function ta(key: TranslationKey): string[] {
 
   return Array.isArray(value) && value.every((item) => typeof item === 'string') ? value : []
 }
+
+/**
+ * 翻译文本插值：把「{参数名}」占位符替换为传入值，未提供的占位符原样保留。
+ * 面向玩家的动态文案一律走「翻译文件 + 插值」，禁止在调用方用模板串拼装中文。
+ */
+export function 填充(文本: string, 参数: Record<string, string | number>): string {
+  return 文本.replace(/\{([^{}]+)\}/g, (匹配, 键名: string) =>
+    Object.prototype.hasOwnProperty.call(参数, 键名) ? String(参数[键名]) : 匹配
+  )
+}

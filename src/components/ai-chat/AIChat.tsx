@@ -59,8 +59,15 @@ function 走历史可行(输入框: HTMLTextAreaElement, 方向: 'up' | 'down'):
   return !值.slice(光标).includes('\n')
 }
 
+// HTML 实体转义必须覆盖引号：即使当前所有替换产物都落在文本节点，属性上下文
+// （如未来给 <a href> / <code title> 加渲染）下单引号/双引号未转义即可破界注入。
 function escapeHtml(text: string): string {
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 
 function renderMarkdown(content: string): string {
@@ -261,16 +268,20 @@ export function AIChat({ className }: AIChatProps) {
     [input, 输入历史]
   )
 
+  // 思考秒表：计时键变化时渲染期归零（React 官方「prop 变化调整 state」模式），
+  // effect 只承载计时器，不做同步 setState，避免级联重渲染
+  const 计时键 = `${isPending}|${compacting}`
   const [思考秒数, set思考秒数] = useState(0)
-  useEffect(() => {
-    if (!isPending && !compacting) {
-      set思考秒数(0)
-      return
-    }
+  const [已见计时键, 设已见计时键] = useState(计时键)
+  if (已见计时键 !== 计时键) {
+    设已见计时键(计时键)
     set思考秒数(0)
+  }
+  useEffect(() => {
+    if (!isPending && !compacting) return
     const 计时器 = window.setInterval(() => set思考秒数((秒) => 秒 + 1), 1000)
     return () => window.clearInterval(计时器)
-  }, [isPending, compacting])
+  }, [计时键, isPending, compacting])
 
   const 指令表 = useMemo(
     () => [
@@ -290,10 +301,13 @@ export function AIChat({ className }: AIChatProps) {
     () => (斜杠首词 ? 指令表.filter((项) => 项.指令.startsWith(斜杠首词)) : []),
     [指令表, 斜杠首词]
   )
+  // 补全下标随输入变化归零：同样走渲染期调整，替代 effect 内 setState
   const [补全下标, set补全下标] = useState(0)
-  useEffect(() => {
+  const [已见输入, 设已见输入] = useState(input)
+  if (已见输入 !== input) {
+    设已见输入(input)
     set补全下标(0)
-  }, [input])
+  }
   // 模型选择器（对齐 Claude Code 的 /model 交互）：/model 无参开启后，
   // ↑/↓移动高亮、←/→切思考开关、⏎确认、esc取消；null 表示选择器关闭。
   const [模型选择下标, set模型选择下标] = useState<number | null>(null)
@@ -681,31 +695,35 @@ export function AIChat({ className }: AIChatProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: 平滑 ? 'smooth' : 'auto' })
   }, [])
 
-  const 开始调整尺寸 = (方向: '宽' | '高' | '双向') => (event: React.PointerEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    if (!Number.isFinite(event.clientX) || !Number.isFinite(event.clientY)) return
-    const 起点X = event.clientX
-    const 起点Y = event.clientY
-    const 起点宽 = 面板尺寸Ref.current.宽
-    const 起点高 = 面板尺寸Ref.current.高
-    const 移动 = (e: PointerEvent) => {
-      if (!Number.isFinite(e.clientX) || !Number.isFinite(e.clientY)) return
-      const 宽上限 = Math.max(最小面板宽, window.innerWidth - 32)
-      const 高上限 = Math.max(最小面板高, window.innerHeight - 32)
-      set面板尺寸({
-        宽: 方向 === '高' ? 起点宽 : Math.min(Math.max(起点宽 + 起点X - e.clientX, 最小面板宽), 宽上限),
-        高: 方向 === '宽' ? 起点高 : Math.min(Math.max(起点高 + 起点Y - e.clientY, 最小面板高), 高上限),
-      })
-    }
-    const 结束 = () => {
-      window.removeEventListener('pointermove', 移动)
-      window.removeEventListener('pointerup', 结束)
-      window.removeEventListener('pointercancel', 结束)
-    }
-    window.addEventListener('pointermove', 移动)
-    window.addEventListener('pointerup', 结束)
-    window.addEventListener('pointercancel', 结束)
-  }
+  // 包进 useCallback：明确其为事件期执行（而非渲染期），指针按下时才读 ref 当前尺寸
+  const 开始调整尺寸 = useCallback(
+    (方向: '宽' | '高' | '双向') => (event: React.PointerEvent<HTMLDivElement>) => {
+      event.preventDefault()
+      if (!Number.isFinite(event.clientX) || !Number.isFinite(event.clientY)) return
+      const 起点X = event.clientX
+      const 起点Y = event.clientY
+      const 起点宽 = 面板尺寸Ref.current.宽
+      const 起点高 = 面板尺寸Ref.current.高
+      const 移动 = (e: PointerEvent) => {
+        if (!Number.isFinite(e.clientX) || !Number.isFinite(e.clientY)) return
+        const 宽上限 = Math.max(最小面板宽, window.innerWidth - 32)
+        const 高上限 = Math.max(最小面板高, window.innerHeight - 32)
+        set面板尺寸({
+          宽: 方向 === '高' ? 起点宽 : Math.min(Math.max(起点宽 + 起点X - e.clientX, 最小面板宽), 宽上限),
+          高: 方向 === '宽' ? 起点高 : Math.min(Math.max(起点高 + 起点Y - e.clientY, 最小面板高), 高上限),
+        })
+      }
+      const 结束 = () => {
+        window.removeEventListener('pointermove', 移动)
+        window.removeEventListener('pointerup', 结束)
+        window.removeEventListener('pointercancel', 结束)
+      }
+      window.addEventListener('pointermove', 移动)
+      window.addEventListener('pointerup', 结束)
+      window.addEventListener('pointercancel', 结束)
+    },
+    []
+  )
   /**
    * 贴底跟随：跟随「末条消息的正文/思考长度」与「思考面板的展开次数」，
    * 而不是消息条数。长回答流式追加、访客展开思考过程后，正文都不会被顶出视野。

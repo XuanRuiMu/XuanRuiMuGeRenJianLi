@@ -3,6 +3,9 @@ import { render, act } from '@testing-library/react'
 import { RoleTicker } from './RoleTicker'
 import { 字符渐变色 } from './roleGradient'
 
+// 顶层声明：vitest 5 起 vi.mock 只允许出现在模块顶层作用域（同 vi.hoisted 的提升语义）
+vi.mock('../../hooks/useReducedMotion', () => ({ useReducedMotion: () => true }))
+
 describe('字符渐变色（按完整词预分配最终颜色）', () => {
   it('首字符取渐变起点色，末字符取渐变终点色', () => {
     expect(字符渐变色(0, 7)).toBe('rgb(94, 234, 212)')
@@ -34,7 +37,6 @@ describe('字符渐变色（按完整词预分配最终颜色）', () => {
 
 describe('RoleTicker 组件渲染', () => {
   it('reduced-motion 静态显示首词且逐字着色符合纯函数', () => {
-    vi.mock('../../hooks/useReducedMotion', () => ({ useReducedMotion: () => true }))
     const roles = ['全栈开发工程师']
     const { container } = render(<RoleTicker roles={roles} />)
     const spans = container.querySelectorAll('[data-testid="role-typewriter"] span[style]')

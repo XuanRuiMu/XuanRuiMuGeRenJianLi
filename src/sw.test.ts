@@ -57,18 +57,18 @@ function 安装ServiceWorkerMock(options?: {
 }) {
   const registration = options?.registration ?? 创建注册()
   const register = options?.register ?? vi.fn(() => Promise.resolve(registration))
-  const swListeners = new Map<string, (event: { data: unknown }) => void>()
+  const swListeners = new Map<string, (event: { data: unknown; origin?: string }) => void>()
   const mock = {
     register,
     getRegistration: vi.fn(() => Promise.resolve(registration)),
     ready: Promise.resolve(registration),
     controller: options?.controller ?? null,
-    addEventListener: (event: string, handler: (event: { data: unknown }) => void) => {
+    addEventListener: (event: string, handler: (event: { data: unknown; origin?: string }) => void) => {
       swListeners.set(event, handler)
     },
     removeEventListener: vi.fn(),
-    __triggerMessage: (data: unknown) => {
-      swListeners.get('message')?.({ data })
+    __triggerMessage: (data: unknown, origin: string = window.location.origin) => {
+      swListeners.get('message')?.({ data, origin })
     },
     __registration: registration,
     __register: register,
@@ -186,6 +186,16 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
     registerServiceWorker()
     mock.__triggerMessage({ type: 'OFFLINE_READY' })
     expect(useAppStore.getState().offlineReady).toBe(true)
+  })
+
+  it('跨源伪造的 SW 消息被同源校验拒绝，不得改写应用状态', async () => {
+    const mock = 安装ServiceWorkerMock()
+    const { registerServiceWorker } = await 导入SwRegister()
+    registerServiceWorker()
+    mock.__triggerMessage({ type: 'OFFLINE_READY' }, 'https://evil.example.com')
+    mock.__triggerMessage({ type: 'CACHE_QUOTA_WARNING', payload: { ratio: 0.85 } }, 'https://evil.example.com')
+    expect(useAppStore.getState().offlineReady).toBe(false)
+    expect(useAppStore.getState().cacheQuotaWarning).toBe(false)
   })
 
   it('updateServiceWorker 向 waiting 发送 SKIP_WAITING 并刷新', async () => {

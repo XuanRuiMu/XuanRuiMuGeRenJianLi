@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { RotateCcw } from 'lucide-react'
 import { cn } from '../../lib/utils'
+import { t, 填充 } from '../../i18n/translations'
 
 const SIZE = 15
 const EMPTY = 0
@@ -260,10 +261,10 @@ export function Gomoku() {
   }, [])
 
   const status = useMemo(() => {
-    if (winner === BLACK) return mode === 'pve' ? '🎉 你赢了！（黑棋）' : '⚫ 黑方胜利！'
-    if (winner === WHITE) return mode === 'pve' ? 'AI获胜（白棋），再来一局？' : '⚪ 白方胜利！'
-    if (mode === 'pve') return thinking ? 'AI思考中…' : '轮到你落子（黑棋）'
-    return turn === BLACK ? '⚫ 黑方落子' : '⚪ 白方落子'
+    if (winner === BLACK) return mode === 'pve' ? t('contact.gomoku.winBlack') : t('contact.gomoku.winBlackPvp')
+    if (winner === WHITE) return mode === 'pve' ? t('contact.gomoku.winWhitePve') : t('contact.gomoku.winWhitePvp')
+    if (mode === 'pve') return thinking ? t('contact.gomoku.aiThinking') : t('contact.gomoku.yourTurn')
+    return turn === BLACK ? t('contact.gomoku.blackTurn') : t('contact.gomoku.whiteTurn')
   }, [winner, turn, mode, thinking])
 
   const isWin = (r: number, c: number) => winning.some(([wr, wc]) => wr === r && wc === c)
@@ -272,12 +273,12 @@ export function Gomoku() {
     <div className="flex w-full max-w-[340px] flex-col items-center gap-3">
       <div className="flex w-full items-center justify-between gap-2">
         <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text font-mono text-sm font-bold text-transparent">
-          五子棋
+          {t('contact.gomoku.title')}
         </span>
         <div
           className="flex items-center gap-0.5 rounded-full border border-border p-0.5"
           role="group"
-          aria-label="对战模式"
+          aria-label={t('contact.gomoku.modeGroup')}
         >
           <button
             type="button"
@@ -290,7 +291,7 @@ export function Gomoku() {
                 : 'text-text-secondary hover:text-text-primary'
             )}
           >
-            人机
+            {t('contact.gomoku.modePve')}
           </button>
           <button
             type="button"
@@ -303,17 +304,17 @@ export function Gomoku() {
                 : 'text-text-secondary hover:text-text-primary'
             )}
           >
-            双人
+            {t('contact.gomoku.modePvp')}
           </button>
         </div>
         <button
           type="button"
           onClick={reset}
           className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-xs text-text-primary transition-colors hover:border-[#d97757] hover:text-text-primary"
-          aria-label="掫桌重开"
+          aria-label={t('contact.gomoku.reset')}
         >
           <RotateCcw size={12} />
-          掫桌
+          {t('contact.gomoku.flipTable')}
         </button>
       </div>
 
@@ -349,9 +350,16 @@ export function Gomoku() {
                       type="button"
                       onClick={() => handleCell(r, c)}
                       disabled={winner !== null}
-                      aria-label={`第 ${r + 1} 行 第 ${c + 1} 列${
-                        cell === BLACK ? ' 黑子' : cell === WHITE ? ' 白子' : ' 空'
-                      }`}
+                      aria-label={填充(t('contact.gomoku.cell'), {
+                        行: r + 1,
+                        列: c + 1,
+                        棋子:
+                          cell === BLACK
+                            ? t('contact.gomoku.cellBlack')
+                            : cell === WHITE
+                              ? t('contact.gomoku.cellWhite')
+                              : t('contact.gomoku.cellEmpty'),
+                      })}
                       className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full hover:bg-surface/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50"
                       style={{
                         left: `${(c / 14) * 100}%`,

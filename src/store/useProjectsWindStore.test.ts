@@ -31,6 +31,18 @@ describe('useProjectsWindStore', () => {
     expect(useProjectsWindStore.getState().风力强度).toBe(1.8)
   })
 
+  it('水合净化：持久化风力强度越界/非法时钳制回落，不得绕过范围约束', async () => {
+    const 毒值表: unknown[] = [9999, -3, Number.NaN, 'abc', null, {}, Infinity]
+    for (const 毒值 of 毒值表) {
+      localStorage.setItem(风力存储键, JSON.stringify({ state: { 风力强度: 毒值 }, version: 0 }))
+      await useProjectsWindStore.persist.rehydrate()
+      const 强度 = useProjectsWindStore.getState().风力强度
+      expect(Number.isFinite(强度), `毒值 ${String(毒值)} 水合后必须是有限数`).toBe(true)
+      expect(强度).toBeGreaterThanOrEqual(0)
+      expect(强度).toBeLessThanOrEqual(2)
+    }
+  })
+
   it('风力强度被约束在允许范围内', () => {
     useProjectsWindStore.getState().设置风力强度(99)
     expect(useProjectsWindStore.getState().风力强度).toBeLessThanOrEqual(2)

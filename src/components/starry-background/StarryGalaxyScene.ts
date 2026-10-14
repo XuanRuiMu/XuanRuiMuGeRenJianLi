@@ -166,7 +166,10 @@ export function createStarryControlPanel(): void {
     starryDragHandle.className = 'starry-drag-handle'
     starryDragHandle.style.cssText =
       'position:sticky;top:0;height:30px;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;border-bottom:1px solid rgba(255,255,255,.12);font-size:12px;letter-spacing:.04em;color:#e6e8ee;background:rgba(11,14,22,.96);z-index:1'
-    starryDragHandle.innerHTML = '<span>⠿ 拖动特效面板</span>'
+    // 文案走翻译文件；用 textContent 赋值，杜绝 innerHTML 注入面
+    const 把手文字 = document.createElement('span')
+    把手文字.textContent = tf('starryBg.dragHandle')
+    starryDragHandle.appendChild(把手文字)
     guiContainer.insertBefore(starryDragHandle, guiContainer.firstChild)
   }
   let dragging = false
@@ -205,10 +208,7 @@ export function createStarryControlPanel(): void {
   fGalaxy.add(starryGuiState.galaxy, 'uSpin', -12.57, 12.57, 0.01).name(tf('starryBg.spin')).onChange(apply)
   fGalaxy.add(starryGuiState.galaxy, 'uRandomness', 0, 1, 0.01).name(tf('starryBg.randomness')).onChange(apply)
   fGalaxy.add(starryGuiState, 'elevation', 0, 90, 1).name(tf('starryBg.viewAngle')).onChange(apply)
-  fGalaxy
-    .add(starryGuiState, 'camZoom', 1.5, 25, 0.01)
-    .name(tf('starryBg.zoom') ?? '缩放')
-    .onChange(apply)
+  fGalaxy.add(starryGuiState, 'camZoom', 1.5, 25, 0.01).name(tf('starryBg.zoom')).onChange(apply)
   fGalaxy.open()
 
   const fBreath = gui.addFolder(tf('starryBg.colorBreath'))
@@ -218,10 +218,7 @@ export function createStarryControlPanel(): void {
   const fSupernova = gui.addFolder(tf('starryBg.supernova'))
   fSupernova.add(starryGuiState.supernova, 'enabled').name(tf('starryBg.enabled')).onChange(apply)
   fSupernova.add(starryGuiState.supernova, 'frequency', 0.1, 3, 0.1).name(tf('starryBg.frequency')).onChange(apply)
-  fSupernova
-    .add(starryGuiState.supernova, 'opacity', 0, 1, 0.01)
-    .name(tf('starryBg.opacity') ?? '透明度')
-    .onChange(apply)
+  fSupernova.add(starryGuiState.supernova, 'opacity', 0, 1, 0.01).name(tf('starryBg.opacity')).onChange(apply)
 
   const fNebula = gui.addFolder(tf('starryBg.nebula'))
   fNebula.add(starryGuiState.nebula, 'enabled').name(tf('starryBg.enabled')).onChange(apply)

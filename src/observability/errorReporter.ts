@@ -1,6 +1,7 @@
 import { ringBuffer } from './globals'
 import { LogCategory } from './ringBuffer'
 import type { ErrorCategory, ErrorReport, LogContext } from './types'
+import { 解析可信上报端点 } from './上报端点校验'
 
 const CATEGORY_MAP: Record<ErrorCategory, LogCategory> = {
   render: LogCategory.Render,
@@ -35,6 +36,13 @@ function generateErrorId(): string {
   return `err-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
+/** 日志安全：URL 只保留源+路径，query/hash 可能带令牌等敏感参数，一律剥离 */
+function 安全URL(): string {
+  if (typeof window === 'undefined') return ''
+  const { origin, pathname } = window.location
+  return `${origin}${pathname}`
+}
+
 function buildReport(
   error: Error,
   category: ErrorCategory = 'unknown',
@@ -49,7 +57,7 @@ function buildReport(
     stack: error.stack,
     componentStack,
     context,
-    url: typeof window !== 'undefined' ? window.location.href : '',
+    url: 安全URL(),
     userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
     sessionId: 'ringbuf-01',
   }
@@ -95,8 +103,13 @@ class ErrorReporter {
   }
 
   private async send(report: ErrorReport): Promise<void> {
-    const endpoint = import.meta.env.VITE_ERROR_REPORT_ENDPOINT
-    if (!endpoint) return
+    const 原始端点 = import.meta.env.VITE_ERROR_REPORT_ENDPOINT
+    const endpoint = 解析可信上报端点(原始端点)
+    if (!endpoint) {
+      // 未配置或配置不信任（http 明文 / 协议相对 / 任意协议）：不外发，仅留痕
+      if (原始端点) ringBuffer.write('warn', LogCategory.Runtime, '错误上报端点不信任，已跳过外发')
+      return
+    }
 
     const controller = new AbortController()
     const timeout = window.setTimeout(() => controller.abort(), 5000)

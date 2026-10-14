@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom/vitest'
 import { vi } from 'vitest'
 
 // jsdom / node 测试环境均提供 ResizeObserver 最小实现，Three.js / R3F 依赖它
@@ -191,9 +191,10 @@ Object.defineProperty(global.navigator, 'serviceWorker', {
     addEventListener: (event, handler) => {
       serviceWorkerListeners.set(event, handler)
     },
-    __triggerMessage: (data) => {
+    __triggerMessage: (data, origin) => {
       const handler = serviceWorkerListeners.get('message')
-      if (handler) handler({ data })
+      if (handler)
+        handler({ data, origin: origin ?? (typeof window !== 'undefined' ? window.location.origin : undefined) })
     },
   },
 })

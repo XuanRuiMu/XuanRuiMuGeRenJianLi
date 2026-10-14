@@ -24,6 +24,7 @@
     "inkScreen": "水墨遮罩",
     "hideStarry": "彻底隐藏星空背景和壁纸",
     "panelTrigger": "特效面板",
+    "dragHandle": "⠿ 拖动特效面板",
     "viewAngle": "视角角度",
     "centerDim": "中心暗化",
     "period": "渐变周期",
@@ -163,6 +164,26 @@
     "qr": {
       "qqAlt": "QQ二维码",
       "wechatAlt": "微信二维码"
+    },
+    "gomoku": {
+      "title": "五子棋",
+      "winBlack": "🎉 你赢了！（黑棋）",
+      "winBlackPvp": "⚫ 黑方胜利！",
+      "winWhitePve": "AI获胜（白棋），再来一局？",
+      "winWhitePvp": "⚪ 白方胜利！",
+      "aiThinking": "AI思考中…",
+      "yourTurn": "轮到你落子（黑棋）",
+      "blackTurn": "⚫ 黑方落子",
+      "whiteTurn": "⚪ 白方落子",
+      "modeGroup": "对战模式",
+      "modePve": "人机",
+      "modePvp": "双人",
+      "flipTable": "掫桌",
+      "reset": "掫桌重开",
+      "cell": "第 {行} 行 第 {列} 列{棋子}",
+      "cellBlack": " 黑子",
+      "cellWhite": " 白子",
+      "cellEmpty": " 空"
     }
   },
   "projects": {
@@ -422,6 +443,18 @@
   "ai": {
     "title": "AI助手",
     "close": "关闭",
+    "sources": {
+      "personalInfo": "个人信息",
+      "projects": "项目作品",
+      "techStack": "技术栈",
+      "skills": "能力分组",
+      "workspace": "工作区",
+      "experience": "经历",
+      "education": "教育背景",
+      "design": "设计作品",
+      "media": "媒体创作",
+      "github": "GitHub仓库"
+    },
     "send": "发送",
     "loading": "正在想...",
     "error": "发送失败，请重试",
@@ -558,6 +591,11 @@
     "personalInfo": {
       "expectedCity": "天津各区域均可",
       "availability": "可随时入职"
+    },
+    "项目归属": {
+      "本站": "本站",
+      "全部项目": "全部项目",
+      "恋爱吧管理中心": "恋爱吧管理中心"
     },
     "projects": {
       "xrm": {
@@ -792,6 +830,73 @@
           "basis": "写世界观编年史与角色小说共5部，自写自演原创相声1段，用软件音源做编曲配乐"
         }
       }
+    }
+  },
+  "skillTest": {
+    "title": "Silk Background Lab",
+    "subtitle": "ShaderToy Classic Silk · 实时参数调节",
+    "badge": "SHADERTOY",
+    "panelToggleCollapse": "收起面板",
+    "panelToggleExpand": "打开面板",
+    "presetLine": "预设：{名称}",
+    "heading": "Classic Silk",
+    "desc": "基于ShaderToy经典丝绸着色器（MIT License, Giorgi Azmaipharashvili）。右侧面板可实时调节动画速度、波动振幅、织物纹理、高光颜色、Gamma校正、页面配色等全部参数。",
+    "live": {
+      "speed": "动画速度：{值}x",
+      "waveAmp": "波动振幅：{值}",
+      "fabric": "纹理强度：{值}",
+      "softness": "柔化度：{值}"
+    },
+    "hint": "鼠标在背景上移动并按住可交互 · 所有参数实时生效",
+    "panelTitle": "控制面板",
+    "reset": {
+      "title": "重置全部参数",
+      "label": "重置"
+    },
+    "presetsTitle": "预设主题",
+    "presets": {
+      "经典白丝": "经典白丝",
+      "暗夜蓝丝": "暗夜蓝丝",
+      "暖金丝绸": "暖金丝绸",
+      "玫瑰粉丝": "玫瑰粉丝",
+      "翡翠绿丝": "翡翠绿丝",
+      "极简灰丝": "极简灰丝"
+    },
+    "sections": {
+      "silk": "丝绸动画",
+      "fabric": "丝绸纹理",
+      "color": "丝绸颜色",
+      "page": "页面配色"
+    },
+    "sliders": {
+      "speed": "动画速度",
+      "waveAmp": "波动振幅",
+      "waveFreq": "波动频率",
+      "silkFreq1": "主波纹频率",
+      "silkFreq2": "次波纹频率",
+      "fabricScale": "织物缩放",
+      "fabricIntensity": "织物强度",
+      "highlightColor": "高光颜色",
+      "highlightIntensity": "高光强度",
+      "shadowIntensity": "阴影强度",
+      "gammaR": "Gamma R",
+      "gammaG": "Gamma G",
+      "gammaB": "Gamma B",
+      "softness": "柔化亮度",
+      "tintColor": "染色颜色",
+      "tintIntensity": "染色强度",
+      "textPrimary": "主文字色",
+      "textSecondary": "次文字色",
+      "muted": "弱化文字色",
+      "cardBg": "卡片背景色",
+      "cardOpacity": "卡片透明度",
+      "primary": "主题强调色",
+      "overlayOpacity": "上下遮罩强度"
+    },
+    "footer": "共{数量}个可调节参数 · 实时生效",
+    "error": {
+      "webgl2": "当前浏览器不支持WebGL2，无法渲染丝绸背景",
+      "shader": "着色器初始化失败"
     }
   }
 }

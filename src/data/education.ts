@@ -1,11 +1,13 @@
 import type { Education } from './types'
+import { personalInfo } from './personalInfo'
 
+// 教育背景摘要与个人信息共用单一数据源，杜绝两份事实各自漂移
 export const education: Education = {
   summary: {
-    school: '天津仁爱学院',
-    major: '计算机科学与技术',
-    degree: '本科',
-    period: '2022.09 - 2026.06',
+    school: personalInfo.education.school,
+    major: personalInfo.education.major,
+    degree: personalInfo.education.degree,
+    period: personalInfo.education.period,
   },
   courses: [
     { id: 'python', nameKey: 'data.education.courses.python.name', levelKey: 'data.education.courses.python.level' },

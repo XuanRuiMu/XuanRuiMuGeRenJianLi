@@ -254,15 +254,16 @@ export function observabilityPlugin(): Plugin {
       const catName = CATEGORY_NAMES[entry.category] ?? `Cat${entry.category}`
       const ts = formatTimestamp(entry.timestamp)
 
-      console.log(`${GRAY}${ts}${RESET}`)
-      console.log(`  ${color}${levelTag.padEnd(7)}${RESET} ${color}[${catName.padEnd(8)}]${RESET} ${entry.message}`)
+      // dev 终端仪表盘打印：统一走 console.info（项目 eslint 仅放行 warn/error/info）
+      console.info(`${GRAY}${ts}${RESET}`)
+      console.info(`  ${color}${levelTag.padEnd(7)}${RESET} ${color}[${catName.padEnd(8)}]${RESET} ${entry.message}`)
 
       if (entry.source) {
-        console.log(`  ${GRAY}│ ${entry.source}${RESET}`)
+        console.info(`  ${GRAY}│ ${entry.source}${RESET}`)
       }
 
       if (entry.context && Object.keys(entry.context).length > 0) {
-        console.log(`${GRAY}  ${JSON.stringify(entry.context, null, 2)}${RESET}`)
+        console.info(`${GRAY}  ${JSON.stringify(entry.context, null, 2)}${RESET}`)
       }
     } catch {
       // 忽略畸形消息

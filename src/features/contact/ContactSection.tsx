@@ -72,7 +72,7 @@ export function ContactSection() {
     {
       id: 'bilibili',
       label: t('contact.info.bilibili'),
-      value: '玄锐暮',
+      value: personalInfo.name,
       href: personalInfo.bilibili,
       icon: (props: { className?: string }) => <BilibiliIcon {...props} />,
     },

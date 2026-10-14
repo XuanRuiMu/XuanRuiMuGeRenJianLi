@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { t } from '../../i18n/translations'
 
 interface ShaderToyProps {
   shaderCode: string
@@ -21,7 +22,7 @@ export function ShaderToy({ shaderCode, className, uniforms = {} }: ShaderToyPro
 
     const gl = canvas.getContext('webgl2', { alpha: true, antialias: true })
     if (!gl) {
-      requestAnimationFrame(() => setError('WebGL2 not supported'))
+      requestAnimationFrame(() => setError(t('skillTest.error.webgl2')))
       return
     }
 
@@ -85,8 +86,9 @@ export function ShaderToy({ shaderCode, className, uniforms = {} }: ShaderToyPro
       fs = createShader(glCtx, glCtx.FRAGMENT_SHADER, fragmentShaderSource)
       program = createProgram(glCtx, vs, fs)
     } catch (e) {
-      const err = String(e)
-      requestAnimationFrame(() => setError(err))
+      // 着色器日志是驱动原文，可能极长且非本地化；界面只给本地化提示，原文进日志
+      console.error('丝绸着色器初始化失败：', e)
+      requestAnimationFrame(() => setError(t('skillTest.error.shader')))
       return
     }
 

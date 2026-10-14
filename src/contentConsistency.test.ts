@@ -146,11 +146,13 @@ describe('FP-10 文案错误、口径不一致与死文案守卫', () => {
   })
 
   it('五子棋重开按钮：aria-label 前缀、可见文案、CSS 注释三处用词同源', () => {
+    // 三处用词统一由翻译文件下发：aria-label 以可见文案为前缀，CSS 注释同样引用可见文案
+    const 可见文案 = t('contact.gomoku.flipTable')
+    expect(t('contact.gomoku.reset')).toContain(可见文案)
+    expect(t('contact.gomoku.reset').indexOf(可见文案)).toBe(0)
     const 源码 = 读文件('src/features/contact/Gomoku.tsx')
-    const 匹配 = 源码.match(/aria-label="(.+?)重开"\s*>\s*<RotateCcw size=\{12\} \/>\s*(\S+)\s*<\/button>/)
-    if (!匹配) throw new Error('未取到重开按钮的 aria-label 与可见文案，断言会空转')
-    const [, aria前缀, 可见文案] = 匹配
-    expect(aria前缀).toBe(可见文案)
+    expect(源码).toContain(`aria-label={t('contact.gomoku.reset')}`)
+    expect(源码).toContain(`{t('contact.gomoku.flipTable')}`)
     expect(读文件('src/index.css')).toContain(`${可见文案}：`)
   })
 

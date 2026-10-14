@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Eye } from 'lucide-react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { t } from '../../i18n/translations'
@@ -7,20 +7,29 @@ import { ANALYTICS_ENABLED, useAnalyticsStats, useTrackVisit } from '../../lib/a
 // 模块级单例：组件随主题/布局重挂载不重建缓存；本次页面加载只上报一次
 // （StrictMode 双挂载、主题切换重渲染均被此标记挡下，杜绝浏览量虚增）
 const 计数缓存 = new QueryClient()
-let 本次加载已上报 = false
+let 本地计数已记 = false
+let 云端已上报 = false
 
 const 本地计数键 = 'visitor-count'
 
+/** 本地计数展示上限：非法或被篡改的 localStorage 值一律钳制回合法区间 */
+const 计数上限 = 9_999_999
+
+/** 读本地计数：外部输入（localStorage）必须校验类型、范围后才能使用 */
 function 读本地计数(): number {
   try {
-    return Number(localStorage.getItem(本地计数键) ?? '0') || 0
+    const 原值 = Number(localStorage.getItem(本地计数键) ?? '0')
+    if (!Number.isFinite(原值)) return 0
+    const 取整 = Math.floor(原值)
+    if (取整 < 0) return 0
+    return Math.min(取整, 计数上限)
   } catch {
     return 0
   }
 }
 
 function 记一次本地访问(): number {
-  const 下一值 = 读本地计数() + 1
+  const 下一值 = Math.min(读本地计数() + 1, 计数上限)
   try {
     localStorage.setItem(本地计数键, String(下一值))
   } catch {
@@ -32,28 +41,25 @@ function 记一次本地访问(): number {
 function VisitorCounterCore() {
   const stats = useAnalyticsStats()
   const trackVisit = useTrackVisit()
-  const trackRef = useRef(trackVisit)
-  useEffect(() => {
-    trackRef.current = trackVisit
-  }, [trackVisit])
 
-  const [本地计数, set本地计数] = useState(() => (本次加载已上报 ? 读本地计数() : 0))
+  // 一次页面加载只累加一次：状态初始化器内完成写本地，effect 只负责云端上报，
+  // 两侧都不用「effect 内同步 setState」，避免级联重渲染（react-hooks/set-state-in-effect）
+  const [本地计数] = useState(() => {
+    if (本地计数已记) return 读本地计数()
+    本地计数已记 = true
+    return 记一次本地访问()
+  })
 
   useEffect(() => {
-    if (本次加载已上报) {
-      set本地计数(读本地计数())
-      return
-    }
-    本次加载已上报 = true
-    set本地计数(记一次本地访问())
-    if (!ANALYTICS_ENABLED) return
-    trackRef.current.mutate({
+    if (云端已上报 || !ANALYTICS_ENABLED) return
+    云端已上报 = true
+    trackVisit.mutate({
       path: window.location.pathname,
       referrer: document.referrer,
       userAgent: navigator.userAgent,
       timestamp: Date.now(),
     })
-  }, [])
+  }, [trackVisit])
 
   const total = stats.data?.total ?? 本地计数
   return (
