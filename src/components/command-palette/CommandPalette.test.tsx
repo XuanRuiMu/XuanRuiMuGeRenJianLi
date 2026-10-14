@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, cleanup, within } from '@testing-library/react'
 import { CommandPalette } from './CommandPalette'
-import { useAppStore } from '../../store/useAppStore'
+import { useYingYongZhuangTai } from '../../store/应用状态仓库'
 import { 下载简历 } from '../../lib/简历'
 import { t } from '../../i18n/翻译'
-import { personalInfo } from '../../data/personalInfo'
+import { 个人信息 } from '../../data/个人信息'
 
 const 启动视图过渡 = vi.fn((callback: () => void) => {
   callback()
@@ -20,9 +20,9 @@ const toggleChat = vi.fn()
 const transitionToSection = vi.fn()
 const setTheme = vi.fn()
 
-vi.mock('../../store/useAppStore', () => ({
-  useAppStore: vi.fn(),
-  SECTION_ORDER: ['hero', 'about', 'projects', 'skills', 'experience', 'education', 'design', 'media', 'contact'],
+vi.mock('../../store/应用状态仓库', () => ({
+  useYingYongZhuangTai: vi.fn(),
+  板块顺序: ['hero', 'about', 'projects', 'skills', 'experience', 'education', 'design', 'media', 'contact'],
 }))
 
 vi.mock('../theme-toggle/useThemeSystem', () => ({
@@ -34,7 +34,7 @@ vi.mock('../../lib/简历', () => ({
 }))
 
 describe('CommandPalette', () => {
-  const mockUseAppStore = useAppStore as unknown as ReturnType<typeof vi.fn>
+  const mockUseAppStore = useYingYongZhuangTai as unknown as ReturnType<typeof vi.fn>
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -278,7 +278,7 @@ describe('CommandPalette', () => {
     render(<CommandPalette />)
     fireEvent.click(screen.getByText(t('command.copyEmail')))
     await waitFor(() => {
-      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(personalInfo.email)
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(个人信息.email)
     })
     expect(setCommandOpen).toHaveBeenCalledWith(false)
   })
@@ -287,7 +287,7 @@ describe('CommandPalette', () => {
     render(<CommandPalette />)
     fireEvent.click(screen.getByText(t('command.copyGithub')))
     await waitFor(() => {
-      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(personalInfo.github)
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(个人信息.github)
     })
     expect(setCommandOpen).toHaveBeenCalledWith(false)
   })

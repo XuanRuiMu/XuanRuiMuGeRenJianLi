@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { techstackV2, 取项目归属名 } from '../../data/techStack'
+import { 技术卡表, 取项目归属名 } from '../../data/技术栈'
 import { useJianShaoDongHua } from '../../hooks/useJianShaoDongHua'
 import { useIsDarkMode } from '../../components/starry-background/useIsDarkMode'
 import { t } from '../../i18n/翻译'
@@ -28,7 +28,7 @@ export function TechStack() {
 
   const 图标定义 = useMemo<点阵图标定义[]>(
     () =>
-      techstackV2.map((卡片) => ({
+      技术卡表.map((卡片) => ({
         id: 卡片.name,
         name: 卡片.name,
         glyph: 技术字形(卡片.name),
@@ -66,7 +66,7 @@ export function TechStack() {
     变形器引用.current?.设颜色(字形颜色)
   }, [字形颜色])
 
-  const 当前卡片 = 当前 ? techstackV2.find((卡片) => 卡片.name === 当前.名称) : undefined
+  const 当前卡片 = 当前 ? 技术卡表.find((卡片) => 卡片.name === 当前.名称) : undefined
   const 归属名表 = 当前卡片 ? 当前卡片.项目.map(取项目归属名) : []
 
   return (

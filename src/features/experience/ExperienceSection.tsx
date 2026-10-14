@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Gamepad2, Heart, BookOpen, GraduationCap, Swords, Bot, ExternalLink, type LucideIcon } from 'lucide-react'
-import { experiences } from '../../data/experience'
+import { 经历表 } from '../../data/经历'
 import { Section } from '../../components/ui/Section'
 import { t } from '../../i18n/翻译'
 import { useJianShaoDongHua } from '../../hooks/useJianShaoDongHua'
@@ -111,7 +111,7 @@ function useTimelineItems(count: number) {
 }
 
 interface ExperienceCardProps {
-  entry: (typeof experiences)[number]
+  entry: (typeof 经历表)[number]
   isEven: boolean
   reducedMotion: boolean
 }
@@ -352,8 +352,8 @@ function ExperienceCard({ entry, isEven, reducedMotion }: ExperienceCardProps) {
 export function ExperienceSection() {
   const timelineRef = useRef<HTMLOListElement>(null)
   const prefersReducedMotion = useJianShaoDongHua()
-  useTimelineProgress(timelineRef, experiences.length)
-  useTimelineItems(experiences.length)
+  useTimelineProgress(timelineRef, 经历表.length)
+  useTimelineItems(经历表.length)
 
   // 键盘导航：←/→ 在卡片间循环切换焦点（焦点自动跟随）。
   const handleTimelineKeyDown = (event: React.KeyboardEvent<HTMLOListElement>) => {
@@ -377,7 +377,7 @@ export function ExperienceSection() {
         aria-label={t('experience.timelineLabel')}
         onKeyDown={handleTimelineKeyDown}
       >
-        {experiences.map((entry, index) => {
+        {经历表.map((entry, index) => {
           const isEven = index % 2 === 0
 
           return (

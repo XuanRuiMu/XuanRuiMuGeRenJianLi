@@ -1,7 +1,7 @@
-﻿import { Section } from '../../components/ui/Section'
+import { Section } from '../../components/ui/Section'
 import { Reveal } from '../../components/Reveal'
 import { t } from '../../i18n/翻译'
-import { 推荐语列表 } from '../../data/testimonials'
+import { 推荐语列表 } from '../../data/推荐语'
 
 /** 便签轻微歪斜：固定角度表，避免每帧随机导致布局抖动 */
 const 便签角度 = ['-1.6deg', '1.2deg', '-0.8deg', '1.5deg'] as const

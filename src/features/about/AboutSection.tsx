@@ -1,8 +1,8 @@
-﻿import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Section } from '../../components/ui/Section'
 import { t } from '../../i18n/翻译'
 import { useTypewriter } from './useTypewriter'
-import { 关于我介绍行, type 文本片段, type 片段色调 } from '../../data/aboutLines'
+import { 关于我介绍行, type 文本片段, type 片段色调 } from '../../data/关于我介绍行'
 
 const 关于我显现总毫秒 = 7200
 const 关于我显现触发阈值 = 0

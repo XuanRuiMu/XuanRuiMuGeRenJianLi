@@ -1,9 +1,9 @@
-﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { sendChatMessage, compactConversation, 是否超时错误, 是否中断错误 } from './chatService'
 import { 有可见正文 } from './structuredOutput'
-import { personalInfo } from '../data/personalInfo'
+import { 个人信息 } from '../data/个人信息'
 import { DEEPSEEK_MODEL, DEEPSEEK_ENDPOINT } from './deepseekConfig'
-import { useAppStore } from '../store/useAppStore'
+import { useYingYongZhuangTai } from '../store/应用状态仓库'
 
 const mockFetch = vi.fn()
 
@@ -11,7 +11,7 @@ describe('chatService', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', mockFetch)
     // 锁定思考强度（默认 high）与模型（默认 DeepSeek），避免跨用例状态污染
-    useAppStore.setState({ aiThinking: 'high', aiModel: 'deepseek-v4.1-flash-expires-on-0910' })
+    useYingYongZhuangTai.setState({ aiThinking: 'high', aiModel: 'deepseek-v4.1-flash-expires-on-0910' })
   })
 
   afterEach(() => {
@@ -36,8 +36,8 @@ describe('chatService', () => {
   it('falls back to the local ContactLinks component for contact questions when the call fails', async () => {
     const result = await sendChatMessage([{ role: 'user', content: '怎么联系你' }])
 
-    expect(result.message.content).not.toContain(personalInfo.email)
-    expect(result.message.content).not.toContain(personalInfo.phone)
+    expect(result.message.content).not.toContain(个人信息.email)
+    expect(result.message.content).not.toContain(个人信息.phone)
     expect(result.message.component).toEqual({ type: 'ContactLinks' })
   })
 
@@ -94,7 +94,7 @@ describe('chatService', () => {
         ok: true,
         json: async () => ({ choices: [{ message: { content: '正文' } }] }),
       })
-      useAppStore.setState({ aiThinking: 强度 })
+      useYingYongZhuangTai.setState({ aiThinking: 强度 })
 
       await sendChatMessage([{ role: 'user', content: '你的技术栈是什么？' }])
 
@@ -317,7 +317,7 @@ describe('chatService', () => {
 
     const result = await sendChatMessage([{ role: 'user', content: '怎么联系你' }], {})
 
-    expect(result.message.content).not.toContain(personalInfo.email)
+    expect(result.message.content).not.toContain(个人信息.email)
     expect(result.message.component).toEqual({ type: 'ContactLinks' })
   })
 
@@ -400,7 +400,7 @@ describe('chatService', () => {
         ok: true,
         json: async () => ({ choices: [{ message: { content: '{"text":"ok"}' } }] }),
       })
-      useAppStore.setState({ aiThinking: 强度 })
+      useYingYongZhuangTai.setState({ aiThinking: 强度 })
 
       await sendChatMessage([{ role: 'user', content: '你是谁' }])
 
@@ -474,8 +474,8 @@ describe('chatService', () => {
     const callArgs = mockFetch.mock.calls.at(-1) as [string, RequestInit]
     const body = JSON.parse((callArgs[1].body as string) ?? '{}')
     const 系统提示 = String(body.messages?.[0]?.content ?? '')
-    expect(系统提示).not.toContain(personalInfo.email)
-    expect(系统提示).not.toContain(personalInfo.phone)
+    expect(系统提示).not.toContain(个人信息.email)
+    expect(系统提示).not.toContain(个人信息.phone)
     expect(系统提示).not.toContain('ContactForm')
   })
 
@@ -765,7 +765,7 @@ describe('chatService', () => {
 describe('compactConversation（/compact 语义压缩）', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', mockFetch)
-    useAppStore.setState({ aiThinking: 'high', aiModel: 'deepseek-v4.1-flash-expires-on-0910' })
+    useYingYongZhuangTai.setState({ aiThinking: 'high', aiModel: 'deepseek-v4.1-flash-expires-on-0910' })
   })
 
   afterEach(() => {

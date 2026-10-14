@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { 合并类名 } from '../../lib/工具'
 import { useJianShaoDongHua } from '../../hooks/useJianShaoDongHua'
 import { t } from '../../i18n/翻译'
-import { careerFocus, 岗位名表 } from '../../data/careerFocus'
+import { 职业方向, 岗位名表 } from '../../data/职业方向'
 import { 字符渐变色 } from './roleGradient'
 
 /**
  * 角色行：1:1 复刻 02-react-three-fiber 的 typed.js 打字机语义。
  * 逐字打出(typeSpeed) → 停顿(backDelay) → 逐字删字(backSpeed) → 下一词 → 循环(loop) + 闪烁光标。
- * 岗位名来自单一数据源（src/data/careerFocus.ts → 同目录 职业定位.txt），aria 前缀来自 zh-CN.json career 节点。
+ * 岗位名来自单一数据源（src/data/职业方向.ts → 同目录 职业定位.txt），aria 前缀来自 zh-CN.json career 节点。
  * reduced-motion 时静态显示首个角色，光标不闪烁。
  */
 
@@ -19,7 +19,7 @@ interface RoleTickerProps {
   backDelay?: number
 }
 
-/** 默认岗位：模块级解析一次，保持引用稳定（locale 为编译期常量）；文案单一源见 careerFocus */
+/** 默认岗位：模块级解析一次，保持引用稳定（locale 为编译期常量）；文案单一源见 职业方向 */
 const 默认岗位名表 = 岗位名表()
 
 export function RoleTicker({
@@ -33,7 +33,7 @@ export function RoleTicker({
   // 岗位清单可为空（职业定位.txt 被删空或只剩注释）：退回同一 career 节点的方向串，
   // 既不渲染 undefined 也不留空白
   const 有岗位 = roles.length > 0
-  const 岗位表 = 有岗位 ? roles : [t(careerFocus.directionKey)]
+  const 岗位表 = 有岗位 ? roles : [t(职业方向.directionKey)]
   // 词与文本必须成对更新：渲染期需要「当前完整词长」为字符预分配最终颜色
   const [打字, set打字] = useState(() => ({
     词: 岗位表[0],
@@ -85,7 +85,7 @@ export function RoleTicker({
   return (
     <p
       className="mb-4 flex items-center gap-2 text-3xl font-medium text-shadow-readable sm:text-4xl"
-      aria-label={`${t(careerFocus.roleTickerAriaKey)}${岗位表.join('、')}`}
+      aria-label={`${t(职业方向.roleTickerAriaKey)}${岗位表.join('、')}`}
       data-testid="role-typewriter"
     >
       <span aria-hidden="true" className="font-mono text-primary">

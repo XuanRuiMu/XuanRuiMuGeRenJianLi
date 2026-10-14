@@ -1,5 +1,5 @@
-﻿import { Component, type ErrorInfo, type ReactNode } from 'react'
-import { errorReporter } from '../observability/errorReporter'
+import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { 错误上报器实例 } from '../observability/错误上报器'
 import { t } from '../i18n/翻译'
 
 interface ErrorBoundaryProps {
@@ -25,7 +25,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     this.setState({ errorInfo })
-    errorReporter.report(error, {
+    错误上报器实例.report(error, {
       category: 'render',
       componentStack: errorInfo.componentStack ?? undefined,
     })

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { InkRevealRenderer } from './InkRevealRenderer'
 import { SilkCanvasRenderer } from './SilkCanvasRenderer'
 import { useIsDarkMode } from './useIsDarkMode'
-import { useStarryUiStore } from '../../store/useStarryUiStore'
+import { useXingKongKaiGuan } from '../../store/星空开关仓库'
 
 interface InkRevealOverlayProps {
   enabled?: boolean
@@ -101,7 +101,7 @@ export function InkRevealOverlay({ enabled: enabledProp }: InkRevealOverlayProps
   const rendererRef = useRef<InkRevealRenderer | null>(null)
   const silkRef = useRef<SilkCanvasRenderer | null>(null)
   const isDark = useIsDarkMode()
-  const inkEnabled = useStarryUiStore((s) => s.inkEnabled)
+  const inkEnabled = useXingKongKaiGuan((s) => s.inkEnabled)
   const enabled = enabledProp ?? inkEnabled
 
   useEffect(() => {

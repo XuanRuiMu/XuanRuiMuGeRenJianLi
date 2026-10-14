@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ResizableNav } from './ResizableNav'
 import { t } from '../../i18n/翻译'
@@ -6,8 +6,8 @@ import { t } from '../../i18n/翻译'
 const transitionToSection = vi.fn()
 const setCommandOpen = vi.fn()
 
-vi.mock('../../store/useAppStore', () => ({
-  useAppStore: (selector: (state: unknown) => unknown) => selector({ transitionToSection, setCommandOpen }),
+vi.mock('../../store/应用状态仓库', () => ({
+  useYingYongZhuangTai: (selector: (state: unknown) => unknown) => selector({ transitionToSection, setCommandOpen }),
 }))
 
 vi.mock('../theme-toggle/ThemeToggle', () => ({

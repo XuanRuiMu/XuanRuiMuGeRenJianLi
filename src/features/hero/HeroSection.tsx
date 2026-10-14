@@ -1,4 +1,4 @@
-﻿import { personalInfo } from '../../data/personalInfo'
+import { 个人信息 } from '../../data/个人信息'
 import { t } from '../../i18n/翻译'
 import { RoleTicker } from './RoleTicker'
 import { TechStack } from './TechStack'
@@ -17,7 +17,7 @@ export function HeroSection() {
           <h1 className="mb-4">
             <img
               src="/images/签字-alpha.png"
-              alt={personalInfo.name}
+              alt={个人信息.name}
               className="h-40 w-auto object-contain drop-shadow-[0_2px_10px_rgba(60,30,15,0.35)] sm:h-48 lg:h-56 dark:invert dark:drop-shadow-none light:drop-shadow-none"
               data-testid="hero-signature"
             />

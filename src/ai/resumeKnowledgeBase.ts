@@ -1,12 +1,12 @@
-﻿import { personalInfo } from '../data/personalInfo'
-import { 求职方向 } from '../data/careerFocus'
-import { 技能组表, 量化指标 } from '../data/skillGroups'
-import { projects } from '../data/projects'
-import { experiences } from '../data/experience'
-import { education } from '../data/education'
-import { design } from '../data/design'
-import { media } from '../data/media'
-import { GitHub仓库快照, GitHub快照元信息, GitHub快照生成时间 } from '../data/githubSnapshot'
+import { 个人信息 } from '../data/个人信息'
+import { 求职方向 } from '../data/职业方向'
+import { 技能组表, 量化指标 } from '../data/技能分组'
+import { 项目表 } from '../data/项目'
+import { 经历表 } from '../data/经历'
+import { 教育档案 } from '../data/教育'
+import { design } from '../data/设计'
+import { media } from '../data/媒体'
+import { GitHub仓库快照, GitHub快照元信息, GitHub快照生成时间 } from '../data/GitHub快照'
 import { t } from '../i18n/翻译'
 
 export interface KnowledgeChunk {
@@ -27,7 +27,7 @@ function chunk(id: string, content: string, category: string, source: string): K
 }
 
 function buildPersonalInfoChunks(): KnowledgeChunk[] {
-  const info = personalInfo
+  const info = 个人信息
   return [
     chunk(
       'personal-info-bio',
@@ -43,7 +43,7 @@ function buildPersonalInfoChunks(): KnowledgeChunk[] {
     ),
     chunk(
       'personal-info-education',
-      `教育背景：${info.education.school}，${info.education.major}，${info.education.degree}，${info.education.period}。`,
+      `教育背景：${info.教育背景.school}，${info.教育背景.major}，${info.教育背景.degree}，${info.教育背景.period}。`,
       'education',
       'personalInfo.ts'
     ),
@@ -51,7 +51,7 @@ function buildPersonalInfoChunks(): KnowledgeChunk[] {
 }
 
 function buildProjectChunks(): KnowledgeChunk[] {
-  return projects.map((project) => {
+  return 项目表.map((project) => {
     const metrics = project.metricKeys?.map((key) => t(key)).join('，') ?? ''
     const links = project.links?.map((link) => `${t(link.labelKey)}：${link.url}`).join('，') ?? ''
     return chunk(
@@ -118,7 +118,7 @@ function buildSkillChunks(): KnowledgeChunk[] {
 }
 
 function buildExperienceChunks(): KnowledgeChunk[] {
-  return experiences.map((entry) => {
+  return 经历表.map((entry) => {
     const 成就 = (entry.achievementKeys ?? []).map((key) => t(key)).join('；')
     return chunk(
       `experience-${entry.id}`,
@@ -130,19 +130,19 @@ function buildExperienceChunks(): KnowledgeChunk[] {
 }
 
 function buildEducationChunks(): KnowledgeChunk[] {
-  const summary = education.summary
-  const courses = education.courses.map((course) => `${t(course.nameKey)}（${t(course.levelKey)}）`).join('、')
-  const achievements = education.achievementKeys.map((key) => t(key)).join('；')
+  const summary = 教育档案.summary
+  const courses = 教育档案.courses.map((course) => `${t(course.nameKey)}（${t(course.levelKey)}）`).join('、')
+  const achievements = 教育档案.achievementKeys.map((key) => t(key)).join('；')
 
   return [
     chunk(
       'education-summary',
       `教育概览：${summary.school}毕业，${summary.school}，${summary.major}，${summary.degree}，${summary.period}。学校是${summary.school}。`,
       'education',
-      'education.ts'
+      '教育档案.ts'
     ),
-    chunk('education-courses', `主修与自学课程：${courses}。`, 'education', 'education.ts'),
-    chunk('education-achievements', `教育成果：${achievements}。`, 'education', 'education.ts'),
+    chunk('education-courses', `主修与自学课程：${courses}。`, 'education', '教育档案.ts'),
+    chunk('education-achievements', `教育成果：${achievements}。`, 'education', '教育档案.ts'),
   ]
 }
 

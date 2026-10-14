@@ -4,12 +4,12 @@ import { Menu, X, SlidersHorizontal } from 'lucide-react'
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion'
 import { 合并类名 } from '../../lib/工具'
 import { t, type TranslationKey } from '../../i18n/翻译'
-import { useAppStore, type AppSection } from '../../store/useAppStore'
+import { useYingYongZhuangTai, type 应用板块 } from '../../store/应用状态仓库'
 import { ThemeToggle } from '../theme-toggle/ThemeToggle'
-import { personalInfo } from '../../data/personalInfo'
+import { 个人信息 } from '../../data/个人信息'
 
 /** 中部导航锚点（联系与其他分区同款胶囊并列居中） */
-const NAV_SECTIONS: AppSection[] = ['about', 'projects', 'skills', 'experience', 'education', 'contact']
+const NAV_SECTIONS: 应用板块[] = ['about', 'projects', 'skills', 'experience', 'education', 'contact']
 
 const SCROLL_THRESHOLD = 100
 
@@ -23,7 +23,7 @@ interface ResizableNavProps {
  * 桌面端胶囊导航居中，窄屏折叠为汉堡下拉（emerald 毛玻璃面板）。
  */
 export function ResizableNav({ className }: ResizableNavProps) {
-  const transitionToSection = useAppStore((state) => state.transitionToSection)
+  const transitionToSection = useYingYongZhuangTai((state) => state.transitionToSection)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [visible, setVisible] = useState(false)
   const [isDesktop, setIsDesktop] = useState(
@@ -42,7 +42,7 @@ export function ResizableNav({ className }: ResizableNavProps) {
     setVisible(latest > SCROLL_THRESHOLD)
   })
 
-  const goTo = (section: AppSection) => {
+  const goTo = (section: 应用板块) => {
     setIsMobileMenuOpen(false)
     transitionToSection(section)
   }
@@ -55,7 +55,7 @@ export function ResizableNav({ className }: ResizableNavProps) {
       aria-label={t('nav.hero')}
     >
       <span className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#7dd3fc] via-[#38bdf8] to-[#0c4a6e] font-display text-xl font-bold text-white shadow-[0_0_16px_rgba(56,189,248,0.35)]">
-        {personalInfo.name.charAt(0)}
+        {个人信息.name.charAt(0)}
       </span>
     </button>
   )
@@ -92,7 +92,7 @@ export function ResizableNav({ className }: ResizableNavProps) {
         )
       : null
 
-  const navLinkPill = (section: AppSection, extraClassName?: string) => (
+  const navLinkPill = (section: 应用板块, extraClassName?: string) => (
     <button
       key={section}
       type="button"

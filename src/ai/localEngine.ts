@@ -1,7 +1,7 @@
-﻿import type { AiMessage } from '../store/useAppStore'
+import type { AI消息 } from '../store/应用状态仓库'
 import { t, type TranslationKey } from '../i18n/翻译'
-import { personalInfo } from '../data/personalInfo'
-import { 求职方向 } from '../data/careerFocus'
+import { 个人信息 } from '../data/个人信息'
+import { 求职方向 } from '../data/职业方向'
 import type { UiComponent } from './structuredOutput'
 import { 是否纯问候, 是否感谢, 是否告别, 检测项目卡片, 命中兜底意图 } from './intentTable'
 
@@ -39,12 +39,12 @@ export const RULES: LocalRule[] = [
 function formatAnswer(key: LocalRule['key']): string {
   const base = t(`chat.answers.${key}` as unknown as TranslationKey)
   return base
-    .replace('{name}', personalInfo.name)
+    .replace('{name}', 个人信息.name)
     .replace('{direction}', 求职方向())
-    .replace('{school}', personalInfo.education.school)
-    .replace('{major}', personalInfo.education.major)
-    .replace('{degree}', personalInfo.education.degree)
-    .replace('{period}', personalInfo.education.period)
+    .replace('{school}', 个人信息.教育背景.school)
+    .replace('{major}', 个人信息.教育背景.major)
+    .replace('{degree}', 个人信息.教育背景.degree)
+    .replace('{period}', 个人信息.教育背景.period)
 }
 
 function 命中意图(规则: LocalRule, 文本: string): boolean {
@@ -127,7 +127,7 @@ export function 选择组件(输入: string): UiComponent | undefined {
   return 路由回答(输入).component
 }
 
-export function getLocalAnswer(input: string): AiMessage {
+export function getLocalAnswer(input: string): AI消息 {
   if (是否纯问候(input) || 是否感谢(input) || 是否告别(input)) {
     if (是否感谢(input)) return { role: 'assistant', content: t('chat.answers.thanks') }
     if (是否告别(input)) return { role: 'assistant', content: t('chat.answers.farewell') }

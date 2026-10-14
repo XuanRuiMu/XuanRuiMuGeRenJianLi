@@ -1,9 +1,9 @@
-﻿import * as THREE from 'three'
+import * as THREE from 'three'
 import GUI from 'three/addons/libs/lil-gui.module.min.js'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { t as translate } from '../../i18n/翻译'
-import { useStarryUiStore } from '../../store/useStarryUiStore'
-import { useProjectsWindStore, 风力下限, 风力上限 } from '../../store/useProjectsWindStore'
+import { useXingKongKaiGuan } from '../../store/星空开关仓库'
+import { useBianQianFengLi, 风力下限, 风力上限 } from '../../store/便签风力仓库'
 
 export interface StarryGalaxySceneOptions {
   dpr?: number
@@ -242,27 +242,27 @@ export function createStarryControlPanel(): void {
   fCenterDim.add(starryGuiState.centerDim, 'period', 0.5, 20, 0.1).name(tf('starryBg.period')).onChange(apply)
 
   const fDisplay = gui.addFolder(tf('starryBg.display'))
-  const inkProxy = { on: useStarryUiStore.getState().inkEnabled }
+  const inkProxy = { on: useXingKongKaiGuan.getState().inkEnabled }
   fDisplay
     .add(inkProxy, 'on')
     .name(tf('starryBg.inkScreen'))
-    .onChange((v) => useStarryUiStore.getState().setInkEnabled(Boolean(v)))
-  const hideProxy = { on: useStarryUiStore.getState().starryHidden }
+    .onChange((v) => useXingKongKaiGuan.getState().setInkEnabled(Boolean(v)))
+  const hideProxy = { on: useXingKongKaiGuan.getState().starryHidden }
   fDisplay
     .add(hideProxy, 'on')
     .name(tf('starryBg.hideStarry'))
     .onChange((v) => {
       const enabled = Boolean(v)
-      useStarryUiStore.getState().setStarryHidden(enabled)
+      useXingKongKaiGuan.getState().setStarryHidden(enabled)
     })
   fDisplay.open()
 
   const fWind = gui.addFolder(tf('projects.wind.title'))
-  const windProxy = { 风力: useProjectsWindStore.getState().风力强度 }
+  const windProxy = { 风力: useBianQianFengLi.getState().风力强度 }
   fWind
     .add(windProxy, '风力', 风力下限, 风力上限, 0.05)
     .name(tf('projects.wind.strength'))
-    .onChange((v: number) => useProjectsWindStore.getState().设置风力强度(v))
+    .onChange((v: number) => useBianQianFengLi.getState().设置风力强度(v))
 }
 
 const GALAXY_COUNT = 128 ** 2

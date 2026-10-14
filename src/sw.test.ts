@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { useAppStore } from './store/useAppStore'
+import { useYingYongZhuangTai } from './store/应用状态仓库'
 
 type WorkerLike = {
   state: string
@@ -91,14 +91,14 @@ function 移除ServiceWorker() {
 }
 
 async function 导入SwRegister() {
-  // 不 resetModules：reset 会让 swRegister 拿到另一份 useAppStore 实例，
+  // 不 resetModules：reset 会让 swRegister 拿到另一份 useYingYongZhuangTai 实例，
   // 断言写在测试顶层 import 的 store 上永远为 false。共享同一 store 即可。
   return import('./utils/注册服务工作线程')
 }
 
 describe('swRegister 公共行为（原生注册，无 virtual 模块）', () => {
   beforeEach(() => {
-    useAppStore.setState({
+    useYingYongZhuangTai.setState({
       isOffline: false,
       updateAvailable: false,
       offlineReady: false,
@@ -135,7 +135,7 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
     const { 注册服务工作线程 } = await 导入SwRegister()
     注册服务工作线程()
     await vi.waitFor(() => {
-      expect(useAppStore.getState().updateAvailable).toBe(true)
+      expect(useYingYongZhuangTai.getState().updateAvailable).toBe(true)
     })
   })
 
@@ -151,9 +151,9 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
     registration.__trigger('updatefound')
     ;(installing as WorkerLike & { __setState(s: string): void }).__setState('installed')
     await vi.waitFor(() => {
-      expect(useAppStore.getState().offlineReady).toBe(true)
+      expect(useYingYongZhuangTai.getState().offlineReady).toBe(true)
     })
-    expect(useAppStore.getState().updateAvailable).toBe(false)
+    expect(useYingYongZhuangTai.getState().updateAvailable).toBe(false)
   })
 
   it('已有 controller 时新 worker 进入 installed → 置 updateAvailable', async () => {
@@ -168,7 +168,7 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
     registration.__trigger('updatefound')
     ;(installing as WorkerLike & { __setState(s: string): void }).__setState('installed')
     await vi.waitFor(() => {
-      expect(useAppStore.getState().updateAvailable).toBe(true)
+      expect(useYingYongZhuangTai.getState().updateAvailable).toBe(true)
     })
   })
 
@@ -177,7 +177,7 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
     const { 注册服务工作线程 } = await 导入SwRegister()
     注册服务工作线程()
     mock.__triggerMessage({ type: 'CACHE_QUOTA_WARNING', payload: { ratio: 0.85 } })
-    expect(useAppStore.getState().cacheQuotaWarning).toBe(true)
+    expect(useYingYongZhuangTai.getState().cacheQuotaWarning).toBe(true)
   })
 
   it('SW 消息 OFFLINE_READY → 置 offlineReady', async () => {
@@ -185,7 +185,7 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
     const { 注册服务工作线程 } = await 导入SwRegister()
     注册服务工作线程()
     mock.__triggerMessage({ type: 'OFFLINE_READY' })
-    expect(useAppStore.getState().offlineReady).toBe(true)
+    expect(useYingYongZhuangTai.getState().offlineReady).toBe(true)
   })
 
   it('跨源伪造的 SW 消息被同源校验拒绝，不得改写应用状态', async () => {
@@ -194,8 +194,8 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
     注册服务工作线程()
     mock.__triggerMessage({ type: 'OFFLINE_READY' }, 'https://evil.example.com')
     mock.__triggerMessage({ type: 'CACHE_QUOTA_WARNING', payload: { ratio: 0.85 } }, 'https://evil.example.com')
-    expect(useAppStore.getState().offlineReady).toBe(false)
-    expect(useAppStore.getState().cacheQuotaWarning).toBe(false)
+    expect(useYingYongZhuangTai.getState().offlineReady).toBe(false)
+    expect(useYingYongZhuangTai.getState().cacheQuotaWarning).toBe(false)
   })
 
   it('更新服务工作线程 向 waiting 发送 SKIP_WAITING 并刷新', async () => {
@@ -234,7 +234,7 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
     const updateSW = 注册服务工作线程()
     expect(updateSW).toBeTypeOf('function')
     await vi.waitFor(() => {
-      expect(useAppStore.getState().updateAvailable).toBe(false)
+      expect(useYingYongZhuangTai.getState().updateAvailable).toBe(false)
     })
     await expect(更新服务工作线程(true)).resolves.toBeUndefined()
   })

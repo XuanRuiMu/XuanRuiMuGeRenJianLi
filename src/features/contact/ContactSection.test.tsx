@@ -1,7 +1,7 @@
-﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { ContactSection } from './ContactSection'
-import { personalInfo } from '../../data/personalInfo'
+import { 个人信息 } from '../../data/个人信息'
 import { t } from '../../i18n/翻译'
 
 describe('ContactSection', () => {
@@ -20,7 +20,7 @@ describe('ContactSection', () => {
   it('renders section title and contact links', () => {
     render(<ContactSection />)
     expect(screen.getByRole('heading', { name: t('contact.title') })).toBeInTheDocument()
-    expect(screen.getByText(personalInfo.email)).toBeInTheDocument()
+    expect(screen.getByText(个人信息.email)).toBeInTheDocument()
     expect(screen.getAllByText('XuanRuiMu')).toHaveLength(2)
     expect(screen.getByText('玄锐暮')).toBeInTheDocument()
   })
@@ -28,9 +28,9 @@ describe('ContactSection', () => {
   it('renders QQ and微信 cards with numbers', () => {
     render(<ContactSection />)
     const qqCard = screen.getByText(t('contact.info.qq')).closest('.contact-item-link') as HTMLElement
-    within(qqCard).getByText(personalInfo.qq)
+    within(qqCard).getByText(个人信息.qq)
     const wechatCard = screen.getByText(t('contact.info.wechat')).closest('.contact-item-link') as HTMLElement
-    within(wechatCard).getByText(personalInfo.wechat)
+    within(wechatCard).getByText(个人信息.wechat)
   })
 
   it('renders QR images with correct src and alt', () => {
@@ -55,7 +55,7 @@ describe('ContactSection', () => {
     const qqImage = screen.getByAltText(t('contact.qr.qqAlt'))
     fireEvent.error(qqImage)
     expect(screen.queryByAltText(t('contact.qr.qqAlt'))).not.toBeInTheDocument()
-    expect(screen.getByText(personalInfo.qq)).toBeInTheDocument()
+    expect(screen.getByText(个人信息.qq)).toBeInTheDocument()
     expect(screen.getByAltText(t('contact.qr.wechatAlt'))).toBeInTheDocument()
   })
 
@@ -64,7 +64,7 @@ describe('ContactSection', () => {
     fireEvent.error(screen.getByAltText(t('contact.qr.wechatAlt')))
     expect(screen.queryByAltText(t('contact.qr.wechatAlt'))).not.toBeInTheDocument()
     const wechatCard = screen.getByText(t('contact.info.wechat')).closest('.contact-item-link') as HTMLElement
-    within(wechatCard).getByText(personalInfo.wechat)
+    within(wechatCard).getByText(个人信息.wechat)
     expect(screen.getByAltText(t('contact.qr.qqAlt'))).toBeInTheDocument()
   })
 
@@ -77,12 +77,12 @@ describe('ContactSection', () => {
 
   it('contact links have correct href attributes', () => {
     render(<ContactSection />)
-    expect(screen.getByRole('link', { name: new RegExp(personalInfo.email) })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: new RegExp(个人信息.email) })).toHaveAttribute(
       'href',
-      `mailto:${personalInfo.email}`
+      `mailto:${个人信息.email}`
     )
-    expect(screen.getByRole('link', { name: /XuanRuiMu/i })).toHaveAttribute('href', personalInfo.github)
-    expect(screen.getByRole('link', { name: /玄锐暮/i })).toHaveAttribute('href', personalInfo.bilibili)
+    expect(screen.getByRole('link', { name: /XuanRuiMu/i })).toHaveAttribute('href', 个人信息.github)
+    expect(screen.getByRole('link', { name: /玄锐暮/i })).toHaveAttribute('href', 个人信息.bilibili)
   })
 
   it('renders contact cards with the ported Get In Touch design', () => {
@@ -97,7 +97,7 @@ describe('ContactSection', () => {
 
   it('renders the copy-email button next to the email link', () => {
     render(<ContactSection />)
-    const emailLink = screen.getByRole('link', { name: new RegExp(personalInfo.email) })
+    const emailLink = screen.getByRole('link', { name: new RegExp(个人信息.email) })
     const item = emailLink.closest('.contact-item-link') as HTMLElement
     expect(item.querySelector(`button[aria-label="复制${t('contact.info.email')}"]`)).not.toBeNull()
   })
@@ -106,7 +106,7 @@ describe('ContactSection', () => {
     render(<ContactSection />)
     fireEvent.click(screen.getByRole('button', { name: `复制${t('contact.info.qq')}` }))
     await waitFor(() => {
-      expect(window.navigator.clipboard.writeText).toHaveBeenCalledWith(personalInfo.qq)
+      expect(window.navigator.clipboard.writeText).toHaveBeenCalledWith(个人信息.qq)
     })
     expect(screen.getByText(t('hero.copied'))).toBeInTheDocument()
   })
@@ -115,7 +115,7 @@ describe('ContactSection', () => {
     render(<ContactSection />)
     fireEvent.click(screen.getByRole('button', { name: `复制${t('contact.info.wechat')}` }))
     await waitFor(() => {
-      expect(window.navigator.clipboard.writeText).toHaveBeenCalledWith(personalInfo.wechat)
+      expect(window.navigator.clipboard.writeText).toHaveBeenCalledWith(个人信息.wechat)
     })
     expect(screen.getByText(t('hero.copied'))).toBeInTheDocument()
   })

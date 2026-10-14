@@ -1,11 +1,11 @@
-﻿import { useMutation } from '@tanstack/react-query'
-import type { AiMessage, AiToolMeta } from '../store/useAppStore'
+import { useMutation } from '@tanstack/react-query'
+import type { AI消息, AI工具元数据 } from '../store/应用状态仓库'
 import { retrieveChunks } from './ragEngine'
 import { 提取信封正文, 有可见正文 } from './structuredOutput'
 import { DEEPSEEK_MAX_TOKENS, DEEPSEEK_RETRIEVE_TOP_K } from './deepseekConfig'
 import { 解析模型, 聊天超时毫秒, type 思考强度, type 模型定义 } from './models'
 import { getLocalAnswer, 选择组件 } from './localEngine'
-import { useAppStore, type 回退原因 } from '../store/useAppStore'
+import { useYingYongZhuangTai, type 回退原因 } from '../store/应用状态仓库'
 import { t, type TranslationKey } from '../i18n/翻译'
 
 export interface ChatOptions {
@@ -19,9 +19,9 @@ export interface ChatOptions {
 }
 
 export interface ChatServiceResult {
-  message: AiMessage
+  message: AI消息
   /** 检索轨迹元数据 */
-  meta: AiToolMeta
+  meta: AI工具元数据
 }
 
 /**
@@ -41,7 +41,7 @@ export function 取依据来源(块: Array<{ metadata: { category: string } }>):
   ]
 }
 
-function 获取最后用户内容(messages: AiMessage[]): string {
+function 获取最后用户内容(messages: AI消息[]): string {
   for (let i = messages.length - 1; i >= 0; i--) {
     if (messages[i].role === 'user') {
       return messages[i].content
@@ -142,7 +142,7 @@ function 分类回退原因(err: unknown): { 回退原因: 回退原因; http状
  * 访客因此永远拿得到正文，工具轨迹也会诚实标注兜底原因，不会出现只有思考过程、
  * 没有任何回答的空回合。原因随实测传入（预算耗尽与格式异常不是一回事）。
  */
-function 构造无正文兜底(用户问题: string, 思考流: string, 检索命中数: number, 原因: 回退原因): AiMessage {
+function 构造无正文兜底(用户问题: string, 思考流: string, 检索命中数: number, 原因: 回退原因): AI消息 {
   const 兜底正文 = getLocalAnswer(用户问题)
   if (思考流.length > 0) 兜底正文.reasoning = 思考流
   兜底正文.meta = {
@@ -155,11 +155,11 @@ function 构造无正文兜底(用户问题: string, 思考流: string, 检索�
 }
 
 /**
- * 把一条 AiMessage 转为 API 消息体。
+ * 把一条 AI消息 转为 API 消息体。
  * 带 images 的 user 消息按 vision 格式拆块数组（text 块 + image_url 块）；
  * 其余（含 assistant）保持纯字符串——API 限制图片仅允许出现在 user 消息中。
  */
-function 到Api消息(message: AiMessage): Record<string, unknown> {
+function 到Api消息(message: AI消息): Record<string, unknown> {
   const hasImages = message.role === 'user' && !!message.images && message.images.length > 0
   if (!hasImages) {
     return { role: message.role, content: message.content }
@@ -234,13 +234,13 @@ export function 解析SSE行(行: string): { reasoning_content?: string; content
 
 async function callOpenAICompletions(
   模型: 模型定义,
-  messages: AiMessage[],
+  messages: AI消息[],
   systemPrompt: string,
   思考强度档: 思考强度,
   signal?: AbortSignal,
   onProgress?: (进度: { reasoning: string; content: string }) => void,
   检索命中数 = 0
-): Promise<AiMessage> {
+): Promise<AI消息> {
   const body: Record<string, unknown> = {
     model: 模型.id,
     messages: [{ role: 'system', content: systemPrompt }, ...messages.map(到Api消息)],
@@ -281,7 +281,7 @@ async function callOpenAICompletions(
     if (!有可见正文(rawContent)) {
       return 构造无正文兜底(用户问题, '', 检索命中数, 截断 ? 'truncated' : 'format')
     }
-    const 消息: AiMessage = { role: 'assistant', content: rawContent }
+    const 消息: AI消息 = { role: 'assistant', content: rawContent }
     if (截断) 消息.meta = { 命中数: 检索命中数, 耗时毫秒: 0, 本地兜底: false, 截断: true }
     return 消息
   }
@@ -336,7 +336,7 @@ async function callOpenAICompletions(
     return 构造无正文兜底(用户问题, 累加.reasoning, 检索命中数, 截断 ? 'truncated' : 'format')
   }
 
-  const 消息: AiMessage = { role: 'assistant', content: 累加.content }
+  const 消息: AI消息 = { role: 'assistant', content: 累加.content }
   if (累加.reasoning.length > 0) 消息.reasoning = 累加.reasoning
   // 截断不是兜底：如实打标让工具轨迹显示「回答已截断」，半截回答不许冒充完整回答
   if (截断) 消息.meta = { 命中数: 检索命中数, 耗时毫秒: 0, 本地兜底: false, 截断: true }
@@ -344,17 +344,17 @@ async function callOpenAICompletions(
 }
 
 function 解析本次模型(options: ChatOptions): 模型定义 {
-  const storeModel = useAppStore.getState().aiModel
+  const storeModel = useYingYongZhuangTai.getState().aiModel
   return 解析模型(options.model ?? storeModel)
 }
 
 async function callChatModel(
-  messages: AiMessage[],
+  messages: AI消息[],
   systemPrompt: string,
   思考强度档: 思考强度,
   options: ChatOptions,
   检索命中数 = 0
-): Promise<AiMessage> {
+): Promise<AI消息> {
   return callOpenAICompletions(
     解析本次模型(options),
     messages,
@@ -366,7 +366,7 @@ async function callChatModel(
   )
 }
 
-export async function sendChatMessage(messages: AiMessage[], options: ChatOptions = {}): Promise<ChatServiceResult> {
+export async function sendChatMessage(messages: AI消息[], options: ChatOptions = {}): Promise<ChatServiceResult> {
   const userQuestion = 获取最后用户内容(messages)
   const contextChunks = retrieveChunks(userQuestion, DEEPSEEK_RETRIEVE_TOP_K)
   const 安全上下文块 = contextChunks.filter((块) => 块.id !== 'personal-info-contact')
@@ -376,7 +376,7 @@ export async function sendChatMessage(messages: AiMessage[], options: ChatOption
 
   try {
     // 思考开关来自全局 store；上下文默认拉满：每次请求发送完整对话历史（API 无状态需自行携带）。
-    const { aiThinking } = useAppStore.getState()
+    const { aiThinking } = useYingYongZhuangTai.getState()
     const answer = await callChatModel(messages, buildSystemPrompt(context), aiThinking, options, 安全上下文块.length)
     const 落定耗时 = Date.now() - 开始毫秒
     // 组件由意图表判定后挂载（模型不再产出组件，见 思考体OpenAI 注释）：在线与本地兜底同源。
@@ -424,7 +424,7 @@ export async function sendChatMessage(messages: AiMessage[], options: ChatOption
  * 这里保留 json_object：它是官方推荐的「thinking.disabled + json_object」组合，
  * JSON 是硬要求（摘要必须是结构化文本），与聊天链路不同，故不受同开冲突影响。
  */
-export async function compactConversation(messages: AiMessage[], options: ChatOptions = {}): Promise<string> {
+export async function compactConversation(messages: AI消息[], options: ChatOptions = {}): Promise<string> {
   const 对话序列化 = messages
     .map((message) => `${message.role === 'user' ? '用户' : '助手'}：${message.content}`)
     .join('\n')
@@ -477,7 +477,7 @@ export function useChatService(options: ChatOptions = {}) {
       model,
       onProgress,
     }: {
-      messages: AiMessage[]
+      messages: AI消息[]
       signal?: AbortSignal
       model?: string
       onProgress?: (进度: { reasoning: string; content: string }) => void

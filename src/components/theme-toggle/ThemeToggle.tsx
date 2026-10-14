@@ -4,24 +4,24 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useThemeSystem } from './useThemeSystem'
 import { 合并类名 } from '../../lib/工具'
 import { t } from '../../i18n/翻译'
-import type { AppTheme } from '../../store/useAppStore'
+import type { 应用主题 } from '../../store/应用状态仓库'
 
-const THEMES: AppTheme[] = ['dark', 'light', 'system']
+const THEMES: 应用主题[] = ['dark', 'light', 'system']
 
-const ICONS: Record<AppTheme, typeof Sun> = {
+const ICONS: Record<应用主题, typeof Sun> = {
   dark: Moon,
   light: Sun,
   system: Monitor,
 }
 
-const THEME_LABEL: Record<AppTheme, string> = {
+const THEME_LABEL: Record<应用主题, string> = {
   dark: t('theme.dark'),
   light: t('theme.light'),
   system: t('theme.system'),
 }
 
 interface ThemeOption {
-  value: AppTheme
+  value: 应用主题
   icon: typeof Sun
   label: string
 }
@@ -47,7 +47,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
   const CurrentIcon = ICONS[theme]
   const currentIndex = OPTIONS.findIndex((option) => option.value === theme)
 
-  const handleSelect = (event: React.MouseEvent<HTMLButtonElement>, value: AppTheme) => {
+  const handleSelect = (event: React.MouseEvent<HTMLButtonElement>, value: 应用主题) => {
     event.stopPropagation()
     if (value !== theme) {
       setTheme(value, { origin: { 横: event.clientX, 纵: event.clientY } })

@@ -1,4 +1,4 @@
-import { logger } from '../observability/logger'
+import { 日志器实例 } from '../observability/日志器'
 
 export interface 圆形揭示原点 {
   横: number
@@ -35,7 +35,7 @@ export async function 启动视图过渡(更新回调: () => void | Promise<void
     await transition.ready
     await transition.finished
   } catch (err) {
-    logger.warn('View transition failed', { error: String(err) })
+    日志器实例.warn('View transition failed', { error: String(err) })
     await 更新回调()
   }
 }
@@ -63,7 +63,7 @@ export async function 启动圆形揭示过渡(更新回调: () => void | Promis
     await transition.ready
     await transition.finished
   } catch (err) {
-    logger.warn('Circular reveal transition failed', { error: String(err) })
+    日志器实例.warn('Circular reveal transition failed', { error: String(err) })
     await 包裹回调()
   } finally {
     root.classList.remove('circular-reveal-active')

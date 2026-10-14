@@ -130,7 +130,7 @@ if (typeof window !== 'undefined') {
 }
 
 // jsdom 在 opaque origin（about:blank）下不暴露 localStorage，提供最小内存实现
-// 以支持 zustand persist 中间件及直接访问 localStorage 的测试（如 useProjectsWindStore）
+// 以支持 zustand persist 中间件及直接访问 localStorage 的测试（如 useBianQianFengLi）
 if (typeof window !== 'undefined') {
   let 有本地存储 = false
   try {

@@ -40,14 +40,14 @@ describe('resumeKnowledgeBase', () => {
   })
 
   it('contact chunk carries no sensitive direct data', async () => {
-    const { personalInfo } = await import('../data/personalInfo')
+    const { 个人信息 } = await import('../data/个人信息')
     const chunks = buildResumeKnowledgeBase()
     const contact = chunks.find((chunk) => chunk.id === 'personal-info-contact')
     expect(contact).toBeDefined()
-    expect(contact?.content).not.toContain(personalInfo.email)
-    expect(contact?.content).not.toContain(personalInfo.phone)
-    expect(contact?.content).not.toContain(personalInfo.qq)
-    expect(contact?.content).not.toContain(personalInfo.wechat)
+    expect(contact?.content).not.toContain(个人信息.email)
+    expect(contact?.content).not.toContain(个人信息.phone)
+    expect(contact?.content).not.toContain(个人信息.qq)
+    expect(contact?.content).not.toContain(个人信息.wechat)
   })
 
   it('GitHub 快照进入知识库且不含被排除仓库', () => {

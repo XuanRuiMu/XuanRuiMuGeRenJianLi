@@ -1,16 +1,16 @@
 import { useEffect, useCallback, useRef, type KeyboardEvent as React键盘事件 } from 'react'
 import { Command } from 'cmdk'
 import { Search, Sun, Moon, Monitor, MessageSquare, Mail, Link, Download } from 'lucide-react'
-import { useAppStore, SECTION_ORDER, type AppSection, type AppTheme } from '../../store/useAppStore'
+import { useYingYongZhuangTai, 板块顺序, type 应用板块, type 应用主题 } from '../../store/应用状态仓库'
 import { useThemeSystem } from '../theme-toggle/useThemeSystem'
 import { t, type TranslationKey } from '../../i18n/翻译'
-import { personalInfo } from '../../data/personalInfo'
+import { 个人信息 } from '../../data/个人信息'
 import { 下载简历 } from '../../lib/简历'
 import { 合并类名 } from '../../lib/工具'
 import { 启动视图过渡 } from '../../utils/视图过渡'
 import { 平滑滚动引用 } from '../../lib/平滑滚动实例'
 
-function sectionLabel(section: AppSection): string {
+function sectionLabel(section: 应用板块): string {
   return t(`nav.${section}` as unknown as TranslationKey)
 }
 
@@ -55,10 +55,10 @@ function 保持对话框焦点(键盘事件: React键盘事件<HTMLDivElement>) 
 }
 
 export function CommandPalette() {
-  const open = useAppStore((state) => state.commandOpen)
-  const setOpen = useAppStore((state) => state.setCommandOpen)
-  const toggleChat = useAppStore((state) => state.toggleChat)
-  const transitionToSection = useAppStore((state) => state.transitionToSection)
+  const open = useYingYongZhuangTai((state) => state.commandOpen)
+  const setOpen = useYingYongZhuangTai((state) => state.setCommandOpen)
+  const toggleChat = useYingYongZhuangTai((state) => state.toggleChat)
+  const transitionToSection = useYingYongZhuangTai((state) => state.transitionToSection)
   const { theme, setTheme } = useThemeSystem()
   const 触发元素引用 = useRef<HTMLElement | null>(null)
   const 跳过焦点恢复引用 = useRef(false)
@@ -159,13 +159,13 @@ export function CommandPalette() {
   )
 
   const toggleTheme = useCallback(() => {
-    const next: AppTheme = theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark'
+    const next: 应用主题 = theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark'
     setTheme(next)
   }, [theme, setTheme])
 
   const copyEmail = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(personalInfo.email)
+      await navigator.clipboard.writeText(个人信息.email)
     } catch {
       // ignore clipboard errors
     }
@@ -173,7 +173,7 @@ export function CommandPalette() {
 
   const copyGithub = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(personalInfo.github)
+      await navigator.clipboard.writeText(个人信息.github)
     } catch {
       // ignore clipboard errors
     }
@@ -241,7 +241,7 @@ export function CommandPalette() {
             }
             className="space-y-1"
           >
-            {SECTION_ORDER.map((section, 序号) => (
+            {板块顺序.map((section, 序号) => (
               <Command.Item
                 key={section}
                 value={`section-${section} ${sectionLabel(section)}`}
@@ -281,14 +281,14 @@ export function CommandPalette() {
             <Command.Item
               value={t('command.toggleTheme')}
               onSelect={() => run(toggleTheme)}
-              data-command-index={格式化命令数(SECTION_ORDER.length + 1)}
+              data-command-index={格式化命令数(板块顺序.length + 1)}
               className={命令项类}
             >
               <span
                 aria-hidden="true"
                 className="w-6 shrink-0 text-right font-mono text-[10px] tabular-nums text-muted/60"
               >
-                {格式化命令数(SECTION_ORDER.length + 1)}
+                {格式化命令数(板块顺序.length + 1)}
               </span>
               <span className={命令图标类}>
                 {theme === 'dark' ? <Moon size={15} /> : theme === 'light' ? <Sun size={15} /> : <Monitor size={15} />}
@@ -301,14 +301,14 @@ export function CommandPalette() {
             <Command.Item
               value={t('command.copyEmail')}
               onSelect={() => run(copyEmail)}
-              data-command-index={格式化命令数(SECTION_ORDER.length + 2)}
+              data-command-index={格式化命令数(板块顺序.length + 2)}
               className={命令项类}
             >
               <span
                 aria-hidden="true"
                 className="w-6 shrink-0 text-right font-mono text-[10px] tabular-nums text-muted/60"
               >
-                {格式化命令数(SECTION_ORDER.length + 2)}
+                {格式化命令数(板块顺序.length + 2)}
               </span>
               <span className={命令图标类}>
                 <Mail size={15} />
@@ -321,14 +321,14 @@ export function CommandPalette() {
             <Command.Item
               value={t('command.copyGithub')}
               onSelect={() => run(copyGithub)}
-              data-command-index={格式化命令数(SECTION_ORDER.length + 3)}
+              data-command-index={格式化命令数(板块顺序.length + 3)}
               className={命令项类}
             >
               <span
                 aria-hidden="true"
                 className="w-6 shrink-0 text-right font-mono text-[10px] tabular-nums text-muted/60"
               >
-                {格式化命令数(SECTION_ORDER.length + 3)}
+                {格式化命令数(板块顺序.length + 3)}
               </span>
               <span className={命令图标类}>
                 <Link size={15} />
@@ -341,14 +341,14 @@ export function CommandPalette() {
             <Command.Item
               value={t('command.openChat')}
               onSelect={() => run(toggleChat)}
-              data-command-index={格式化命令数(SECTION_ORDER.length + 4)}
+              data-command-index={格式化命令数(板块顺序.length + 4)}
               className={命令项类}
             >
               <span
                 aria-hidden="true"
                 className="w-6 shrink-0 text-right font-mono text-[10px] tabular-nums text-muted/60"
               >
-                {格式化命令数(SECTION_ORDER.length + 4)}
+                {格式化命令数(板块顺序.length + 4)}
               </span>
               <span className={命令图标类}>
                 <MessageSquare size={15} />
@@ -361,14 +361,14 @@ export function CommandPalette() {
             <Command.Item
               value={t('command.downloadResume')}
               onSelect={() => run(handleDownloadResume)}
-              data-command-index={格式化命令数(SECTION_ORDER.length + 5)}
+              data-command-index={格式化命令数(板块顺序.length + 5)}
               className={命令项类}
             >
               <span
                 aria-hidden="true"
                 className="w-6 shrink-0 text-right font-mono text-[10px] tabular-nums text-muted/60"
               >
-                {格式化命令数(SECTION_ORDER.length + 5)}
+                {格式化命令数(板块顺序.length + 5)}
               </span>
               <span className={命令图标类}>
                 <Download size={15} />

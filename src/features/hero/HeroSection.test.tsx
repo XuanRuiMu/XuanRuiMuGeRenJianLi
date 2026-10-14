@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { HeroSection } from './HeroSection'
-import { personalInfo } from '../../data/personalInfo'
+import { 个人信息 } from '../../data/个人信息'
 import { t } from '../../i18n/翻译'
 
 // jsdom 无 2D 画布实现，mock 掉变形器创建以保持测试输出零噪音
@@ -27,7 +27,7 @@ describe('HeroSection', () => {
 
   it('renders name, rotating role typewriter and tech stack', () => {
     render(<HeroSection />)
-    expect(screen.getByRole('heading', { name: personalInfo.name })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 个人信息.name })).toBeInTheDocument()
     // 主页标题已替换为签字图（透明底黑字，浅色深色/深色浅色），alt 承载姓名
     expect(screen.getByTestId('hero-signature')).toHaveAttribute('src', '/images/签字-alpha.png')
     expect(screen.getByTestId('hero-signature').getAttribute('class') ?? '').toContain('dark:invert')

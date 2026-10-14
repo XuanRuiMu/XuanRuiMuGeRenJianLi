@@ -1,8 +1,8 @@
-﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { ExperienceSection } from './ExperienceSection'
-import { experiences, educatorBilibiliUrl, wowguildVideoUrl, 暮澜链接 } from '../../data/experience'
-import { personalInfo } from '../../data/personalInfo'
+import { 经历表, educatorBilibiliUrl, wowguildVideoUrl, 暮澜链接 } from '../../data/经历'
+import { 个人信息 } from '../../data/个人信息'
 import { t } from '../../i18n/翻译'
 
 describe('ExperienceSection', () => {
@@ -74,9 +74,9 @@ describe('ExperienceSection', () => {
     const timeline = screen.getByRole('list', { name: t('experience.timelineLabel') })
     const items = Array.from(timeline.querySelectorAll(':scope > li')) as HTMLElement[]
 
-    expect(items).toHaveLength(experiences.length)
+    expect(items).toHaveLength(经历表.length)
 
-    for (const [index, entry] of experiences.entries()) {
+    for (const [index, entry] of 经历表.entries()) {
       const item = items[index]
       expect(item).toHaveAttribute('data-timeline-index', String(index))
       expect(item).toHaveAttribute('aria-labelledby', `experience-title-${entry.id}`)
@@ -98,8 +98,8 @@ describe('ExperienceSection', () => {
   it('renders achievements inside every card (hover reveal keeps content in DOM)', () => {
     render(<ExperienceSection />)
     const cards = document.querySelectorAll('.experience-card')
-    expect(cards).toHaveLength(experiences.length)
-    for (const [index, entry] of experiences.entries()) {
+    expect(cards).toHaveLength(经历表.length)
+    for (const [index, entry] of 经历表.entries()) {
       const card = cards[index]
       const achievements = card.querySelector('.experience-achievements')
       expect(achievements).not.toBeNull()
@@ -132,7 +132,7 @@ describe('ExperienceSection', () => {
   it('renders timeline nodes for each entry', () => {
     render(<ExperienceSection />)
     const nodes = document.querySelectorAll('.timeline-node')
-    expect(nodes).toHaveLength(experiences.length)
+    expect(nodes).toHaveLength(经历表.length)
   })
 
   it('has experience id on section', () => {
@@ -143,7 +143,7 @@ describe('ExperienceSection', () => {
   it('marks timeline nodes as active when timeline progress reaches their position', () => {
     render(<ExperienceSection />)
     const nodes = document.querySelectorAll('.timeline-node')
-    expect(nodes).toHaveLength(experiences.length)
+    expect(nodes).toHaveLength(经历表.length)
     for (const node of nodes) {
       expect(node).toHaveClass('is-active')
     }
@@ -214,7 +214,7 @@ describe('ExperienceSection', () => {
 
     render(<ExperienceSection />)
     const achievementsBlocks = document.querySelectorAll('.experience-achievements')
-    expect(achievementsBlocks).toHaveLength(experiences.length)
+    expect(achievementsBlocks).toHaveLength(经历表.length)
     for (const block of achievementsBlocks) {
       expect(block).toHaveClass('is-visible')
     }
@@ -231,7 +231,7 @@ describe('ExperienceSection', () => {
       { id: 'mcserver', labelKey: 'projects.link.github', url: 暮澜链接 },
       { id: 'educator', labelKey: 'projects.link.bilibili', url: educatorBilibiliUrl },
       { id: 'wowguild', labelKey: 'projects.link.bilibili', url: wowguildVideoUrl },
-      { id: 'indie', labelKey: 'projects.link.github', url: personalInfo.github },
+      { id: 'indie', labelKey: 'projects.link.github', url: 个人信息.github },
     ] as const
     for (const c of cases) {
       const card = document.querySelector(`[data-experience-card="${c.id}"]`)
@@ -256,12 +256,12 @@ describe('ExperienceSection', () => {
 
   it('FP-01：经历首条挂指定暮澜链接', () => {
     expect(暮澜链接).toBe('https://github.com/XuanRuiMu/XRMChaJian')
-    const 首条 = experiences.find((entry) => entry.id === 'mcserver')
+    const 首条 = 经历表.find((entry) => entry.id === 'mcserver')
     expect(首条?.links?.[0].url).toBe('https://github.com/XuanRuiMu/XRMChaJian')
   })
 
   it('FP-05：独立开发者经历挂GitHub主页而非单个项目', () => {
-    const indie = experiences.find((entry) => entry.id === 'indie')
-    expect(indie?.links?.[0].url).toBe(personalInfo.github)
+    const indie = 经历表.find((entry) => entry.id === 'indie')
+    expect(indie?.links?.[0].url).toBe(个人信息.github)
   })
 })

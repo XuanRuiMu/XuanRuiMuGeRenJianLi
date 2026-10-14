@@ -26,8 +26,8 @@ vi.mock('./useIsDarkMode', () => ({
   useIsDarkMode: () => hookState.isDark,
 }))
 
-vi.mock('../../store/useStarryUiStore', () => ({
-  useStarryUiStore: (selector: (state: { inkEnabled: boolean }) => unknown) =>
+vi.mock('../../store/星空开关仓库', () => ({
+  useXingKongKaiGuan: (selector: (state: { inkEnabled: boolean }) => unknown) =>
     selector({ inkEnabled: hookState.inkEnabled }),
 }))
 

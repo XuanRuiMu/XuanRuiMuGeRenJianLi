@@ -83,7 +83,7 @@ describe('ragEngine', () => {
   it('学校口语问法首屏即学校事实（用户原话回归）', () => {
     const results = retrieveChunks('他是哪个学校毕业的?', 3)
     expect(results.length).toBeGreaterThan(0)
-    expect(results[0].id).toMatch(/education|personal-info-education/)
+    expect(results[0].id).toMatch(/personal-info-education/)
     expect(results[0].content).toContain('天津仁爱学院')
   })
 

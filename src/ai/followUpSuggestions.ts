@@ -1,4 +1,4 @@
-﻿import type { AiMessage } from '../store/useAppStore'
+import type { AI消息 } from '../store/应用状态仓库'
 import { ta } from '../i18n/翻译'
 import { 命中兜底意图, 检测项目卡片, 是否纯问候, 是否感谢, 是否告别 } from './intentTable'
 
@@ -17,7 +17,7 @@ function 规范化三元(候选: string[]): string[] {
   return [...去重, ...取回退()].slice(0, 3)
 }
 
-export function 生成追问建议(用户问题: string, 助手消息?: AiMessage): string[] {
+export function 生成追问建议(用户问题: string, 助手消息?: AI消息): string[] {
   const 输入 = (用户问题 ?? '').trim()
   if (输入.length === 0) return 取回退()
   if (是否纯问候(输入) || 是否感谢(输入) || 是否告别(输入)) {

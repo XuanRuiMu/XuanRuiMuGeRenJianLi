@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, useCallback, useMemo, startTransition } from 'react'
 import { X, Loader2, RefreshCw, ImagePlus, ChevronRight } from 'lucide-react'
-import { useAppStore } from '../../store/useAppStore'
-import type { AiMessage } from '../../store/useAppStore'
+import { useYingYongZhuangTai } from '../../store/应用状态仓库'
+import type { AI消息 } from '../../store/应用状态仓库'
 import { 合并类名 } from '../../lib/工具'
 import { t, ta } from '../../i18n/翻译'
 import { useChatService, compactConversation, 是否中断错误 } from '../../ai/chatService'
@@ -128,7 +128,7 @@ function ReasoningBlock({ 面板标识, 思考, 展开后 }: { 面板标识: str
   )
 }
 
-function 工具轨迹描述(消息: AiMessage): string {
+function 工具轨迹描述(消息: AI消息): string {
   const 元 = 消息.meta
   if (!元) return t('ai.toolGeneric')
   const 基础 = `${t('ai.toolHits')} ${元.命中数} ${t('ai.toolSegments')} · ${元.耗时毫秒}ms`
@@ -181,17 +181,17 @@ function 最接近指令(输入: string): string | undefined {
 }
 
 export function AIChat({ className }: AIChatProps) {
-  const chatOpen = useAppStore((state) => state.chatOpen)
-  const setChatOpen = useAppStore((state) => state.setChatOpen)
-  const aiMessages = useAppStore((state) => state.aiMessages)
-  const addAiMessage = useAppStore((state) => state.addAiMessage)
-  const updateAiMessage = useAppStore((state) => state.updateAiMessage)
-  const clearAiMessages = useAppStore((state) => state.clearAiMessages)
-  const aiModel = useAppStore((state) => state.aiModel)
-  const setAiModel = useAppStore((state) => state.setAiModel)
-  const stashedSession = useAppStore((state) => state.stashedSession)
-  const stashSession = useAppStore((state) => state.stashSession)
-  const restoreSession = useAppStore((state) => state.restoreSession)
+  const chatOpen = useYingYongZhuangTai((state) => state.chatOpen)
+  const setChatOpen = useYingYongZhuangTai((state) => state.setChatOpen)
+  const aiMessages = useYingYongZhuangTai((state) => state.aiMessages)
+  const addAiMessage = useYingYongZhuangTai((state) => state.addAiMessage)
+  const updateAiMessage = useYingYongZhuangTai((state) => state.updateAiMessage)
+  const clearAiMessages = useYingYongZhuangTai((state) => state.clearAiMessages)
+  const aiModel = useYingYongZhuangTai((state) => state.aiModel)
+  const setAiModel = useYingYongZhuangTai((state) => state.setAiModel)
+  const stashedSession = useYingYongZhuangTai((state) => state.stashedSession)
+  const stashSession = useYingYongZhuangTai((state) => state.stashSession)
+  const restoreSession = useYingYongZhuangTai((state) => state.restoreSession)
 
   const [input, setInput] = useState('')
   const [sendError, setSendError] = useState<string | null>(null)
@@ -205,8 +205,8 @@ export function AIChat({ className }: AIChatProps) {
   const chatMutation = useChatService()
   const isPending = chatMutation.isPending
 
-  const aiThinking = useAppStore((state) => state.aiThinking)
-  const setAiThinking = useAppStore((state) => state.setAiThinking)
+  const aiThinking = useYingYongZhuangTai((state) => state.aiThinking)
+  const setAiThinking = useYingYongZhuangTai((state) => state.setAiThinking)
 
   // 指令输出（/help /status /compact /未知指令）：瞬态本地状态，不进对话历史，
   // 避免污染发给模型的上下文（Claude Code 的指令输出同样不属于会话历史）。
@@ -350,13 +350,13 @@ export function AIChat({ className }: AIChatProps) {
    * 其他错误走错误栏。SSE 流式增量经 onProgress 落到占位助手消息，逐字显示。
    */
   const sendMessage = useCallback(
-    async (用户消息: AiMessage) => {
+    async (用户消息: AI消息) => {
       const gen = generationRef.current
       setSendError(null)
       const controller = new AbortController()
       abortRef.current = controller
       const mutateInput: {
-        messages: AiMessage[]
+        messages: AI消息[]
         signal: AbortSignal
         model?: string
         onProgress?: (增量: { reasoning: string; content: string }) => void
@@ -403,7 +403,7 @@ export function AIChat({ className }: AIChatProps) {
     sendingRef.current = true
     const [next, ...rest] = queued
     setQueued(rest)
-    const 用户消息: AiMessage = {
+    const 用户消息: AI消息 = {
       role: 'user',
       content: next.content,
       ...(next.images && next.images.length > 0 ? { images: next.images } : {}),
@@ -622,7 +622,7 @@ export function AIChat({ className }: AIChatProps) {
       // 排队时不得清空 systemLines，否则 pending 中系统行被吞掉无回显。
       setSystemLines([])
       set模型选择下标(null)
-      const 用户消息: AiMessage = {
+      const 用户消息: AI消息 = {
         role: 'user',
         content,
         ...(images.length > 0 ? { images } : {}),
@@ -751,7 +751,7 @@ export function AIChat({ className }: AIChatProps) {
 
   const 追问建议 = useMemo(() => {
     let 最后用户问题 = ''
-    let 最后助手消息: AiMessage | undefined
+    let 最后助手消息: AI消息 | undefined
     for (const 消息 of 可见消息) {
       if (消息.role === 'user') 最后用户问题 = 消息.content
       if (消息.role === 'assistant') 最后助手消息 = 消息

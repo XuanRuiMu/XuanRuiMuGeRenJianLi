@@ -1,16 +1,16 @@
-﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { ProjectsSection } from './ProjectsSection'
-import { projects } from '../../data/projects'
+import { 项目表 } from '../../data/项目'
 import { t } from '../../i18n/翻译'
-import { useProjectsWindStore, 默认风力强度 } from '../../store/useProjectsWindStore'
+import { useBianQianFengLi, 默认风力强度 } from '../../store/便签风力仓库'
 
 describe('ProjectsSection', () => {
   let 减少动画 = false
 
   beforeEach(() => {
     减少动画 = false
-    useProjectsWindStore.setState({ 风力强度: 默认风力强度 })
+    useBianQianFengLi.setState({ 风力强度: 默认风力强度 })
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
       value: vi.fn().mockImplementation((query: string) => ({
@@ -42,7 +42,7 @@ describe('ProjectsSection', () => {
 
   it('渲染四张便签，包含项目名与描述', () => {
     render(<ProjectsSection />)
-    for (const project of projects) {
+    for (const project of 项目表) {
       expect(screen.getByRole('heading', { name: t(project.nameKey) })).toBeInTheDocument()
       expect(screen.getByText(t(project.descKey))).toBeInTheDocument()
     }
@@ -51,7 +51,7 @@ describe('ProjectsSection', () => {
   it('GitHub 链接为真实可点击的 a 标签', () => {
     render(<ProjectsSection />)
     const links = screen.getAllByRole('link')
-    const expectedUrls = projects.flatMap((project) => project.links?.map((link) => link.url) ?? [])
+    const expectedUrls = 项目表.flatMap((project) => project.links?.map((link) => link.url) ?? [])
     expect(links.length).toBe(expectedUrls.length)
     for (const url of expectedUrls) {
       expect(links.some((link) => link.getAttribute('href') === url)).toBe(true)
@@ -65,7 +65,7 @@ describe('ProjectsSection', () => {
   it('便签文字允许选中复制（user-select: text）', () => {
     const { container } = render(<ProjectsSection />)
     const notes = container.querySelectorAll('.clothesline-note')
-    expect(notes.length).toBe(projects.length)
+    expect(notes.length).toBe(项目表.length)
     for (const note of notes) {
       expect(note.className).toContain('select-text')
     }
@@ -78,8 +78,8 @@ describe('ProjectsSection', () => {
   })
 
   it('风力 store 可被设置并持久化（控制已迁入统一控制面板）', () => {
-    useProjectsWindStore.getState().设置风力强度(1.6)
-    expect(useProjectsWindStore.getState().风力强度).toBe(1.6)
+    useBianQianFengLi.getState().设置风力强度(1.6)
+    expect(useBianQianFengLi.getState().风力强度).toBe(1.6)
   })
 
   it('四张便签使用四种浅色配色', () => {
@@ -91,14 +91,14 @@ describe('ProjectsSection', () => {
       expect(tint).not.toBeNull()
       tints.add(tint!)
     }
-    expect(tints.size).toBe(projects.length)
+    expect(tints.size).toBe(项目表.length)
   })
 
   it('reduced motion 下仍然渲染画布与便签（静态姿态）', () => {
     减少动画 = true
     const { container } = render(<ProjectsSection />)
     expect(container.querySelectorAll('canvas.clothesline-canvas').length).toBe(1)
-    expect(container.querySelectorAll('.clothesline-note').length).toBe(projects.length)
+    expect(container.querySelectorAll('.clothesline-note').length).toBe(项目表.length)
   })
 
   it('便签不捕获指针事件（无 pointer capture 调用）', () => {
@@ -125,14 +125,14 @@ describe('ProjectsSection', () => {
       expect(container.querySelectorAll('canvas.clothesline-canvas').length).toBe(1)
       expect(container.querySelector('.clothesline-scroll')).not.toBeNull()
       const notes = container.querySelectorAll('.clothesline-region .clothesline-note')
-      expect(notes.length).toBe(projects.length)
+      expect(notes.length).toBe(项目表.length)
     })
 
     it('每张物理便签包含标题与描述，有链接的项目展示可见链接', () => {
       const { container } = render(<ProjectsSection />)
       const notes = container.querySelectorAll('.clothesline-region .clothesline-note')
       for (const [index, note] of Array.from(notes).entries()) {
-        const project = projects[index]
+        const project = 项目表[index]
         expect(note.querySelector('.clothesline-note-title')?.textContent).toBe(t(project.nameKey))
         expect(note.querySelector('.clothesline-note-desc')?.textContent).toBe(t(project.descKey))
         const link = note.querySelector('.clothesline-note-link')
@@ -149,7 +149,7 @@ describe('ProjectsSection', () => {
       const { container } = render(<ProjectsSection />)
       const notes = container.querySelectorAll('.clothesline-region .clothesline-note')
       const tints = new Set(Array.from(notes).map((note) => note.getAttribute('data-tint')))
-      expect(tints.size).toBe(projects.length)
+      expect(tints.size).toBe(项目表.length)
     })
   })
 })

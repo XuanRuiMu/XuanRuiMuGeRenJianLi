@@ -1,23 +1,23 @@
-﻿import { describe, it, expect } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { getLocalAnswer, 选择组件, RULES } from './localEngine'
 import { 共享意图表 } from './intentTable'
 import type { UiComponent } from './structuredOutput'
-import { personalInfo } from '../data/personalInfo'
-import { 求职方向 } from '../data/careerFocus'
+import { 个人信息 } from '../data/个人信息'
+import { 求职方向 } from '../data/职业方向'
 import { t, type TranslationKey } from '../i18n/翻译'
 
 describe('localEngine', () => {
   it('returns text answer for name question', () => {
     const result = getLocalAnswer('你叫什么')
     expect(result.role).toBe('assistant')
-    expect(result.content).toContain(personalInfo.name)
+    expect(result.content).toContain(个人信息.name)
     expect(result.component).toBeUndefined()
   })
 
   it('returns ContactLinks for contact question', () => {
     const result = getLocalAnswer('联系方式')
-    expect(result.content).not.toContain(personalInfo.email)
-    expect(result.content).not.toContain(personalInfo.phone)
+    expect(result.content).not.toContain(个人信息.email)
+    expect(result.content).not.toContain(个人信息.phone)
     expect(result.component).toEqual({ type: 'ContactLinks' })
   })
 
@@ -25,8 +25,8 @@ describe('localEngine', () => {
     for (const q of ['怎么联系你', '你的微信是多少', 'qq多少', '手机号多少', '邮箱是什么']) {
       const result = getLocalAnswer(q)
       expect(result.component).toEqual({ type: 'ContactLinks' })
-      expect(result.content).not.toContain(personalInfo.email)
-      expect(result.content).not.toContain(personalInfo.phone)
+      expect(result.content).not.toContain(个人信息.email)
+      expect(result.content).not.toContain(个人信息.phone)
     }
   })
 
@@ -73,8 +73,8 @@ describe('localEngine', () => {
 
   it('returns fallback text for unknown question', () => {
     const result = getLocalAnswer('宇宙终极答案')
-    expect(result.content).not.toContain(personalInfo.email)
-    expect(result.content).not.toContain(personalInfo.phone)
+    expect(result.content).not.toContain(个人信息.email)
+    expect(result.content).not.toContain(个人信息.phone)
     expect(result.component).toBeUndefined()
   })
 
@@ -106,12 +106,12 @@ describe('本地兜底答非所问根因（FP-04b）：只认话题独占的问�
 
   function 期望答案(key: 'name' | 'target' | 'contact' | 'projects' | 'skills' | 'education' | 'experience'): string {
     return t(`chat.answers.${key}` as unknown as TranslationKey)
-      .replace('{name}', personalInfo.name)
+      .replace('{name}', 个人信息.name)
       .replace('{direction}', 求职方向())
-      .replace('{school}', personalInfo.education.school)
-      .replace('{major}', personalInfo.education.major)
-      .replace('{degree}', personalInfo.education.degree)
-      .replace('{period}', personalInfo.education.period)
+      .replace('{school}', 个人信息.教育背景.school)
+      .replace('{major}', 个人信息.教育背景.major)
+      .replace('{degree}', 个人信息.教育背景.degree)
+      .replace('{period}', 个人信息.教育背景.period)
   }
 
   const 答非所问句 = [
@@ -183,8 +183,8 @@ describe('本地兜底答非所问根因（FP-04b）：只认话题独占的问�
   it('联系方式预制答案不直给邮箱与电话', () => {
     for (const 问句 of ['联系方式', '怎么联系你', '你的微信是多少', '邮箱是什么']) {
       const result = getLocalAnswer(问句)
-      expect(result.content).not.toContain(personalInfo.email)
-      expect(result.content).not.toContain(personalInfo.phone)
+      expect(result.content).not.toContain(个人信息.email)
+      expect(result.content).not.toContain(个人信息.phone)
     }
   })
 })

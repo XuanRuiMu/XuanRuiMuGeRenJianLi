@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import { render, screen, within, waitFor, cleanup } from '@testing-library/react'
@@ -23,7 +23,7 @@ import {
   端部余量组数,
   轨道屏幕偏移,
 } from './marqueeEngine'
-import { showcaseRows, 暮澜链接 } from '../../data/showcase'
+import { 展示行表, 暮澜链接 } from '../../data/展示'
 import { t } from '../../i18n/翻译'
 
 // 固定高度残留检测：覆盖任意变体前缀（sm:/md:/2xl:/任意变体:，以冒号分隔）与 min-h-/max-h- 前缀。
@@ -107,7 +107,7 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
 
   it('renders every card of all three rows', () => {
     render(<ShowcaseSection />)
-    for (const row of showcaseRows) {
+    for (const row of 展示行表) {
       for (const card of row.cards) {
         // 每张逻辑卡片至少渲染一次（marquee 无缝循环渲染 份数 份相同卡片组）
         expect(screen.getAllByText(t(card.titleKey)).length).toBeGreaterThanOrEqual(1)
@@ -115,7 +115,7 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
       }
     }
     // 逻辑卡总数 × 最小份数（jsdom 无布局宽度，份数取下限；数据驱动，随showcaseRows扩展自动同步）
-    const expected = showcaseRows.reduce((n, r) => n + r.cards.length, 0) * 最小份数
+    const expected = 展示行表.reduce((n, r) => n + r.cards.length, 0) * 最小份数
     const cards = document.querySelectorAll('.group\\/card')
     expect(cards).toHaveLength(expected)
   })
@@ -131,7 +131,7 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
   it('ports the neon gradient border design on every card', () => {
     render(<ShowcaseSection />)
     // 逻辑卡总数 × 最小份数marquee轨道（数据驱动，随showcaseRows扩展自动同步）
-    const expected = showcaseRows.reduce((n, r) => n + r.cards.length, 0) * 最小份数
+    const expected = 展示行表.reduce((n, r) => n + r.cards.length, 0) * 最小份数
     const cards = document.querySelectorAll('.group\\/card')
     expect(cards).toHaveLength(expected)
     for (const card of cards) {
@@ -219,7 +219,7 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
 
     render(<ShowcaseSection />)
     // 逻辑卡总数 × 最小份数（reduced-motion下静止但仍渲染 最小份数 份，数据驱动）
-    const expected = showcaseRows.reduce((n, r) => n + r.cards.length, 0) * 最小份数
+    const expected = 展示行表.reduce((n, r) => n + r.cards.length, 0) * 最小份数
     const cards = document.querySelectorAll('.group\\/card')
     expect(cards).toHaveLength(expected)
     for (const card of cards) {
@@ -234,7 +234,7 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
 
   it('renders every showcase row anchor so navigation still works', () => {
     render(<ShowcaseSection />)
-    for (const row of showcaseRows) {
+    for (const row of 展示行表) {
       const anchor = document.getElementById(row.anchorId)
       expect(anchor).not.toBeNull()
     }
@@ -301,9 +301,7 @@ describe('FP-06探索板块重构：8视频与开源仓库可达', () => {
   })
 
   it('数据源中8视频href与卡片一一对应', () => {
-    const href卡片 = showcaseRows
-      .flatMap((row) => row.cards)
-      .filter((card) => card.href?.includes('bilibili.com/video/BV'))
+    const href卡片 = 展示行表.flatMap((row) => row.cards).filter((card) => card.href?.includes('bilibili.com/video/BV'))
     expect(href卡片).toHaveLength(8)
     expect(new Set(href卡片.map((card) => card.href)).size).toBe(8)
   })
@@ -345,11 +343,11 @@ describe('FP-06探索板块重构：8视频与开源仓库可达', () => {
   })
 
   it('FP-04：opensource行末羊来卡标题描述链接配图数据驱动', () => {
-    const media行 = showcaseRows.find((row) => row.anchorId === 'media')
+    const media行 = 展示行表.find((row) => row.anchorId === 'media')
     expect(media行).toBeDefined()
     expect(media行?.cards.map((card) => card.id)).not.toContain('yanglai')
     expect(media行?.cards).toHaveLength(5)
-    const opensource行 = showcaseRows.find((row) => row.anchorId === 'opensource')
+    const opensource行 = 展示行表.find((row) => row.anchorId === 'opensource')
     expect(opensource行).toBeDefined()
     expect(opensource行?.cards).toHaveLength(4)
     const 羊来卡 = opensource行?.cards.at(-1)
@@ -365,7 +363,7 @@ describe('FP-06探索板块重构：8视频与开源仓库可达', () => {
   })
 
   it('每张展示卡都有专属图标映射，缺映射必须显式失败而非静默退化', () => {
-    const 全部卡id = showcaseRows.flatMap((row) => row.cards.map((card) => card.id))
+    const 全部卡id = 展示行表.flatMap((row) => row.cards.map((card) => card.id))
     expect(全部卡id.length).toBeGreaterThan(0)
     const 缺映射 = 全部卡id.filter((id) => !(id in 卡片图标表))
     expect(缺映射).toEqual([])
@@ -390,7 +388,7 @@ describe('FP-06探索板块重构：8视频与开源仓库可达', () => {
 
   it('FP-01：xrmUi与gameWorld展示卡均为指定暮澜链接', () => {
     expect(暮澜链接).toBe('https://github.com/XuanRuiMu/XRMChaJian')
-    const 所有卡片 = showcaseRows.flatMap((row) => row.cards)
+    const 所有卡片 = 展示行表.flatMap((row) => row.cards)
     const 展示暮澜 = 所有卡片.find((card) => card.id === 'xrmUi')
     const 游戏世界 = 所有卡片.find((card) => card.id === 'gameWorld')
     expect(展示暮澜?.href).toBe('https://github.com/XuanRuiMu/XRMChaJian')
@@ -633,7 +631,7 @@ describe('跑马灯布局不变量测量', () => {
     vi.stubGlobal('requestAnimationFrame', () => 0)
     render(<ShowcaseSection />)
     await waitFor(() => {
-      const expected = showcaseRows.reduce((n, r) => n + r.cards.length, 0) * 6
+      const expected = 展示行表.reduce((n, r) => n + r.cards.length, 0) * 6
       expect(document.querySelectorAll('.group\\/card')).toHaveLength(expected)
     })
     const 轨道 = document.querySelector('.showcase-marquee') as HTMLElement

@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import zhCN from './i18n/zh-CN.json'
@@ -84,13 +84,13 @@ describe('FP-02内容一致性回归', () => {
   })
 
   it('FP-01：四处暮澜链接均为指定地址', async () => {
-    const { projects } = await import('./data/projects')
-    const { experiences } = await import('./data/experience')
-    const { showcaseRows } = await import('./data/showcase')
+    const { 项目表 } = await import('./data/项目')
+    const { 经历表 } = await import('./data/经历')
+    const { 展示行表 } = await import('./data/展示')
     const 指定地址 = 'https://github.com/XuanRuiMu/XRMChaJian'
-    expect(projects.find((项目) => 项目.id === 'xrm')?.links[0].url).toBe(指定地址)
-    expect(experiences.find((条目) => 条目.id === 'mcserver')?.links?.[0].url).toBe(指定地址)
-    const 所有卡片 = showcaseRows.flatMap((行) => 行.cards)
+    expect(项目表.find((项目) => 项目.id === 'xrm')?.links[0].url).toBe(指定地址)
+    expect(经历表.find((条目) => 条目.id === 'mcserver')?.links?.[0].url).toBe(指定地址)
+    const 所有卡片 = 展示行表.flatMap((行) => 行.cards)
     expect(所有卡片.find((卡片) => 卡片.id === 'xrmUi')?.href).toBe(指定地址)
     expect(所有卡片.find((卡片) => 卡片.id === 'gameWorld')?.href).toBe(指定地址)
   })
@@ -114,7 +114,7 @@ describe('FP-02内容一致性回归', () => {
     for (const 残留 of ['架子鼓', '爵士乐', '乐理', '频谱', '音乐经历']) {
       expect(翻译文本, `翻译文本不得残留「${残留}」`).not.toContain(残留)
     }
-    const 展示卡id = (await import('./data/showcase')).showcaseRows.flatMap((行) => 行.cards).map((卡) => 卡.id)
+    const 展示卡id = (await import('./data/展示')).展示行表.flatMap((行) => 行.cards).map((卡) => 卡.id)
     expect(展示卡id).not.toContain('escape')
     expect(fs.existsSync(path.resolve('素材/showcase/爵士乐.png'))).toBe(false)
     expect(fs.existsSync(path.resolve('src/data/music.ts'))).toBe(false)
@@ -139,7 +139,7 @@ describe('FP-10 文案错误、口径不一致与死文案守卫', () => {
     for (const 路径 of 死键路径表) {
       expect(键存在(路径), `zh-CN.json.${路径} 无消费者，属死文案`).toBe(false)
     }
-    // education/media 的板块标题仍是 AI 助手时间线的数据源，不得连带误删
+    // 学历/media 的板块标题仍是 AI 助手时间线的数据源，不得连带误删
     expect(键存在('education.title')).toBe(true)
     expect(键存在('media.title')).toBe(true)
     expect(Object.keys(zhCN.education)).toEqual(['title'])

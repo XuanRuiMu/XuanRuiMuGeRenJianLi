@@ -5,7 +5,7 @@ import { useXingNengDangWei } from '../../hooks/useXingNengDangWei'
 import { createStarryControlPanel, createStarryGalaxyScene, type StarryGalaxySceneApi } from './StarryGalaxyScene'
 import { useIsDarkMode } from './useIsDarkMode'
 import { 星空场景引用 } from '../../lib/星空场景引用'
-import { useStarryUiStore } from '../../store/useStarryUiStore'
+import { useXingKongKaiGuan } from '../../store/星空开关仓库'
 
 interface StarryGalaxyBackgroundProps {
   className?: string
@@ -94,7 +94,7 @@ export function StarryGalaxyBackground({ className, children }: StarryGalaxyBack
   const { 设置, 加载中 } = useXingNengDangWei()
   const reducedMotion = useJianShaoDongHua()
   const isDark = useIsDarkMode()
-  const starryHidden = useStarryUiStore((s) => s.starryHidden)
+  const starryHidden = useXingKongKaiGuan((s) => s.starryHidden)
 
   // FP-05：控制台与场景解耦——始终构建（DOM 存在时），不论场景是否创建。
   // 这保证「彻底隐藏星空」时控制台依然有内容，可继续调整参数（只是看不到效果）。

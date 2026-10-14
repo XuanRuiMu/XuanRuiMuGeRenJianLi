@@ -1,7 +1,7 @@
-﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, cleanup, act } from '@testing-library/react'
 import { AIChat } from './AIChat'
-import { useAppStore } from '../../store/useAppStore'
+import { useYingYongZhuangTai } from '../../store/应用状态仓库'
 import { t, ta } from '../../i18n/翻译'
 
 const setChatOpen = vi.fn()
@@ -34,8 +34,8 @@ function notifyMockState() {
   mockRuntime.listeners.forEach((listener) => listener())
 }
 
-vi.mock('../../store/useAppStore', () => ({
-  useAppStore: vi.fn(),
+vi.mock('../../store/应用状态仓库', () => ({
+  useYingYongZhuangTai: vi.fn(),
 }))
 
 vi.mock('../../ai/chatService', async () => {
@@ -63,7 +63,7 @@ vi.mock('../../ai/chatService', async () => {
   }
 })
 
-const mockUseAppStore = useAppStore as unknown as ReturnType<typeof vi.fn>
+const mockUseAppStore = useYingYongZhuangTai as unknown as ReturnType<typeof vi.fn>
 
 function createMockState(overrides: Record<string, unknown> = {}) {
   return {

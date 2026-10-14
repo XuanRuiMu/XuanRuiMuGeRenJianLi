@@ -2,10 +2,10 @@ import { useRef, useState } from 'react'
 import { Check, Copy, ExternalLink } from 'lucide-react'
 import { t, type TranslationKey } from '../../i18n/翻译'
 import { 合并类名 } from '../../lib/工具'
-import { projects } from '../../data/projects'
-import { experiences } from '../../data/experience'
-import { education } from '../../data/education'
-import { personalInfo } from '../../data/personalInfo'
+import { 项目表 } from '../../data/项目'
+import { 经历表 } from '../../data/经历'
+import { 教育档案 } from '../../data/教育'
+import { 个人信息 } from '../../data/个人信息'
 import type { ProjectCardComponent, TimelineComponent, UiComponent } from '../../ai/structuredOutput'
 
 interface ComponentRendererProps<T extends UiComponent> {
@@ -13,7 +13,7 @@ interface ComponentRendererProps<T extends UiComponent> {
 }
 
 function ProjectCardRenderer({ component }: ComponentRendererProps<ProjectCardComponent>) {
-  const project = projects.find((item) => item.id === component.projectId)
+  const project = 项目表.find((item) => item.id === component.projectId)
 
   if (!project) {
     return (
@@ -79,17 +79,17 @@ function getMediaTimelineEntries(): TimelineEntry[] {
 }
 
 function getExperienceTimelineEntries(): TimelineEntry[] {
-  return experiences.map((entry) => ({
+  return 经历表.map((entry) => ({
     year: t(entry.periodKey).split(' ')[0] ?? t(entry.periodKey),
     label: `${t(entry.titleKey)}${entry.organizationKey ? ` · ${t(entry.organizationKey)}` : ''}`,
   }))
 }
 
 function getEducationTimelineEntries(): TimelineEntry[] {
-  const summary = education.summary
+  const summary = 教育档案.summary
   return [
     { year: summary.period.split(' - ')[0] ?? summary.period, label: `${summary.school} · ${summary.major}` },
-    ...education.achievementKeys.map((key) => ({ year: '', label: t(key) })),
+    ...教育档案.achievementKeys.map((key) => ({ year: '', label: t(key) })),
   ]
 }
 
@@ -156,8 +156,8 @@ function ContactLinksRenderer() {
   const 按钮样式 =
     'inline-flex items-center justify-center gap-1 rounded-lg border border-border bg-bg px-2 py-1.5 text-xs text-text-primary transition-colors hover:border-primary'
   const 直开项 = [
-    { id: 'github', 地址: personalInfo.github, 标签: t('ai.contactLinks.github') },
-    { id: 'bilibili', 地址: personalInfo.bilibili, 标签: t('ai.contactLinks.bilibili') },
+    { id: 'github', 地址: 个人信息.github, 标签: t('ai.contactLinks.github') },
+    { id: 'bilibili', 地址: 个人信息.bilibili, 标签: t('ai.contactLinks.bilibili') },
   ]
   return (
     <div className="rounded-xl border border-border bg-surface-elevated p-3">
@@ -178,9 +178,7 @@ function ContactLinksRenderer() {
         <button
           type="button"
           aria-label={`${t('ai.contactLinks.qq')}${t('ai.contactLinks.copy')}`}
-          onClick={() =>
-            复制并唤起('qq', personalInfo.qq, `tencent://message/?uin=${encodeURIComponent(personalInfo.qq)}`)
-          }
+          onClick={() => 复制并唤起('qq', 个人信息.qq, `tencent://message/?uin=${encodeURIComponent(个人信息.qq)}`)}
           className={按钮样式}
         >
           {已复制 === 'qq' ? <Check size={12} /> : <Copy size={12} />}
@@ -191,7 +189,7 @@ function ContactLinksRenderer() {
         <button
           type="button"
           aria-label={`${t('ai.contactLinks.wechat')}${t('ai.contactLinks.copy')}`}
-          onClick={() => 复制并唤起('wechat', personalInfo.wechat, 'weixin://')}
+          onClick={() => 复制并唤起('wechat', 个人信息.wechat, 'weixin://')}
           className={按钮样式}
         >
           {已复制 === 'wechat' ? <Check size={12} /> : <Copy size={12} />}
@@ -203,7 +201,7 @@ function ContactLinksRenderer() {
         <button
           type="button"
           aria-label={`${t('ai.contactLinks.phone')}${t('ai.contactLinks.copy')}`}
-          onClick={() => void 复制文本('phone', personalInfo.phone)}
+          onClick={() => void 复制文本('phone', 个人信息.phone)}
           className={合并类名(按钮样式, 'col-span-2')}
         >
           {已复制 === 'phone' ? <Check size={12} /> : <Copy size={12} />}

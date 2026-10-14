@@ -2,14 +2,8 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { Section } from '../../components/ui/Section'
 import { Reveal } from '../../components/Reveal'
 import { t } from '../../i18n/翻译'
-import {
-  radarAxes,
-  dimensionLabelKey,
-  dimensionBasisKey,
-  dimensionDescriptionKey,
-  type RadarAxis,
-} from '../../data/radar'
-import { 量化指标, 技能组表, type 量化指标项 } from '../../data/skillGroups'
+import { 雷达轴表, dimensionLabelKey, dimensionBasisKey, dimensionDescriptionKey, type 雷达轴 } from '../../data/雷达'
+import { 量化指标, 技能组表, type 量化指标项 } from '../../data/技能分组'
 import { useShuZiGunDong } from '../../hooks/useShuZiGunDong'
 import { useJianShaoDongHua } from '../../hooks/useJianShaoDongHua'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -157,7 +151,7 @@ function RadarTooltip({
   说明Id,
   减少动画,
 }: {
-  轴: RadarAxis
+  轴: 雷达轴
   x: number
   y: number
   说明Id: string
@@ -211,16 +205,16 @@ function RadarTooltip({
 
 export function SkillsSection() {
   const reduced = useJianShaoDongHua()
-  const count = radarAxes.length
-  const dataPoints = polygonPoints(radarAxes.map((a) => a.level))
+  const count = 雷达轴表.length
+  const dataPoints = polygonPoints(雷达轴表.map((a) => a.level))
   const 指标表 = 量化指标()
   const 分组表 = 技能组表()
-  const 主轴表 = radarAxes.filter((轴) => !轴.minor)
+  const 主轴表 = 雷达轴表.filter((轴) => !轴.minor)
   const 气泡说明Id = useId()
   const [悬停轴Id, set悬停轴Id] = useState<string | null>(null)
   const 当前轴Id = 悬停轴Id
-  const 当前轴索引 = radarAxes.findIndex((轴) => 轴.id === 当前轴Id)
-  const 当前轴 = 当前轴索引 >= 0 ? radarAxes[当前轴索引] : null
+  const 当前轴索引 = 雷达轴表.findIndex((轴) => 轴.id === 当前轴Id)
+  const 当前轴 = 当前轴索引 >= 0 ? 雷达轴表[当前轴索引] : null
   const 当前视觉 = 当前轴 ? 气泡视觉表[当前轴.id] : undefined
   const 当前说明Id = 当前轴 ? `${气泡说明Id}-${当前轴.id}` : 气泡说明Id
   const [当前X, 当前Y] = 当前轴索引 >= 0 ? pointAt(当前轴索引 * (360 / count), (当前轴?.level ?? 0) / 100) : [0, 0]
@@ -304,13 +298,13 @@ export function SkillsSection() {
                 {RINGS.map((lv) => (
                   <polygon
                     key={lv}
-                    points={polygonPoints(radarAxes.map(() => lv))}
+                    points={polygonPoints(雷达轴表.map(() => lv))}
                     fill="none"
                     stroke="rgba(125,211,252,0.18)"
                     strokeWidth={1}
                   />
                 ))}
-                {radarAxes.map((_, i) => {
+                {雷达轴表.map((_, i) => {
                   const [x, y] = pointAt(i * (360 / count), 1)
                   return (
                     <line
@@ -358,7 +352,7 @@ export function SkillsSection() {
                     />
                   )}
                 </AnimatePresence>
-                {radarAxes.map((轴, i) => {
+                {雷达轴表.map((轴, i) => {
                   const [x, y] = pointAt(i * (360 / count), 轴.level / 100)
                   return (
                     <circle
@@ -376,7 +370,7 @@ export function SkillsSection() {
                     />
                   )
                 })}
-                {radarAxes.map((轴, i) => {
+                {雷达轴表.map((轴, i) => {
                   const [x, y] = pointAt(i * (360 / count), 1.18)
                   const anchor = x < CENTER - 4 ? 'end' : x > CENTER + 4 ? 'start' : 'middle'
                   return (

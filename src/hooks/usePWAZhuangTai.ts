@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
-import { useAppStore } from '../store/useAppStore'
+import { useYingYongZhuangTai } from '../store/应用状态仓库'
 
 export function usePWAZhuangTai(): void {
-  const setOffline = useAppStore((state) => state.setOffline)
+  const setOffline = useYingYongZhuangTai((state) => state.setOffline)
 
   useEffect(() => {
     const handleOnline = () => setOffline(false)

@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { Mail, ExternalLink, Copy, Check, MessageCircle, MessagesSquare } from 'lucide-react'
 import { Section } from '../../components/ui/Section'
-import { personalInfo } from '../../data/personalInfo'
+import { 个人信息 } from '../../data/个人信息'
 import { 合并类名 } from '../../lib/工具'
 import { t } from '../../i18n/翻译'
 import { Gomoku } from './Gomoku'
@@ -58,22 +58,22 @@ export function ContactSection() {
     {
       id: 'email',
       label: t('contact.info.email'),
-      value: personalInfo.email,
-      href: `mailto:${personalInfo.email}`,
+      value: 个人信息.email,
+      href: `mailto:${个人信息.email}`,
       icon: ({ className }: { className?: string }) => <Mail className={className} aria-hidden="true" />,
     },
     {
       id: 'github',
       label: t('contact.info.github'),
       value: 'XuanRuiMu',
-      href: personalInfo.github,
+      href: 个人信息.github,
       icon: (props: { className?: string }) => <GithubIcon {...props} />,
     },
     {
       id: 'bilibili',
       label: t('contact.info.bilibili'),
-      value: personalInfo.name,
-      href: personalInfo.bilibili,
+      value: 个人信息.name,
+      href: 个人信息.bilibili,
       icon: (props: { className?: string }) => <BilibiliIcon {...props} />,
     },
   ]
@@ -82,7 +82,7 @@ export function ContactSection() {
     {
       id: 'qq',
       label: t('contact.info.qq'),
-      value: personalInfo.qq,
+      value: 个人信息.qq,
       src: '/images/qq-qr.png',
       alt: t('contact.qr.qqAlt'),
       icon: ({ className }: { className?: string }) => <MessageCircle className={className} aria-hidden="true" />,
@@ -90,7 +90,7 @@ export function ContactSection() {
     {
       id: 'wechat',
       label: t('contact.info.wechat'),
-      value: personalInfo.wechat,
+      value: 个人信息.wechat,
       src: '/images/wechat-qr.png',
       alt: t('contact.qr.wechatAlt'),
       icon: ({ className }: { className?: string }) => <MessagesSquare className={className} aria-hidden="true" />,
@@ -122,7 +122,7 @@ export function ContactSection() {
                   </span>
                 </a>
                 {isEmail ? (
-                  复制按钮(link.id, personalInfo.email, link.label)
+                  复制按钮(link.id, 个人信息.email, link.label)
                 ) : (
                   <a
                     href={link.href}

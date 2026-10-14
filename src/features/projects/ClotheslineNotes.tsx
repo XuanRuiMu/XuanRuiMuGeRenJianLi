@@ -1,10 +1,10 @@
 import { useEffect, useRef, type RefObject } from 'react'
 import { ExternalLink } from 'lucide-react'
-import { projects } from '../../data/projects'
-import type { Project } from '../../data/types'
+import { 项目表 } from '../../data/项目'
+import type { Project } from '../../data/类型'
 import { t } from '../../i18n/翻译'
 import { useJianShaoDongHua } from '../../hooks/useJianShaoDongHua'
-import { useProjectsWindStore } from '../../store/useProjectsWindStore'
+import { useBianQianFengLi } from '../../store/便签风力仓库'
 import { 晾衣架物理引擎, 晾衣架配置, type 晾衣架快照 } from './clotheslinePhysics'
 import { 应用晾衣架布局 } from './clotheslineLayout'
 import { useNoteAutoFit } from './useNoteAutoFit'
@@ -138,7 +138,7 @@ function NoteContent({ 项目 }: { 项目: Project }) {
 
 export function ClotheslineNotes({ 填充 = false }: ClotheslineNotesProps) {
   const reducedMotion = useJianShaoDongHua()
-  const 风力强度 = useProjectsWindStore((s) => s.风力强度)
+  const 风力强度 = useBianQianFengLi((s) => s.风力强度)
   const 容器Ref = useRef<HTMLDivElement>(null)
   const 画布Ref = useRef<HTMLCanvasElement>(null)
   const 便签Refs = useRef<Array<HTMLDivElement | null>>([])
@@ -314,7 +314,7 @@ export function ClotheslineNotes({ 填充 = false }: ClotheslineNotesProps) {
     <div className="clothesline-scroll">
       <div ref={容器Ref} className={`clothesline-region${填充 ? ' clothesline-region--fill' : ''}`}>
         <canvas ref={画布Ref} className="clothesline-canvas" aria-hidden="true" />
-        {projects.map((project, index) => {
+        {项目表.map((project, index) => {
           return (
             <div
               key={project.id}

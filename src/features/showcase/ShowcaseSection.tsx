@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Shapes } from 'lucide-react'
 import { motion, useScroll, useSpring, useTransform } from 'framer-motion'
-import { showcaseRows, type ShowcaseCard } from '../../data/showcase'
+import { 展示行表, type 展示卡 } from '../../data/展示'
 import { t } from '../../i18n/翻译'
 import { useJianShaoDongHua } from '../../hooks/useJianShaoDongHua'
 import { 卡片图标表 } from './cardIcons'
@@ -51,7 +51,7 @@ const ICON_COLORS = ['#a78bfa', '#fbbf24', '#f472b6', '#22d3ee', '#a3e635', '#e8
 const 弹簧配置 = { stiffness: 300, damping: 30 }
 
 interface ShowcaseProductCardProps {
-  card: ShowcaseCard
+  card: 展示卡
   index: number
   reducedMotion: boolean
   控制?: 跑马灯控制
@@ -216,7 +216,7 @@ function useZidongPaomadeng(选项: { 控制: 跑马灯控制; 方向: 1 | -1; �
 }
 
 interface ShowcaseMarqueeRowProps {
-  row: (typeof showcaseRows)[number]
+  row: (typeof 展示行表)[number]
   rowIndex: number
   方向: 1 | -1
   基准速度: number
@@ -388,7 +388,7 @@ export function ShowcaseSection() {
         {/* 入场 3D 倾斜必须挂在包裹层（perspective 的直接子元素）：CSS perspective 只作用于直接子级的变换，
             挂到单张卡片上会失去透视呈现为无透视的仿射变换——整排卡片不再作为同一块 3D 平面倾斜（问题4 回归根因） */}
         <motion.div style={entrance} className="[transform-style:preserve-3d]">
-          {showcaseRows.map((row, rowIndex) => (
+          {展示行表.map((row, rowIndex) => (
             <ShowcaseMarqueeRow
               key={row.anchorId}
               row={row}

@@ -1,8 +1,8 @@
-import { useAppStore } from '../store/useAppStore'
-import { logger } from '../observability/logger'
+import { useYingYongZhuangTai } from '../store/应用状态仓库'
+import { 日志器实例 } from '../observability/日志器'
 import { t } from '../i18n/翻译'
 
-const { setOfflineReady, setUpdateAvailable, setCacheQuotaWarning } = useAppStore.getState()
+const { setOfflineReady, setUpdateAvailable, setCacheQuotaWarning } = useYingYongZhuangTai.getState()
 
 export type 更新服务工作线程类型 = (重载页面?: boolean) => Promise<void>
 
@@ -25,7 +25,7 @@ function 绑定消息通道(): void {
     switch (消息数据.type) {
       case 'CACHE_QUOTA_WARNING':
         setCacheQuotaWarning(true)
-        logger.warn('Cache quota warning', 消息数据.payload)
+        日志器实例.warn('Cache quota warning', 消息数据.payload)
         break
       case 'OFFLINE_READY':
         setOfflineReady(true)
@@ -38,7 +38,7 @@ function 绑定消息通道(): void {
 
 function 监听更新(注册信息: ServiceWorkerRegistration): void {
   if (注册信息.waiting && navigator.serviceWorker.controller) {
-    logger.info('Service Worker update available')
+    日志器实例.info('Service Worker update available')
     setUpdateAvailable(true)
     return
   }
@@ -49,10 +49,10 @@ function 监听更新(注册信息: ServiceWorkerRegistration): void {
     安装中.addEventListener('statechange', () => {
       if (安装中.state !== 'installed') return
       if (navigator.serviceWorker.controller) {
-        logger.info('Service Worker update available')
+        日志器实例.info('Service Worker update available')
         setUpdateAvailable(true)
       } else {
-        logger.info('Service Worker offline ready')
+        日志器实例.info('Service Worker offline ready')
         setOfflineReady(true)
       }
     })
@@ -61,7 +61,7 @@ function 监听更新(注册信息: ServiceWorkerRegistration): void {
 
 export function 注册服务工作线程(): 更新服务工作线程类型 | null {
   if (!('serviceWorker' in navigator)) {
-    logger.info('Service Worker not supported in this environment')
+    日志器实例.info('Service Worker not supported in this environment')
     return null
   }
 
@@ -88,12 +88,12 @@ export function 注册服务工作线程(): 更新服务工作线程类型 | nul
   navigator.serviceWorker
     .register(服务工作线程路径)
     .then((注册信息) => {
-      logger.info('Service Worker registered', { swUrl: 服务工作线程路径, scope: 注册信息.scope })
+      日志器实例.info('Service Worker registered', { swUrl: 服务工作线程路径, scope: 注册信息.scope })
       监听更新(注册信息)
     })
     .catch((error: unknown) => {
       服务线程更新实现 = null
-      logger.warn(t('pwa.errorRegister'), { error: String(error) })
+      日志器实例.warn(t('pwa.errorRegister'), { error: String(error) })
     })
 
   return 应用更新

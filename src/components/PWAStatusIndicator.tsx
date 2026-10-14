@@ -1,20 +1,20 @@
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import { WifiOff, RefreshCw, CheckCircle, AlertTriangle, X } from 'lucide-react'
-import { useAppStore } from '../store/useAppStore'
+import { useYingYongZhuangTai } from '../store/应用状态仓库'
 import { 更新服务工作线程 } from '../utils/注册服务工作线程'
 import { usePWAZhuangTai } from '../hooks/usePWAZhuangTai'
 import { t } from '../i18n/翻译'
 
 export function PWAStatusIndicator(): ReactNode {
   usePWAZhuangTai()
-  const isOffline = useAppStore((state) => state.isOffline)
-  const updateAvailable = useAppStore((state) => state.updateAvailable)
-  const offlineReady = useAppStore((state) => state.offlineReady)
-  const cacheQuotaWarning = useAppStore((state) => state.cacheQuotaWarning)
-  const setUpdateAvailable = useAppStore((state) => state.setUpdateAvailable)
-  const setOfflineReady = useAppStore((state) => state.setOfflineReady)
-  const setCacheQuotaWarning = useAppStore((state) => state.setCacheQuotaWarning)
+  const isOffline = useYingYongZhuangTai((state) => state.isOffline)
+  const updateAvailable = useYingYongZhuangTai((state) => state.updateAvailable)
+  const offlineReady = useYingYongZhuangTai((state) => state.offlineReady)
+  const cacheQuotaWarning = useYingYongZhuangTai((state) => state.cacheQuotaWarning)
+  const setUpdateAvailable = useYingYongZhuangTai((state) => state.setUpdateAvailable)
+  const setOfflineReady = useYingYongZhuangTai((state) => state.setOfflineReady)
+  const setCacheQuotaWarning = useYingYongZhuangTai((state) => state.setCacheQuotaWarning)
 
   const [showOfflineReady, setShowOfflineReady] = useState(false)
   const [showQuotaWarning, setShowQuotaWarning] = useState(false)

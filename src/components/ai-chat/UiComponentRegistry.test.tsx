@@ -1,8 +1,8 @@
-﻿import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { UiComponentRenderer } from './UiComponentRegistry'
 import { t } from '../../i18n/翻译'
-import { personalInfo } from '../../data/personalInfo'
+import { 个人信息 } from '../../data/个人信息'
 
 describe('UiComponentRenderer', () => {
   beforeEach(() => {
@@ -35,16 +35,16 @@ describe('UiComponentRenderer', () => {
     expect(screen.getByText(t('ai.contactLinks.qq'), { exact: false })).toBeInTheDocument()
     expect(screen.getByText(t('ai.contactLinks.wechat'), { exact: false })).toBeInTheDocument()
     expect(screen.getByText(t('ai.contactLinks.phone'), { exact: false })).toBeInTheDocument()
-    expect(screen.queryByText(personalInfo.email)).not.toBeInTheDocument()
+    expect(screen.queryByText(个人信息.email)).not.toBeInTheDocument()
   })
 
   it('opens github and bilibili via blank links', () => {
     render(<UiComponentRenderer component={{ type: 'ContactLinks' }} />)
     const github = screen.getByRole('link', { name: `${t('ai.contactLinks.github')}${t('ai.contactLinks.open')}` })
     const bilibili = screen.getByRole('link', { name: `${t('ai.contactLinks.bilibili')}${t('ai.contactLinks.open')}` })
-    expect(github).toHaveAttribute('href', personalInfo.github)
+    expect(github).toHaveAttribute('href', 个人信息.github)
     expect(github).toHaveAttribute('target', '_blank')
-    expect(bilibili).toHaveAttribute('href', personalInfo.bilibili)
+    expect(bilibili).toHaveAttribute('href', 个人信息.bilibili)
     expect(bilibili).toHaveAttribute('target', '_blank')
   })
 
@@ -59,7 +59,7 @@ describe('UiComponentRenderer', () => {
       render(<UiComponentRenderer component={{ type: 'ContactLinks' }} />)
       fireEvent.click(screen.getByRole('button', { name: `${t('ai.contactLinks.qq')}${t('ai.contactLinks.copy')}` }))
       await waitFor(() => {
-        expect(写入).toHaveBeenCalledWith(personalInfo.qq)
+        expect(写入).toHaveBeenCalledWith(个人信息.qq)
       })
       expect(打开).toHaveBeenCalledWith(expect.stringContaining('tencent://'), '_blank', 'noopener')
       await waitFor(() => {
@@ -83,7 +83,7 @@ describe('UiComponentRenderer', () => {
         screen.getByRole('button', { name: `${t('ai.contactLinks.wechat')}${t('ai.contactLinks.copy')}` })
       )
       await waitFor(() => {
-        expect(写入).toHaveBeenCalledWith(personalInfo.wechat)
+        expect(写入).toHaveBeenCalledWith(个人信息.wechat)
       })
       expect(打开).toHaveBeenCalledWith(expect.stringContaining('weixin://'), '_blank', 'noopener')
     } finally {
@@ -101,7 +101,7 @@ describe('UiComponentRenderer', () => {
       render(<UiComponentRenderer component={{ type: 'ContactLinks' }} />)
       fireEvent.click(screen.getByRole('button', { name: `${t('ai.contactLinks.phone')}${t('ai.contactLinks.copy')}` }))
       await waitFor(() => {
-        expect(写入).toHaveBeenCalledWith(personalInfo.phone)
+        expect(写入).toHaveBeenCalledWith(个人信息.phone)
       })
       expect(打开).not.toHaveBeenCalled()
       await waitFor(() => {

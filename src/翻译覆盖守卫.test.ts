@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 
 /**
@@ -20,7 +20,7 @@ const 守卫文件 = [
 ]
 
 const 中文字符串 = /'[^'\n]*[一-龥][^'\n]*'|"[^"\n]*[一-龥][^"\n]*"|`[^`]*[一-龥][^`]*`/g
-const 代码行 = /(throw\b|console\.|new Error|DOMException|Error\(|\.add\(|assert|logger\.)/
+const 代码行 = /(throw\b|console\.|new Error|DOMException|Error\(|\.add\(|assert|日志器实例\.)/
 
 function 提取违例(源码: string, 文件: string): string[] {
   const 去注释 = 源码.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^[ \t]*\/\/.*$/gm, '')

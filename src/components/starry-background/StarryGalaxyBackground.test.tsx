@@ -14,8 +14,8 @@ const { hookState, 设置, createMock, panelMock } = vi.hoisted(() => {
   return { hookState, 设置, createMock, panelMock }
 })
 
-vi.mock('../../store/useStarryUiStore', () => ({
-  useStarryUiStore: (selector: (state: { starryHidden: boolean }) => unknown) =>
+vi.mock('../../store/星空开关仓库', () => ({
+  useXingKongKaiGuan: (selector: (state: { starryHidden: boolean }) => unknown) =>
     selector({ starryHidden: hookState.starryHidden }),
 }))
 

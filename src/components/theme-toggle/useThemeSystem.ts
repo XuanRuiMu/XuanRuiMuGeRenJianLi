@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useAppStore, type AppTheme } from '../../store/useAppStore'
+import { useYingYongZhuangTai, type 应用主题 } from '../../store/应用状态仓库'
 import { 启动视图过渡, 启动圆形揭示过渡, type 圆形揭示原点 } from '../../utils/视图过渡'
 
 const STORAGE_KEY = 'xrm-theme'
@@ -8,7 +8,7 @@ export interface SetThemeOptions {
   origin?: 圆形揭示原点
 }
 
-function resolveTheme(theme: AppTheme): 'dark' | 'light' {
+function resolveTheme(theme: 应用主题): 'dark' | 'light' {
   if (theme === 'system') {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   }
@@ -16,14 +16,14 @@ function resolveTheme(theme: AppTheme): 'dark' | 'light' {
 }
 
 export function useThemeSystem() {
-  const theme = useAppStore((state) => state.theme)
-  const reducedMotion = useAppStore((state) => state.reducedMotion)
-  const setThemeStore = useAppStore((state) => state.setTheme)
+  const theme = useYingYongZhuangTai((state) => state.theme)
+  const reducedMotion = useYingYongZhuangTai((state) => state.reducedMotion)
+  const setThemeStore = useYingYongZhuangTai((state) => state.setTheme)
   const [resolvedTheme, setResolvedTheme] = useState<'dark' | 'light'>('dark')
   const pendingOriginRef = useRef<圆形揭示原点 | null>(null)
 
   const applyTheme = useCallback(
-    (next: AppTheme) => {
+    (next: 应用主题) => {
       const resolved = resolveTheme(next)
       const update = () => {
         setResolvedTheme(resolved)
@@ -70,7 +70,7 @@ export function useThemeSystem() {
   }, [setThemeStore])
 
   const setTheme = useCallback(
-    (next: AppTheme, options?: SetThemeOptions) => {
+    (next: 应用主题, options?: SetThemeOptions) => {
       pendingOriginRef.current = options?.origin ?? null
       setThemeStore(next)
       try {

@@ -1,8 +1,8 @@
-﻿import { describe, it, expect, vi, afterEach } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, act, cleanup, fireEvent } from '@testing-library/react'
 import { SkillsSection } from './SkillsSection'
-import { 量化指标, 技能组表 } from '../../data/skillGroups'
-import { radarAxes, dimensionLabelKey, dimensionBasisKey } from '../../data/radar'
+import { 量化指标, 技能组表 } from '../../data/技能分组'
+import { 雷达轴表, dimensionLabelKey, dimensionBasisKey } from '../../data/雷达'
 import { t } from '../../i18n/翻译'
 
 /** 数字滚动只允许在 act 内推进；这里冻结 rAF 让终态文本稳定可读 */
@@ -208,7 +208,7 @@ describe('FP-03 技能板块 - 雷达与残留', () => {
     fireEvent.mouseEnter(点!)
 
     const 气泡 = 容器.querySelector('[role="tooltip"]')
-    const 轴 = radarAxes.find((项) => 项.id === 'aiAgent')!
+    const 轴 = 雷达轴表.find((项) => 项.id === 'aiAgent')!
     expect(气泡?.textContent).toBe(t(`data.radar.dimensions.${轴.id}.description` as never))
     expect(气泡?.textContent).not.toContain(t(`data.radar.dimensions.${轴.id}.basis` as never))
   })
@@ -230,7 +230,7 @@ describe('FP-03 技能板块 - 雷达与残留', () => {
   it('六个技能气泡使用独立切角造型并区分技术色与创意色', async () => {
     const { 容器 } = await 渲染技能板块()
     const 点表 = Array.from(容器.querySelectorAll('[data-radar-point]'))
-    expect(点表.map((点) => 点.getAttribute('data-radar-point'))).toEqual(radarAxes.map((轴) => 轴.id))
+    expect(点表.map((点) => 点.getAttribute('data-radar-point'))).toEqual(雷达轴表.map((轴) => 轴.id))
 
     const 造型表: string[] = []
     const 色系表 = new Set<string>()
@@ -272,7 +272,7 @@ describe('FP-03 技能板块 - 雷达与残留', () => {
     expect(图形?.closest('figure')?.getAttribute('class') ?? '').toContain('max-w-sm')
 
     const 方位表: string[] = []
-    for (const 轴 of radarAxes) {
+    for (const 轴 of 雷达轴表) {
       const 点 = 容器.querySelector(`[data-radar-point="${轴.id}"]`)!
       fireEvent.mouseEnter(点)
       const 气泡 = 容器.querySelector(`[data-radar-tooltip="${轴.id}"]`)!
@@ -298,14 +298,14 @@ describe('FP-03 技能板块 - 雷达与残留', () => {
 
   it('雷达只画 6 条轴，图例与轴集一致', async () => {
     const { 容器 } = await 渲染技能板块()
-    expect(容器.querySelectorAll('svg text')).toHaveLength(radarAxes.length)
-    expect(radarAxes.filter((轴) => !轴.minor)).toHaveLength(4)
+    expect(容器.querySelectorAll('svg text')).toHaveLength(雷达轴表.length)
+    expect(雷达轴表.filter((轴) => !轴.minor)).toHaveLength(4)
     const 图例 = Array.from(容器.querySelectorAll('[class*="rounded-xl border"]')).filter((节点) =>
       (节点.textContent ?? '').includes(t('data.radar.dimensions.aiAgent.basis'))
     )
     expect(图例).toHaveLength(1)
     const 轴标签 = Array.from(容器.querySelectorAll('svg text')).map((项) => 项.textContent)
-    expect(轴标签).toEqual(radarAxes.map((轴) => t(`data.radar.dimensions.${轴.id}.label` as never)))
+    expect(轴标签).toEqual(雷达轴表.map((轴) => t(`data.radar.dimensions.${轴.id}.label` as never)))
   })
 
   it('板块文本里没有任何音乐/内容创作残留', async () => {
@@ -340,7 +340,7 @@ describe('FP-03 技能板块 - 雷达与残留', () => {
     const 雷达 = 容器.querySelector('figure')!
     const 右侧 = 雷达.parentElement?.nextElementSibling as HTMLElement
     const 卡片表 = Array.from(右侧.querySelectorAll(':scope > .reveal > div'))
-    const 主轴表 = radarAxes.filter((轴) => !轴.minor)
+    const 主轴表 = 雷达轴表.filter((轴) => !轴.minor)
 
     expect(卡片表).toHaveLength(4)
     主轴表.forEach((轴, 索引) => {
