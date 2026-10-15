@@ -1,7 +1,7 @@
 import type { 环形缓冲 } from './环形缓冲'
 import { 日志分类 } from './环形缓冲'
 
-export interface Span {
+export interface 跨度 {
   spanId: number
   traceId: number
   parentSpanId: number | null
@@ -14,8 +14,8 @@ export interface Span {
 
 export class 追踪器 {
   private nextSpanId = 1
-  private activeSpans = new Map<number, Span>()
-  private completedSpans: Span[] = []
+  private activeSpans = new Map<number, 跨度>()
+  private completedSpans: 跨度[] = []
   private perfStartTimes = new Map<number, number>()
 
   constructor(private 环形缓冲: 环形缓冲) {}
@@ -25,7 +25,7 @@ export class 追踪器 {
     let parentId = parentSpanId ?? null
 
     if (parentId === null && this.activeSpans.size > 0) {
-      let innermost: Span | null = null
+      let innermost: 跨度 | null = null
       let maxId = -1
       for (const span of this.activeSpans.values()) {
         if (span.spanId > maxId) {
@@ -39,7 +39,7 @@ export class 追踪器 {
     const traceId = parentId === null ? spanId : this.resolveTraceId(parentId)
     const startTime = BigInt(Date.now())
 
-    const span: Span = { spanId, traceId, parentSpanId: parentId, name, startTime, status: 'unset', metadata }
+    const span: 跨度 = { spanId, traceId, parentSpanId: parentId, name, startTime, status: 'unset', metadata }
     this.activeSpans.set(spanId, span)
     this.perfStartTimes.set(spanId, performance.now())
 
@@ -69,9 +69,9 @@ export class 追踪器 {
     this.环形缓冲.write('info', 日志分类.Runtime, `[span:end] ${span.name}`, { spanId, duration }, spanId)
   }
 
-  getCurrentSpan(): Span | null {
+  getCurrentSpan(): 跨度 | null {
     if (this.activeSpans.size === 0) return null
-    let innermost: Span | null = null
+    let innermost: 跨度 | null = null
     let maxId = -1
     for (const span of this.activeSpans.values()) {
       if (span.spanId > maxId) {
@@ -82,7 +82,7 @@ export class 追踪器 {
     return innermost
   }
 
-  getSpans(): Span[] {
+  getSpans(): 跨度[] {
     return [...this.activeSpans.values(), ...this.completedSpans]
   }
 

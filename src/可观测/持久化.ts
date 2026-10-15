@@ -1,6 +1,6 @@
 import { encode, decode } from '@msgpack/msgpack'
 import type { 日志条目, 日志级别 } from './环形缓冲'
-import type { Span } from './追踪器'
+import type { 跨度 } from './追踪器'
 
 const DEFAULT_DB_NAME = 'xrm-observability'
 const 批大小 = 500
@@ -65,7 +65,7 @@ function storedToLogEntry(stored: StoredLog): 日志条目 & { id: string } {
   return entry
 }
 
-function spanToStored(span: Span): StoredSpan {
+function spanToStored(span: 跨度): StoredSpan {
   return {
     spanId: span.spanId,
     traceId: span.traceId,
@@ -78,7 +78,7 @@ function spanToStored(span: Span): StoredSpan {
   }
 }
 
-function storedToSpan(stored: StoredSpan): Span {
+function storedToSpan(stored: StoredSpan): 跨度 {
   return {
     spanId: stored.spanId,
     traceId: stored.traceId,
@@ -86,7 +86,7 @@ function storedToSpan(stored: StoredSpan): Span {
     name: stored.name,
     startTime: BigInt(stored.startTime),
     endTime: stored.endTime !== undefined ? BigInt(stored.endTime) : undefined,
-    status: stored.status as Span['status'],
+    status: stored.status as 跨度['status'],
     metadata: stored.metadata,
   }
 }
@@ -151,7 +151,7 @@ export class 日志存储 {
     }
   }
 
-  async writeSpans(spans: Span[]): Promise<void> {
+  async writeSpans(spans: 跨度[]): Promise<void> {
     const db = await this.ensureOpen()
     for (let i = 0; i < spans.length; i += 批大小) {
       const batch = spans.slice(i, i + 批大小)
@@ -188,14 +188,14 @@ export class 日志存储 {
     })
   }
 
-  async readSpans(limit: number = 100): Promise<Span[]> {
+  async readSpans(limit: number = 100): Promise<跨度[]> {
     const db = await this.ensureOpen()
-    return new Promise<Span[]>((resolve, reject) => {
+    return new Promise<跨度[]>((resolve, reject) => {
       const tx = db.transaction('spans', 'readonly')
       const store = tx.objectStore('spans')
       const index = store.index('timestamp')
       const req = index.openCursor(null, 'prev')
-      const results: Span[] = []
+      const results: 跨度[] = []
       req.onsuccess = () => {
         const cursor = req.result
         if (cursor && results.length < limit) {

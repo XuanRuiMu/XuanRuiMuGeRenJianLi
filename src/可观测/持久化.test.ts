@@ -169,7 +169,7 @@ describe('WsTransport', () => {
   beforeEach(() => {
     ring = new 环形缓冲(4096)
 
-    vi.stubGlobal('location', { protocol: 'http:', hostname: 'localhost', port: '5180' })
+    vi.stubGlobal('location', { protocol: 'http:', hostname: 'localhost', port: '9999' })
     vi.stubGlobal('WebSocket', MockWebSocket)
 
     transport = new WebSocket传输(ring)

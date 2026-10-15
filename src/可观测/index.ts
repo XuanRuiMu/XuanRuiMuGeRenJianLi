@@ -1,5 +1,5 @@
 export type { 日志级别, 日志条目, 日志分类 } from './环形缓冲'
-export type { Span } from './追踪器'
+export type { 跨度 } from './追踪器'
 export { 环形缓冲 } from './环形缓冲'
 export { 追踪器, withSpan } from './追踪器'
 export { 日志存储 } from './持久化'

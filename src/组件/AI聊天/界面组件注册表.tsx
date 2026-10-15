@@ -148,7 +148,11 @@ function ContactLinksRenderer() {
     let 可打开 = false
     try {
       const 解析 = new URL(地址)
-      可打开 = 解析.protocol === 'https:' || 解析.protocol === 'http:' || 解析.protocol === 'tencent:' || 解析.protocol === 'weixin:'
+      可打开 =
+        解析.protocol === 'https:' ||
+        解析.protocol === 'http:' ||
+        解析.protocol === 'tencent:' ||
+        解析.protocol === 'weixin:'
     } catch {
       可打开 = false
     }
