@@ -22,11 +22,10 @@ describe('FP-02 关于我结构化行', () => {
   })
 
   it('{{tone|…}} 标记解析为着色片段，纯文本不丢字', () => {
-    const 片段 = 解析片段('整合并自研多个{{tech|skill}}，用{{tech|MCP/Hooks/Rules}}确保任务安全性。')
-    expect(片段.map((段) => 段.tone)).toEqual(['plain', 'tech', 'plain', 'tech', 'plain'])
-    expect(片段.map((段) => 段.text).join('')).toBe('整合并自研多个skill，用MCP/Hooks/Rules确保任务安全性。')
-    expect(片段[1].text).toBe('skill')
-    expect(片段[3].text).toBe('MCP/Hooks/Rules')
+    const 片段 = 解析片段(行表.l3.text)
+    expect(片段.map((段) => 段.tone)).toEqual(['plain', 'tech', 'plain'])
+    expect(片段.map((段) => 段.text).join('')).toBe(行表.l3.text.replace(/\{\{(tech|dim|accent)\|([^}]*)\}\}/g, '$2'))
+    expect(片段[1].text).toBe('能力边界')
   })
 
   it('第 4 行 dim/accent 片段按语义着色', () => {

@@ -171,16 +171,16 @@ describe('FP-10 文案错误、口径不一致与死文案守卫', () => {
     expect(第4行).not.toContain('——')
   })
 
-  it('推荐语 AI开发者条目与「开源的是编排框架与 Agent 技能」自洽', () => {
-    const 开源事实 = [t('about.introLines.l3.text'), t('showcase.cards.repoLoop.desc')].join('\n')
-    expect(开源事实).toContain('编排框架')
-    expect(开源事实).toContain('Agent技能')
+  it('推荐语 AI开发者条目与「循环工程开源仓库」自洽', () => {
+    const 仓库事实 = [t('showcase.cards.repoLoop.title'), t('showcase.cards.repoLoop.desc')].join('\n')
+    expect(仓库事实).toContain('循环工程')
+    expect(仓库事实).toContain('Agent技能')
     const role = t('testimonials.items.aiDeveloper.role')
     const quote = t('testimonials.items.aiDeveloper.quote')
     expect(role).toContain('开源')
-    expect(role).toContain('开源')
     expect(role).toContain('工具')
-    expect(quote).toContain('开源')
+    expect(quote).toContain('循环工程')
+    expect(quote).toContain('skill')
     // 站内 85+ 工作流模板从未声明开源，推荐语不得把它说成开源物
     expect(role).not.toContain('工作流模板')
     expect(quote).not.toMatch(/开源[^。]*工作流模板/)

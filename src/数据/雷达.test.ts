@@ -36,7 +36,7 @@ describe('FP-03 技能雷达 6 轴', () => {
     expect(合并轴?.level).toBe(78)
     const 依据 = t(维度依据键('devopsDelivery'))
     expect(依据).toContain('docker-compose')
-    expect(依据).toContain('运维多台服务器')
+    expect(依据).toContain('运维多个MC服务器')
     expect(依据).toContain('用户培训')
   })
 

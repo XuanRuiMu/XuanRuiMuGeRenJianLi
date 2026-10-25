@@ -1,0 +1,9 @@
+{
+  "prerender": [
+    {
+      "source": "list",
+      "urls": ["/"],
+      "eagerness": "moderate"
+    }
+  ]
+}
