@@ -76,7 +76,7 @@ cd XuanRuiMuGeRenJianLi
 # 安装依赖
 npm install
 
-# 本地开发（自动做素材同步 + 佐证材料打包 + 字体子集化，端口 5180）
+# 本地开发（自动做佐证材料打包 + 字体子集化，端口 5180）
 npm run dev
 
 # 类型检查 + 生产构建
@@ -104,21 +104,17 @@ XuanRuiMuGeRenJianLi/
 │   ├── 国际化/              # 界面翻译（zh-CN.json 单一语言包）
 │   ├── 工具/                # 设备能力 / 视图过渡 / 注册服务工作线程…
 │   └── 类型/                # TypeScript 类型
-├── public/                  # 静态资源（由 素材/ 经 scripts/同步素材.js 同步生成，勿直接编辑）
-│   ├── showcase/            # 作品集配图
+├── public/                  # 全站唯一静态资源目录（直接编辑，改完刷新即生效）
+│   ├── showcase/            # 作品集配图（文件名 = 卡片项目名，一字不差）
 │   ├── logos/               # 技术栈 logo
 │   ├── images/              # 头像 / 签名 / 二维码
 │   ├── videos/ og-image.png # OG 图 / 背景视频
-│   ├── fonts/               # ZiTiJianZiJi.js 产出的字体子集
-│   └── 佐证材料.zip         # 打包佐证材料.py --仅打包 产出的下载包
-├── 素材/                    # 唯一素材源（images / showcase / videos / logos / icons）
-│   └── 签字.png              # 手写签字原图（images/签字-alpha.png 的来源，不参与同步）
-├── scripts/                 # 同步素材、ZiTiJianZiJi 字体子集化、KaiFaShuJuJieKouCaJian 等
+│   ├── fonts/               # ZiTiJianZiJi.js 产出的字体子集（构建产物，不入库）
+│   └── 佐证材料.zip         # 打包佐证材料.py --仅打包 产出的下载包（构建产物，不入库）
+├── scripts/                 # ZiTiJianZiJi 字体子集化、KaiFaShuJuJieKouCaJian 等
 ├── 端到端测试/              # Playwright E2E 与 Vitest 测试
 └── .github/workflows/ci.yml # CI
 ```
-
-> ⚠️ 限制：`npm run dev` 不会监听 `素材/` 的变化。编辑 `素材/` 后需重跑 `node scripts/同步素材.js`（或重启 `npm run dev`）才会同步到 `public/`。
 
 ---
 
@@ -126,11 +122,10 @@ XuanRuiMuGeRenJianLi/
 
 作品集配图**文件名 = 卡片项目名一字不差**（项目名即 `src/国际化/zh-CN.json` 中 `showcase.cards.<id>.title` 的字面值，含空格、间隔号「·」、书名号《》、全角括号（））。配图路径由项目名自动派生，代码里不写死路径，换图三步：
 
-1. 把新图**重命名为项目名**（如 `羊来.png`），放进 `素材/showcase/`；
-2. 跑 `node scripts/同步素材.js`（或重启 `npm run dev`）把素材镜像到 `public/`；
-3. 刷新页面。
+1. 把新图**重命名为项目名**（如 `羊来.png`），放进 `public/showcase/`；
+2. 刷新页面。
 
-`public/` 是构建产物，线上生效需重新构建并部署。项目名里的空格只在 URL 中编码成 `%20`，磁盘文件名照旧是带空格的项目名。增删卡片改 `src/数据/展示.ts`；`素材/showcase/` 下每个图片文件必须恰好被一张卡片引用，漏放图、多放图、项目名含非法文件名字符都会被 `src/data/showcase.test.ts` 拦下。
+线上生效需重新构建并部署。项目名里的空格只在 URL 中编码成 `%20`，磁盘文件名照旧是带空格的项目名。增删卡片改 `src/数据/展示.ts`；`public/showcase/` 下每个图片文件必须恰好被一张卡片引用，漏放图、多放图、项目名含非法文件名字符都会被 `src/数据/展示.test.ts` 拦下。
 
 ---
 

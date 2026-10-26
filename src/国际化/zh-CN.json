@@ -223,7 +223,7 @@
       },
       "lowlevel": {
         "title": "MySQL数据库精讲",
-        "desc": "E-R建模与关系代数 · SQL查询增删改/视图连接，Navicat全程实操"
+        "desc": "E-R建模与关系代数 · SQL查询增删改/视图连接，HeidiSQL全程实操"
       },
       "teaching": {
         "title": "毕业论文全流程指导",
@@ -252,10 +252,6 @@
       "toolbox": {
         "title": "设计工具箱",
         "desc": "Figma · Three.js · Tailwind · UI/UX · 3D视觉 · 品牌"
-      },
-      "generative": {
-        "title": "生成艺术",
-        "desc": "用代码驱动图案与流动的视觉实验"
       },
       "novel": {
         "title": "暮澜纪元小说",

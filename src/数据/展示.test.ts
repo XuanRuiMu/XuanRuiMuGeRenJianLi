@@ -5,18 +5,16 @@ import { t } from '../国际化/翻译'
 import { 展示行表, type 展示卡 } from './展示'
 
 const 项目根 = path.resolve(__dirname, '../..')
-/** 受 git 跟踪的素材唯一源（fresh clone 跑测试不依赖 public 产物） */
-const 素材图目录 = path.resolve(项目根, '素材/showcase')
-/** scripts/同步素材.js 生成的产物镜像，仅作「素材加了图但忘跑同步」的第二道闸门 */
-const 产物图目录 = path.resolve(项目根, 'public/showcase')
+/** public/ 是全站唯一静态资源目录，配图即 public/showcase/ 下的实体文件 */
+const 配图目录 = path.resolve(项目根, 'public/showcase')
 
 const 全部卡 = 展示行表.flatMap((行) => 行.cards)
-const 配图卡 = 全部卡.filter((卡) => !卡.无图)
-const 无图卡 = 全部卡.filter((卡) => 卡.无图)
-/** 项目名 = 卡片标题字面值，素材文件名与它一字不差 */
+const 配图卡 = 全部卡.filter((卡) => Boolean(卡.image))
+const 无图卡 = 全部卡.filter((卡) => !卡.image)
+/** 项目名 = 卡片标题字面值，配图文件名与它一字不差 */
 const 项目名 = (卡: 展示卡) => t(卡.titleKey)
 const 图文件名 = (卡: 展示卡) => `${项目名(卡)}.png`
-const 源文件路径 = (卡: 展示卡) => path.resolve(素材图目录, 图文件名(卡))
+const 源文件路径 = (卡: 展示卡) => path.resolve(配图目录, 图文件名(卡))
 /** 手写路径守卫读的是实现源码本身（类型系统已挡一层，这里再挡字符串与隐式 existsSync 两条退路） */
 const showcase源码 = fs.readFileSync(path.resolve(项目根, 'src/数据/展示.ts'), 'utf-8')
 
@@ -29,22 +27,22 @@ const 非法字符正则 = /[\\/:*?"<>|#%`{}]/
 const 含控制字符 = (值: string) => Array.from(值).some((字) => (字.codePointAt(0) ?? 0) < 0x20 || 字 === '\x7f')
 
 describe('FP-03 作品配图「文件名=项目名」派生守卫', () => {
-  it('除显式声明 无图 的卡外，每张卡的素材源图必须存在', () => {
+  it('每张卡的配图文件必须存在', () => {
     expect(全部卡.length).toBeGreaterThan(0)
     expect(配图卡.length).toBeGreaterThan(0)
     const 缺失 = 配图卡.filter((卡) => !fs.existsSync(源文件路径(卡))).map(图文件名)
-    expect(缺失, '素材/showcase/ 下缺这些图：把图按项目名重命名后放进 素材/showcase/').toEqual([])
+    expect(缺失, 'public/showcase/ 下缺这些图：把图按项目名重命名后放进 public/showcase/').toEqual([])
   })
 
-  it('故意无图的卡必须显式声明 无图，且不带 image（不得靠文件缺失静默无图）', () => {
-    expect(无图卡.map((卡) => 卡.id)).toEqual(['generative'])
-    for (const 卡 of 无图卡) expect(卡.image, `无图卡不该有 image：${卡.id}`).toBeUndefined()
+  it('所有卡都有配图：不存在无图卡，且不得靠文件缺失静默无图', () => {
+    expect(无图卡.map((卡) => 卡.id)).toEqual([])
+    expect(配图卡.length).toBe(全部卡.length)
     expect(showcase源码, '不得用「文件不存在就静默无图」的隐式方式').not.toMatch(/existsSync/)
   })
 
-  it('素材/showcase 下每个文件恰好被一张卡引用（无孤儿、无重复引用、无漏卡）', () => {
+  it('public/showcase 下每个文件恰好被一张卡引用（无孤儿、无重复引用、无漏卡）', () => {
     const 源文件表 = fs
-      .readdirSync(素材图目录, { withFileTypes: true })
+      .readdirSync(配图目录, { withFileTypes: true })
       .filter((条目) => 条目.isFile())
       .map((条目) => 条目.name)
     expect(源文件表.length).toBeGreaterThan(0)
@@ -57,11 +55,11 @@ describe('FP-03 作品配图「文件名=项目名」派生守卫', () => {
     for (const 文件名 of 源文件表) {
       expect(
         引用表.get(文件名) ?? [],
-        `素材图「${文件名}」没有被任何卡片引用（孤儿图或项目名与文件名不一致）`
+        `配图「${文件名}」没有被任何卡片引用（孤儿图或项目名与文件名不一致）`
       ).toHaveLength(1)
     }
     expect(引用表.size, '两张卡派生出了同一个文件名').toBe(配图卡.length)
-    expect(源文件表.length, '素材图数量与配图卡数量必须一致').toBe(配图卡.length)
+    expect(源文件表.length, '配图数量与配图卡数量必须一致').toBe(配图卡.length)
   })
 
   it('项目名可安全落盘：无非法字符、无控制字符、无首尾空白与尾点，且确已解析出中文名', () => {
@@ -83,9 +81,9 @@ describe('FP-03 作品配图「文件名=项目名」派生守卫', () => {
     expect(非法字符正则.test('学历#1 · 天津仁爱学院'), '含 # 的项目名必须判红').toBe(true)
   })
 
-  it('image 由项目名严格派生：URL 解码回来必须一字不差等于 素材文件名，且不含空白', () => {
+  it('image 由项目名严格派生：URL 解码回来必须一字不差等于 配图文件名，且不含空白', () => {
     for (const 卡 of 配图卡) {
-      const 图URL = 卡.image ?? ''
+      const 图URL = 卡.image
       expect(图URL).not.toMatch(/\s/)
       expect(decodeURIComponent(图URL.slice('/showcase/'.length)), `派生路径与项目名不一致：${卡.id}`).toBe(
         图文件名(卡)
@@ -125,8 +123,16 @@ describe('FP-03 作品配图「文件名=项目名」派生守卫', () => {
     }
   })
 
-  it('public 产物镜像已同步：素材源里有的图，public/showcase 下也必须存在', () => {
-    const 缺产物 = 配图卡.filter((卡) => !fs.existsSync(path.resolve(产物图目录, 图文件名(卡)))).map(图文件名)
-    expect(缺产物, '素材已加图但没跑 node scripts/同步素材.js（或需重新构建部署）').toEqual([])
+  it('配图目录即唯一实体目录：public/showcase 下的图既是源也是发布物，不得再有第二份镜像', () => {
+    expect(fs.existsSync(path.resolve(项目根, '素材')), '素材/ 目录已废弃，配图唯一存放处是 public/showcase/').toBe(
+      false
+    )
+    expect(fs.existsSync(path.resolve(项目根, '站点配置')), '站点配置/ 目录已废弃，站点配置已并入 public/ 根级').toBe(
+      false
+    )
+    expect(
+      fs.existsSync(path.resolve(项目根, 'scripts/同步素材.js')),
+      '素材同步脚本已废弃，public/ 本身就是唯一素材目录'
+    ).toBe(false)
   })
 })

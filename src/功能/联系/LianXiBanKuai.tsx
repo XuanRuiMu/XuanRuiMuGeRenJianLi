@@ -3,6 +3,7 @@ import { Mail, ExternalLink, Copy, Check, MessageCircle, MessagesSquare } from '
 import { BanKuai } from '../../组件/基础组件/BanKuai'
 import { 个人信息 } from '../../数据/个人信息'
 import { 合并类名 } from '../../库/工具'
+import { 资源路径 } from '../../库/资源路径'
 import { t } from '../../国际化/翻译'
 import { WuZiQi } from './WuZiQi'
 
@@ -83,7 +84,7 @@ export function LianXiBanKuai() {
       id: 'qq',
       label: t('contact.info.qq'),
       value: 个人信息.qq,
-      src: '/images/qq-qr.png',
+      src: 资源路径('/images/qq-qr.png'),
       alt: t('contact.qr.qqAlt'),
       icon: ({ className }: { className?: string }) => <MessageCircle className={className} aria-hidden="true" />,
     },
@@ -91,7 +92,7 @@ export function LianXiBanKuai() {
       id: 'wechat',
       label: t('contact.info.wechat'),
       value: 个人信息.wechat,
-      src: '/images/wechat-qr.png',
+      src: 资源路径('/images/wechat-qr.png'),
       alt: t('contact.qr.wechatAlt'),
       icon: ({ className }: { className?: string }) => <MessagesSquare className={className} aria-hidden="true" />,
     },

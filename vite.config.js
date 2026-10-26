@@ -6,7 +6,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { visualizer } from 'rollup-plugin-visualizer'
 import path from 'node:path'
 import fs from 'node:fs'
-import { 可观测性插件 } from './src/可观测/可观测性Vite插件'
+import { 可观测性插件 } from './src/可观测/可观测性Vite插件.ts'
 import 开发数据接口插件 from './scripts/KaiFaShuJuJieKouCaJian.js'
 import { 创建密钥注入钩子 } from './scripts/AIFanDai.js'
 import { 开发端口, 预览端口 } from './scripts/端口配置.js'
@@ -19,7 +19,7 @@ function inlineCriticalCSS() {
     transformIndexHtml: {
       order: 'pre',
       handler(html) {
-        const criticalPath = path.resolve(__dirname, './src/样式/关键样式.css')
+        const criticalPath = path.resolve(import.meta.dirname, './src/样式/关键样式.css')
         if (!fs.existsSync(criticalPath)) {
           return html
         }
@@ -36,7 +36,9 @@ function preloadCSSPlugin() {
     transformIndexHtml: {
       order: 'post',
       handler(html) {
-        const stylesheetMatch = html.match(/<link[^>]+rel="stylesheet"[^>]+href="(\/assets\/index-[^"]+\.css)"[^>]*>/)
+        const stylesheetMatch = html.match(
+          /<link[^>]+rel="stylesheet"[^>]+href="((?:\.\/|\/)?assets\/index-[^"]+\.css)"[^>]*>/
+        )
         if (!stylesheetMatch) {
           return html
         }
@@ -52,16 +54,17 @@ function preloadCSSPlugin() {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   return {
+    base: process.env.VITE_BASE || '/',
     plugins: [
       可观测性插件(),
       // dev 环境本地数据接口：/api/analytics 落盘到 data/（生产静态托管按 nginx 模板三选一处理）
-      开发数据接口插件({ dataDir: path.resolve(__dirname, 'data') }),
+      开发数据接口插件({ dataDir: path.resolve(import.meta.dirname, 'data') }),
       // Serve /skill-test/ 单页应用
       {
         name: 'skill-test-spa',
         configureServer(server) {
           server.middlewares.use('/skill-test', async (req, res, next) => {
-            const indexPath = path.resolve(__dirname, 'skill-test.html')
+            const indexPath = path.resolve(import.meta.dirname, 'skill-test.html')
             if (fs.existsSync(indexPath)) {
               const html = fs.readFileSync(indexPath, 'utf-8')
               const transformed = await server.transformIndexHtml('/skill-test', html)
@@ -111,7 +114,7 @@ export default defineConfig(({ mode }) => {
     ],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src'),
+        '@': path.resolve(import.meta.dirname, './src'),
       },
     },
     server: {
@@ -150,8 +153,8 @@ export default defineConfig(({ mode }) => {
       minify: 'esbuild',
       rollupOptions: {
         input: {
-          main: path.resolve(__dirname, 'index.html'),
-          'skill-test': path.resolve(__dirname, 'skill-test.html'),
+          main: path.resolve(import.meta.dirname, 'index.html'),
+          'skill-test': path.resolve(import.meta.dirname, 'skill-test.html'),
         },
         output: {
           manualChunks(id) {

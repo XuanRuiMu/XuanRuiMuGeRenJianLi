@@ -66,7 +66,7 @@ cd XuanRuiMuGeRenJianLi
 
 npm install
 
-# Dev (auto asset sync + evidence-bundle packaging + font subsetting, port 5180)
+# Dev (auto evidence-bundle packaging + font subsetting, port 5180)
 npm run dev
 
 # Type-check + production build
@@ -94,21 +94,17 @@ XuanRuiMuGeRenJianLi/
 │   ├── i18n/                # zh-CN / en translations
 │   ├── utils/               # deviceCapabilities / viewTransition / format / swRegister…
 │   └── types/               # TypeScript types
-├── public/                  # static assets (synced from 素材/ by scripts/同步素材.js — do not edit directly)
-│   ├── showcase/            # showcase images
+├── public/                  # the single static-asset directory (edit directly, refresh to see changes)
+│   ├── showcase/            # showcase images (file name = card project name, exactly)
 │   ├── logos/               # tech-stack logos
 │   ├── images/              # avatar / signature / QR codes
 │   ├── videos/ og-image.png # OG image / background video
-│   ├── fonts/               # font subsets produced by subset-fonts.js
-│   └── 佐证材料.zip         # download bundle produced by 打包佐证材料.py --仅打包
-├── 素材/                    # single source of truth for assets (images / showcase / videos / logos / icons)
-│   └── 签字.png              # original signature art (source of images/签字-alpha.png, not synced)
-├── scripts/                 # asset sync, font subsetting, dev-api-plugin, etc.
+│   ├── fonts/               # font subsets produced by ZiTiJianZiJi.js (build artifact, not committed)
+│   └── 佐证材料.zip         # download bundle produced by 打包佐证材料.py --仅打包 (build artifact, not committed)
+├── scripts/                 # font subsetting, dev-api-plugin, etc.
 ├── 端到端测试/              # Playwright E2E & Vitest
 └── .github/workflows/ci.yml # CI
 ```
-
-> ⚠️ Limitation: `npm run dev` does not watch `素材/` for changes. After editing `素材/`, re-run `node scripts/同步素材.js` (or restart `npm run dev`) to sync into `public/`.
 
 ---
 
@@ -116,11 +112,10 @@ XuanRuiMuGeRenJianLi/
 
 Showcase images are named **exactly after the card's project name** — the literal value of `showcase.cards.<id>.title` in `src/i18n/zh-CN.json`, spaces, the middle dot `·`, book-title marks 《》 and full-width parentheses （） included. Image paths are derived from that project name, so no path is hardcoded in code. Swapping an image takes three steps:
 
-1. **Rename the new file to the project name** (e.g. `羊来.png`) and drop it into `素材/showcase/`;
-2. Run `node scripts/同步素材.js` (or restart `npm run dev`) to mirror `素材/` into `public/`;
-3. Refresh the page.
+1. **Rename the new file to the project name** (e.g. `羊来.png`) and drop it into `public/showcase/`;
+2. Refresh the page.
 
-`public/` is a build artifact, so going live requires a fresh build and redeploy. Spaces inside a project name are only percent-encoded as `%20` in the URL — the file on disk keeps the real space. Add or remove cards in `src/data/showcase.ts`; every file under `素材/showcase/` must be referenced by exactly one card — a missing image, an orphan image, or a project name containing characters illegal in file names is rejected by `src/data/showcase.test.ts`.
+Going live requires a fresh build and redeploy. Spaces inside a project name are only percent-encoded as `%20` in the URL — the file on disk keeps the real space. Add or remove cards in `src/数据/展示.ts`; every file under `public/showcase/` must be referenced by exactly one card — a missing image, an orphan image, or a project name containing characters illegal in file names is rejected by `src/数据/展示.test.ts`.
 
 ---
 

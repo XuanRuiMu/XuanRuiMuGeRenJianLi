@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { 合并类名 } from '../../库/工具'
+import { 资源路径 } from '../../库/资源路径'
 import { useJianShaoDongHua } from '../../钩子/useJianShaoDongHua'
 import { useXingNengDangWei } from '../../钩子/useXingNengDangWei'
 import { 创建星空控制面板, 创建星空星系场景, type 星空星系场景接口 } from './星空星系场景'
@@ -61,7 +62,7 @@ function LightWallpaper({ reducedMotion }: { reducedMotion: boolean }) {
       data-static={reducedMotion ? 'true' : 'false'}
     >
       <img
-        src="/images/kanagawa-wave-base.webp"
+        src={资源路径('/images/kanagawa-wave-base.webp')}
         alt=""
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         style={{ filter: 壁纸滤镜 }}
@@ -69,7 +70,7 @@ function LightWallpaper({ reducedMotion }: { reducedMotion: boolean }) {
       />
       {!reducedMotion && (
         <video
-          src="/videos/kanagawa-wave-loop.mp4"
+          src={资源路径('/videos/kanagawa-wave-loop.mp4')}
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
           style={{
             filter: 壁纸滤镜,

@@ -30,13 +30,16 @@ async function activateHandler(): Promise<void> {
 
 precacheAndRoute(self.__WB_MANIFEST)
 
-const navigationHandler = createHandlerBoundToURL('/index.html')
+const 站点根路径 = new URL(self.registration.scope).pathname
+const 首页路径 = `${站点根路径}index.html`
+
+const navigationHandler = createHandlerBoundToURL(首页路径)
 registerRoute(new NavigationRoute(navigationHandler))
 
 registerRoute(
   ({ request, url }) =>
     request.destination === 'font' ||
-    url.pathname.startsWith('/fonts/') ||
+    url.pathname.startsWith(`${站点根路径}fonts/`) ||
     url.hostname.includes('fonts.gstatic.com') ||
     url.hostname.includes('fonts.googleapis.com'),
   new StaleWhileRevalidate({
@@ -54,7 +57,7 @@ registerRoute(
   ({ request, url }) =>
     request.destination === 'image' ||
     /\.(png|jpg|jpeg|webp|gif|svg)$/i.test(url.pathname) ||
-    url.pathname.startsWith('/og-image'),
+    url.pathname.startsWith(`${站点根路径}og-image`),
   new StaleWhileRevalidate({
     cacheName: 'xrm-media-v2',
     plugins: [
@@ -82,7 +85,7 @@ registerRoute(
 setCatchHandler(async ({ request }) => {
   if (request.mode === 'navigate') {
     try {
-      const cached = await caches.match('/index.html')
+      const cached = await caches.match(首页路径)
       if (cached) return cached
     } catch {
       // fall through to error response

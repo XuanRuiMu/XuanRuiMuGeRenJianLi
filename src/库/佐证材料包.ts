@@ -1,7 +1,8 @@
 import { t } from '../国际化/翻译'
+import { 资源路径 } from './资源路径'
 
 /** 佐证材料包的同源路径；部署时可用 VITE_EVIDENCE_ZIP 覆盖（如改走 CDN 或换文件名）。 */
-export const 佐证材料包路径 = import.meta.env.VITE_EVIDENCE_ZIP ?? '/佐证材料.zip'
+export const 佐证材料包路径 = import.meta.env.VITE_EVIDENCE_ZIP ?? 资源路径('/佐证材料.zip')
 
 /** 下载文件名由 download 属性决定，与服务端 URL 编码解耦。 */
 export const 佐证材料包文件名 = `${t('evidence.filename')}.zip`

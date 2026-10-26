@@ -21,6 +21,6 @@ describe('Speculation Rules', () => {
   it('references speculation rules from index.html', () => {
     const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf-8')
     expect(html).toContain('rel="speculationrules"')
-    expect(html).toContain('/speculation-rules.json')
+    expect(html).toContain('href="%BASE_URL%speculation-rules.json"')
   })
 })

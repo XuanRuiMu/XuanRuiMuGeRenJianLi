@@ -4,6 +4,7 @@
  */
 
 import { t, type TranslationKey } from '../国际化/翻译'
+import { 资源路径 } from '../库/资源路径'
 import 中文包 from '../国际化/zh-CN.json'
 
 function 键存在(节点: unknown, 路径: string): boolean {
@@ -47,61 +48,61 @@ export interface 技术卡 {
 export const 技术卡表: 技术卡[] = [
   {
     name: 'Java',
-    icon: '/logos/java.svg',
+    icon: 资源路径('/logos/java.svg'),
     url: 'https://dev.java',
     项目: ['xrm'],
   },
   {
     name: 'Guice',
-    icon: '/logos/guice.svg',
+    icon: 资源路径('/logos/guice.svg'),
     url: 'https://github.com/google/guice',
     项目: ['xrm'],
   },
   {
     name: 'Node.js',
-    icon: '/logos/nodejs.svg',
+    icon: 资源路径('/logos/nodejs.svg'),
     url: 'https://nodejs.org',
     项目: ['lovewithme', '恋爱吧管理中心'],
   },
   {
     name: 'Express',
-    icon: '/logos/express.svg',
+    icon: 资源路径('/logos/express.svg'),
     url: 'https://expressjs.com',
     项目: ['lovewithme', '恋爱吧管理中心'],
   },
   {
     name: 'MySQL',
-    icon: '/logos/mysql.svg',
+    icon: 资源路径('/logos/mysql.svg'),
     url: 'https://www.mysql.com',
     项目: ['xrm'],
   },
   {
     name: 'Redis',
-    icon: '/logos/redis.svg',
+    icon: 资源路径('/logos/redis.svg'),
     url: 'https://redis.io',
     项目: ['lovewithme', '恋爱吧管理中心'],
   },
   {
     name: 'PostgreSQL',
-    icon: '/logos/postgresql.svg',
+    icon: 资源路径('/logos/postgresql.svg'),
     url: 'https://www.postgresql.org',
     项目: ['lovewithme', '恋爱吧管理中心'],
   },
   {
     name: 'Docker',
-    icon: '/logos/dock.svg',
+    icon: 资源路径('/logos/dock.svg'),
     url: 'https://www.docker.com',
     项目: ['lovewithme', '恋爱吧管理中心'],
   },
   {
     name: 'Python',
-    icon: '/logos/python.svg',
+    icon: 资源路径('/logos/python.svg'),
     url: 'https://www.python.org',
     项目: ['本站', 'aiConsole', '恋爱吧管理中心'],
   },
   {
     name: 'TypeScript',
-    icon: '/logos/ts.svg',
+    icon: 资源路径('/logos/ts.svg'),
     url: 'https://www.typescriptlang.org',
     项目: ['本站', 'lovewithme', '恋爱吧管理中心'],
     // 蓝底白字图标：alpha 掩码只能得到实心方块，须按亮度提取白色 TS 字样
@@ -109,31 +110,31 @@ export const 技术卡表: 技术卡[] = [
   },
   {
     name: 'React',
-    icon: '/logos/react.svg',
+    icon: 资源路径('/logos/react.svg'),
     url: 'https://react.dev',
     项目: ['本站'],
   },
   {
     name: 'Three.js',
-    icon: '/logos/threejs.svg',
+    icon: 资源路径('/logos/threejs.svg'),
     url: 'https://threejs.org',
     项目: ['本站', 'yangLai', 'lovewithme'],
   },
   {
     name: 'Tailwind CSS',
-    icon: '/logos/tailwind.svg',
+    icon: 资源路径('/logos/tailwind.svg'),
     url: 'https://tailwindcss.com',
     项目: ['本站'],
   },
   {
     name: 'GitHub',
-    icon: '/logos/github.svg',
+    icon: 资源路径('/logos/github.svg'),
     url: 'https://github.com/XuanRuiMu',
     项目: ['全部项目'],
   },
   {
     name: 'Vite',
-    icon: '/logos/vite.svg',
+    icon: 资源路径('/logos/vite.svg'),
     url: 'https://vite.dev',
     项目: ['本站', 'yangLai', 'lovewithme', '恋爱吧管理中心'],
   },

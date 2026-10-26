@@ -3,6 +3,7 @@ import { ExternalLink } from 'lucide-react'
 import { 项目表 } from '../../数据/项目'
 import type { 项目 } from '../../数据/类型'
 import { t } from '../../国际化/翻译'
+import { 资源路径 } from '../../库/资源路径'
 import { useJianShaoDongHua } from '../../钩子/useJianShaoDongHua'
 import { useBianQianFengLi } from '../../状态/便签风力仓库'
 import { 晾衣架物理引擎, 晾衣架配置, type 晾衣架快照 } from './LiangYiShuangWuLi'
@@ -324,7 +325,7 @@ export function LiangYiShuangBiJi({ 填充 = false }: 晾衣绳便签属性) {
               className="clothesline-note select-text"
               data-tint={index % 4}
             >
-              <img src="/images/标准.png" alt="" className="clothesline-note-img" aria-hidden="true" />
+              <img src={资源路径('/images/标准.png')} alt="" className="clothesline-note-img" aria-hidden="true" />
               <div className="clothesline-note-tint" aria-hidden="true" />
               <NoteContent 项目={project} />
             </div>

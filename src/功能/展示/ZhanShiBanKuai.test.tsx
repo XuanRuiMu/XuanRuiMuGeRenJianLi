@@ -346,7 +346,7 @@ describe('FP-06探索板块重构：8视频与开源仓库可达', () => {
     const media行 = 展示行表.find((row) => row.anchorId === 'media')
     expect(media行).toBeDefined()
     expect(media行?.cards.map((card) => card.id)).not.toContain('yanglai')
-    expect(media行?.cards).toHaveLength(5)
+    expect(media行?.cards).toHaveLength(4)
     const opensource行 = 展示行表.find((row) => row.anchorId === 'opensource')
     expect(opensource行).toBeDefined()
     expect(opensource行?.cards).toHaveLength(4)
@@ -358,8 +358,8 @@ describe('FP-06探索板块重构：8视频与开源仓库可达', () => {
     expect(羊来卡?.image).toBe('/showcase/羊来.png')
     expect(t('showcase.cards.yanglai.title')).toBe('羊来')
     expect(t('showcase.cards.yanglai.desc')).toBe('2026年动画电影《羊来》宣传直播间 · 3D互动整蛊舞台')
-    expect(fs.existsSync(path.resolve('素材/showcase/羊来.png'))).toBe(true)
-    expect(fs.existsSync(path.resolve('素材/showcase', `${String.fromCharCode(0x8702, 0x6765)}.png`))).toBe(false)
+    expect(fs.existsSync(path.resolve('public/showcase/羊来.png'))).toBe(true)
+    expect(fs.existsSync(path.resolve('public/showcase', `${String.fromCharCode(0x8702, 0x6765)}.png`))).toBe(false)
   })
 
   it('每张展示卡都有专属图标映射，缺映射必须显式失败而非静默退化', () => {

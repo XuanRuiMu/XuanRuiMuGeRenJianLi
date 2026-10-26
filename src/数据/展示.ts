@@ -1,10 +1,11 @@
 import { t, type TranslationKey } from '../国际化/翻译'
+import { 资源路径 } from '../库/资源路径'
 import { 羊来官网地址 } from './项目'
 
 /**
- * 配图源目录（素材唯一源）。public/showcase/ 是 scripts/同步素材.js 生成的镜像产物，勿直接编辑。
+ * 配图目录。public/ 是全站唯一静态资源目录，配图即 public/showcase/ 下的实体文件。
  */
-const 项目图目录 = '/showcase'
+const 项目图目录 = 资源路径('/showcase')
 
 /**
  * unquoted CSS url() 内不可用的字符（空白、单双引号、圆括号）必须做 URL 百分号编码。
@@ -23,10 +24,9 @@ const 项目名转URL = (项目名: string) =>
 
 /**
  * 按项目名派生配图 URL。项目名 = zh-CN.json 里 showcase.cards.<id>.title 的字面值，
- * 含其空格、间隔号「·」、书名号《》、全角括号（）一字不改，故源文件名必须与项目名一字不差。
+ * 含其空格、间隔号「·」、书名号《》、全角括号（）一字不改，故配图文件名必须与项目名一字不差。
  *
- * 换图流程：把新图重命名为项目名放进 素材/showcase/ → 跑 node scripts/同步素材.js（或重启 npm run dev）
- * → 刷新；public/ 是产物，线上生效需重新构建并部署。
+ * 换图流程：把新图重命名为项目名放进 public/showcase/ → 刷新；线上生效需重新构建并部署。
  */
 function 项目图路径(titleKey: TranslationKey): string {
   return `${项目图目录}/${项目名转URL(t(titleKey))}.png`
@@ -38,13 +38,11 @@ export interface 展示卡源 {
   titleKey: TranslationKey
   descKey: TranslationKey
   href?: string
-  /** 显式声明本卡故意纯黑底不放配图；不写此字段则必有配图（守卫测试据此区分「故意无图」与「忘放图」） */
-  无图?: true
 }
 
 export interface 展示卡 extends 展示卡源 {
-  /** 由 项目图路径() 自动派生；仅 无图 卡为 undefined */
-  image?: string
+  /** 由 项目图路径() 自动派生 */
+  image: string
 }
 
 export interface 展示行 {
@@ -143,12 +141,6 @@ const 源板块表: 板块声明[] = [
     anchorId: 'media',
     cards: [
       {
-        id: 'generative',
-        titleKey: 'showcase.cards.generative.title',
-        descKey: 'showcase.cards.generative.desc',
-        无图: true,
-      },
-      {
         id: 'novel',
         titleKey: 'showcase.cards.novel.title',
         descKey: 'showcase.cards.novel.desc',
@@ -206,5 +198,5 @@ const 源板块表: 板块声明[] = [
 
 export const 展示行表: 展示行[] = 源板块表.map((行) => ({
   anchorId: 行.anchorId,
-  cards: 行.cards.map((卡) => (卡.无图 ? { ...卡 } : { ...卡, image: 项目图路径(卡.titleKey) })),
+  cards: 行.cards.map((卡) => ({ ...卡, image: 项目图路径(卡.titleKey) })),
 }))

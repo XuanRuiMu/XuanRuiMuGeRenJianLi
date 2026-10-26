@@ -116,7 +116,7 @@ describe('FP-02内容一致性回归', () => {
     }
     const 展示卡id = (await import('./数据/展示')).展示行表.flatMap((行) => 行.cards).map((卡) => 卡.id)
     expect(展示卡id).not.toContain('escape')
-    expect(fs.existsSync(path.resolve('素材/showcase/爵士乐.png'))).toBe(false)
+    expect(fs.existsSync(path.resolve('public/showcase/爵士乐.png'))).toBe(false)
     expect(fs.existsSync(path.resolve('src/数据/music.ts'))).toBe(false)
     // 「9」这类单字符在整坨翻译文本里必然命中，等于没断言：改钉 skills.metrics 的真实指标值
     const { javaClasses, aiSkills, agentSkills, serverOps } = zhCN.skills.metrics

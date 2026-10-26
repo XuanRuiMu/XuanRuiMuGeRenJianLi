@@ -1,6 +1,5 @@
 import {
   BookOpen,
-  Brush,
   Code2,
   Cpu,
   Database,
@@ -35,7 +34,6 @@ export const 卡片图标表: Record<string, LucideIcon> = {
   xrmUi: Palette,
   aiToolchain: Sparkles,
   toolbox: Shapes,
-  generative: Brush,
   novel: BookOpen,
   comedy: Mic,
   gameWorld: Gamepad2,
