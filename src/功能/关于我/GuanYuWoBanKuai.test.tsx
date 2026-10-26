@@ -66,7 +66,7 @@ describe('关于我 - 显现时序', () => {
     const 选项 = vi.mocked(useDaZiJi).mock.calls.at(-1)?.[0]
     const 总字数 = 选项?.每行文本.reduce((总数, 行) => 总数 + 行.length, 0) ?? 0
     expect(选项?.每行文本).toHaveLength(5)
-    expect(总字数 * (选项?.每字毫秒 ?? 0)).toBe(7200)
+    expect(Math.round(总字数 * (选项?.每字毫秒 ?? 0))).toBe(7200)
   })
 })
 
@@ -117,13 +117,15 @@ describe('关于我 - 结构与着色', () => {
 })
 
 describe('关于我 - 工程控制台', () => {
-  it('保留 CMD 头尾元信息并维持 max-w-4xl 画幅', async () => {
+  it('保留 CMD 头尾元信息并与板块容器同宽', async () => {
     const container = await 渲染关于我()
     const html = container.innerHTML
     expect(html).toContain('//about.introLines')
     expect(html).toContain('{ readOnly: true }')
     expect(html).toContain('//EOF')
-    expect(html).toContain('max-w-4xl')
+    expect(html).toContain('max-w-6xl')
+    const 画幅 = container.querySelector('[data-about-console]')?.parentElement
+    expect(画幅?.className).not.toContain('max-w-')
   })
 
   it('控制台具有可访问区域、稳定锚点和高级面板材质', async () => {

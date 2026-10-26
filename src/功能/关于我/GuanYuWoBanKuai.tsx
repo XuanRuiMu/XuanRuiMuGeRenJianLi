@@ -91,7 +91,7 @@ export function GuanYuWoBanKuai({ 介绍行表 }: 关于我板块属性 = {}) {
 
   return (
     <BanKuai id="about" title={t('about.title')} className="pt-12 pb-6 md:pt-16 md:pb-8">
-      <div ref={区块引用} className="relative mx-auto max-w-4xl">
+      <div ref={区块引用} className="relative">
         <div
           data-about-console="true"
           role="region"
