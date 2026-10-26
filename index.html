@@ -5,6 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0B0C15" />
     <meta name="color-scheme" content="dark light" />
+    <script>
+      ;(function () {
+        try {
+          var 主题 = localStorage.getItem('xrm-theme')
+          if (主题 !== 'light' && 主题 !== 'dark' && 主题 !== 'system') 主题 = 'dark'
+          var 明暗 =
+            主题 === 'system'
+              ? window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light'
+              : 主题
+          var 根 = document.documentElement
+          根.classList.remove('light', 'dark')
+          根.classList.add(明暗)
+          根.style.colorScheme = 明暗
+        } catch (错误) {}
+      })()
+    </script>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -32,7 +50,9 @@
     <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
     <link rel="apple-touch-icon" href="%BASE_URL%apple-touch-icon.png" />
     <link rel="manifest" href="%BASE_URL%manifest.json" />
-    <link rel="speculationrules" href="%BASE_URL%speculation-rules.json" />
+    <script type="speculationrules">
+      { "prerender": [{ "source": "list", "urls": ["%BASE_URL%"], "eagerness": "moderate" }] }
+    </script>
 
     <link
       rel="preload"
@@ -43,12 +63,11 @@
       fetchpriority="high"
     />
 
-    <!-- Quantico 字体（TECH STACK 标题，1:1 移植 12-next-spline-3d） -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quantico:wght@400;700&display=swap" />
 
-    <!-- CRITICAL_CSS -->
+    <style data-critical-css></style>
 
     <title>玄锐暮 | AI-Native 在线简历</title>
   </head>

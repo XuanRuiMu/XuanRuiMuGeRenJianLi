@@ -22,7 +22,7 @@ import {
   type 轨道槽位,
 } from './PaoMaDengYinQing'
 
-const GRADIENTS = [
+const 渐变表 = [
   'from-purple-500 to-blue-500',
   'from-orange-400 to-yellow-500',
   'from-pink-500 to-red-500',
@@ -34,7 +34,7 @@ const GRADIENTS = [
   'from-green-400 to-emerald-500',
 ]
 
-const NEON_SHADOWS = [
+const 霓虹阴影表 = [
   'shadow-[0_0_30px_5px_rgba(147,51,234,0.4)]',
   'shadow-[0_0_30px_5px_rgba(251,191,36,0.4)]',
   'shadow-[0_0_30px_5px_rgba(236,72,153,0.4)]',
@@ -46,47 +46,68 @@ const NEON_SHADOWS = [
   'shadow-[0_0_30px_5px_rgba(16,185,129,0.4)]',
 ]
 
-const ICON_COLORS = ['#a78bfa', '#fbbf24', '#f472b6', '#22d3ee', '#a3e635', '#e879f9', '#facc15', '#60a5fa', '#34d399']
+const 图标颜色表 = ['#a78bfa', '#fbbf24', '#f472b6', '#22d3ee', '#a3e635', '#e879f9', '#facc15', '#60a5fa', '#34d399']
 
 const 弹簧配置 = { stiffness: 300, damping: 30 }
 
-interface ShowcaseProductCardProps {
-  card: 展示卡
-  index: number
-  reducedMotion: boolean
+interface 展示产品卡片属性 {
+  卡片: 展示卡
+  下标: number
+  减少动画: boolean
   控制?: 跑马灯控制
 }
 
-function ShowcaseProductCard({ card, index, reducedMotion, 控制 }: ShowcaseProductCardProps) {
-  const gradient = GRADIENTS[index % GRADIENTS.length]
-  const neonShadow = NEON_SHADOWS[index % NEON_SHADOWS.length]
-  const iconColor = ICON_COLORS[index % ICON_COLORS.length]
-  const Icon = 卡片图标表[card.id] ?? Shapes
-  const cardRef = useRef<HTMLDivElement>(null)
+function ZhanShiChanPinKaPian({ 卡片, 下标, 减少动画, 控制 }: 展示产品卡片属性) {
+  const 渐变 = 渐变表[下标 % 渐变表.length]
+  const 霓虹阴影 = 霓虹阴影表[下标 % 霓虹阴影表.length]
+  const 图标颜色 = 图标颜色表[下标 % 图标颜色表.length]
+  const TuBiaoZuJian = 卡片图标表[卡片.id] ?? Shapes
+  const 卡片引用 = useRef<HTMLDivElement>(null)
 
   useLayoutEffect(() => {
-    const el = cardRef.current
-    if (!el || !控制 || reducedMotion) return
-    const onEnter = () => 控制.悬停集合.add(el)
-    const onLeave = () => 控制.悬停集合.delete(el)
-    el.addEventListener('pointerenter', onEnter)
-    el.addEventListener('pointerleave', onLeave)
+    const 元素 = 卡片引用.current
+    if (!元素 || !控制 || 减少动画) return
+    const 指针进入 = () => 控制.悬停集合.add(元素)
+    const 指针离开 = () => 控制.悬停集合.delete(元素)
+    元素.addEventListener('pointerenter', 指针进入)
+    元素.addEventListener('pointerleave', 指针离开)
     return () => {
-      el.removeEventListener('pointerenter', onEnter)
-      el.removeEventListener('pointerleave', onLeave)
-      控制.悬停集合.delete(el)
+      元素.removeEventListener('pointerenter', 指针进入)
+      元素.removeEventListener('pointerleave', 指针离开)
+      控制.悬停集合.delete(元素)
     }
-  }, [控制, reducedMotion])
+  }, [控制, 减少动画])
 
-  const 有配图 = Boolean(card.image)
+  const 有配图 = Boolean(卡片.图片)
+  const [显示配图, 设置显示配图] = useState(false)
 
-  const inner = (
+  useEffect(() => {
+    const 元素 = 卡片引用.current
+    if (!元素 || !有配图) return
+    if (typeof IntersectionObserver === 'undefined') {
+      queueMicrotask(() => 设置显示配图(true))
+      return
+    }
+    const 观察器 = new IntersectionObserver(
+      (条目表) => {
+        if (条目表.some((条目) => 条目.isIntersecting)) {
+          设置显示配图(true)
+          观察器.disconnect()
+        }
+      },
+      { rootMargin: '300px' }
+    )
+    观察器.observe(元素)
+    return () => 观察器.disconnect()
+  }, [有配图])
+
+  const 内部 = (
     <div
       className="relative flex h-full w-full flex-col justify-between overflow-hidden rounded-xl bg-black p-5 md:p-6"
       style={
-        有配图
+        显示配图
           ? {
-              backgroundImage: `url(${card.image})`,
+              backgroundImage: `url(${卡片.图片})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }
@@ -100,10 +121,10 @@ function ShowcaseProductCard({ card, index, reducedMotion, 控制 }: ShowcasePro
         />
       )}
       <div className="relative z-10 flex h-full w-full flex-col justify-between">
-        <Icon size={44} style={{ color: iconColor }} aria-hidden="true" />
+        <TuBiaoZuJian size={44} style={{ color: 图标颜色 }} aria-hidden="true" />
         <div>
-          <h3 className="mb-1.5 text-base font-bold text-white md:text-lg">{t(card.titleKey)}</h3>
-          <p className="text-xs leading-relaxed text-[#aaa6c3] md:text-sm">{t(card.descKey)}</p>
+          <h3 className="mb-1.5 text-base font-bold text-white md:text-lg">{t(卡片.标题键)}</h3>
+          <p className="text-xs leading-relaxed text-[#aaa6c3] md:text-sm">{t(卡片.描述键)}</p>
         </div>
       </div>
     </div>
@@ -111,24 +132,24 @@ function ShowcaseProductCard({ card, index, reducedMotion, 控制 }: ShowcasePro
 
   return (
     <div
-      ref={cardRef}
+      ref={卡片引用}
       className="group/card relative h-32 w-[11rem] shrink-0 md:h-[26.75rem] md:w-[22rem] lg:h-96 lg:w-[30rem]"
     >
       <span aria-hidden="true" className="absolute inset-x-0 -bottom-6 h-6" />
-      <motion.div whileHover={reducedMotion ? undefined : { y: -20 }} className="h-full w-full">
-        <div className={`h-full w-full rounded-xl bg-gradient-to-r p-[2px] ${gradient} ${neonShadow} md:p-[6px]`}>
-          {card.href ? (
+      <motion.div whileHover={减少动画 ? undefined : { y: -20 }} className="h-full w-full">
+        <div className={`h-full w-full rounded-xl bg-gradient-to-r p-[2px] ${渐变} ${霓虹阴影} md:p-[6px]`}>
+          {卡片.href ? (
             <a
-              href={card.href}
+              href={卡片.href}
               target="_blank"
               rel="noopener noreferrer"
               className="block h-full w-full overflow-hidden rounded-xl bg-black transition-shadow group-hover/card:shadow-2xl"
             >
-              {inner}
+              {内部}
             </a>
           ) : (
             <div className="block h-full w-full overflow-hidden rounded-xl bg-black transition-shadow group-hover/card:shadow-2xl">
-              {inner}
+              {内部}
             </div>
           )}
         </div>
@@ -215,16 +236,16 @@ function useZidongPaomadeng(选项: { 控制: 跑马灯控制; 方向: 1 | -1; �
   return { 轨道Ref, 组Ref, 份数 }
 }
 
-interface ShowcaseMarqueeRowProps {
-  row: (typeof 展示行表)[number]
-  rowIndex: number
+interface 展示跑马灯行属性 {
+  行: (typeof 展示行表)[number]
+  行号: number
   方向: 1 | -1
   基准速度: number
   减少动画: boolean
   控制: 跑马灯控制
 }
 
-function ShowcaseMarqueeRow({ row, rowIndex, 方向, 基准速度, 减少动画, 控制 }: ShowcaseMarqueeRowProps) {
+function ZhanShiPaoMaDengHang({ 行, 行号, 方向, 基准速度, 减少动画, 控制 }: 展示跑马灯行属性) {
   const { 轨道Ref, 组Ref, 份数 } = useZidongPaomadeng({
     控制,
     方向,
@@ -234,18 +255,24 @@ function ShowcaseMarqueeRow({ row, rowIndex, 方向, 基准速度, 减少动画,
 
   return (
     <div className="mb-20">
-      <span id={row.anchorId} className="block scroll-mt-24" aria-hidden="true">
+      <span id={行.锚点编号} className="block scroll-mt-24" aria-hidden="true">
         &nbsp;
       </span>
       <div ref={轨道Ref} className="showcase-marquee flex">
-        {Array.from({ length: 份数 }).map((_, group) => (
-          <div key={group} ref={group === 0 ? 组Ref : undefined} className="flex shrink-0 gap-20 pr-20">
-            {row.cards.map((card, cardIndex) => (
-              <ShowcaseProductCard
-                key={`${card.id}-${group}`}
-                card={card}
-                index={rowIndex * 5 + cardIndex}
-                reducedMotion={减少动画}
+        {Array.from({ length: 份数 }).map((_, 组) => (
+          <div
+            key={组}
+            ref={组 === 0 ? 组Ref : undefined}
+            className="flex shrink-0 gap-20 pr-20"
+            inert={组 > 0}
+            aria-hidden={组 > 0}
+          >
+            {行.卡片表.map((卡片, 卡片下标) => (
+              <ZhanShiChanPinKaPian
+                key={`${卡片.id}-${组}`}
+                卡片={卡片}
+                下标={行号 * 5 + 卡片下标}
+                减少动画={减少动画}
                 控制={控制}
               />
             ))}
@@ -287,10 +314,53 @@ function 渲染副标题(副标题: string) {
 }
 
 export function ZhanShiBanKuai() {
-  const reducedMotion = useJianShaoDongHua()
+  const 减少动画 = useJianShaoDongHua()
   const ref = useRef<HTMLDivElement>(null)
 
   const [控制] = useState(创建跑马灯控制)
+  useEffect(() => {
+    if (减少动画) return
+    const 指针移动 = (事件: PointerEvent) => {
+      const 命中轨道 = new Set<HTMLDivElement>()
+      const 元素表 = document.elementsFromPoint(事件.clientX, 事件.clientY)
+      for (const 槽位 of 控制.轨道表) {
+        const 轨道 = 槽位.轨道.current
+        if (!轨道) continue
+        const 轨道位置 = 元素表.findIndex((元素) => 元素 === 轨道 || 轨道.contains(元素))
+        if (轨道位置 < 0) continue
+        if (元素表.slice(0, 轨道位置).some((元素) => !轨道.contains(元素))) continue
+        for (const 卡片 of 轨道.querySelectorAll('.group\\/card')) {
+          const 矩形 = 卡片.getBoundingClientRect()
+          if (
+            事件.clientX >= 矩形.left &&
+            事件.clientX <= 矩形.right &&
+            事件.clientY >= 矩形.top &&
+            事件.clientY <= 矩形.bottom
+          ) {
+            命中轨道.add(轨道)
+            控制.悬停集合.add(轨道)
+            break
+          }
+        }
+      }
+      for (const 元素 of [...控制.悬停集合]) {
+        const 所属 = 元素.classList.contains('showcase-marquee')
+          ? (元素 as HTMLDivElement)
+          : (元素.closest('.showcase-marquee') as HTMLDivElement | null)
+        if (!所属 || !命中轨道.has(所属)) 控制.悬停集合.delete(元素)
+      }
+    }
+    const 清空 = () => 控制.悬停集合.clear()
+    window.addEventListener('pointermove', 指针移动, { passive: true })
+    window.addEventListener('blur', 清空)
+    document.addEventListener('pointerleave', 清空)
+    return () => {
+      window.removeEventListener('pointermove', 指针移动)
+      window.removeEventListener('blur', 清空)
+      document.removeEventListener('pointerleave', 清空)
+      清空()
+    }
+  }, [控制, 减少动画])
 
   useEffect(() => {
     const 意图输入 = () => 标记意图滚动(控制)
@@ -312,13 +382,14 @@ export function ZhanShiBanKuai() {
   }, [控制])
 
   useEffect(() => {
-    if (reducedMotion) return
+    if (减少动画) return
     let 帧号 = 0
     let 上次时刻: number | null = null
     const 帧 = (时刻: number) => {
       const 上次 = 上次时刻
       上次时刻 = 时刻
       const 步长秒 = 上次 == null ? 0 : Math.min(Math.max((时刻 - 上次) / 1000, 0), 最大帧步长)
+      for (const 元素 of [...控制.悬停集合]) if (!元素.isConnected) 控制.悬停集合.delete(元素)
       const 悬停暂停 = 控制.悬停集合.size > 0
       const 滚动暂停中 = performance.now() < 控制.暂停至.current
       const 已暂停 = 悬停暂停 || 滚动暂停中
@@ -347,21 +418,21 @@ export function ZhanShiBanKuai() {
     }
     帧号 = requestAnimationFrame(帧)
     return () => cancelAnimationFrame(帧号)
-  }, [reducedMotion, 控制])
+  }, [减少动画, 控制])
 
-  const { scrollYProgress } = useScroll({
+  const { scrollYProgress: 滚动进度 } = useScroll({
     target: ref,
     offset: ['start start', 'end start'],
   })
 
-  const rotateX = useSpring(useTransform(scrollYProgress, [0, 0.2], [15, 0]), 弹簧配置)
-  const rotateZ = useSpring(useTransform(scrollYProgress, [0, 0.2], [20, 0]), 弹簧配置)
+  const 绕X轴旋转 = useSpring(useTransform(滚动进度, [0, 0.2], [15, 0]), 弹簧配置)
+  const 绕Z轴旋转 = useSpring(useTransform(滚动进度, [0, 0.2], [20, 0]), 弹簧配置)
 
-  const entrance = reducedMotion
+  const 入场 = 减少动画
     ? undefined
     : {
-        rotateX,
-        rotateZ,
+        rotateX: 绕X轴旋转,
+        rotateZ: 绕Z轴旋转,
       }
 
   return (
@@ -385,17 +456,16 @@ export function ZhanShiBanKuai() {
           </p>
         </div>
 
-        {/* 入场 3D 倾斜必须挂在包裹层（perspective 的直接子元素）：CSS perspective 只作用于直接子级的变换，
-            挂到单张卡片上会失去透视呈现为无透视的仿射变换——整排卡片不再作为同一块 3D 平面倾斜（问题4 回归根因） */}
-        <motion.div style={entrance} className="[transform-style:preserve-3d]">
-          {展示行表.map((row, rowIndex) => (
-            <ShowcaseMarqueeRow
-              key={row.anchorId}
-              row={row}
-              rowIndex={rowIndex}
-              方向={rowIndex % 2 === 0 ? -1 : 1}
+        {}
+        <motion.div style={入场} className="[transform-style:preserve-3d]">
+          {展示行表.map((行, 行号) => (
+            <ZhanShiPaoMaDengHang
+              key={行.锚点编号}
+              行={行}
+              行号={行号}
+              方向={行号 % 2 === 0 ? -1 : 1}
               基准速度={50}
-              减少动画={reducedMotion}
+              减少动画={减少动画}
               控制={控制}
             />
           ))}

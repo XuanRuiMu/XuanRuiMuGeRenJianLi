@@ -30,6 +30,6 @@ export interface 错误报告 {
 }
 
 export interface 遥测收集器 {
-  log(level: 日志级别, message: string, context?: 日志上下文): void
-  report(error: 错误报告): void
+  log(级别: 日志级别, 消息: string, 上下文?: 日志上下文): void
+  report(错误: 错误报告): void
 }

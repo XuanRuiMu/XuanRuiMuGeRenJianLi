@@ -10,7 +10,6 @@ import { 晾衣架物理引擎, 晾衣架配置, type 晾衣架快照 } from './
 import { 应用晾衣架布局 } from './LiangYiShuangBuJu'
 import { useBiQianZiShiYing } from './useBiQianZiShiYing'
 
-// canvas 无法直接引用 CSS 变量，非 CSS 环境（如测试）下的兜底色；浏览器中始终以 index.css 的 --rope-* 变量为准
 const 兜底绳色 = {
   银亮: '#e8eaed',
   银中: '#9aa0a6',
@@ -31,105 +30,96 @@ function 读取绳色(容器: HTMLElement) {
   }
 }
 
-function 描画曲线(ctx: CanvasRenderingContext2D, 点列: Array<{ x: number; y: number }>) {
+function 描画曲线(上下文: CanvasRenderingContext2D, 点列: Array<{ x: number; y: number }>) {
   if (点列.length < 2) return
-  ctx.beginPath()
-  ctx.moveTo(点列[0].x, 点列[0].y)
+  上下文.beginPath()
+  上下文.moveTo(点列[0].x, 点列[0].y)
   for (let i = 1; i < 点列.length - 1; i++) {
     const 当前 = 点列[i]
     const 下一点 = 点列[i + 1]
-    ctx.quadraticCurveTo(当前.x, 当前.y, (当前.x + 下一点.x) / 2, (当前.y + 下一点.y) / 2)
+    上下文.quadraticCurveTo(当前.x, 当前.y, (当前.x + 下一点.x) / 2, (当前.y + 下一点.y) / 2)
   }
   const 末点 = 点列[点列.length - 1]
-  ctx.lineTo(末点.x, 末点.y)
-  ctx.stroke()
+  上下文.lineTo(末点.x, 末点.y)
+  上下文.stroke()
 }
 
 function 绘制晾衣绳(
-  canvas: HTMLCanvasElement,
+  画布: HTMLCanvasElement,
   快照: 晾衣架快照,
   色: ReturnType<typeof 读取绳色>,
   宽: number,
   高: number
 ) {
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
-  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1
-  const 目标宽 = Math.round(宽 * dpr)
-  const 目标高 = Math.round(高 * dpr)
-  if (canvas.width !== 目标宽 || canvas.height !== 目标高) {
-    canvas.width = 目标宽
-    canvas.height = 目标高
+  const 上下文 = 画布.getContext('2d')
+  if (!上下文) return
+  const 像素比 = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1
+  const 目标宽 = Math.round(宽 * 像素比)
+  const 目标高 = Math.round(高 * 像素比)
+  if (画布.width !== 目标宽 || 画布.height !== 目标高) {
+    画布.width = 目标宽
+    画布.height = 目标高
   }
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-  ctx.clearRect(0, 0, 宽, 高)
-  ctx.lineCap = 'round'
-  ctx.lineJoin = 'round'
+  上下文.setTransform(像素比, 0, 0, 像素比, 0, 0)
+  上下文.clearRect(0, 0, 宽, 高)
+  上下文.lineCap = 'round'
+  上下文.lineJoin = 'round'
 
-  // 画布现已与容器（.clothesline-region）同宽同左缘，物理点直接按容器坐标系绘制，
-  // 无需再平移偏移。银绳渲染为**一条连续 stroke**——快照.主绳 已是统一单链（左角→左延伸→主跨→右延伸→右角），
-  // 物理与渲染同源单链，无缝贯通（FP-02：根除"中间断点 + 两套物理"）。
   const 整银链 = 快照.主绳.length > 0 ? 快照.主绳 : []
   if (整银链.length >= 2) {
     const 首 = 整银链[0]
     const 末 = 整银链[整银链.length - 1]
-    const 渐变 = ctx.createLinearGradient(首.x, 0, 末.x, 0)
-    // 5 段渐变扩展到整根银绳（锚到锚）：暗角 + 中央亮带，物理上银绳两端的暗角更写实
+    const 渐变 = 上下文.createLinearGradient(首.x, 0, 末.x, 0)
+
     渐变.addColorStop(0, 色.银暗)
     渐变.addColorStop(0.25, 色.银亮)
     渐变.addColorStop(0.5, 色.银中)
     渐变.addColorStop(0.75, 色.银亮)
     渐变.addColorStop(1, 色.银暗)
-    ctx.strokeStyle = 渐变
-    ctx.lineWidth = 3.6
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'
-    ctx.shadowBlur = 2
-    ctx.shadowOffsetY = 1
-    描画曲线(ctx, 整银链)
+    上下文.strokeStyle = 渐变
+    上下文.lineWidth = 3.6
+    上下文.shadowColor = 'rgba(0, 0, 0, 0.3)'
+    上下文.shadowBlur = 2
+    上下文.shadowOffsetY = 1
+    描画曲线(上下文, 整银链)
   }
 
-  ctx.shadowColor = 'transparent'
-  ctx.shadowBlur = 0
-  ctx.shadowOffsetY = 0
-  ctx.lineWidth = 2.4
+  上下文.shadowColor = 'transparent'
+  上下文.shadowBlur = 0
+  上下文.shadowOffsetY = 0
+  上下文.lineWidth = 2.4
   for (let i = 0; i < 快照.吊绳.length; i++) {
     const 吊绳 = 快照.吊绳[i]
     const 便签顶Y = 快照.便签[i].y - 快照.便签[i].高 / 2
-    const 吊绳渐变 = ctx.createLinearGradient(0, 吊绳[0].y, 0, 便签顶Y)
+    const 吊绳渐变 = 上下文.createLinearGradient(0, 吊绳[0].y, 0, 便签顶Y)
     吊绳渐变.addColorStop(0, 色.棕亮)
     吊绳渐变.addColorStop(1, 色.棕暗)
-    ctx.strokeStyle = 吊绳渐变
-    描画曲线(ctx, [...吊绳, { x: 快照.便签[i].x, y: 便签顶Y }])
+    上下文.strokeStyle = 吊绳渐变
+    描画曲线(上下文, [...吊绳, { x: 快照.便签[i].x, y: 便签顶Y }])
   }
 }
 
 interface 晾衣绳便签属性 {
-  /** 测试页用：区域撑满父容器高度（flex:1），默认按简历主页固定高度 */
   填充?: boolean
 }
 
-/**
- * FP-04：单张羊皮卷的「标题/正文/链接」内容盒。
- * 自持 content ref 并调用 useBiQianZiShiYing，使每张便签按自身内容量独立二分适配字号。
- * DOM 结构、图片、物理引擎、银绳均不变。
- */
-function NoteContent({ 项目 }: { 项目: 项目 }) {
+function BianQianNeiRong({ 项目 }: { 项目: 项目 }) {
   const 内容Ref = useRef<HTMLDivElement>(null)
   useBiQianZiShiYing(内容Ref as RefObject<HTMLElement | null>, 0.6, 1.05)
-  const link = 项目.links?.[0]
+  const 链接 = 项目.链接表?.[0]
   return (
     <div className="clothesline-note-content" ref={内容Ref}>
-      <h3 className="font-display clothesline-note-title">{t(项目.nameKey)}</h3>
-      <p className="clothesline-note-desc">{t(项目.descKey)}</p>
-      {link && (
+      <h3 className="font-display clothesline-note-title">{t(项目.名称键)}</h3>
+      <p className="clothesline-note-desc">{t(项目.描述键)}</p>
+      {链接 && (
         <a
-          href={link.url}
+          href={链接.url}
           target="_blank"
           rel="noopener noreferrer"
           className="clothesline-note-link inline-flex items-center gap-1 self-start transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-          aria-label={`${t(项目.nameKey)}：${t(link.labelKey)}`}
+          aria-label={`${t(项目.名称键)}：${t(链接.标签键)}`}
         >
-          <span>{t(link.labelKey)}</span>
+          <span>{t(链接.标签键)}</span>
           <ExternalLink size={12} aria-hidden="true" />
         </a>
       )}
@@ -138,7 +128,7 @@ function NoteContent({ 项目 }: { 项目: 项目 }) {
 }
 
 export function LiangYiShuangBiJi({ 填充 = false }: 晾衣绳便签属性) {
-  const reducedMotion = useJianShaoDongHua()
+  const 减少动画 = useJianShaoDongHua()
   const 风力强度 = useBianQianFengLi((s) => s.风力强度)
   const 容器Ref = useRef<HTMLDivElement>(null)
   const 画布Ref = useRef<HTMLCanvasElement>(null)
@@ -154,11 +144,10 @@ export function LiangYiShuangBiJi({ 填充 = false }: 晾衣绳便签属性) {
     const 容器 = 容器Ref.current
     const 画布 = 画布Ref.current
     if (!容器 || !画布) return
-    // 基准宽的权威来源：外层横向滚动视口。它的 clientWidth 不受区域内联 min-width 影响，
-    // 因此既是布局的测量源，也是 ResizeObserver 的正确观察对象（见下方 observe）。
+
     const 滚动视口 = 容器.parentElement
     let 引擎: 晾衣架物理引擎 | null = null
-    let rafId: number | null = null
+    let 帧编号: number | null = null
     let 运行中 = false
     let 上次帧 = 0
     let 累积Ms = 0
@@ -166,13 +155,13 @@ export function LiangYiShuangBiJi({ 填充 = false }: 晾衣绳便签属性) {
 
     const 同步快照 = (快照: 晾衣架快照) => {
       for (let i = 0; i < 快照.便签.length; i++) {
-        const el = 便签Refs.current[i]
-        if (!el) continue
+        const 元素 = 便签Refs.current[i]
+        if (!元素) continue
         const 便签 = 快照.便签[i]
-        el.style.width = `${便签.宽.toFixed(2)}px`
-        el.style.height = `${便签.高.toFixed(2)}px`
-        el.style.transform = `translate(${(便签.x - 便签.宽 / 2).toFixed(2)}px, ${(便签.y - 便签.高 / 2).toFixed(2)}px) rotate(${便签.角度.toFixed(4)}rad)`
-        el.style.opacity = '1'
+        元素.style.width = `${便签.宽.toFixed(2)}px`
+        元素.style.height = `${便签.高.toFixed(2)}px`
+        元素.style.transform = `translate(${(便签.x - 便签.宽 / 2).toFixed(2)}px, ${(便签.y - 便签.高 / 2).toFixed(2)}px) rotate(${便签.角度.toFixed(4)}rad)`
+        元素.style.opacity = '1'
       }
       绘制晾衣绳(画布, 快照, 读取绳色(容器), 画布.offsetWidth, 画布.offsetHeight)
     }
@@ -181,13 +170,7 @@ export function LiangYiShuangBiJi({ 填充 = false }: 晾衣绳便签属性) {
       引擎?.销毁()
       引擎 = null
       引擎Ref.current = null
-      // FP-01 根因重构：横向布局交给 晾衣绳布局 的「测量→计算→回写」唯一接缝，
-      // 基准宽只来自外层滚动视口的 clientWidth（不受本模块写出的内联 min-width 影响），
-      // 接缝内先清零再测量 → 同一视口宽的重建结果与来路无关（路径无关），无单向残留。
-      // 统一布局（晾衣绳布局 为唯一来源）：任何设备都只渲染物理晾衣架，不存在手机版网格。
-      // 带宽 = 钳制(容器可用宽, 最小带宽 768, 最大带宽 1152)：低于最小带宽时按最小带宽铺开
-      // （保证便签不重叠、字号可读），区域 min-width 同步抬到该宽度 → 超出视口的部分由外层
-      // .clothesline-scroll 横向滚动条（触屏即拖动）揭示。绳子与便签同源同宽、一起滚动对齐。
+
       const { 带宽, 布局偏移X, 区域宽, 区域高 } = 应用晾衣架布局({ 区域: 容器, 滚动视口 })
       引擎 = new 晾衣架物理引擎({
         宽: 带宽,
@@ -202,20 +185,20 @@ export function LiangYiShuangBiJi({ 填充 = false }: 晾衣绳便签属性) {
 
     const 停止循环 = () => {
       运行中 = false
-      if (rafId !== null) {
-        cancelAnimationFrame(rafId)
-        rafId = null
+      if (帧编号 !== null) {
+        cancelAnimationFrame(帧编号)
+        帧编号 = null
       }
     }
 
     const 启动循环 = () => {
-      if (运行中 || !引擎 || reducedMotion) return
+      if (运行中 || !引擎 || 减少动画) return
       运行中 = true
       上次帧 = performance.now()
       累积Ms = 0
-      const tick = (现在: number) => {
+      const 帧步进 = (现在: number) => {
         if (!运行中 || !引擎) return
-        rafId = requestAnimationFrame(tick)
+        帧编号 = requestAnimationFrame(帧步进)
         累积Ms += 现在 - 上次帧
         上次帧 = 现在
         const 步长 = 晾衣架配置.求解.固定步长Ms
@@ -228,13 +211,11 @@ export function LiangYiShuangBiJi({ 填充 = false }: 晾衣绳便签属性) {
         if (步数 === 晾衣架配置.求解.最大跳帧) 累积Ms = 0
         if (步数 > 0) 同步快照(引擎.获取快照())
       }
-      rafId = requestAnimationFrame(tick)
+      帧编号 = requestAnimationFrame(帧步进)
     }
 
-    // 区域最小宽在 构建() 内同步设置（含最小带宽兜底），此处不再重复设置。
     构建()
 
-    // 风监听挂在 section 级容器上：纯被动监听，不捕获指针、不 preventDefault，文字选择与链接点击不受影响
     const 风宿主 = 容器.closest('section') ?? 容器
     const 处理指针移动 = (e: PointerEvent) => {
       if (!引擎 || e.buttons !== 0) {
@@ -246,8 +227,8 @@ export function LiangYiShuangBiJi({ 填充 = false }: 晾衣绳便签属性) {
       const y = e.clientY - 矩形.top
       const 现在 = performance.now()
       if (鼠标样本) {
-        const dt = Math.max(现在 - 鼠标样本.时间, 1)
-        引擎.登记风源(x, y, (x - 鼠标样本.x) / dt, (y - 鼠标样本.y) / dt, 风力Ref.current)
+        const 帧间隔 = Math.max(现在 - 鼠标样本.时间, 1)
+        引擎.登记风源(x, y, (x - 鼠标样本.x) / 帧间隔, (y - 鼠标样本.y) / 帧间隔, 风力Ref.current)
       }
       鼠标样本 = { x, y, 时间: 现在 }
     }
@@ -260,23 +241,17 @@ export function LiangYiShuangBiJi({ 填充 = false }: 晾衣绳便签属性) {
       }
     }
 
-    // 页面滚动速度 → 便签受力：直接监听原生 scroll（Lenis 滚动真实 window，与 平滑滚动引用 初始化时机解耦），
-    // 自算速度（px/帧）登记进物理引擎，由引擎施加带偏角的斜向力并惯性衰减。
     let 上次滚动Y = typeof window !== 'undefined' ? window.scrollY : 0
     let 上次滚动T = typeof performance !== 'undefined' ? performance.now() : 0
     const 处理页面滚动 = () => {
       const 现在 = typeof performance !== 'undefined' ? performance.now() : Date.now()
       const y = typeof window !== 'undefined' ? window.scrollY : 0
-      const dt = Math.max(现在 - 上次滚动T, 1)
-      const 帧速度 = ((y - 上次滚动Y) / dt) * 16.67 // px/ms → 约每帧 px
+      const 帧间隔 = Math.max(现在 - 上次滚动T, 1)
+      const 帧速度 = ((y - 上次滚动Y) / 帧间隔) * 16.67
       上次滚动Y = y
       上次滚动T = 现在
       引擎Ref.current?.登记滚动力(帧速度)
     }
-
-    // 不再用 IntersectionObserver 暂停物理循环：便签摆动时可能超出容器 bounds，
-    // 导致“容器已离屏、便签仍可见”的误判；暂停后重力/约束停止求解，便签会冻在半空（穿帮）。
-    // 本场景仅 4 便签 + 28 绳节点，连续模拟成本极低，物理正确性优先于这份过早优化。
 
     let 尺寸观察器: ResizeObserver | null = null
     if (typeof ResizeObserver !== 'undefined') {
@@ -286,13 +261,11 @@ export function LiangYiShuangBiJi({ 填充 = false }: 晾衣绳便签属性) {
         构建()
         if (曾运行) 启动循环()
       })
-      // FP-01：观察基准来源（外层滚动视口）而非被回写 min-width 的区域本身。
-      // 旧实现观察区域，等于「输入 == 输出」，每次纠正都要等下一轮通知才送达；
-      // 观察外层后 区域宽 → 构建 → 区域宽 这条自反馈环彻底断开，重建对同一视口宽幂等。
+
       尺寸观察器.observe(滚动视口 ?? 容器)
     }
 
-    if (!reducedMotion) {
+    if (!减少动画) {
       风宿主.addEventListener('pointermove', 处理指针移动, { passive: true })
       document.addEventListener('visibilitychange', 处理可见性)
       window.addEventListener('scroll', 处理页面滚动, { passive: true })
@@ -309,25 +282,25 @@ export function LiangYiShuangBiJi({ 填充 = false }: 晾衣绳便签属性) {
       引擎Ref.current = null
       引擎 = null
     }
-  }, [reducedMotion])
+  }, [减少动画])
 
   return (
     <div className="clothesline-scroll">
       <div ref={容器Ref} className={`clothesline-region${填充 ? ' clothesline-region--fill' : ''}`}>
         <canvas ref={画布Ref} className="clothesline-canvas" aria-hidden="true" />
-        {项目表.map((project, index) => {
+        {项目表.map((项目, 下标) => {
           return (
             <div
-              key={project.id}
-              ref={(el) => {
-                便签Refs.current[index] = el
+              key={项目.id}
+              ref={(元素) => {
+                便签Refs.current[下标] = 元素
               }}
               className="clothesline-note select-text"
-              data-tint={index % 4}
+              data-tint={下标 % 4}
             >
-              <img src={资源路径('/images/标准.png')} alt="" className="clothesline-note-img" aria-hidden="true" />
+              <img src={资源路径('/images/标准.webp')} alt="" className="clothesline-note-img" aria-hidden="true" />
               <div className="clothesline-note-tint" aria-hidden="true" />
-              <NoteContent 项目={project} />
+              <BianQianNeiRong 项目={项目} />
             </div>
           )
         })}

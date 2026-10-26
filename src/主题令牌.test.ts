@@ -14,13 +14,11 @@ function 索引(文本: string, 标记: string, 用途: string): number {
   return 位
 }
 
-/** 取 `{` 起始标记处的块体（本项目 CSS 主题块无嵌套花括号，遇到首个 `}` 即闭合） */
 function 取花括号块(文本: string, 起始标记: string, 用途: string): string {
   const 起 = 索引(文本, 起始标记, 用途)
   return 文本.slice(起, 文本.indexOf('}', 起) + 1)
 }
 
-/** 顶层 .light 块：@supports 内的同名块有缩进（"  .light {"），故用行首无空格精确锁定 */
 function 取顶层浅色块(文本: string): string {
   const 起 = 索引(文本, '\n.light {', '顶层浅色覆盖块')
   const 止 = 文本.indexOf('\n}', 起)
@@ -28,7 +26,6 @@ function 取顶层浅色块(文本: string): string {
   return 文本.slice(起, 止)
 }
 
-/** 从 起始 处向后取一整个花括号配平的块（@supports 这类内含子规则的块不能用 取花括号块） */
 function 取配平块(文本: string, 起始: number, 用途: string): string {
   const 开 = 文本.indexOf('{', 起始)
   expect(开, `找不到 ${用途} 的开始花括号`).toBeGreaterThan(-1)
@@ -46,7 +43,6 @@ function 取配平块(文本: string, 起始: number, 用途: string): string {
   return 文本.slice(开, 闭 + 1)
 }
 
-/** 全表的 .light 系规则块（顶层块、@supports/@媒体 内的缩进块、`.light xxx` scoped 覆盖），带源码位置 */
 function 取浅色规则块表(文本: string): Array<{ 位置: number; 令牌: Set<string> }> {
   return [...文本.matchAll(/(^|[,{\s])\.light(?![\w-])[^{};)]*\{/gm)].map((命中) => ({
     位置: 命中.index,
@@ -54,7 +50,6 @@ function 取浅色规则块表(文本: string): Array<{ 位置: number; 令牌: 
   }))
 }
 
-/** 全表的 :root 规则块（含 @supports/@媒体 内嵌套的那些）及其 --color-* 声明的源码位置 */
 function 取根规则块表(文本: string): Array<Array<{ 令牌: string; 位置: number }>> {
   return [...文本.matchAll(/(^|[,{\s]):root(?![\w-])[^{};)]*\{/gm)].map((命中) => {
     const 块起 = 命中.index + 命中[0].length - 1
@@ -66,27 +61,23 @@ function 取根规则块表(文本: string): Array<Array<{ 令牌: string; 位�
   })
 }
 
-/** 棋盘样式区：连珠脉冲关键帧起，到水墨显现遮罩注释前止（覆盖正/背面、棋子、高亮全部规则） */
 function 取棋盘样式区(文本: string): string {
   return 文本.slice(
     索引(文本, '@keyframes gomoku-win-pulse', '棋盘样式区起点'),
-    索引(文本, '/* 水墨显现遮罩', '棋盘样式区终点')
+    索引(文本, '\n.ink-reveal-overlay {', '棋盘样式区终点')
   )
 }
 
-/** 导航样式区：.glass-nav 起，到页脚层级体系注释前止（覆盖玻璃条、胶囊、hover/focus 及其 .light scoped 覆盖） */
 function 取导航样式区(文本: string): string {
   return 文本.slice(
     索引(文本, '\n.glass-nav {', '导航样式区起点'),
-    索引(文本, '/* ============ 页脚层级体系', '导航样式区终点')
+    索引(文本, '\n@keyframes visitor-counter-glow {', '导航样式区终点')
   )
 }
 
 const 暗色主题块 = 取花括号块(样式表, '@theme {', '暗色默认令牌')
 const 浅色覆盖块 = 取顶层浅色块(样式表)
 
-/** .light 覆盖的全部 --color-* 令牌名：顶层 .light 块 + 任意以 .light 开头的 scoped 规则
- *  （如导航胶囊的 .light .glass-nav .nav-link-pill，浅色值刻意收窄作用域，见 CSS 注释） */
 function 浅色覆盖令牌名(文本: string): Set<string> {
   const 集合 = new Set(令牌名列表(浅色覆盖块))
   for (const 命中 of 文本.matchAll(/^\.light[^{]*\{([^}]*)\}/gm)) {
@@ -95,40 +86,14 @@ function 浅色覆盖令牌名(文本: string): Set<string> {
   return 集合
 }
 
-/** 块内声明过的 --color-* 令牌名（按出现顺序去重） */
 function 令牌名列表(块: string): string[] {
   return [...new Set([...块.matchAll(/(--color-[a-z0-9-]+)\s*:/g)].map((命中) => 命中[1]))]
 }
 
-/** 块内某令牌的声明值；未声明返回 null */
 function 令牌值(块: string, 令牌: string): string | null {
   const 命中 = new RegExp(`${令牌}\\s*:\\s*([^;]+);`).exec(块)
   return 命中 ? 命中[1].trim() : null
 }
-
-/* =========================================================================
- * 守卫清单（新增板块只改这几张表，下面的断言逻辑不动）
- *
- * 1) 令牌值清单：每个语义令牌的暗色值必须等于「浅色修复前组件里写死的字面值」
- *    （= 暗色视觉零变化），浅色值必须是浅底可用的值。浅色覆盖默认在顶层 .light 块；
- *    若覆盖被作用域收窄（如导航胶囊只在 .light .glass-nav 内覆盖，见 CSS 注释），
- *    用 覆盖标记 钉住所在规则块。
- * 2) 禁改清单：某文件里出现过、已被令牌替换掉的暗色字面值；再出现即红。
- *    FP-05 推荐语卡片已按同样结构接入：卡面底色直接复用 bg-panel，
- *    作者/正文色用既有的 text-text-secondary / text-text-primary，无需新增令牌。
- * 3) 使用的颜色类：组件引用的自定义颜色类必须有同名 --color-* 令牌（暗+浅双声明）。
- * 4) 棋盘区必含令牌引用：防止把整条规则删掉来「清零字面值」。
- * 5) 导航样式区（FP-09）：与棋盘区同构——禁的是绕过令牌的字面色，不是禁 CSS；
- *    .glass-nav/.nav-link-pill 的底色/描边/文字/光晕/焦点环必须走 --color-nav-*。
- * 6) 渐变机制（FP-09 缺陷 1 根因守卫）：渐变图由 --渐变-* 自定义属性提供、clip 机制
- *    只在基线规则写一次；.light 覆盖只允许重新赋值自定义属性。
- * 7) :root 覆盖顺序（FP-11 R7）：任何 :root（含 @supports/@媒体 内那几份）改写的
- *    --color-*，都必须在其后再出现一条 .light 声明；同特异度只看源码顺序，
- *    写在 :root 之前的顶层 .light 会被压过，浅色主题直接变暗。
- *
- * 新增令牌不必改本文件：只要它在 @theme 声明，「每个暗色令牌都要有 .light 覆盖」
- * 那条断言会自动要求浅色覆盖（顶层块或 .light 前缀的 scoped 规则均可）。
- * ========================================================================= */
 
 const 令牌值清单: Array<{ 令牌: string; 暗色值: string; 浅色值: string; 覆盖标记?: string }> = [
   { 令牌: '--color-panel', 暗色值: '#151030', 浅色值: '#ffffff' },
@@ -142,8 +107,7 @@ const 令牌值清单: Array<{ 令牌: string; 暗色值: string; 浅色值: str
   { 令牌: '--color-board-focus', 暗色值: 'rgba(56, 189, 248, 0.5)', 浅色值: 'rgba(0, 122, 153, 0.85)' },
   { 令牌: '--color-stone-last-ring', 暗色值: 'rgba(255, 255, 255, 0.85)', 浅色值: 'rgba(3, 105, 161, 0.95)' },
   { 令牌: '--color-stone-win', 暗色值: '#fde047', 浅色值: '#c2410c' },
-  // FP-09 导航令牌：暗色值 = glass-nav 移植原样字面值（暗色零变化）；胶囊浅色值被
-  // 收窄到 .light .glass-nav 作用域（移动端下拉面板恒为深色底），用 覆盖标记 钉住
+
   { 令牌: '--color-nav-surface', 暗色值: 'rgba(7, 19, 45, 0.18)', 浅色值: 'rgba(255, 255, 255, 0.72)' },
   { 令牌: '--color-nav-border', 暗色值: 'rgba(125, 211, 252, 0.08)', 浅色值: 'rgba(7, 89, 133, 0.2)' },
   {
@@ -193,7 +157,7 @@ const 令牌值清单: Array<{ 令牌: string; 暗色值: string; 浅色值: str
 const 禁改清单: Array<{ 文件: string; 已令牌化字面值: string[] }> = [
   {
     文件: '功能/经历/JingLiBanKuai.tsx',
-    // text-white/70 是 text-white 的超串，一条即可覆盖
+
     已令牌化字面值: ['#151030', '#211e35', '#aaa6c3', 'text-white', 'border-white/10'],
   },
   {
@@ -208,16 +172,15 @@ const 禁改清单: Array<{ 文件: string; 已令牌化字面值: string[] }> =
       '#f0f0f0',
       'ring-[#38bdf8]',
       'bg-white/5',
-      // 「五子棋」标题的三端点字面渐变（浅色 1.43–2.89:1）→ .text-gradient-teal
+
       'from-[#5eead4]',
       'via-[#818cf8]',
       'to-[#f0abfc]',
-      // 棋盘外框投影（浅色 0.55 黑过重）→ var(--color-panel-shadow)
+
       'rgba(0,0,0,0.55)',
     ],
   },
-  // FP-05 推荐语卡片：卡面底色复用 bg-panel（暗值即 #151030，暗色零变化），
-  // 正文/头衔色复用 text-text-secondary / text-text-primary
+
   {
     文件: '功能/推荐语/TuiJianYuBanKuai.tsx',
     已令牌化字面值: ['#151030', '#cfc9e6', '#aaa6c3', 'text-white', 'border-white/10'],
@@ -236,12 +199,8 @@ const 棋盘区必含令牌引用 = [
   'var(--color-stone-win)',
 ]
 
-/** 棋盘区允许保留的字面值：围棋子是实体黑/白子，两主题下同色，不属于主题色 */
 const 棋盘区保留字面值 = ['#5b6573', '#0a0e16', '#cbd5e1', 'rgba(10, 15, 26, 0.95)', 'rgba(56, 189, 248, 0.85)']
 
-/** 导航样式区禁改字面值（FP-09）：已收进 --color-nav-* 令牌的暗面色，再出现即绕过令牌。
- *  不含 glass-nav box-shadow 的投影层（rgba(12, 74, 110, …)/0.04 发丝环）：纯深度投影，
- *  两主题通用，非缺陷 2 的「绕过令牌暗色字面值」 */
 const 导航区禁改字面值 = [
   'rgba(7, 19, 45',
   'rgba(125, 211, 252, 0.08)',
@@ -266,13 +225,6 @@ const 导航区必含令牌引用 = [
   'var(--color-nav-focus-ring)',
 ]
 
-/**
- * 渐变文字机制契约（FP-09 缺陷 1 根因守卫）：基线规则声明 --渐变-* 自定义属性、
- * 用 background-image: var(...) 提供渐变图，clip 机制只写一次；.light 覆盖只允许
- * 重新赋值 --渐变-*。教训：.light 覆盖曾用 background: 简写，特异度压过基线的
- * background-clip: text 并被简写重置回 border-box，渐变整条画出成实心色块。
- * 新增渐变文字类时在此追加一条。
- */
 const 渐变机制: Array<{ 基线选择器: string; 浅色选择器: string; 属性: string }> = [
   { 基线选择器: '.text-gradient-blue', 浅色选择器: '.light .text-gradient-blue', 属性: '--渐变-蓝' },
   { 基线选择器: '.text-gradient-green', 浅色选择器: '.light .text-gradient-green', 属性: '--渐变-绿' },
@@ -280,10 +232,6 @@ const 渐变机制: Array<{ 基线选择器: string; 浅色选择器: string; �
   { 基线选择器: '.text-gradient-teal', 浅色选择器: '.light .text-gradient-teal', 属性: '--渐变-青' },
 ]
 
-/**
- * 渐变文字类的浅色覆盖：亮端渐变（#56ccf2/#38ef7d/#fc6767）在白底卡面上只有 1.4–2.9:1，
- * 必须存在同色系的 .light 深色覆盖。
- */
 const 渐变文字浅色覆盖 = 渐变机制.map((项) => 项.浅色选择器)
 
 describe('浅色主题令牌守卫：暗色字面值必须走 @theme 令牌 + .light 覆盖', () => {
@@ -298,8 +246,6 @@ describe('浅色主题令牌守卫：暗色字面值必须走 @theme 令牌 + .l
     const 问题: string[] = []
     for (const 根块声明表 of 取根规则块表(样式表)) {
       for (const { 令牌, 位置 } of 根块声明表) {
-        // 只认排在该 :root 声明之后的 .light：顶层 .light 若写在 @supports :root 之前，
-        // 同特异度下后者胜出，浅色主题会被压回暗色——这正是本条要堵的漏洞
         const 有后继覆盖 = 浅色规则块.some((块) => 块.位置 > 位置 && 块.令牌.has(令牌))
         if (!有后继覆盖) 问题.push(`${令牌}（:root 声明位置 ${位置}）`)
       }

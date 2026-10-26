@@ -2,7 +2,7 @@ import { useYingYongZhuangTai } from '../状态/应用状态仓库'
 import { 日志器实例 } from '../可观测/日志器'
 import { t } from '../国际化/翻译'
 
-const { setOfflineReady, setUpdateAvailable, setCacheQuotaWarning } = useYingYongZhuangTai.getState()
+const { 设置离线就绪, 设置有更新, 设置缓存配额警告 } = useYingYongZhuangTai.getState()
 
 export type 更新服务工作线程类型 = (重载页面?: boolean) => Promise<void>
 
@@ -16,19 +16,18 @@ export async function 更新服务工作线程(重载页面 = true): Promise<voi
 }
 
 function 绑定消息通道(): void {
-  navigator.serviceWorker.addEventListener('message', (event) => {
-    // 同源校验：只接受本站 Service Worker 的消息，拒绝跨窗口/跨源的伪造指令
-    if (event.origin !== window.location.origin) return
-    const 消息数据 = event.data as { type?: string; payload?: Record<string, unknown> } | undefined
+  navigator.serviceWorker.addEventListener('message', (事件) => {
+    if (事件.origin !== window.location.origin) return
+    const 消息数据 = 事件.data as { type?: string; 载荷?: Record<string, unknown> } | undefined
     if (!消息数据?.type) return
 
     switch (消息数据.type) {
       case 'CACHE_QUOTA_WARNING':
-        setCacheQuotaWarning(true)
-        日志器实例.warn('Cache quota warning', 消息数据.payload)
+        设置缓存配额警告(true)
+        日志器实例.warn('Cache quota warning', 消息数据.载荷)
         break
       case 'OFFLINE_READY':
-        setOfflineReady(true)
+        设置离线就绪(true)
         break
       default:
         break
@@ -38,8 +37,8 @@ function 绑定消息通道(): void {
 
 function 监听更新(注册信息: ServiceWorkerRegistration): void {
   if (注册信息.waiting && navigator.serviceWorker.controller) {
-    日志器实例.info('Service Worker update available')
-    setUpdateAvailable(true)
+    日志器实例.信息('Service Worker update available')
+    设置有更新(true)
     return
   }
 
@@ -49,11 +48,11 @@ function 监听更新(注册信息: ServiceWorkerRegistration): void {
     安装中.addEventListener('statechange', () => {
       if (安装中.state !== 'installed') return
       if (navigator.serviceWorker.controller) {
-        日志器实例.info('Service Worker update available')
-        setUpdateAvailable(true)
+        日志器实例.信息('Service Worker update available')
+        设置有更新(true)
       } else {
-        日志器实例.info('Service Worker offline ready')
-        setOfflineReady(true)
+        日志器实例.信息('Service Worker offline ready')
+        设置离线就绪(true)
       }
     })
   })
@@ -61,15 +60,12 @@ function 监听更新(注册信息: ServiceWorkerRegistration): void {
 
 export function 注册服务工作线程(): 更新服务工作线程类型 | null {
   if (!('serviceWorker' in navigator)) {
-    日志器实例.info('Service Worker not supported in this environment')
+    日志器实例.信息('Service Worker not supported in this environment')
     return null
   }
 
   绑定消息通道()
 
-  // Vite 开发服务器不注册 SW：开发期无 SW 产物，强行注册会因 MIME/404 在浏览器
-  // 控制台留下无法消除的报错。用 MODE 判定：dev=development 跳过；build=production 与
-  // vitest=TEST 走真实注册（import.meta.hot 在 vitest 下也为真，不能作判据）。
   if (import.meta.env.MODE === 'development') {
     return null
   }
@@ -88,12 +84,12 @@ export function 注册服务工作线程(): 更新服务工作线程类型 | nul
   navigator.serviceWorker
     .register(服务工作线程路径)
     .then((注册信息) => {
-      日志器实例.info('Service Worker registered', { swUrl: 服务工作线程路径, scope: 注册信息.scope })
+      日志器实例.信息('Service Worker registered', { swUrl: 服务工作线程路径, scope: 注册信息.scope })
       监听更新(注册信息)
     })
-    .catch((error: unknown) => {
+    .catch((错误: unknown) => {
       服务线程更新实现 = null
-      日志器实例.warn(t('pwa.errorRegister'), { error: String(error) })
+      日志器实例.warn(t('pwa.errorRegister'), { error: String(错误) })
     })
 
   return 应用更新

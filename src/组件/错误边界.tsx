@@ -2,42 +2,42 @@ import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { 错误上报器实例 } from '../可观测/错误上报器'
 import { t } from '../国际化/翻译'
 
-interface ErrorBoundaryProps {
+interface 错误边界属性 {
   children: ReactNode
-  fallback?: ReactNode
+  兜底?: ReactNode
 }
 
-interface ErrorBoundaryState {
-  hasError: boolean
+interface 错误边界状态 {
+  有错误: boolean
   error: Error | null
-  errorInfo: ErrorInfo | null
+  错误信息: ErrorInfo | null
 }
 
-export class CuoWuBianJie extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
+export class CuoWuBianJie extends Component<错误边界属性, 错误边界状态> {
+  constructor(props: 错误边界属性) {
     super(props)
-    this.state = { hasError: false, error: null, errorInfo: null }
+    this.state = { 有错误: false, error: null, 错误信息: null }
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error, errorInfo: null }
+  static getDerivedStateFromError(错误: Error): 错误边界状态 {
+    return { 有错误: true, error: 错误, 错误信息: null }
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    this.setState({ errorInfo })
-    错误上报器实例.report(error, {
+  componentDidCatch(错误: Error, 错误信息: ErrorInfo) {
+    this.setState({ 错误信息 })
+    错误上报器实例.报告(错误, {
       category: 'render',
-      componentStack: errorInfo.componentStack ?? undefined,
+      componentStack: 错误信息.componentStack ?? undefined,
     })
   }
 
-  handleReload = () => {
+  处理刷新 = () => {
     window.location.reload()
   }
 
   render() {
-    if (this.state.hasError) {
-      if (this.props.fallback) return this.props.fallback
+    if (this.state.有错误) {
+      if (this.props.兜底) return this.props.兜底
 
       return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-bg p-6 text-center">
@@ -48,11 +48,11 @@ export class CuoWuBianJie extends Component<ErrorBoundaryProps, ErrorBoundarySta
               <pre className="mb-6 max-h-40 overflow-auto rounded-lg bg-black/40 p-3 text-left text-xs text-red-300">
                 {this.state.error.toString()}
                 {'\n'}
-                {this.state.errorInfo?.componentStack || ''}
+                {this.state.错误信息?.componentStack || ''}
               </pre>
             )}
             <button
-              onClick={this.handleReload}
+              onClick={this.处理刷新}
               className="rounded-full bg-primary/10 px-6 py-2.5 text-sm text-text-primary transition-colors hover:bg-primary/20"
             >
               {t('error.reload')}

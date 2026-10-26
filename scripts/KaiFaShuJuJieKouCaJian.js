@@ -1,51 +1,35 @@
-/**
- * 开发环境数据接口（Vite 插件）。
- *
- * 根因背景：/api/analytics 的线上形态按 deploy/nginx.conf 三选一处理
- * （默认方案 0：静态托管不提供该路由，前端静默降级），
- * 本地 `npm run dev` 下该路径无人应答，访问计数无从谈起。
- * 本插件在 dev server 内提供同名路由的文件落盘实现：
- * 数据存在项目 数据/ 目录（用户要求"数据存项目文件夹内"），
- * 生产构建不受影响（插件仅在 configureServer 生效）。
- * 留言表单已下线（生产链路不可达），本插件不再承载 /api/contact。
- */
 import fs from 'node:fs'
 import path from 'node:path'
 
-/** 读取 JSON 文件；不存在或损坏时返回 fallback（dev 数据损坏不应打崩 dev server） */
-export function 读Json(dataDir, file, fallback) {
+export function 读Json(数据目录, 文件, 兜底) {
   try {
-    return JSON.parse(fs.readFileSync(path.join(dataDir, file), 'utf-8'))
+    return JSON.parse(fs.readFileSync(path.join(数据目录, 文件), 'utf-8'))
   } catch {
-    return fallback
+    return 兜底
   }
 }
 
-/** 原子性不苛求（dev 场景），但保证目录存在后再写 */
-export function 写Json(dataDir, file, data) {
-  fs.mkdirSync(dataDir, { recursive: true })
-  fs.writeFileSync(path.join(dataDir, file), JSON.stringify(data, null, 2))
+export function 写Json(数据目录, 文件, data) {
+  fs.mkdirSync(数据目录, { recursive: true })
+  fs.writeFileSync(path.join(数据目录, 文件), JSON.stringify(data, null, 2))
 }
 
-/** 访问事件上限：防止 events 数组无限膨胀（超出即淘汰最旧记录） */
 const 访问记录上限 = 5000
 
-/** 校验访问上报载荷：path 1-512、timestamp 正整数（referrer/userAgent 宽松截断即可） */
 export function 校验访问(body) {
   if (typeof body !== 'object' || body === null) return 'invalid_json'
-  const { path: 路径, timestamp } = body
+  const { path: 路径, timestamp: 时间戳 } = body
   if (typeof 路径 !== 'string' || 路径.length < 1 || 路径.length > 512) return 'validation_error:path'
-  if (!Number.isInteger(timestamp) || timestamp <= 0) return 'validation_error:timestamp'
+  if (!Number.isInteger(时间戳) || 时间戳 <= 0) return 'validation_error:timestamp'
   return null
 }
 
-/** 纯逻辑：登记一次访问并返回统计快照（独立导出以便直接单测） */
-export function 登记访问(状态, timestamp) {
-  状态.events.push(timestamp)
+export function 登记访问(状态, 时间戳) {
+  状态.events.push(时间戳)
   while (状态.events.length > 访问记录上限) {
     状态.events.shift()
   }
-  const 一天前 = timestamp - 24 * 60 * 60 * 1000
+  const 一天前 = 时间戳 - 24 * 60 * 60 * 1000
   return {
     total: 状态.events.length,
     last24h: 状态.events.filter((t) => t > 一天前).length,
@@ -53,50 +37,44 @@ export function 登记访问(状态, timestamp) {
   }
 }
 
-/**
- * 请求处理核心（与 Vite 解耦，便于单测）：
- * - GET  /analytics → 统计快照
- * - POST /analytics → 登记 + 返回新快照
- * 其余一律 next()（含 /deepseek 代理）。
- */
-export function createDevDataHandler({ dataDir, log = () => {} }) {
+export function 创建开发数据处理器({ dataDir: 数据目录, log = () => {} }) {
   const 访问文件 = 'dev-analytics.json'
 
-  function 读Body(req) {
+  function 读Body(请求) {
     return new Promise((resolve, reject) => {
-      let raw = ''
-      req.on('data', (chunk) => {
-        raw += chunk
-        // 防御：请求体超 1MB 直接拒绝，避免恶意大包拖垮 dev server
-        if (raw.length > 1024 * 1024) {
+      let 原始 = ''
+      请求.on('data', (分块) => {
+        原始 += 分块
+
+        if (原始.length > 1024 * 1024) {
           reject(new Error('payload_too_large'))
-          req.destroy()
+          请求.destroy()
         }
       })
-      req.on('end', () => {
+      请求.on('end', () => {
         try {
-          resolve(raw.length > 0 ? JSON.parse(raw) : {})
+          resolve(原始.length > 0 ? JSON.parse(原始) : {})
         } catch {
           reject(new Error('invalid_json'))
         }
       })
-      req.on('error', reject)
+      请求.on('error', reject)
     })
   }
 
-  function 回复(res, status, payload) {
-    res.statusCode = status
-    res.setHeader('Content-Type', 'application/json; charset=utf-8')
-    res.end(JSON.stringify(payload))
+  function 回复(响应, status, 载荷) {
+    响应.statusCode = status
+    响应.setHeader('Content-Type', 'application/json; charset=utf-8')
+    响应.end(JSON.stringify(载荷))
   }
 
-  return async function 处理(req, res, next) {
-    const 方法 = req.method ?? ''
-    const 路由 = req.url ?? ''
+  return async function 处理(请求, 响应, 下一个) {
+    const 方法 = 请求.method ?? ''
+    const 路由 = 请求.url ?? ''
 
     try {
       if (方法 === 'GET' && 路由.startsWith('/analytics')) {
-        const 状态 = 读Json(dataDir, 访问文件, { events: [] })
+        const 状态 = 读Json(数据目录, 访问文件, { events: [] })
         const 一天前 = Date.now() - 24 * 60 * 60 * 1000
         const 快照 = {
           total: 状态.events.length,
@@ -104,50 +82,49 @@ export function createDevDataHandler({ dataDir, log = () => {} }) {
           stored: true,
         }
         log(`[dev-api] GET /analytics → total=${快照.total} last24h=${快照.last24h}`)
-        回复(res, 200, 快照)
+        回复(响应, 200, 快照)
         return
       }
 
       if (方法 === 'POST' && 路由.startsWith('/analytics')) {
-        const body = await 读Body(req)
+        const body = await 读Body(请求)
         const 错误 = 校验访问(body)
         if (错误) {
-          回复(res, 错误 === 'invalid_json' ? 400 : 400, { success: false, error: 错误 })
+          回复(响应, 错误 === 'invalid_json' ? 400 : 400, { success: false, error: 错误 })
           return
         }
-        const 状态 = 读Json(dataDir, 访问文件, { events: [] })
+        const 状态 = 读Json(数据目录, 访问文件, { events: [] })
         const 快照 = 登记访问(状态, body.timestamp)
-        写Json(dataDir, 访问文件, 状态)
+        写Json(数据目录, 访问文件, 状态)
         log(`[dev-api] POST /analytics → total=${快照.total} last24h=${快照.last24h}`)
-        回复(res, 200, { success: true, ...快照 })
+        回复(响应, 200, { success: true, ...快照 })
         return
       }
-    } catch (err) {
-      log(`[dev-api] 处理失败：${err instanceof Error ? err.message : String(err)}`)
-      if (!res.writableEnded) {
-        回复(res, err.message === 'payload_too_large' ? 413 : 400, {
+    } catch (错误) {
+      log(`[dev-api] 处理失败：${错误 instanceof Error ? 错误.message : String(错误)}`)
+      if (!响应.writableEnded) {
+        回复(响应, 错误.message === 'payload_too_large' ? 413 : 400, {
           success: false,
-          error: err.message,
+          error: 错误.message,
         })
       }
       return
     }
 
-    next()
+    下一个()
   }
 }
 
-/** Vite 插件壳：仅开发服务器挂载上述处理器（生产构建零副作用） */
-export default function 开发数据接口插件({ dataDir } = {}) {
+export default function 开发数据接口插件({ dataDir: 数据目录 } = {}) {
   return {
     name: 'dev-data-api',
-    configureServer(server) {
-      const 处理 = createDevDataHandler({
-        dataDir: dataDir ?? path.resolve(process.cwd(), 'data'),
-        log: (...args) => console.info(...args),
+    configureServer(服务器) {
+      const 处理 = 创建开发数据处理器({
+        dataDir: 数据目录 ?? path.resolve(process.cwd(), 'data'),
+        log: (...参数) => console.info(...参数),
       })
-      server.middlewares.use('/api', (req, res, next) => {
-        void 处理(req, res, next)
+      服务器.middlewares.use('/api', (请求, 响应, 下一个) => {
+        void 处理(请求, 响应, 下一个)
       })
     },
   }

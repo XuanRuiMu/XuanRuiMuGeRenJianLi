@@ -1,16 +1,10 @@
-/**
- * 设备能力评估
- * 根据硬件性能、电池状态、网络状况自动调整渲染质量
- */
-
 import type { 画质档位值, 画质设置 } from '../领域/类型'
 import { 画质档位 } from '../领域/常量'
 
 export { 画质档位 } from '../领域/常量'
 
 interface GPU适配器存根 {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  readonly features: any
+  readonly 特性: unknown
 }
 
 interface 带GPU的导航器 {
@@ -26,8 +20,8 @@ interface 网络信息 {
 
 interface 带连接的导航器 extends Navigator {
   connection?: 网络信息
-  mozConnection?: 网络信息
-  webkitConnection?: 网络信息
+  火狐连接?: 网络信息
+  WebKit连接?: 网络信息
 }
 
 interface 带内存的导航器 extends Navigator {
@@ -60,16 +54,14 @@ async function 获取电池档位(): Promise<画质档位值 | null> {
       const 电池 = await 导航器.getBattery()
       if (!电池.charging && 电池.level < 0.25) return 画质档位.低
       if (!电池.charging && 电池.level < 0.5) return 画质档位.中
-    } catch {
-      // ignore
-    }
+    } catch {}
   }
   return null
 }
 
 function 获取网络档位(): 画质档位值 | null {
   const 导航器 = navigator as 带连接的导航器
-  const 连接 = 导航器.connection || 导航器.mozConnection || 导航器.webkitConnection
+  const 连接 = 导航器.connection || 导航器.火狐连接 || 导航器.WebKit连接
   if (!连接) return null
   if (连接.saveData) return 画质档位.低
   if (连接.effectiveType === '4g') return 画质档位.高
@@ -136,39 +128,39 @@ export function 获取画质设置(档位: 画质档位值): 画质设置 {
   const 设置: Record<画质档位值, 画质设置> = {
     [画质档位.极致]: {
       dpr: [1, 2],
-      particleCount: 20000,
-      bloom: { levels: 8, resolutionScale: 1 },
-      dof: { resolutionScale: 0.75 },
-      shadows: true,
-      postProcessing: true,
-      volumetric: true,
+      粒子数量: 20000,
+      泛光: { 层级数: 8, 分辨率比例: 1 },
+      景深: { 分辨率比例: 0.75 },
+      阴影: true,
+      后处理: true,
+      体积光: true,
     },
     [画质档位.高]: {
       dpr: [1, 1.5],
-      particleCount: 15000,
-      bloom: { levels: 6, resolutionScale: 0.75 },
-      dof: { resolutionScale: 0.5 },
-      shadows: true,
-      postProcessing: true,
-      volumetric: true,
+      粒子数量: 15000,
+      泛光: { 层级数: 6, 分辨率比例: 0.75 },
+      景深: { 分辨率比例: 0.5 },
+      阴影: true,
+      后处理: true,
+      体积光: true,
     },
     [画质档位.中]: {
       dpr: [1, 1.25],
-      particleCount: 10000,
-      bloom: { levels: 4, resolutionScale: 0.5 },
-      dof: { resolutionScale: 0.5 },
-      shadows: false,
-      postProcessing: true,
-      volumetric: false,
+      粒子数量: 10000,
+      泛光: { 层级数: 4, 分辨率比例: 0.5 },
+      景深: { 分辨率比例: 0.5 },
+      阴影: false,
+      后处理: true,
+      体积光: false,
     },
     [画质档位.低]: {
       dpr: [1, 1],
-      particleCount: 5000,
-      bloom: { levels: 2, resolutionScale: 0.5 },
-      dof: { resolutionScale: 0.5 },
-      shadows: false,
-      postProcessing: false,
-      volumetric: false,
+      粒子数量: 5000,
+      泛光: { 层级数: 2, 分辨率比例: 0.5 },
+      景深: { 分辨率比例: 0.5 },
+      阴影: false,
+      后处理: false,
+      体积光: false,
     },
   }
   return 设置[档位] ?? 设置[画质档位.高]

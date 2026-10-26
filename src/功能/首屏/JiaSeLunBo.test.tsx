@@ -3,7 +3,6 @@ import { render, act } from '@testing-library/react'
 import { JiaSeLunBo } from './JiaSeLunBo'
 import { 字符渐变色 } from './JiaSeJianBian'
 
-// 顶层声明：vitest 5 起 vi.mock 只允许出现在模块顶层作用域（同 vi.hoisted 的提升语义）
 vi.mock('../../钩子/useJianShaoDongHua', () => ({ useJianShaoDongHua: () => true }))
 
 describe('字符渐变色（按完整词预分配最终颜色）', () => {
@@ -13,7 +12,6 @@ describe('字符渐变色（按完整词预分配最终颜色）', () => {
   })
 
   it('中点字符取渐变中点色', () => {
-    // total=7 时 index=3 → t=0.5 → 中点
     expect(字符渐变色(3, 7)).toBe('rgb(129, 140, 248)')
   })
 
@@ -37,12 +35,12 @@ describe('字符渐变色（按完整词预分配最终颜色）', () => {
 
 describe('RoleTicker 组件渲染', () => {
   it('reduced-motion 静态显示首词且逐字着色符合纯函数', () => {
-    const roles = ['全栈开发工程师']
-    const { container } = render(<JiaSeLunBo roles={roles} />)
-    const spans = container.querySelectorAll('[data-testid="role-typewriter"] span[style]')
-    expect(spans).toHaveLength(roles[0].length)
-    spans.forEach((span, i) => {
-      expect(span.getAttribute('style')).toContain(字符渐变色(i, roles[0].length))
+    const 角色表 = ['全栈开发工程师']
+    const { container: 容器 } = render(<JiaSeLunBo 角色表={角色表} />)
+    const 跨度表 = 容器.querySelectorAll('[data-testid="role-typewriter"] span[style]')
+    expect(跨度表).toHaveLength(角色表[0].length)
+    跨度表.forEach((跨度, i) => {
+      expect(跨度.getAttribute('style')).toContain(字符渐变色(i, 角色表[0].length))
     })
   })
 
@@ -56,14 +54,11 @@ describe('RoleTicker 组件渲染', () => {
       const 期望色 = (i: number) => 字符渐变色(i, 词.length)
       let 上次颜色序列: string[] | null = null
 
-      const { container } = render(<动态组件 roles={[词]} typeSpeed={10} backSpeed={10} backDelay={20} />)
+      const { container: 容器 } = render(<动态组件 角色表={[词]} 打字速度={10} 返回速度={10} 返回延迟={20} />)
 
       const 取当前颜色 = (): string[] =>
-        Array.from(container.querySelectorAll('span[style]')).map((el) => el.getAttribute('style') ?? '')
+        Array.from(容器.querySelectorAll('span[style]')).map((元素) => 元素.getAttribute('style') ?? '')
 
-      // 推进若干帧，每次校验公共前缀不变性（打字阶段序列增长、删字阶段缩短，
-      // shouldAdvanceTime 会把真实时间灌入 fake timer，故两种阶段都必须兼容）：
-      // 较短序列必须是较长序列的前缀——即已显字符的颜色永不随进度变化
       for (let 帧 = 0; 帧 < 6; 帧++) {
         await act(async () => {
           await vi.advanceTimersByTimeAsync(15)

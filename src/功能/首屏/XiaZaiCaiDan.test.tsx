@@ -31,7 +31,6 @@ function 焦点(): Element | null {
   return document.activeElement
 }
 
-/** 真键盘链路：按键打在「当前获得焦点的节点」上并冒泡，而不是打在容器上——这是上一轮 6 个测试全部用 click 绕过、漏掉致命缺陷的地方。 */
 function 按键(键: string) {
   const 目标 = 焦点()
   expect(目标, `按 ${键} 前必须先有焦点节点`).not.toBeNull()
@@ -191,7 +190,7 @@ describe('DownloadMenu', () => {
   })
 
   it('点击容器外关闭菜单', () => {
-    const { container } = render(
+    const { container: 容器 } = render(
       <div>
         <div data-testid="外部" />
         <XiaZaiCaiDan />
@@ -199,7 +198,7 @@ describe('DownloadMenu', () => {
     )
     fireEvent.click(箭头())
     expect(screen.getByRole('menu')).toBeTruthy()
-    fireEvent.pointerDown(container.querySelector('[data-testid="外部"]') as Element)
+    fireEvent.pointerDown(容器.querySelector('[data-testid="外部"]') as Element)
     expect(screen.queryByRole('menu')).toBeNull()
   })
 })

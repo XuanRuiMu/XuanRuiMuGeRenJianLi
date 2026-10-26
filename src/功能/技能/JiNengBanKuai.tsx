@@ -8,33 +8,33 @@ import { useShuZiGunDong } from '../../钩子/useShuZiGunDong'
 import { useJianShaoDongHua } from '../../钩子/useJianShaoDongHua'
 import { AnimatePresence, motion } from 'framer-motion'
 
-const SIZE = 320
-const CENTER = SIZE / 2
-const RADIUS = 116
-const RINGS = [20, 40, 60, 80, 100]
-/** 轴标签画在 1.18 倍半径处，文字本身还会向外延伸；viewBox 若只容下 SIZE 就会裁掉侧向标签。 */
+const 尺寸 = 320
+const 中心 = 尺寸 / 2
+const 半径值 = 116
+const 环表 = [20, 40, 60, 80, 100]
+
 const 标签留白 = 44
 const 画布起点X = -标签留白
 const 画布起点Y = -标签留白 / 2
-const 画布宽度 = SIZE + 标签留白 * 2
-const 画布高度 = SIZE + 标签留白
+const 画布宽度 = 尺寸 + 标签留白 * 2
+const 画布高度 = 尺寸 + 标签留白
 const 画布 = `${画布起点X} ${画布起点Y} ${画布宽度} ${画布高度}`
-/** 指标数字滚动时长（ms） */
+
 const 指标滚动时长 = 1280
 const 气泡进入毫秒 = 200
 const 气泡退出毫秒 = 120
 
-function pointAt(angleDeg: number, ratio: number): [number, number] {
-  const rad = ((angleDeg - 90) * Math.PI) / 180
-  const r = RADIUS * ratio
-  return [CENTER + r * Math.cos(rad), CENTER + r * Math.sin(rad)]
+function 指向(角度: number, 比例: number): [number, number] {
+  const 弧度 = ((角度 - 90) * Math.PI) / 180
+  const r = 半径值 * 比例
+  return [中心 + r * Math.cos(弧度), 中心 + r * Math.sin(弧度)]
 }
 
-function polygonPoints(levels: number[]): string {
-  const step = 360 / levels.length
-  return levels
-    .map((lv, i) => {
-      const [x, y] = pointAt(i * step, lv / 100)
+function 多边形点表(层级数: number[]): string {
+  const step = 360 / 层级数.length
+  return 层级数
+    .map((等级, i) => {
+      const [x, y] = 指向(i * step, 等级 / 100)
       return `${x.toFixed(1)},${y.toFixed(1)}`
     })
     .join(' ')
@@ -128,7 +128,7 @@ const 气泡视觉表: Record<string, 气泡视觉> = {
   },
 }
 
-function SkillMetricCard({ 指标, 启动, 动画 }: { 指标: 量化指标项; 启动: boolean; 动画: boolean }) {
+function JiNengZhiBiaoKaPian({ 指标, 启动, 动画 }: { 指标: 量化指标项; 启动: boolean; 动画: boolean }) {
   const { 显示 } = useShuZiGunDong({
     值: 指标.value,
     时长毫秒: 指标滚动时长,
@@ -139,12 +139,12 @@ function SkillMetricCard({ 指标, 启动, 动画 }: { 指标: 量化指标项; 
   return (
     <div data-skill-metric={指标.id} className="rounded-xl border border-border/60 bg-surface/40 px-4 py-4 text-center">
       <div className="font-display text-2xl font-bold tabular-nums text-primary text-shadow-readable">{显示}</div>
-      <div className="mt-1 text-xs text-muted">{指标.label}</div>
+      <div className="mt-1 text-xs text-muted">{指标.标签}</div>
     </div>
   )
 }
 
-function RadarTooltip({
+function LeiDaTiShi({
   轴,
   x,
   y,
@@ -160,13 +160,13 @@ function RadarTooltip({
   const 视觉 = 气泡视觉表[轴.id] ?? 气泡视觉表.aiAgent
   const 锚点X = x + 视觉.引导X
   const 锚点Y = y + 视觉.引导Y
-  const left = `${((锚点X - 画布起点X) / 画布宽度) * 100}%`
-  const top = `${((锚点Y - 画布起点Y) / 画布高度) * 100}%`
+  const 左边界 = `${((锚点X - 画布起点X) / 画布宽度) * 100}%`
+  const 上边界 = `${((锚点Y - 画布起点Y) / 画布高度) * 100}%`
   return (
     <div
       data-radar-placement={视觉.方位}
       className={['pointer-events-none absolute z-20 w-48', 视觉.定位类].join(' ')}
-      style={{ left, top }}
+      style={{ left: 左边界, top: 上边界 }}
     >
       <motion.div
         id={说明Id}
@@ -204,34 +204,34 @@ function RadarTooltip({
 }
 
 export function JiNengBanKuai() {
-  const reduced = useJianShaoDongHua()
-  const count = 雷达轴表.length
-  const dataPoints = polygonPoints(雷达轴表.map((a) => a.level))
+  const 减少 = useJianShaoDongHua()
+  const 数量 = 雷达轴表.length
+  const 数据点表 = 多边形点表(雷达轴表.map((a) => a.level))
   const 指标表 = 量化指标()
   const 分组表 = 技能组表()
-  const 主轴表 = 雷达轴表.filter((轴) => !轴.minor)
+  const 主轴表 = 雷达轴表.filter((轴) => !轴.辅修)
   const 气泡说明Id = useId()
-  const [悬停轴Id, set悬停轴Id] = useState<string | null>(null)
+  const [悬停轴Id, 设置悬停轴Id] = useState<string | null>(null)
   const 当前轴Id = 悬停轴Id
   const 当前轴索引 = 雷达轴表.findIndex((轴) => 轴.id === 当前轴Id)
   const 当前轴 = 当前轴索引 >= 0 ? 雷达轴表[当前轴索引] : null
   const 当前视觉 = 当前轴 ? 气泡视觉表[当前轴.id] : undefined
   const 当前说明Id = 当前轴 ? `${气泡说明Id}-${当前轴.id}` : 气泡说明Id
-  const [当前X, 当前Y] = 当前轴索引 >= 0 ? pointAt(当前轴索引 * (360 / count), (当前轴?.level ?? 0) / 100) : [0, 0]
+  const [当前X, 当前Y] = 当前轴索引 >= 0 ? 指向(当前轴索引 * (360 / 数量), (当前轴?.level ?? 0) / 100) : [0, 0]
 
   const 指标区引用 = useRef<HTMLDivElement>(null)
-  const [进入视口, set进入视口] = useState(false)
+  const [进入视口, 设置进入视口] = useState(false)
   useEffect(() => {
     const 元素 = 指标区引用.current
     if (!元素) return
     if (typeof IntersectionObserver === 'undefined') {
-      queueMicrotask(() => set进入视口(true))
+      queueMicrotask(() => 设置进入视口(true))
       return
     }
     const 观察器 = new IntersectionObserver(
       ([条目]) => {
         if (条目.isIntersecting) {
-          set进入视口(true)
+          设置进入视口(true)
           观察器.disconnect()
         }
       },
@@ -245,7 +245,7 @@ export function JiNengBanKuai() {
     <BanKuai id="skills" title={t('skills.title')}>
       <div ref={指标区引用} data-skill-metrics="true" className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {指标表.map((指标) => (
-          <SkillMetricCard key={指标.id} 指标={指标} 启动={进入视口} 动画={!reduced} />
+          <JiNengZhiBiaoKaPian key={指标.id} 指标={指标} 启动={进入视口} 动画={!减少} />
         ))}
       </div>
 
@@ -255,9 +255,9 @@ export function JiNengBanKuai() {
           {分组表.map((组) => (
             <XianXian key={组.id}>
               <div data-skill-group={组.id} className="h-full rounded-2xl border border-border/60 bg-surface/40 p-5">
-                <h4 className="text-base font-medium text-text-primary">{组.label}</h4>
+                <h4 className="text-base font-medium text-text-primary">{组.标签}</h4>
                 <ul className="mt-3 space-y-2">
-                  {组.items.map((陈述) => (
+                  {组.条目表.map((陈述) => (
                     <li key={陈述} className="flex gap-2 text-sm leading-relaxed text-text-secondary">
                       <span aria-hidden="true" className="mt-2 h-1 w-1 shrink-0 rounded-full bg-primary" />
                       <span>{陈述}</span>
@@ -265,7 +265,7 @@ export function JiNengBanKuai() {
                   ))}
                 </ul>
                 <ul className="mt-4 flex flex-wrap gap-2">
-                  {组.tags.map((标签) => (
+                  {组.标签表.map((标签) => (
                     <li
                       key={标签}
                       data-skill-tag={标签}
@@ -290,40 +290,31 @@ export function JiNengBanKuai() {
             <div
               data-radar-overlay="true"
               className="relative w-full overflow-visible"
-              // 兜底清除：双击拖选等浏览器指针捕获场景会抑制小圆点自身的 mouseleave，
-              // 导致悬浮窗残留。指针只要离开整个雷达图区域就强制清空，悬浮窗只可能由悬停驱动。
-              onPointerLeave={() => set悬停轴Id(null)}
+
+              onPointerLeave={() => 设置悬停轴Id(null)}
             >
               <svg viewBox={画布} className="block h-auto w-full" role="group" aria-label={t('skills.radarTitle')}>
-                {RINGS.map((lv) => (
+                {环表.map((等级) => (
                   <polygon
-                    key={lv}
-                    points={polygonPoints(雷达轴表.map(() => lv))}
+                    key={等级}
+                    points={多边形点表(雷达轴表.map(() => 等级))}
                     fill="none"
                     stroke="rgba(125,211,252,0.18)"
                     strokeWidth={1}
                   />
                 ))}
                 {雷达轴表.map((_, i) => {
-                  const [x, y] = pointAt(i * (360 / count), 1)
+                  const [x, y] = 指向(i * (360 / 数量), 1)
                   return (
-                    <line
-                      key={i}
-                      x1={CENTER}
-                      y1={CENTER}
-                      x2={x}
-                      y2={y}
-                      stroke="rgba(125,211,252,0.18)"
-                      strokeWidth={1}
-                    />
+                    <line key={i} x1={中心} y1={中心} x2={x} y2={y} stroke="rgba(125,211,252,0.18)" strokeWidth={1} />
                   )
                 })}
                 <polygon
-                  points={dataPoints}
+                  points={数据点表}
                   fill="rgba(56,189,248,0.25)"
                   stroke="#38bdf8"
                   strokeWidth={2}
-                  style={reduced ? undefined : { transition: 'all 700ms ease' }}
+                  style={减少 ? undefined : { transition: 'all 700ms ease' }}
                 />
                 <AnimatePresence initial={false}>
                   {当前轴 && 当前视觉 && (
@@ -339,21 +330,21 @@ export function JiNengBanKuai() {
                       strokeLinecap="round"
                       vectorEffect="non-scaling-stroke"
                       className={当前视觉.文字强调类}
-                      initial={{ pathLength: reduced ? 1 : 0, opacity: reduced ? 1 : 0 }}
+                      initial={{ pathLength: 减少 ? 1 : 0, opacity: 减少 ? 1 : 0 }}
                       animate={{ pathLength: 1, opacity: 1 }}
                       exit={{
                         opacity: 0,
-                        transition: { duration: reduced ? 0 : 气泡退出毫秒 / 1000 },
+                        transition: { duration: 减少 ? 0 : 气泡退出毫秒 / 1000 },
                       }}
                       transition={{
-                        duration: reduced ? 0 : 气泡进入毫秒 / 1000,
+                        duration: 减少 ? 0 : 气泡进入毫秒 / 1000,
                         ease: [0.16, 1, 0.3, 1],
                       }}
                     />
                   )}
                 </AnimatePresence>
                 {雷达轴表.map((轴, i) => {
-                  const [x, y] = pointAt(i * (360 / count), 轴.level / 100)
+                  const [x, y] = 指向(i * (360 / 数量), 轴.level / 100)
                   return (
                     <circle
                       key={轴.id}
@@ -363,22 +354,22 @@ export function JiNengBanKuai() {
                       r={当前轴?.id === 轴.id ? 5 : 3}
                       fill="#38bdf8"
                       className="cursor-default"
-                      onMouseEnter={() => set悬停轴Id(轴.id)}
-                      onMouseLeave={() => set悬停轴Id(null)}
+                      onMouseEnter={() => 设置悬停轴Id(轴.id)}
+                      onMouseLeave={() => 设置悬停轴Id(null)}
                       role="img"
                       aria-label={t(维度标题键(轴.id))}
                     />
                   )
                 })}
                 {雷达轴表.map((轴, i) => {
-                  const [x, y] = pointAt(i * (360 / count), 1.18)
-                  const anchor = x < CENTER - 4 ? 'end' : x > CENTER + 4 ? 'start' : 'middle'
+                  const [x, y] = 指向(i * (360 / 数量), 1.18)
+                  const 锚点 = x < 中心 - 4 ? 'end' : x > 中心 + 4 ? 'start' : 'middle'
                   return (
                     <text
                       key={轴.id}
                       x={x}
                       y={y}
-                      textAnchor={anchor}
+                      textAnchor={锚点}
                       dominantBaseline="middle"
                       className="fill-current text-text-secondary"
                       style={{ fontSize: 11 }}
@@ -390,21 +381,14 @@ export function JiNengBanKuai() {
               </svg>
               <AnimatePresence initial={false}>
                 {当前轴 && (
-                  <RadarTooltip
-                    key={当前轴.id}
-                    轴={当前轴}
-                    x={当前X}
-                    y={当前Y}
-                    说明Id={当前说明Id}
-                    减少动画={reduced}
-                  />
+                  <LeiDaTiShi key={当前轴.id} 轴={当前轴} x={当前X} y={当前Y} 说明Id={当前说明Id} 减少动画={减少} />
                 )}
               </AnimatePresence>
             </div>
           </figure>
         </XianXian>
 
-        {/* 图例只列主轴；附轴（设计/艺术）仅在雷达上，悬停浮窗看说明 */}
+        {}
         <div className="space-y-3">
           {主轴表.map((轴) => (
             <XianXian key={轴.id}>

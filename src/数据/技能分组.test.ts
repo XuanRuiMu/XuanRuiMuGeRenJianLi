@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import zhCN from '../国际化/zh-CN.json'
-import { ta } from '../国际化/翻译'
+import { 翻译数组 } from '../国际化/翻译'
 import { 构建简历知识库 } from '../智能/简历知识库'
 import { 量化指标, 技能组表 } from './技能分组'
 
@@ -19,10 +19,6 @@ function 键存在(路径: string): boolean {
   return true
 }
 
-/**
- * 红线守卫：以下工具/组件他没有真实做过，只能出现在「求职方向」里，
- * 绝不允许写成已掌握技能或技能标签（报告 4.2 引上海人社局口径「严禁虚构经历」）。
- */
 const 影子技能词表 = [
   '影刀',
   'UiPath',
@@ -46,10 +42,10 @@ const 影子技能词表 = [
 
 function 技能板块全文(): string {
   const 分组文本 = 技能组表()
-    .map((组) => [组.label, ...组.items, ...组.tags].join('\n'))
+    .map((组) => [组.标签, ...组.条目表, ...组.标签表].join('\n'))
     .join('\n')
   const 指标文本 = 量化指标()
-    .map((指标) => `${指标.value} ${指标.label}`)
+    .map((指标) => `${指标.value} ${指标.标签}`)
     .join('\n')
   const 雷达文本 = Object.values(zhCN.data.radar.dimensions)
     .map((维度) => `${维度.label}\n${维度.description}\n${维度.basis}`)
@@ -66,15 +62,15 @@ describe('FP-04 技能板块量化指标', () => {
   it('4 个数字一个都没丢，且标签逐字来自翻译文件', () => {
     const 值表 = Object.fromEntries(量化指标().map((指标) => [指标.id, 指标.value]))
     expect(值表).toEqual({ javaClasses: '425', aiSkills: '85+', agentSkills: '9', serverOps: '7年' })
-    expect(量化指标().find((指标) => 指标.id === 'javaClasses')?.label).toBe('自研Java源文件（含测试）')
-    expect(量化指标().find((指标) => 指标.id === 'aiSkills')?.label).toBe('可复用AI工作流模板')
-    expect(量化指标().find((指标) => 指标.id === 'agentSkills')?.label).toBe('开源Agent技能')
-    expect(量化指标().find((指标) => 指标.id === 'serverOps')?.label).toBe('独立服务器运维')
+    expect(量化指标().find((指标) => 指标.id === 'javaClasses')?.标签).toBe('自研Java源文件（含测试）')
+    expect(量化指标().find((指标) => 指标.id === 'aiSkills')?.标签).toBe('可复用AI工作流模板')
+    expect(量化指标().find((指标) => 指标.id === 'agentSkills')?.标签).toBe('开源Agent技能')
+    expect(量化指标().find((指标) => 指标.id === 'serverOps')?.标签).toBe('独立服务器运维')
   })
 
   it('量化指标全部为 AI/IT 项：教学类旧指标（课程数/论文数）不得回流', () => {
     const 指标文本 = 量化指标()
-      .map((指标) => `${指标.value} ${指标.label}`)
+      .map((指标) => `${指标.value} ${指标.标签}`)
       .join('\n')
     for (const 旧值 of ['10+', '50+']) {
       expect(指标文本, `量化指标不得含教学类旧值「${旧值}」`).not.toContain(旧值)
@@ -85,9 +81,9 @@ describe('FP-04 技能板块量化指标', () => {
   it('value 含可解析数字，useShuZiGunDong 能滚动到终态', () => {
     for (const 指标 of 量化指标()) {
       expect(指标.value).toMatch(/\d+/)
-      expect(指标.label.trim()).not.toBe('')
+      expect(指标.标签.trim()).not.toBe('')
     }
-    // 「9」是纯数字（无前后缀），「7年」是数字+中文后缀：两类都要能被 useShuZiGunDong 解析出滚动目标
+
     const 纯数字 = 量化指标().find((指标) => 指标.id === 'agentSkills')!.value
     const 带中文后缀 = 量化指标().find((指标) => 指标.id === 'serverOps')!.value
     expect(纯数字).toMatch(/^\d+$/)
@@ -100,24 +96,24 @@ describe('FP-03 技能分组数据源', () => {
     const 分组 = 技能组表()
     expect(分组.map((组) => 组.id)).toEqual(Object.keys(分组表))
     expect(分组.map((组) => 组.id)).toEqual(['aiAgent', 'backend', 'frontend', 'delivery'])
-    expect(分组[0].label).toBe('AI Agent能力')
+    expect(分组[0].标签).toBe('AI Agent能力')
   })
 
   it('每组 label/items/tags 均非空，条目与标签逐字来自翻译文件', () => {
     const 分组 = 技能组表()
     expect(分组.length).toBeGreaterThan(0)
     for (const 组 of 分组) {
-      expect(组.label.trim()).not.toBe('')
-      expect(组.items.length).toBeGreaterThanOrEqual(4)
-      expect(组.tags.length).toBeGreaterThanOrEqual(6)
-      expect(组.items).toEqual(ta(`skills.groups.${组.id}.items` as never))
-      expect(组.tags).toEqual(ta(`skills.groups.${组.id}.tags` as never))
-      for (const 条 of [...组.items, ...组.tags]) expect(条.trim()).not.toBe('')
+      expect(组.标签.trim()).not.toBe('')
+      expect(组.条目表.length).toBeGreaterThanOrEqual(4)
+      expect(组.标签表.length).toBeGreaterThanOrEqual(6)
+      expect(组.条目表).toEqual(翻译数组(`skills.groups.${组.id}.items` as never))
+      expect(组.标签表).toEqual(翻译数组(`skills.groups.${组.id}.tags` as never))
+      for (const 条 of [...组.条目表, ...组.标签表]) expect(条.trim()).not.toBe('')
     }
   })
 
   it('AI Agent 组 5 条陈述按报告 4.2 的面试官语言，逐条对齐规格', () => {
-    const 陈述 = 技能组表()[0].items
+    const 陈述 = 技能组表()[0].条目表
     expect(陈述).toHaveLength(5)
     expect(陈述[0]).toBe('使用Claude Code/Codex/Trae/WorkBuddy等编码与办公智能体完成真实项目')
     expect(陈述[1]).toContain('85+个可复用AI工作流模板')
@@ -146,7 +142,7 @@ describe('FP-03 技能分组数据源', () => {
       '悄悄',
       '动手',
     ]
-    const 正文表 = 技能组表().flatMap((组) => 组.items)
+    const 正文表 = 技能组表().flatMap((组) => 组.条目表)
     for (const 词 of 口语痕迹词表) {
       for (const 正文 of 正文表) {
         expect(正文, `能力清单正文不得出现口语表达「${词}」：${正文}`).not.toContain(词)
@@ -173,7 +169,7 @@ describe('FP-03 技能分组数据源', () => {
   })
 
   it('实施交付组含规格要求的关键词，覆盖软件实施岗笔试口径', () => {
-    const 标签 = 技能组表().find((组) => 组.id === 'delivery')?.tags ?? []
+    const 标签 = 技能组表().find((组) => 组.id === 'delivery')?.标签表 ?? []
     for (const 词 of ['SQL', 'Linux', 'Postman', 'REST API', '需求调研', '用户培训', '文档编写']) {
       expect(标签, `实施交付组标签缺「${词}」`).toContain(词)
     }
@@ -203,7 +199,7 @@ describe('FP-03 技能分组数据源', () => {
   it('旧技能标签树已清除，组件不再硬编码板块文案', () => {
     expect('categories' in zhCN.skills).toBe(false)
     expect('skills' in zhCN.data).toBe(false)
-    // 注释里的说明性中文不算硬编码文案，先看出去注释后的源码
+
     const 源码 = fs
       .readFileSync(path.resolve(项目根, 'src/功能/技能/JiNengBanKuai.tsx'), 'utf-8')
       .replace(/\/\*[\s\S]*?\*\//g, '')

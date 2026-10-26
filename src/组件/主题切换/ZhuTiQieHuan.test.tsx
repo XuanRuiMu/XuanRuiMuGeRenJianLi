@@ -3,18 +3,18 @@ import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/re
 import { ZhuTiQieHuan } from './ZhuTiQieHuan'
 import { useZhuTiXiTong } from './useZhuTiXiTong'
 
-const setTheme = vi.fn()
+const 设置主题 = vi.fn()
 
 vi.mock('./useZhuTiXiTong', () => ({
   useZhuTiXiTong: vi.fn(),
 }))
 
 describe('ThemeToggle', () => {
-  const mockUseThemeSystem = useZhuTiXiTong as unknown as ReturnType<typeof vi.fn>
+  const 模拟主题系统 = useZhuTiXiTong as unknown as ReturnType<typeof vi.fn>
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockUseThemeSystem.mockReturnValue({ theme: 'system', setTheme })
+    模拟主题系统.mockReturnValue({ theme: 'system', setTheme: 设置主题 })
   })
 
   afterEach(() => {
@@ -39,48 +39,48 @@ describe('ThemeToggle', () => {
   it('selects theme with circular reveal origin on click', async () => {
     render(<ZhuTiQieHuan />)
     fireEvent.click(screen.getByRole('button', { name: /选择主题/i }))
-    const darkOption = screen.getByRole('option', { name: /深色模式/i })
-    fireEvent.click(darkOption)
+    const 深色选项 = screen.getByRole('option', { name: /深色模式/i })
+    fireEvent.click(深色选项)
     await waitFor(() => {
-      expect(setTheme).toHaveBeenCalledWith('dark', { origin: expect.any(Object) })
+      expect(设置主题).toHaveBeenCalledWith('dark', { origin: expect.any(Object) })
     })
   })
 
   it('does not call setTheme when selecting current theme', async () => {
     render(<ZhuTiQieHuan />)
     fireEvent.click(screen.getByRole('button', { name: /选择主题/i }))
-    const systemOption = screen.getByRole('option', { name: /跟随系统/i })
-    fireEvent.click(systemOption)
+    const 系统选项 = screen.getByRole('option', { name: /跟随系统/i })
+    fireEvent.click(系统选项)
     await waitFor(() => {
-      expect(setTheme).not.toHaveBeenCalled()
+      expect(设置主题).not.toHaveBeenCalled()
     })
   })
 
   it('closes menu on Escape and returns focus to trigger', async () => {
     render(<ZhuTiQieHuan />)
-    const trigger = screen.getByRole('button', { name: /选择主题/i })
-    fireEvent.click(trigger)
-    fireEvent.keyDown(trigger, { key: 'Escape' })
+    const 触发器 = screen.getByRole('button', { name: /选择主题/i })
+    fireEvent.click(触发器)
+    fireEvent.keyDown(触发器, { key: 'Escape' })
     await waitFor(() => {
       expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
     })
   })
 
   it('navigates options with arrow keys and selects with Enter', async () => {
-    mockUseThemeSystem.mockReturnValue({ theme: 'light', setTheme })
+    模拟主题系统.mockReturnValue({ theme: 'light', setTheme: 设置主题 })
     render(<ZhuTiQieHuan />)
-    const trigger = screen.getByRole('button', { name: /选择主题/i })
-    fireEvent.keyDown(trigger, { key: 'ArrowDown' })
+    const 触发器 = screen.getByRole('button', { name: /选择主题/i })
+    fireEvent.keyDown(触发器, { key: 'ArrowDown' })
     await waitFor(() => {
       expect(screen.getByRole('listbox')).toBeInTheDocument()
     })
-    const options = screen.getAllByRole('option')
-    expect(document.activeElement).toBe(options[1])
-    fireEvent.keyDown(options[1], { key: 'ArrowDown' })
-    expect(document.activeElement).toBe(options[2])
-    fireEvent.keyDown(options[2], { key: 'Enter' })
+    const 选项 = screen.getAllByRole('option')
+    expect(document.activeElement).toBe(选项[1])
+    fireEvent.keyDown(选项[1], { key: 'ArrowDown' })
+    expect(document.activeElement).toBe(选项[2])
+    fireEvent.keyDown(选项[2], { key: 'Enter' })
     await waitFor(() => {
-      expect(setTheme).toHaveBeenCalledWith('system', { origin: expect.any(Object) })
+      expect(设置主题).toHaveBeenCalledWith('system', { origin: expect.any(Object) })
     })
   })
 
@@ -100,12 +100,12 @@ describe('ThemeToggle', () => {
   })
 
   it('marks current theme as selected', () => {
-    mockUseThemeSystem.mockReturnValue({ theme: 'dark', setTheme })
+    模拟主题系统.mockReturnValue({ theme: 'dark', setTheme: 设置主题 })
     render(<ZhuTiQieHuan />)
     fireEvent.click(screen.getByRole('button', { name: /选择主题/i }))
-    const options = screen.getAllByRole('option')
-    expect(options[0]).toHaveAttribute('aria-selected', 'true')
-    expect(options[1]).toHaveAttribute('aria-selected', 'false')
-    expect(options[2]).toHaveAttribute('aria-selected', 'false')
+    const 选项 = screen.getAllByRole('option')
+    expect(选项[0]).toHaveAttribute('aria-selected', 'true')
+    expect(选项[1]).toHaveAttribute('aria-selected', 'false')
+    expect(选项[2]).toHaveAttribute('aria-selected', 'false')
   })
 })

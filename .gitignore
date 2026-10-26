@@ -1,4 +1,3 @@
-# Logs
 logs
 *.log
 npm-debug.log*
@@ -6,13 +5,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
 node_modules
 dist
 dist-ssr
 *.local
-
-# 环境变量文件（含密钥，严禁入库；保留 .env.example 作为模板）
 .env
 .env.*
 !.env.example
@@ -26,10 +22,7 @@ dev-dist
 lighthouse-report.json
 visual-qa-screenshots
 screenshots
-# e2e 每次运行落盘的取证产物（截图+DOM 指标），属可再生成的验证证据
 .agents/evidence/
-
-# Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -39,31 +32,16 @@ screenshots
 *.njsproj
 *.sln
 *.sw?
-
-# WorkBuddy evidence screenshots
 .workbuddy/
-
-# Legacy session artifacts — template-comparison / verification screenshots, not resume source
-# (kept ignored so `git add -A` never tries to stage them as nested-repo gitlinks)
 preview-lab/
 redesign-lab/
 references/
-
-# dev 数据接口落盘目录（留言/访问计数，仅项目根目录；前导斜杠避免误伤 src/data 等源码目录）
 /data/
-
-# public/ 是全站唯一静态资源目录，图片/视频/图标/站点配置全部入库（换机即完整）
-# 例外只有两类可再生成的产物：字体子集与佐证材料压缩包
 /public/fonts/
 /public/佐证材料.zip
-# 打包脚本原子写的 pid 隔离临时文件；进程被强杀/断电时残片不会被 finally 清掉，
-# 必须精确前缀匹配（宽泛的 *.tmp 会误伤源码目录）
 /public/佐证材料.zip*.tmp
-
-# 循环工程过程性状态快照（不入库，交付前清理）
 PROGRESS.md
-
-# 本地临时素材、旧版图片与个人参考文案（不参与站点构建）
+/最终配图/
 /临时素材/
 /图片_旧/
 /句子.txt

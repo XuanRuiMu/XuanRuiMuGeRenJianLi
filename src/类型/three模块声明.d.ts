@@ -1,10 +1,3 @@
-/**
- * Three.js WebGPU / TSL 子模块类型声明
- * three 的 package.json 中 exports 将 './webgpu' 映射到 build/three.webgpu.js，
- * './tsl' 映射到 build/three.tsl.js。此处补充对应的 TypeScript 模块声明，
- * 使 R3F 中异步创建 WebGPURenderer 与 TSL 节点编程通过类型检查。
- */
-
 import type * as THREE from 'three'
 
 declare module 'three/webgpu' {

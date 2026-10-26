@@ -1,16 +1,12 @@
 import { t } from '../国际化/翻译'
-import type { TranslationKey } from '../国际化/翻译'
+import type { 翻译键 } from '../国际化/翻译'
 import 岗位清单原文 from './职业定位.txt?raw'
 
-/**
- * 求职定位唯一数据源：方向/aria 前缀/薪资在 zh-CN.json 的 career 节点，
- * 大标题轮换岗位在同目录 职业定位.txt（一行一个岗位，# 开头为注释）。
- */
 export const 职业方向 = {
   directionKey: 'career.direction',
   roleTickerAriaKey: 'career.roleTickerAria',
   salaryKey: 'career.salary',
-} as const satisfies Record<string, TranslationKey>
+} as const satisfies Record<string, 翻译键>
 
 export function 岗位名表(): string[] {
   return 岗位清单原文

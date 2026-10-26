@@ -72,8 +72,8 @@ describe('关于我 - 显现时序', () => {
 
 describe('关于我 - 结构与着色', () => {
   it('五行完整占位渲染，aria-label 为纯文本', async () => {
-    const container = await 渲染关于我()
-    const 段落 = container.querySelectorAll('p[aria-label]')
+    const 容器 = await 渲染关于我()
+    const 段落 = 容器.querySelectorAll('p[aria-label]')
     expect(段落).toHaveLength(5)
     const 行表 = 关于我介绍行()
     行表.forEach((行, i) => {
@@ -83,28 +83,28 @@ describe('关于我 - 结构与着色', () => {
   })
 
   it('行号 01–05 顺序编号', async () => {
-    const container = await 渲染关于我()
-    const 行号 = Array.from(container.querySelectorAll('.tabular-nums')).map((s) => s.textContent)
+    const 容器 = await 渲染关于我()
+    const 行号 = Array.from(容器.querySelectorAll('.tabular-nums')).map((s) => s.textContent)
     expect(行号).toEqual(['01', '02', '03', '04', '05'])
   })
 
   it('tech 片段带 text-primary，dim 弱化无删除线，accent 带 text-accent', async () => {
-    const container = await 渲染关于我()
-    const html = container.innerHTML
-    expect(html).toContain('text-primary')
-    expect(html).toContain('text-muted')
-    expect(html).not.toContain('line-through')
-    expect(html).toContain('text-accent')
-    const dim段 = Array.from(container.querySelectorAll('span')).find(
+    const 容器 = await 渲染关于我()
+    const 网页文本 = 容器.innerHTML
+    expect(网页文本).toContain('text-primary')
+    expect(网页文本).toContain('text-muted')
+    expect(网页文本).not.toContain('line-through')
+    expect(网页文本).toContain('text-accent')
+    const dim段 = Array.from(容器.querySelectorAll('span')).find(
       (s) =>
-        (s.getAttribute('class') ?? '').split(/\s+/).includes('text-muted') && s.textContent?.includes('只能做样品')
+        (s.getAttribute('class') ?? '').split(/\s+/).includes('text-muted') && s.textContent?.includes('样品级产出')
     )
     expect(dim段).toBeTruthy()
   })
 
   it('占位层排除在选区之外，复制正文不会出现两份相同句子', async () => {
-    const container = await 渲染关于我()
-    const 段落表 = Array.from(container.querySelectorAll('p[aria-label]'))
+    const 容器 = await 渲染关于我()
+    const 段落表 = Array.from(容器.querySelectorAll('p[aria-label]'))
     expect(段落表).toHaveLength(5)
     for (const 段落 of 段落表) {
       const 占位层 = 段落.firstElementChild
@@ -114,61 +114,61 @@ describe('关于我 - 结构与着色', () => {
       expect(显示层).not.toBe(占位层)
       expect(显示层?.getAttribute('aria-hidden')).toBeNull()
     }
-    const 行号节点 = container.querySelector('.tabular-nums')
+    const 行号节点 = 容器.querySelector('.tabular-nums')
     expect((行号节点?.getAttribute('class') ?? '').split(/\s+/)).toContain('select-none')
   })
 
   it('注入自定义行表时按片段渲染', async () => {
-    const 自定义: 文本片段[][] = [[{ text: '仅一行测试', tone: 'plain' }]]
-    const container = await 渲染关于我(自定义)
-    expect(container.querySelectorAll('p[aria-label]')).toHaveLength(1)
-    expect(container.querySelector('p[aria-label]')?.getAttribute('aria-label')).toBe('仅一行测试')
+    const 自定义: 文本片段[][] = [[{ text: '仅一行测试', 语气: 'plain' }]]
+    const 容器 = await 渲染关于我(自定义)
+    expect(容器.querySelectorAll('p[aria-label]')).toHaveLength(1)
+    expect(容器.querySelector('p[aria-label]')?.getAttribute('aria-label')).toBe('仅一行测试')
   })
 
   it('无 title 副标题', async () => {
-    const container = await 渲染关于我()
-    const 标题区 = container.querySelector('h2')?.parentElement
+    const 容器 = await 渲染关于我()
+    const 标题区 = 容器.querySelector('h2')?.parentElement
     expect(标题区?.querySelector('p')).toBeNull()
   })
 })
 
 describe('关于我 - 工程控制台', () => {
   it('保留 CMD 头尾元信息并与板块容器同宽', async () => {
-    const container = await 渲染关于我()
-    const html = container.innerHTML
-    expect(html).toContain('//about.introLines')
-    expect(html).toContain('{ readOnly: true }')
-    expect(html).toContain('//EOF')
-    expect(html).toContain('max-w-6xl')
-    const 画幅 = container.querySelector('[data-about-console]')?.parentElement
+    const 容器 = await 渲染关于我()
+    const 网页文本 = 容器.innerHTML
+    expect(网页文本).toContain('//about.introLines')
+    expect(网页文本).toContain('{ readOnly: true }')
+    expect(网页文本).toContain('//EOF')
+    expect(网页文本).toContain('max-w-6xl')
+    const 画幅 = 容器.querySelector('[data-about-console]')?.parentElement
     expect(画幅?.className).not.toContain('max-w-')
   })
 
   it('控制台具有可访问区域、稳定锚点和高级面板材质', async () => {
-    const container = await 渲染关于我()
-    const 控制台 = container.querySelector('[data-about-console]')
+    const 容器 = await 渲染关于我()
+    const 控制台 = 容器.querySelector('[data-about-console]')
     expect(控制台?.getAttribute('role')).toBe('region')
     expect(控制台?.getAttribute('aria-label')).toBe(t('about.title'))
     expect(控制台?.getAttribute('class')).toContain('rounded-2xl')
     expect(控制台?.getAttribute('class')).toContain('bg-surface/55')
     expect(控制台?.getAttribute('class')).toContain('backdrop-blur-sm')
-    expect(container.querySelector('[data-console-status]')).not.toBeNull()
+    expect(容器.querySelector('[data-console-status]')).not.toBeNull()
   })
 
   it('状态区提供五行同步进度，不新增玩家可见文案', async () => {
-    const container = await 渲染关于我()
-    const 进度 = container.querySelectorAll('[data-console-progress-step]')
+    const 容器 = await 渲染关于我()
+    const 进度 = 容器.querySelectorAll('[data-console-progress-step]')
     expect(进度).toHaveLength(5)
     expect(Array.from(进度).every((节点) => 节点.getAttribute('aria-hidden') === 'true')).toBe(true)
   })
 
   it('行号列在独立列中且正文字号保持可读', async () => {
-    const container = await 渲染关于我()
-    expect(container.querySelectorAll('[data-console-line]')).toHaveLength(5)
-    const 行号 = Array.from(container.querySelectorAll('.tabular-nums')).map((s) => s.textContent)
+    const 容器 = await 渲染关于我()
+    expect(容器.querySelectorAll('[data-console-line]')).toHaveLength(5)
+    const 行号 = Array.from(容器.querySelectorAll('.tabular-nums')).map((s) => s.textContent)
     expect(行号).toEqual(['01', '02', '03', '04', '05'])
-    expect(container.innerHTML).toContain('text-base')
-    expect(container.innerHTML).toContain('sm:text-lg')
+    expect(容器.innerHTML).toContain('text-base')
+    expect(容器.innerHTML).toContain('sm:text-lg')
   })
 
   it('显现时仅当前行激活，完成后五行进度全部点亮', async () => {
@@ -181,26 +181,26 @@ describe('关于我 - 工程控制台', () => {
           dispatchEvent: vi.fn(),
         }) as unknown as MediaQueryList
     )
-    const container = await 渲染关于我()
+    const 容器 = await 渲染关于我()
     act(() => {
       vi.advanceTimersByTime(200)
     })
-    expect(container.querySelectorAll('[data-about-active-line="true"]')).toHaveLength(1)
+    expect(容器.querySelectorAll('[data-about-active-line="true"]')).toHaveLength(1)
     act(() => {
       vi.runAllTimers()
     })
-    expect(container.querySelectorAll('[data-about-active-line="true"]')).toHaveLength(0)
-    expect(container.querySelectorAll('[data-console-progress-step="done"]')).toHaveLength(5)
+    expect(容器.querySelectorAll('[data-about-active-line="true"]')).toHaveLength(0)
+    expect(容器.querySelectorAll('[data-console-progress-step="done"]')).toHaveLength(5)
     vi.restoreAllMocks()
   })
 
   it('当前写入行与悬停行使用不同且悬停更深的视觉状态', async () => {
-    const container = await 渲染关于我()
+    const 容器 = await 渲染关于我()
     act(() => {
       vi.advanceTimersByTime(200)
     })
-    const 当前行 = container.querySelector('[data-about-active-line="true"]')!
-    const 普通行 = container.querySelector('[data-about-active-line="false"]')!
+    const 当前行 = 容器.querySelector('[data-about-active-line="true"]')!
+    const 普通行 = 容器.querySelector('[data-about-active-line="false"]')!
     expect(当前行.className).toContain('border-primary/10')
     expect(当前行.className).toContain('bg-primary/[0.035]')
     expect(当前行.className).toContain('hover:bg-primary/[0.10]')
@@ -210,25 +210,25 @@ describe('关于我 - 工程控制台', () => {
     expect(普通行.querySelector('[class*="bottom-0"]')?.className).toContain('group-hover:w-full')
   })
   it('accent 行只改文字着色与倾斜，不再渲染专属粉紫渐变下划线', async () => {
-    const container = await 渲染关于我()
+    const 容器 = await 渲染关于我()
     const 行表 = 关于我介绍行()
-    const 强调行号 = 行表.findIndex((行) => 行.some((段) => 段.tone === 'accent'))
+    const 强调行号 = 行表.findIndex((行) => 行.some((段) => 段.语气 === 'accent'))
     expect(强调行号).toBe(3)
 
-    const 正文行 = container.querySelectorAll('[data-console-line]')
+    const 正文行 = 容器.querySelectorAll('[data-console-line]')
     expect(正文行).toHaveLength(5)
     const 强调行 = 正文行[强调行号]
 
-    const accent文本 = 行表[强调行号].find((段) => 段.tone === 'accent')?.text ?? ''
-    const dim文本 = 行表[强调行号].find((段) => 段.tone === 'dim')?.text ?? ''
+    const accent文本 = 行表[强调行号].find((段) => 段.语气 === 'accent')?.text ?? ''
+    const dim文本 = 行表[强调行号].find((段) => 段.语气 === 'dim')?.text ?? ''
     expect(accent文本).not.toBe('')
     expect(dim文本).not.toBe('')
     expect(强调行.querySelector('span.text-accent')?.textContent).toBe(accent文本)
     expect(强调行.querySelector('span.text-muted')?.textContent).toBe(dim文本)
     expect(强调行.querySelector('p[aria-label]')?.className).toContain('rotate-[-0.35deg]')
 
-    expect(container.querySelectorAll('.from-accent')).toHaveLength(0)
-    expect(container.querySelectorAll('.via-secondary')).toHaveLength(0)
+    expect(容器.querySelectorAll('.from-accent')).toHaveLength(0)
+    expect(容器.querySelectorAll('.via-secondary')).toHaveLength(0)
     正文行.forEach((行) => {
       expect(行.querySelectorAll('.bg-gradient-to-r')).toHaveLength(1)
     })
@@ -244,12 +244,12 @@ describe('关于我 - 工程控制台', () => {
           dispatchEvent: vi.fn(),
         }) as unknown as MediaQueryList
     )
-    const container = await 渲染关于我()
-    expect(container.innerHTML).toContain('group-hover:w-full')
+    const 容器 = await 渲染关于我()
+    expect(容器.innerHTML).toContain('group-hover:w-full')
     act(() => {
       vi.advanceTimersByTime(200)
     })
-    const 光标表 = container.querySelectorAll('.caret-blink')
+    const 光标表 = 容器.querySelectorAll('.caret-blink')
     expect(光标表.length).toBeGreaterThan(0)
     expect(光标表[0].textContent).toBe('')
     expect(光标表[0].getAttribute('class')).toContain('bg-primary')
@@ -275,15 +275,15 @@ describe('关于我 - 打字机光标', () => {
   })
 
   it('打字进行中出现光标，打完后消失', async () => {
-    const container = await 渲染关于我()
+    const 容器 = await 渲染关于我()
     act(() => {
       vi.advanceTimersByTime(200)
     })
-    expect(container.querySelectorAll('.caret-blink').length).toBeGreaterThan(0)
+    expect(容器.querySelectorAll('.caret-blink').length).toBeGreaterThan(0)
     act(() => {
       vi.runAllTimers()
     })
-    expect(container.querySelectorAll('.caret-blink')).toHaveLength(0)
+    expect(容器.querySelectorAll('.caret-blink')).toHaveLength(0)
   })
 
   it('reduced-motion 下无光标且直接全文', async () => {
@@ -296,14 +296,14 @@ describe('关于我 - 打字机光标', () => {
           dispatchEvent: vi.fn(),
         }) as unknown as MediaQueryList
     )
-    const container = await 渲染关于我()
+    const 容器 = await 渲染关于我()
     act(() => {
       vi.runAllTimers()
     })
-    expect(container.querySelectorAll('.caret-blink')).toHaveLength(0)
-    expect(container.querySelectorAll('[data-about-active-line="true"]')).toHaveLength(0)
-    expect(container.querySelectorAll('[data-console-progress-step="done"]')).toHaveLength(5)
-    const 可见正文 = Array.from(container.querySelectorAll('p[aria-label]')).map(
+    expect(容器.querySelectorAll('.caret-blink')).toHaveLength(0)
+    expect(容器.querySelectorAll('[data-about-active-line="true"]')).toHaveLength(0)
+    expect(容器.querySelectorAll('[data-console-progress-step="done"]')).toHaveLength(5)
+    const 可见正文 = Array.from(容器.querySelectorAll('p[aria-label]')).map(
       (段落) => 段落.lastElementChild?.textContent ?? ''
     )
     expect(可见正文).toEqual(关于我介绍行().map((行) => 行.map((段) => 段.text).join('')))

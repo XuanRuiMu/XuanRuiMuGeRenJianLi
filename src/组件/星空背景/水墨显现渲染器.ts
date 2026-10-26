@@ -1,246 +1,235 @@
-/**
- * 墨迹揭示渲染器 — 100% 还原 mimo.xiaomi.com 的水墨画笔效果。
- *
- * 核心设计（与 mimo 完全一致）：
- * - 遮挡层是一张全屏 canvas，默认涂满 #05060f（与星空背景色一致）（z-index:1，盖住星空 z-0、被内容 z-10 压住）。
- * - 鼠标划过：沿指针轨迹插值连续生成膨胀墨点（destination-out 擦除），每个墨点从 R_START=8 膨胀到 R_END=128，
- *   边缘带有正弦波扰动（模拟毛笔不规则边缘），随时间淡出。
- * - 无复原机制：一旦擦除，永远保持透明（与 mimo 一致）。
- * - 仅 hover 设备生效：touch 设备跳过，绘画直接透出。
- * - DPR 感知：使用 devicePixelRatio 保证高清渲染。
- */
-
 export interface 水墨显现选项 {
-  enabled?: boolean
-  coverColor?: string
-  sourceCanvas?: HTMLCanvasElement | null
+  启用?: boolean
+  遮罩颜色?: string
+  遮罩源画布?: HTMLCanvasElement | null
 }
 
-interface Stamp {
+interface 墨点结构 {
   x: number
   y: number
-  born: number
-  seed: number
+  出生时刻: number
+  种子: number
   rmax: number
 }
 
-const R_START = 8
-const R_END = 128
-const R_VARY = 0.45
-const LIFETIME = 520
-const STAMP_STEP = 12
-const MAX_STAMPS = 160
+const 起始半径 = 8
+const 结束半径 = 128
+const 半径浮动 = 0.45
+const 存活时长 = 520
+const 墨点步长 = 12
+const 最大墨点数 = 160
 
 export class 水墨显现渲染器 {
-  private readonly canvas: HTMLCanvasElement
-  private readonly ctx: CanvasRenderingContext2D
-  private rafId: number | null = null
-  private enabled: boolean
-  private readonly coverColor: string
-  private readonly coverRgb: string
-  private readonly sourceCanvas: HTMLCanvasElement | null
-  private dpr = 1
+  private readonly 画布: HTMLCanvasElement
+  private readonly 上下文: CanvasRenderingContext2D
+  private 帧编号: number | null = null
+  private 启用: boolean
+  private readonly 遮罩颜色: string
+  private readonly 遮罩颜色分量: string
+  private readonly 遮罩源画布: HTMLCanvasElement | null
+  private 像素比 = 1
   private w = 0
   private h = 0
-  private lastX: number | null = null
-  private lastY: number | null = null
-  private stamps: Stamp[] = []
-  private running = false
+  private 上次横坐标: number | null = null
+  private 上次纵坐标: number | null = null
+  private 墨点表: 墨点结构[] = []
+  private 运行中 = false
 
-  constructor(options: 水墨显现选项 = {}) {
-    this.enabled = options.enabled ?? true
-    this.coverColor = options.coverColor ?? '#05060f'
-    this.coverRgb = this.hexToRgb(this.coverColor)
-    this.sourceCanvas = options.sourceCanvas ?? null
+  constructor(选项: 水墨显现选项 = {}) {
+    this.启用 = 选项.启用 ?? true
+    this.遮罩颜色 = 选项.遮罩颜色 ?? '#05060f'
+    this.遮罩颜色分量 = this.十六进制转颜色(this.遮罩颜色)
+    this.遮罩源画布 = 选项.遮罩源画布 ?? null
 
-    this.canvas = document.createElement('canvas')
-    this.canvas.className = 'ink-reveal-overlay'
-    this.canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;'
+    this.画布 = document.createElement('canvas')
+    this.画布.className = 'ink-reveal-overlay'
+    this.画布.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;'
 
-    const ctx = this.canvas.getContext('2d', { alpha: true })
-    if (!ctx) throw new Error('无法创建 2D context')
-    this.ctx = ctx
+    const 上下文 = this.画布.getContext('2d', { alpha: true })
+    if (!上下文) throw new Error('无法创建 2D context')
+    this.上下文 = 上下文
 
-    this.resize()
-    this.fillMask()
+    this.调整尺寸()
+    this.填充遮罩()
   }
 
-  mount(container: HTMLElement) {
-    container.appendChild(this.canvas)
-    window.addEventListener('resize', this.resize)
-    // 动态源（丝绸遮罩）需要持续重绘，挂载即启动循环
-    if (this.sourceCanvas) {
-      this.startLoop()
+  挂载(容器: HTMLElement) {
+    容器.appendChild(this.画布)
+    window.addEventListener('resize', this.调整尺寸)
+
+    if (this.遮罩源画布) {
+      this.开始循环()
     }
   }
 
-  unmount() {
-    window.removeEventListener('resize', this.resize)
-    this.stopLoop()
-    const parentNode = this.canvas.parentNode
+  卸载() {
+    window.removeEventListener('resize', this.调整尺寸)
+    this.停止循环()
+    const parentNode = this.画布.parentNode
     if (parentNode != null) {
-      parentNode.removeChild(this.canvas)
+      parentNode.removeChild(this.画布)
     }
   }
 
-  setEnabled(enabled: boolean) {
-    this.enabled = enabled
-    if (!enabled) {
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+  设置启用(启用: boolean) {
+    this.启用 = 启用
+    if (!启用) {
+      this.上下文.clearRect(0, 0, this.画布.width, this.画布.height)
     } else {
-      this.fillMask()
+      this.填充遮罩()
     }
   }
 
   onPointerMove(x: number, y: number) {
-    if (!this.enabled) return
-    const px = x
-    const py = y
+    if (!this.启用) return
+    const 横坐标 = x
+    const 纵坐标 = y
 
-    if (this.lastX !== null && this.lastY !== null) {
-      const dx = px - this.lastX
-      const dy = py - this.lastY
-      const dist = Math.hypot(dx, dy)
-      const steps = Math.max(1, Math.ceil(dist / STAMP_STEP))
-      for (let i = 1; i <= steps; i++) {
-        const t = i / steps
-        this.addStamp(this.lastX + dx * t, this.lastY + dy * t)
+    if (this.上次横坐标 !== null && this.上次纵坐标 !== null) {
+      const 横向增量 = 横坐标 - this.上次横坐标
+      const 纵向增量 = 纵坐标 - this.上次纵坐标
+      const dist = Math.hypot(横向增量, 纵向增量)
+      const 步数 = Math.max(1, Math.ceil(dist / 墨点步长))
+      for (let i = 1; i <= 步数; i++) {
+        const t = i / 步数
+        this.添加墨点(this.上次横坐标 + 横向增量 * t, this.上次纵坐标 + 纵向增量 * t)
       }
     } else {
-      this.addStamp(px, py)
+      this.添加墨点(横坐标, 纵坐标)
     }
 
-    this.lastX = px
-    this.lastY = py
-    this.startLoop()
+    this.上次横坐标 = 横坐标
+    this.上次纵坐标 = 纵坐标
+    this.开始循环()
   }
 
   onPointerLeave() {
-    this.lastX = null
-    this.lastY = null
+    this.上次横坐标 = null
+    this.上次纵坐标 = null
   }
 
-  private addStamp(x: number, y: number) {
-    if (this.stamps.length >= MAX_STAMPS) this.stamps.shift()
-    this.stamps.push({
+  private 添加墨点(x: number, y: number) {
+    if (this.墨点表.length >= 最大墨点数) this.墨点表.shift()
+    this.墨点表.push({
       x,
       y,
-      born: performance.now(),
-      seed: Math.random() * Math.PI * 2,
-      rmax: R_END * (1 - R_VARY + Math.random() * R_VARY),
+      出生时刻: performance.now(),
+      种子: Math.random() * Math.PI * 2,
+      rmax: 结束半径 * (1 - 半径浮动 + Math.random() * 半径浮动),
     })
   }
 
-  private fillMask() {
-    if (!this.enabled) return
-    this.ctx.globalCompositeOperation = 'source-over'
-    if (this.sourceCanvas) {
-      this.ctx.drawImage(this.sourceCanvas, 0, 0, this.w, this.h)
+  private 填充遮罩() {
+    if (!this.启用) return
+    this.上下文.globalCompositeOperation = 'source-over'
+    if (this.遮罩源画布) {
+      this.上下文.drawImage(this.遮罩源画布, 0, 0, this.w, this.h)
     } else {
-      this.ctx.fillStyle = 'rgb(' + this.coverRgb + ')'
-      this.ctx.fillRect(0, 0, this.w, this.h)
+      this.上下文.fillStyle = 'rgb(' + this.遮罩颜色分量 + ')'
+      this.上下文.fillRect(0, 0, this.w, this.h)
     }
   }
 
-  private resize = () => {
-    this.dpr = Math.min(window.devicePixelRatio || 1, 2)
+  private 调整尺寸 = () => {
+    const 粗指针 = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches
+    this.像素比 = Math.min(window.devicePixelRatio || 1, 粗指针 ? 1.5 : 2)
     this.w = window.innerWidth
     this.h = window.innerHeight
-    this.canvas.width = Math.round(this.w * this.dpr)
-    this.canvas.height = Math.round(this.h * this.dpr)
-    this.canvas.style.width = this.w + 'px'
-    this.canvas.style.height = this.h + 'px'
-    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0)
-    this.fillMask()
+    this.画布.width = Math.round(this.w * this.像素比)
+    this.画布.height = Math.round(this.h * this.像素比)
+    this.画布.style.width = this.w + 'px'
+    this.画布.style.height = this.h + 'px'
+    this.上下文.setTransform(this.像素比, 0, 0, this.像素比, 0, 0)
+    this.填充遮罩()
   }
 
-  private startLoop() {
-    if (!this.running) {
-      this.running = true
-      this.rafId = requestAnimationFrame(this.tick)
+  private 开始循环() {
+    if (!this.运行中) {
+      this.运行中 = true
+      this.帧编号 = requestAnimationFrame(this.帧步进)
     }
   }
 
-  private tick = () => {
-    const now = performance.now()
-    let hasStamps = false
+  private 帧步进 = () => {
+    const 当前时刻 = performance.now()
+    let 有墨点 = false
 
-    this.ctx.globalCompositeOperation = 'source-over'
-    // 不透明遮罩直接重涂覆盖全屏，再经 destination-out 擦出墨迹
-    if (this.sourceCanvas) {
-      this.ctx.drawImage(this.sourceCanvas, 0, 0, this.w, this.h)
+    this.上下文.globalCompositeOperation = 'source-over'
+
+    if (this.遮罩源画布) {
+      this.上下文.drawImage(this.遮罩源画布, 0, 0, this.w, this.h)
     } else {
-      this.ctx.fillStyle = 'rgb(' + this.coverRgb + ')'
-      this.ctx.fillRect(0, 0, this.w, this.h)
+      this.上下文.fillStyle = 'rgb(' + this.遮罩颜色分量 + ')'
+      this.上下文.fillRect(0, 0, this.w, this.h)
     }
 
-    this.ctx.globalCompositeOperation = 'destination-out'
-    for (let i = this.stamps.length - 1; i >= 0; i--) {
-      const s = this.stamps[i]
-      const t = (now - s.born) / LIFETIME
+    this.上下文.globalCompositeOperation = 'destination-out'
+    for (let i = this.墨点表.length - 1; i >= 0; i--) {
+      const s = this.墨点表[i]
+      const t = (当前时刻 - s.出生时刻) / 存活时长
       if (t >= 1) {
-        this.stamps.splice(i, 1)
+        this.墨点表.splice(i, 1)
         continue
       }
-      hasStamps = true
-      const ease = 1 - Math.pow(1 - t, 3)
-      const r = R_START + (s.rmax - R_START) * ease
-      const alpha = 1 - t * t
-      this.carveInk(s.x, s.y, r, alpha, s.seed)
+      有墨点 = true
+      const 缓动 = 1 - Math.pow(1 - t, 3)
+      const r = 起始半径 + (s.rmax - 起始半径) * 缓动
+      const 透明度 = 1 - t * t
+      this.擦出墨迹(s.x, s.y, r, 透明度, s.种子)
     }
 
-    if (hasStamps || this.sourceCanvas) {
-      this.rafId = requestAnimationFrame(this.tick)
+    if (有墨点 || this.遮罩源画布) {
+      this.帧编号 = requestAnimationFrame(this.帧步进)
     } else {
-      this.running = false
-      this.rafId = null
+      this.运行中 = false
+      this.帧编号 = null
     }
   }
 
-  private stopLoop() {
-    if (this.rafId !== null) {
-      cancelAnimationFrame(this.rafId)
-      this.rafId = null
+  private 停止循环() {
+    if (this.帧编号 !== null) {
+      cancelAnimationFrame(this.帧编号)
+      this.帧编号 = null
     }
-    this.running = false
+    this.运行中 = false
   }
 
-  private carveInk(x: number, y: number, r: number, alpha: number, seed: number) {
-    const ctx = this.ctx
-    const g = ctx.createRadialGradient(x, y, r * 0.25, x, y, r)
-    g.addColorStop(0, 'rgba(0, 0, 0, ' + (0.95 * alpha).toFixed(3) + ')')
-    g.addColorStop(0.55, 'rgba(0, 0, 0, ' + (0.88 * alpha).toFixed(3) + ')')
+  private 擦出墨迹(x: number, y: number, r: number, 透明度: number, 种子: number) {
+    const 上下文 = this.上下文
+    const g = 上下文.createRadialGradient(x, y, r * 0.25, x, y, r)
+    g.addColorStop(0, 'rgba(0, 0, 0, ' + (0.95 * 透明度).toFixed(3) + ')')
+    g.addColorStop(0.55, 'rgba(0, 0, 0, ' + (0.88 * 透明度).toFixed(3) + ')')
     g.addColorStop(1, 'rgba(0, 0, 0, 0)')
-    ctx.fillStyle = g
-    ctx.beginPath()
+    上下文.fillStyle = g
+    上下文.beginPath()
     const segs = 32
     for (let i = 0; i <= segs; i++) {
       const a = (i / segs) * Math.PI * 2
       const wob =
         0.78 +
-        0.14 * Math.sin(a * 3 + seed) +
-        0.08 * Math.sin(a * 7 + seed * 2.1) +
-        0.05 * Math.sin(a * 13 + seed * 0.7)
-      const rr = r * wob
-      const px = x + Math.cos(a) * rr
-      const py = y + Math.sin(a) * rr
-      if (i === 0) ctx.moveTo(px, py)
-      else ctx.lineTo(px, py)
+        0.14 * Math.sin(a * 3 + 种子) +
+        0.08 * Math.sin(a * 7 + 种子 * 2.1) +
+        0.05 * Math.sin(a * 13 + 种子 * 0.7)
+      const 半径 = r * wob
+      const 横坐标 = x + Math.cos(a) * 半径
+      const 纵坐标 = y + Math.sin(a) * 半径
+      if (i === 0) 上下文.moveTo(横坐标, 纵坐标)
+      else 上下文.lineTo(横坐标, 纵坐标)
     }
-    ctx.closePath()
-    ctx.fill()
+    上下文.closePath()
+    上下文.fill()
   }
 
-  private hexToRgb(hex: string): string {
-    const m = hex.replace('#', '')
-    const full =
+  private 十六进制转颜色(十六进制: string): string {
+    const m = 十六进制.replace('#', '')
+    const 完整 =
       m.length === 3
         ? m
             .split('')
             .map((c) => c + c)
             .join('')
         : m
-    const num = parseInt(full, 16)
-    return `${(num >> 16) & 255},${(num >> 8) & 255},${num & 255}`
+    const 数值 = parseInt(完整, 16)
+    return `${(数值 >> 16) & 255},${(数值 >> 8) & 255},${数值 & 255}`
   }
 }

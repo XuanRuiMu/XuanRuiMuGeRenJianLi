@@ -4,7 +4,7 @@ import { useJianShaoDongHua } from './useJianShaoDongHua'
 
 describe('useJianShaoDongHua', () => {
   let 匹配值 = false
-  let 变更监听: ((event: { matches: boolean }) => void) | null = null
+  let 变更监听: ((事件: { matches: boolean }) => void) | null = null
 
   beforeEach(() => {
     匹配值 = false
@@ -15,8 +15,8 @@ describe('useJianShaoDongHua', () => {
         get matches() {
           return 匹配值
         },
-        addEventListener: (_event: string, cb: (event: { matches: boolean }) => void) => {
-          变更监听 = cb
+        addEventListener: (_event: string, 回调: (事件: { matches: boolean }) => void) => {
+          变更监听 = 回调
         },
         removeEventListener: vi.fn(),
       })),

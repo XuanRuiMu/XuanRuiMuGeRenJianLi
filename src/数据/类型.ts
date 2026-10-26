@@ -1,92 +1,92 @@
-import type { TranslationKey } from '../国际化/翻译'
+import type { 翻译键 } from '../国际化/翻译'
 
 export interface 个人信息类型 {
   name: string
-  age: number
+  年龄: number
   location: string
-  phone: string
-  email: string
-  qq: string
+  电话: string
+  邮箱: string
+  QQ: string
   wechat: string
-  github: string
-  bilibili: string
-  expectedCityKey: TranslationKey
-  salaryKey: TranslationKey
-  availabilityKey: TranslationKey
+  GitHub: string
+  哔哩哔哩: string
+  期望城市键: 翻译键
+  薪资键: 翻译键
+  到岗状态键: 翻译键
   教育背景: 教育摘要
 }
 
 export interface 教育摘要 {
-  school: string
-  major: string
-  degree: string
-  period: string
+  学校: string
+  专业: string
+  学位: string
+  周期: string
 }
 
 export interface 项目链接 {
-  labelKey: TranslationKey
+  标签键: 翻译键
   url: string
 }
 
 export interface 项目 {
   id: string
-  nameKey: TranslationKey
-  descKey: TranslationKey
-  tags: string[]
-  links: 项目链接[]
-  metricKeys?: TranslationKey[]
+  名称键: 翻译键
+  描述键: 翻译键
+  标签表: string[]
+  链接表: 项目链接[]
+  指标键表?: 翻译键[]
 }
 
 export interface 经历条目 {
   id: string
-  titleKey: TranslationKey
-  organizationKey?: TranslationKey
-  periodKey: TranslationKey
-  descriptionKeys: TranslationKey[]
-  achievementKeys?: TranslationKey[]
-  links?: 项目链接[]
+  标题键: 翻译键
+  机构键?: 翻译键
+  周期键: 翻译键
+  描述键表: 翻译键[]
+  成就键表?: 翻译键[]
+  链接表?: 项目链接[]
 }
 
 export interface 课程 {
   id: string
-  nameKey: TranslationKey
-  levelKey: TranslationKey
+  名称键: 翻译键
+  级别键: 翻译键
 }
 
 export interface 教育背景 {
-  summary: 教育摘要
-  courses: 课程[]
-  achievementKeys: TranslationKey[]
+  摘要: 教育摘要
+  课程表: 课程[]
+  成就键表: 翻译键[]
 }
 
 export interface 设计作品 {
   id: string
-  nameKey: TranslationKey
-  categoryKey: TranslationKey
-  descKey: TranslationKey
+  名称键: 翻译键
+  分类键: 翻译键
+  描述键: 翻译键
 }
 
 export interface 设计 {
-  headlineKey: TranslationKey
-  introKey: TranslationKey
-  works: 设计作品[]
-  toolKeys: TranslationKey[]
+  标题键: 翻译键
+  介绍键: 翻译键
+  作品表: 设计作品[]
+  工具键表: 翻译键[]
 }
 
 export interface 媒体分类 {
   id: string
-  labelKey: TranslationKey
-  itemKeys: TranslationKey[]
+  标签键: 翻译键
+  条目键表: 翻译键[]
 }
 
 export interface 媒体时间线事件 {
-  year: string
-  eventKey: TranslationKey
+  年份: string
+  事件键: 翻译键
 }
 
 export interface 媒体 {
-  headlineKey: TranslationKey
-  introKey: TranslationKey
-  categories: 媒体分类[]
-  timeline: 媒体时间线事件[]
+  标题键: 翻译键
+  介绍键: 翻译键
+  分类表: 媒体分类[]
+  时间线: 媒体时间线事件[]
 }

@@ -401,6 +401,8 @@ def 清理超龄临时(压缩包):
                 continue
             项.unlink()
             print(f"清理超龄临时文件 {项.name}")
+        except FileNotFoundError:
+            pass
         except OSError as 错:
             print(f"  警告 清理临时文件失败 {项.name}：{错}", file=sys.stderr)
 

@@ -1,14 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Archive, ChevronDown, Download } from 'lucide-react'
 import { AnNiu } from '../../组件/基础组件/AnNiu'
-import { t, type TranslationKey } from '../../国际化/翻译'
+import { t, type 翻译键 } from '../../国际化/翻译'
 import { 下载简历 } from '../../库/简历'
 import { 下载佐证材料包 } from '../../库/佐证材料包'
 
-/**
- * 图标以元素形式放进数据表：汉字标识符当 JSX 组件类型用时，经 React Compiler + 压缩后引用丢绑定，
- * 运行时抛 ReferenceError 并整页崩，且 vitest 走 dev 转译复现不了。守卫见 src/jsxComponentGuard.test.ts。
- */
 const 菜单项表 = [
   {
     id: 'resume',
@@ -24,20 +20,16 @@ const 菜单项表 = [
   },
 ] as const
 
-/**
- * 「下载简历」拆分为按钮 + 菜单：主按钮保持原有直接下载行为不变，
- * 右侧箭头展开菜单，菜单内可选「下载佐证材料.zip」。
- */
 export function XiaZaiCaiDan() {
-  const [展开, set展开] = useState(false)
-  const [高亮, set高亮] = useState(0)
+  const [展开, 设置展开] = useState(false)
+  const [高亮, 设置高亮] = useState(0)
   const 容器引用 = useRef<HTMLDivElement | null>(null)
   const 箭头引用 = useRef<HTMLButtonElement | null>(null)
   const 项引用表 = useRef<Array<HTMLButtonElement | null>>([])
   const 待聚焦索引 = useRef(0)
 
   const 关闭 = useCallback((回到箭头: boolean) => {
-    set展开(false)
+    设置展开(false)
     if (回到箭头) 箭头引用.current?.focus()
   }, [])
 
@@ -45,11 +37,10 @@ export function XiaZaiCaiDan() {
     项引用表.current[索引]?.focus()
   }, [])
 
-  /** 展开时焦点必须落进菜单：否则方向键与回车都打在触发按钮上，回车只会把菜单再关掉一次。 */
   const 打开 = (索引: number) => {
     待聚焦索引.current = 索引
-    set高亮(索引)
-    set展开(true)
+    设置高亮(索引)
+    设置展开(true)
   }
 
   useEffect(() => {
@@ -62,14 +53,14 @@ export function XiaZaiCaiDan() {
   useEffect(() => {
     if (!展开) return
     const 指针按下 = (事件: PointerEvent) => {
-      if (!容器引用.current?.contains(事件.target as Node)) set展开(false)
+      if (!容器引用.current?.contains(事件.target as Node)) 设置展开(false)
     }
     document.addEventListener('pointerdown', 指针按下)
     return () => document.removeEventListener('pointerdown', 指针按下)
   }, [展开])
 
   const 移动 = (索引: number) => {
-    set高亮(索引)
+    设置高亮(索引)
     聚焦项(索引)
   }
 
@@ -116,9 +107,9 @@ export function XiaZaiCaiDan() {
   return (
     <div ref={容器引用} className="relative inline-flex" onKeyDown={菜单按键}>
       <AnNiu
-        variant="secondary"
+        变体="secondary"
         onClick={下载简历}
-        icon={<Download size={32} />}
+        图标={<Download size={32} />}
         className="h-16 rounded-r-none px-10 pr-8 text-lg"
       >
         {t('hero.cta.downloadResume')}
@@ -160,7 +151,7 @@ export function XiaZaiCaiDan() {
               }}
               tabIndex={索引 === 高亮 ? 0 : -1}
               data-active={索引 === 高亮 ? 'true' : undefined}
-              onMouseEnter={() => set高亮(索引)}
+              onMouseEnter={() => 设置高亮(索引)}
               onClick={() => 执行(项)}
               className={[
                 'flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm transition-colors focus:outline-none',
@@ -170,7 +161,7 @@ export function XiaZaiCaiDan() {
               ].join(' ')}
             >
               {项.icon}
-              {t(项.labelKey as TranslationKey)}
+              {t(项.labelKey as 翻译键)}
             </button>
           ))}
         </div>

@@ -6,6 +6,34 @@ import { 平滑滚动引用 } from '../库/平滑滚动实例'
 
 export type 应用主题 = 'dark' | 'light' | 'system'
 
+export const 主题存储键 = 'xrm-theme'
+
+export function 读取已存主题(): 应用主题 {
+  if (typeof window === 'undefined') return 'dark'
+  try {
+    const 已存 = window.localStorage.getItem(主题存储键)
+    if (已存 === 'dark' || 已存 === 'light' || 已存 === 'system') return 已存
+  } catch {}
+  return 'dark'
+}
+
+export function 解析主题明暗(主题: 应用主题): 'dark' | 'light' {
+  if (主题 === 'system') {
+    if (typeof window === 'undefined') return 'dark'
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
+  return 主题
+}
+
+export function 读取初始明暗(): 'dark' | 'light' {
+  if (typeof document !== 'undefined') {
+    const 根元素 = document.documentElement
+    if (根元素.classList.contains('light')) return 'light'
+    if (根元素.classList.contains('dark')) return 'dark'
+  }
+  return 解析主题明暗(读取已存主题())
+}
+
 export type 应用板块 =
   'hero' | 'about' | 'projects' | 'skills' | 'experience' | 'education' | 'design' | 'media' | 'contact'
 
@@ -15,9 +43,9 @@ export interface AI工具元数据 {
   命中数: number
   耗时毫秒: number
   本地兜底: boolean
-  /** 正文被 max_tokens 截断（finish_reason=length）：如实告知访客，不让半截回答冒充完整回答 */
+
   截断?: boolean
-  /** 本轮检索命中的语料分类（已转中文来源名），用于回答末尾标注依据 */
+
   依据来源?: string[]
   回退原因?: 回退原因
   http状态?: number
@@ -26,57 +54,57 @@ export interface AI工具元数据 {
 export interface AI消息 {
   role: 'user' | 'assistant'
   content: string
-  /** vision 输入：用户随消息携带的图片（data URL）；仅在 user 消息中有效（API 限制） */
-  images?: string[]
-  component?: 界面组件
-  /** 流式思考原文（reasoning_content 增量拼出的完整思考流；历史消息无该字段时回退兼容为不渲染） */
-  reasoning?: string
-  /** 检索轨迹：命中数/耗时/是否本地兜底 */
+
+  图片表?: string[]
+  组件?: 界面组件
+
+  思考内容?: string
+
   meta?: AI工具元数据
 }
 
 export interface 应用状态 {
-  activeSection: 应用板块 | null
-  theme: 应用主题
-  commandOpen: boolean
-  chatOpen: boolean
-  aiMessages: AI消息[]
-  aiModel: string
-  aiThinking: 思考强度
-  /** /clear 前暂存的上一会话（供 /resume 恢复；只保留最近一次） */
-  stashedSession: AI消息[]
-  reducedMotion: boolean
-  isOffline: boolean
-  updateAvailable: boolean
-  offlineReady: boolean
-  cacheQuotaWarning: boolean
-  qualityLevel: 画质档位值
-  performanceMetrics: 性能指标
-  frameMetrics: 帧指标
+  活跃区块: 应用板块 | null
+  主题: 应用主题
+  命令面板打开: boolean
+  聊天打开: boolean
+  AI消息表: AI消息[]
+  AI模型: string
+  AI思考强度: 思考强度
 
-  setActiveSection: (section: 应用板块 | null) => void
-  setTheme: (theme: 应用主题) => void
-  toggleCommand: () => void
-  setCommandOpen: (open: boolean) => void
-  toggleChat: () => void
-  setChatOpen: (open: boolean) => void
-  addAiMessage: (message: AI消息) => void
-  updateAiMessage: (index: number, patch: Partial<AI消息>) => void
-  clearAiMessages: () => void
-  setAiModel: (model: string) => void
-  stashSession: (messages: AI消息[]) => void
-  restoreSession: (messages: AI消息[]) => void
-  setAiThinking: (强度: 思考强度) => void
-  setReducedMotion: (enabled: boolean) => void
-  setOffline: (offline: boolean) => void
-  setUpdateAvailable: (available: boolean) => void
-  setOfflineReady: (ready: boolean) => void
-  setCacheQuotaWarning: (warning: boolean) => void
-  setQualityLevel: (level: 画质档位值) => void
-  setPerformanceMetrics: (metrics: 性能指标) => void
-  setFrameMetrics: (metrics: Partial<帧指标>) => void
-  transitionToSection: (section: 应用板块) => void
-  transitionToTheater: () => void
+  暂存的会话: AI消息[]
+  减少动画: boolean
+  是离线: boolean
+  有可用更新: boolean
+  离线就绪: boolean
+  缓存配额警告: boolean
+  画质档位: 画质档位值
+  性能指标: 性能指标
+  帧指标: 帧指标
+
+  设置活跃区块: (区块: 应用板块 | null) => void
+  设置主题: (主题: 应用主题) => void
+  切换命令面板: () => void
+  设置命令面板打开: (open: boolean) => void
+  切换聊天: () => void
+  设置聊天打开: (open: boolean) => void
+  添加AI消息: (消息: AI消息) => void
+  更新AI消息: (下标: number, 补丁: Partial<AI消息>) => void
+  清空AI消息: () => void
+  设置AI模型: (模型: string) => void
+  暂存会话: (消息表: AI消息[]) => void
+  恢复会话: (消息表: AI消息[]) => void
+  设置AI思考: (强度: 思考强度) => void
+  设置减少动画: (启用: boolean) => void
+  设置离线: (离线: boolean) => void
+  设置有更新: (可用: boolean) => void
+  设置离线就绪: (就绪: boolean) => void
+  设置缓存配额警告: (警告: boolean) => void
+  设置画质档位: (级别: 画质档位值) => void
+  设置性能指标: (指标: 性能指标) => void
+  设置帧指标: (指标: Partial<帧指标>) => void
+  切换到区块: (区块: 应用板块) => void
+  切换到剧场: () => void
 }
 
 export const 板块顺序: 应用板块[] = [
@@ -103,78 +131,78 @@ export const 板块表: Record<string, 应用板块> = {
   CONTACT: 'contact',
 }
 
-export const useYingYongZhuangTai = create<应用状态>((set, get) => ({
-  activeSection: null,
-  theme: 'dark',
-  commandOpen: false,
-  chatOpen: false,
-  aiMessages: [],
-  aiModel: 读取已选模型ID() || 默认模型ID,
-  aiThinking: 默认思考强度,
-  stashedSession: [],
-  reducedMotion: false,
-  isOffline: false,
-  updateAvailable: false,
-  offlineReady: false,
-  cacheQuotaWarning: false,
-  qualityLevel: 'high',
-  performanceMetrics: {},
-  frameMetrics: { fps: 0, p95: 0, avg: 0, downgradeCount: 0, upgradeCount: 0 },
+export const useYingYongZhuangTai = create<应用状态>((设置, get) => ({
+  活跃区块: null,
+  主题: 读取已存主题(),
+  命令面板打开: false,
+  聊天打开: false,
+  AI消息表: [],
+  AI模型: 读取已选模型ID() || 默认模型ID,
+  AI思考强度: 默认思考强度,
+  暂存的会话: [],
+  减少动画: false,
+  是离线: false,
+  有可用更新: false,
+  离线就绪: false,
+  缓存配额警告: false,
+  画质档位: 'high',
+  性能指标: {},
+  帧指标: { fps: 0, p95: 0, avg: 0, 降档次数: 0, 升档次数: 0 },
 
-  setActiveSection: (section) => set({ activeSection: section }),
-  setTheme: (theme) => set({ theme }),
-  toggleCommand: () => set((state) => ({ commandOpen: !state.commandOpen })),
-  setCommandOpen: (open) => set({ commandOpen: open }),
-  toggleChat: () => set((state) => ({ chatOpen: !state.chatOpen })),
-  setChatOpen: (open) => set({ chatOpen: open }),
-  addAiMessage: (message) => set((state) => ({ aiMessages: [...state.aiMessages, message] })),
-  updateAiMessage: (index, patch) =>
-    set((state) => ({
-      aiMessages: state.aiMessages.map((message, i) => (i === index ? { ...message, ...patch } : message)),
+  设置活跃区块: (区块) => 设置({ 活跃区块: 区块 }),
+  设置主题: (主题) => 设置({ 主题: 主题 }),
+  切换命令面板: () => 设置((状态) => ({ 命令面板打开: !状态.命令面板打开 })),
+  设置命令面板打开: (open) => 设置({ 命令面板打开: open }),
+  切换聊天: () => 设置((状态) => ({ 聊天打开: !状态.聊天打开 })),
+  设置聊天打开: (open) => 设置({ 聊天打开: open }),
+  添加AI消息: (消息) => 设置((状态) => ({ AI消息表: [...状态.AI消息表, 消息] })),
+  更新AI消息: (下标, 补丁) =>
+    设置((状态) => ({
+      AI消息表: 状态.AI消息表.map((消息, i) => (i === 下标 ? { ...消息, ...补丁 } : 消息)),
     })),
-  clearAiMessages: () => set({ aiMessages: [] }),
-  setAiModel: (model) => {
-    持久化已选模型ID(model)
-    set({ aiModel: model })
+  清空AI消息: () => 设置({ AI消息表: [] }),
+  设置AI模型: (模型) => {
+    持久化已选模型ID(模型)
+    设置({ AI模型: 模型 })
   },
-  stashSession: (messages) => set({ stashedSession: messages }),
-  restoreSession: (messages) => set({ aiMessages: messages }),
-  setAiThinking: (强度) => set({ aiThinking: 强度 }),
-  setReducedMotion: (enabled) => set({ reducedMotion: enabled }),
-  setOffline: (offline) => set({ isOffline: offline }),
-  setUpdateAvailable: (available) => set({ updateAvailable: available }),
-  setOfflineReady: (ready) => set({ offlineReady: ready }),
-  setCacheQuotaWarning: (warning) => set({ cacheQuotaWarning: warning }),
-  setQualityLevel: (level) => set({ qualityLevel: level }),
-  setPerformanceMetrics: (metrics) => set({ performanceMetrics: metrics }),
-  setFrameMetrics: (metrics) => set((state) => ({ frameMetrics: { ...state.frameMetrics, ...metrics } })),
-  transitionToSection: (section) => {
-    set({ activeSection: section })
-    // 固定顶栏高度（glass-nav 胶囊 h-12 + py-2 = 64px，收缩态还有 y:20 位移），跳转时留出偏移
+  暂存会话: (消息表) => 设置({ 暂存的会话: 消息表 }),
+  恢复会话: (消息表) => 设置({ AI消息表: 消息表 }),
+  设置AI思考: (强度) => 设置({ AI思考强度: 强度 }),
+  设置减少动画: (启用) => 设置({ 减少动画: 启用 }),
+  设置离线: (离线) => 设置({ 是离线: 离线 }),
+  设置有更新: (可用) => 设置({ 有可用更新: 可用 }),
+  设置离线就绪: (就绪) => 设置({ 离线就绪: 就绪 }),
+  设置缓存配额警告: (警告) => 设置({ 缓存配额警告: 警告 }),
+  设置画质档位: (级别) => 设置({ 画质档位: 级别 }),
+  设置性能指标: (指标) => 设置({ 性能指标: 指标 }),
+  设置帧指标: (指标) => 设置((状态) => ({ 帧指标: { ...状态.帧指标, ...指标 } })),
+  切换到区块: (区块) => {
+    设置({ 活跃区块: 区块 })
+
     const 顶栏偏移 = -80
-    const scrollTo = (element: HTMLElement) => {
-      const lenis = 平滑滚动引用.current
-      if (lenis && !get().reducedMotion) {
-        lenis.scrollTo(element, { offset: 顶栏偏移 })
+    const scrollTo = (元素: HTMLElement) => {
+      const 平滑滚动 = 平滑滚动引用.current
+      if (平滑滚动 && !get().减少动画) {
+        平滑滚动.scrollTo(元素, { offset: 顶栏偏移 })
       } else {
-        element.scrollIntoView({ behavior: get().reducedMotion ? 'auto' : 'smooth' })
+        元素.scrollIntoView({ behavior: get().减少动画 ? 'auto' : 'smooth' })
       }
     }
-    const element = document.getElementById(section)
-    if (element) {
-      scrollTo(element)
+    const 元素 = document.getElementById(区块)
+    if (元素) {
+      scrollTo(元素)
       return
     }
-    // 处理懒加载区块：等待元素挂载后再滚动
-    const observer = new MutationObserver(() => {
-      const target = document.getElementById(section)
+
+    const 观察器 = new MutationObserver(() => {
+      const target = document.getElementById(区块)
       if (target) {
-        observer.disconnect()
+        观察器.disconnect()
         scrollTo(target)
       }
     })
-    observer.observe(document.body, { childList: true, subtree: true })
-    window.setTimeout(() => observer.disconnect(), 3000)
+    观察器.observe(document.body, { childList: true, subtree: true })
+    window.setTimeout(() => 观察器.disconnect(), 3000)
   },
-  transitionToTheater: () => set({ activeSection: null }),
+  切换到剧场: () => 设置({ 活跃区块: null }),
 }))

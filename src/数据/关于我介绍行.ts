@@ -1,38 +1,30 @@
-import { t, type TranslationKey } from '../国际化/翻译'
-
-/**
- * 「关于我」正文行：文案在 zh-CN.json 的 about.introLines 节点。
- * 行内支持 {{tech|…}} / {{dim|…}} / {{accent|…}} 片段标记，由 GuanYuWoBanKuai 解析成着色 span。
- * id 表顺序即展示顺序。
- */
+import { t, type 翻译键 } from '../国际化/翻译'
 
 export type 片段色调 = 'plain' | 'tech' | 'dim' | 'accent'
 
 export interface 文本片段 {
   text: string
-  tone: 片段色调
+  语气: 片段色调
 }
 
-/** 展示顺序 */
 const 行id表 = ['l1', 'l2', 'l3', 'l4', 'l5'] as const
 
-function 行键(id: string): TranslationKey {
-  return `about.introLines.${id}.text` as unknown as TranslationKey
+function 行键(id: string): 翻译键 {
+  return `about.introLines.${id}.text` as unknown as 翻译键
 }
 
 const 片段正则 = /\{\{(tech|dim|accent)\|([^}]*)\}\}/g
 
-/** 把带 {{tone|…}} 标记的原文拆成着色片段 */
 export function 解析片段(原文: string): 文本片段[] {
   const 片段表: 文本片段[] = []
   let 上次 = 0
   for (const 匹配 of 原文.matchAll(片段正则)) {
     const 起 = 匹配.index ?? 0
-    if (起 > 上次) 片段表.push({ text: 原文.slice(上次, 起), tone: 'plain' })
-    片段表.push({ text: 匹配[2] ?? '', tone: (匹配[1] as 片段色调) ?? 'plain' })
+    if (起 > 上次) 片段表.push({ text: 原文.slice(上次, 起), 语气: 'plain' })
+    片段表.push({ text: 匹配[2] ?? '', 语气: (匹配[1] as 片段色调) ?? 'plain' })
     上次 = 起 + 匹配[0].length
   }
-  if (上次 < 原文.length) 片段表.push({ text: 原文.slice(上次), tone: 'plain' })
+  if (上次 < 原文.length) 片段表.push({ text: 原文.slice(上次), 语气: 'plain' })
   return 片段表.filter((段) => 段.text.length > 0)
 }
 

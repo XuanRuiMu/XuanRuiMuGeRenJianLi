@@ -1,12 +1,9 @@
-/* eslint-disable no-console -- 本模块职责即向 F12 控制台输出调试仪表盘，console 调用为预期行为 */
-
 import { 环形缓冲实例, 日志存储实例 } from './全局'
 import { useYingYongZhuangTai } from '../状态/应用状态仓库'
 import { encode } from '@msgpack/msgpack'
 import type { 日志条目, 日志级别 } from './环形缓冲'
 import type { 帧指标, 性能指标, 画质档位值 } from '../领域/类型'
 
-// 等级配色（命令式复用旧浮窗语义，仅用于控制台着色）
 const 等级配色: Record<日志级别, string> = {
   debug: '#9aa0a6',
   info: '#4a9eff',
@@ -18,70 +15,65 @@ const 等级配色: Record<日志级别, string> = {
 const 最大日志条数 = 500
 const 最近日志: 日志条目[] = []
 
-// 最近一次来自 store 的快照，fps()/perf() 即时读取
 const 当前状态: {
   frameMetrics: 帧指标
   performanceMetrics: 性能指标
   qualityLevel: 画质档位值
 } = {
-  frameMetrics: { fps: 0, p95: 0, avg: 0, downgradeCount: 0, upgradeCount: 0 },
+  frameMetrics: { fps: 0, p95: 0, avg: 0, 降档次数: 0, 升档次数: 0 },
   performanceMetrics: {},
   qualityLevel: 'high',
 }
 
-// 自研 FPS 采样器：仅 rAF 计数，零依赖，仅在 watch 开启时运行（不阻塞主线程）
 function 创建帧率采样器() {
   let 上一帧 = performance.now()
   let 帧计数 = 0
-  let fps = 0
-  let rafId: number | null = null
+  let 帧率 = 0
+  let 帧编号: number | null = null
   let 运行中 = false
 
-  function 循环(now: number): void {
+  function 循环(当前时刻: number): void {
     if (!运行中) return
     帧计数++
-    const 间隔 = now - 上一帧
+    const 间隔 = 当前时刻 - 上一帧
     if (间隔 >= 1000) {
-      fps = Math.round((帧计数 * 1000) / 间隔)
+      帧率 = Math.round((帧计数 * 1000) / 间隔)
       帧计数 = 0
-      上一帧 = now
+      上一帧 = 当前时刻
     }
-    rafId = requestAnimationFrame(循环)
+    帧编号 = requestAnimationFrame(循环)
   }
 
   return {
-    获取: () => fps,
+    获取: () => 帧率,
     开始: () => {
       if (运行中) return
       运行中 = true
       上一帧 = performance.now()
       帧计数 = 0
-      rafId = requestAnimationFrame(循环)
+      帧编号 = requestAnimationFrame(循环)
     },
     停止: () => {
       运行中 = false
-      if (rafId !== null) {
-        cancelAnimationFrame(rafId)
-        rafId = null
+      if (帧编号 !== null) {
+        cancelAnimationFrame(帧编号)
+        帧编号 = null
       }
-      fps = 0
+      帧率 = 0
     },
   }
 }
 
 const 帧率采样器 = 创建帧率采样器()
 
-// 读取 JS 堆内存（非标准 API，弱类型适配，缺失时回退 N/A）
 interface 堆内存信息 {
   usedJSHeapSize?: number
 }
 function 读取内存(): string {
-  const mem = (performance as unknown as { memory?: 堆内存信息 }).memory
-  if (!mem?.usedJSHeapSize) return 'N/A'
-  return `${(mem.usedJSHeapSize / (1024 * 1024)).toFixed(1)}MB`
+  const 内存 = (performance as unknown as { memory?: 堆内存信息 }).memory
+  if (!内存?.usedJSHeapSize) return 'N/A'
+  return `${(内存.usedJSHeapSize / (1024 * 1024)).toFixed(1)}MB`
 }
-
-// ---- 命令式 API 实现 ----
 
 function 打印横幅(): void {
   const 主色 = '#7df9ff'
@@ -99,7 +91,7 @@ function 打印横幅(): void {
   )
 }
 
-function help(): void {
+function 帮助(): void {
   console.group('%c__RESUME_DEBUG__ 调试命令', 'color:#7df9ff;font-weight:700;')
   console.log('%chelp()%c    · 显示本帮助', 'color:#9ae6ff', 'color:#aaa')
   console.log('%cfps()%c     · 即时打印当前 FPS / 帧时间 / 内存 / 质量等级', 'color:#9ae6ff', 'color:#aaa')
@@ -111,22 +103,22 @@ function help(): void {
   console.groupEnd()
 }
 
-function fps(): void {
-  const { frameMetrics, qualityLevel } = 当前状态
+function 帧率(): void {
+  const { frameMetrics: 帧指标, qualityLevel: 画质档位 } = 当前状态
   console.group(
-    '%c实时帧率 %c' + qualityLevel.toUpperCase(),
+    '%c实时帧率 %c' + 画质档位.toUpperCase(),
     'color:#7df9ff;font-weight:700;',
     'color:#ffa726;font-weight:700;'
   )
-  console.log('FPS        :', frameMetrics.fps)
-  console.log('帧时间(avg):', `${frameMetrics.avg}ms`)
-  console.log('p95        :', `${frameMetrics.p95}ms`)
-  console.log('降级/升级  :', `${frameMetrics.downgradeCount} / ${frameMetrics.upgradeCount}`)
+  console.log('FPS        :', 帧指标.fps)
+  console.log('帧时间(avg):', `${帧指标.avg}ms`)
+  console.log('p95        :', `${帧指标.p95}ms`)
+  console.log('降级/升级  :', `${帧指标.降档次数} / ${帧指标.升档次数}`)
   console.log('内存       :', 读取内存())
   console.groupEnd()
 }
 
-function perf(): void {
+function 性能(): void {
   const m = 当前状态.performanceMetrics
   console.group('%cWeb Vitals', 'color:#7df9ff;font-weight:700;')
   console.table({
@@ -139,11 +131,11 @@ function perf(): void {
   console.groupEnd()
 }
 
-function 时间文本(ts: bigint): string {
-  return new Date(Number(ts)).toTimeString().slice(0, 8)
+function 时间文本(时间戳: bigint): string {
+  return new Date(Number(时间戳)).toTimeString().slice(0, 8)
 }
 
-function logs(n = 50): void {
+function 日志(n = 50): void {
   const 片段 = 最近日志.slice(-n)
   console.group(
     `%c最近 ${片段.length} 条日志 %c(共收集 ${最近日志.length})`,
@@ -178,32 +170,32 @@ function logs(n = 50): void {
 
 async function 导出(): Promise<void> {
   if (typeof document === 'undefined') return
-  const entries = await 日志存储实例.readEntries(5000)
-  const encoded = encode(
-    entries.map((e) => ({
+  const 条目表 = await 日志存储实例.读取条目(5000)
+  const 已编码 = encode(
+    条目表.map((e) => ({
       ...e,
       timestamp: Number(e.timestamp),
     }))
   )
-  const blob = new Blob([encoded], { type: 'application/octet-stream' })
-  const url = URL.createObjectURL(blob)
+  const 数据块 = new Blob([已编码], { type: 'application/octet-stream' })
+  const 地址 = URL.createObjectURL(数据块)
   const a = document.createElement('a')
-  a.href = url
+  a.href = 地址
   a.download = `resume-logs-${Date.now()}.msgpack`
   a.click()
-  URL.revokeObjectURL(url)
-  console.info('已导出 %d 条日志为 .msgpack', entries.length)
+  URL.revokeObjectURL(地址)
+  console.info('已导出 %d 条日志为 .msgpack', 条目表.length)
 }
 
-function clear(): void {
+function 清空(): void {
   最近日志.length = 0
   console.info('已清空控制台日志快照（持久化日志不受影响）')
 }
 
 let 监视手柄: { 停止: () => void } | null = null
 
-function watch(on = true): void {
-  if (on) {
+function 监视(开启 = true): void {
+  if (开启) {
     if (监视手柄) {
       console.info('watch 已在运行')
       return
@@ -240,7 +232,7 @@ interface 调试接口 {
   logs: (n?: number) => void
   export: () => void
   clear: () => void
-  watch: (on?: boolean) => void
+  watch: (开启?: boolean) => void
 }
 
 declare global {
@@ -252,34 +244,32 @@ declare global {
 export function 初始化控制台仪表盘(): void {
   if (typeof window === 'undefined') return
 
-  // 订阅 环形缓冲实例，收集最近日志（不向 DOM 注入任何元素）
-  环形缓冲实例.subscribe((entry: 日志条目) => {
-    最近日志.push(entry)
+  环形缓冲实例.订阅((条目: 日志条目) => {
+    最近日志.push(条目)
     if (最近日志.length > 最大日志条数) {
       最近日志.splice(0, 最近日志.length - 最大日志条数)
     }
   })
 
-  // 订阅 useYingYongZhuangTai，保持 FPS/帧时间/质量/Web Vitals 最新快照
   const 初始 = useYingYongZhuangTai.getState()
-  当前状态.frameMetrics = 初始.frameMetrics
-  当前状态.performanceMetrics = 初始.performanceMetrics
-  当前状态.qualityLevel = 初始.qualityLevel
-  useYingYongZhuangTai.subscribe((state) => {
-    当前状态.frameMetrics = state.frameMetrics
-    当前状态.performanceMetrics = state.performanceMetrics
-    当前状态.qualityLevel = state.qualityLevel
+  当前状态.frameMetrics = 初始.帧指标
+  当前状态.performanceMetrics = 初始.性能指标
+  当前状态.qualityLevel = 初始.画质档位
+  useYingYongZhuangTai.subscribe((状态) => {
+    当前状态.frameMetrics = 状态.帧指标
+    当前状态.performanceMetrics = 状态.性能指标
+    当前状态.qualityLevel = 状态.画质档位
   })
 
   打印横幅()
 
   window.__RESUME_DEBUG__ = {
-    help,
-    fps,
-    perf,
-    logs,
+    help: 帮助,
+    fps: 帧率,
+    perf: 性能,
+    logs: 日志,
     export: 导出,
-    clear,
-    watch,
+    clear: 清空,
+    watch: 监视,
   }
 }

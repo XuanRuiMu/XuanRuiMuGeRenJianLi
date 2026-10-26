@@ -6,7 +6,6 @@ export interface 圆形揭示原点 {
 }
 
 interface 视图过渡API {
-  // document.startViewTransition 是浏览器 DOM API（框架契约，不纳入中文化范围）
   startViewTransition?: (更新回调: () => void | Promise<void>) => {
     ready: Promise<void>
     finished: Promise<void>
@@ -22,52 +21,52 @@ export function 是否支持视图过渡(): boolean {
 }
 
 export async function 启动视图过渡(更新回调: () => void | Promise<void>): Promise<void> {
-  const doc = document as unknown as 视图过渡API
+  const 文档 = document as unknown as 视图过渡API
 
-  if (!doc.startViewTransition) {
+  if (!文档.startViewTransition) {
     await 更新回调()
     return
   }
 
   try {
-    const transition = doc.startViewTransition(更新回调)
-    await transition.updateCallbackDone
-    await transition.ready
-    await transition.finished
-  } catch (err) {
-    日志器实例.warn('View transition failed', { error: String(err) })
+    const 过渡 = 文档.startViewTransition(更新回调)
+    await 过渡.updateCallbackDone
+    await 过渡.ready
+    await 过渡.finished
+  } catch (错误) {
+    日志器实例.warn('View transition failed', { error: String(错误) })
     await 更新回调()
   }
 }
 
 export async function 启动圆形揭示过渡(更新回调: () => void | Promise<void>, 原点: 圆形揭示原点): Promise<void> {
-  const doc = document as unknown as 视图过渡API
+  const 文档 = document as unknown as 视图过渡API
 
-  if (!doc.startViewTransition) {
+  if (!文档.startViewTransition) {
     await 更新回调()
     return
   }
 
-  const root = document.documentElement
+  const 根元素 = document.documentElement
 
   const 包裹回调 = () => {
-    root.style.setProperty('--circular-origin-x', `${原点.横}px`)
-    root.style.setProperty('--circular-origin-y', `${原点.纵}px`)
-    root.classList.add('circular-reveal-active')
+    根元素.style.setProperty('--circular-origin-x', `${原点.横}px`)
+    根元素.style.setProperty('--circular-origin-y', `${原点.纵}px`)
+    根元素.classList.add('circular-reveal-active')
     return 更新回调()
   }
 
   try {
-    const transition = doc.startViewTransition(包裹回调)
-    await transition.updateCallbackDone
-    await transition.ready
-    await transition.finished
-  } catch (err) {
-    日志器实例.warn('Circular reveal transition failed', { error: String(err) })
+    const 过渡 = 文档.startViewTransition(包裹回调)
+    await 过渡.updateCallbackDone
+    await 过渡.ready
+    await 过渡.finished
+  } catch (错误) {
+    日志器实例.warn('Circular reveal transition failed', { error: String(错误) })
     await 包裹回调()
   } finally {
-    root.classList.remove('circular-reveal-active')
-    root.style.removeProperty('--circular-origin-x')
-    root.style.removeProperty('--circular-origin-y')
+    根元素.classList.remove('circular-reveal-active')
+    根元素.style.removeProperty('--circular-origin-x')
+    根元素.style.removeProperty('--circular-origin-y')
   }
 }

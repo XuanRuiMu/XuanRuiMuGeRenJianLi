@@ -36,8 +36,8 @@ describe('viewTransition', () => {
 
   it('uses document.startViewTransition when available', async () => {
     const 回调 = vi.fn()
-    const 视图过渡模拟 = vi.fn((cb) => {
-      cb()
+    const 视图过渡模拟 = vi.fn((回调) => {
+      回调()
       return {
         updateCallbackDone: Promise.resolve(),
         ready: Promise.resolve(),
@@ -67,8 +67,8 @@ describe('viewTransition', () => {
     const 移类 = vi.fn()
     const 设属性 = vi.fn()
     const 移属性 = vi.fn()
-    const 视图过渡模拟 = vi.fn((cb) => {
-      cb()
+    const 视图过渡模拟 = vi.fn((回调) => {
+      回调()
       return {
         updateCallbackDone: Promise.resolve(),
         ready: Promise.resolve(),

@@ -2,23 +2,23 @@ import { 环形缓冲实例 } from './全局'
 import type { 日志上下文 } from './类型'
 
 export const 日志器实例 = {
-  debug(message: string, context?: 日志上下文) {
-    环形缓冲实例.write('debug', 1, message, context)
+  debug(消息: string, 上下文?: 日志上下文) {
+    环形缓冲实例.写入('debug', 1, 消息, 上下文)
   },
-  info(message: string, context?: 日志上下文) {
-    环形缓冲实例.write('info', 1, message, context)
+  信息(消息: string, 上下文?: 日志上下文) {
+    环形缓冲实例.写入('info', 1, 消息, 上下文)
   },
-  warn(message: string, context?: 日志上下文) {
-    环形缓冲实例.write('warn', 1, message, context)
+  warn(消息: string, 上下文?: 日志上下文) {
+    环形缓冲实例.写入('warn', 1, 消息, 上下文)
   },
-  error(message: string, context?: 日志上下文) {
-    环形缓冲实例.write('error', 1, message, context)
+  错误(消息: string, 上下文?: 日志上下文) {
+    环形缓冲实例.写入('error', 1, 消息, 上下文)
   },
-  fatal(message: string, context?: 日志上下文) {
-    环形缓冲实例.write('fatal', 1, message, context)
+  致命(消息: string, 上下文?: 日志上下文) {
+    环形缓冲实例.写入('fatal', 1, 消息, 上下文)
   },
-  getSessionId(): string {
+  获取会话编号(): string {
     return 'ringbuf-01'
   },
-  registerCollector() {},
+  注册收集器() {},
 }

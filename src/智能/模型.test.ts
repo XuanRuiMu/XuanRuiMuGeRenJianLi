@@ -19,7 +19,7 @@ describe('模型注册表', () => {
 
   it('默认模型走 OpenAI 兼容协议', () => {
     const 默认 = 解析模型(默认模型ID)
-    expect(默认.provider).toBe('openai')
+    expect(默认.供应商).toBe('openai')
   })
 
   it('未知模型回退到默认模型', () => {

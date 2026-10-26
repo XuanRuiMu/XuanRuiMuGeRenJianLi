@@ -4,15 +4,12 @@ import { 丝绸画布渲染器 } from './丝绸画布渲染器'
 import { useShiFouAnSe } from './useShiFouAnSe'
 import { useXingKongKaiGuan } from '../../状态/星空开关仓库'
 
-interface InkRevealOverlayProps {
-  enabled?: boolean
+interface 水墨显现遮罩属性 {
+  启用?: boolean
 }
 
-// 水墨遮罩双主题均为满不透明实色：深色=墨黑与星空底色一致（擦开见星）；
-// 浅色=动态丝绸遮罩（擦开见烈焰中的世界树）
 const 墨色深 = '#05060f'
 
-// 浅色丝绸遮罩着色器（与 skill-test 页 SiChouZhaoSeQi Classic Silk 同源）
 const 丝绸着色器 = `
 uniform float uSpeed;
 uniform float uWaveAmp;
@@ -79,7 +76,6 @@ void mainImage(out vec4 fragColor, vec2 fragCoord) {
 }
 `
 
-// 浅色丝绸遮罩最终选定参数（动画速度 0.5，柔化亮度 0.3）
 const 丝绸参数 = {
   uSpeed: 0.5,
   uWaveAmp: 0.03,
@@ -97,62 +93,70 @@ const 丝绸参数 = {
   uTintIntensity: 0.0,
 }
 
-export function ShuiMoXianXianZheZhao({ enabled: enabledProp }: InkRevealOverlayProps) {
-  const rendererRef = useRef<水墨显现渲染器 | null>(null)
-  const silkRef = useRef<丝绸画布渲染器 | null>(null)
-  const isDark = useShiFouAnSe()
-  const inkEnabled = useXingKongKaiGuan((s) => s.inkEnabled)
-  const enabled = enabledProp ?? inkEnabled
+export function ShuiMoXianXianZheZhao({ 启用: 启用属性 }: 水墨显现遮罩属性) {
+  const 渲染器引用 = useRef<水墨显现渲染器 | null>(null)
+  const 丝绸引用 = useRef<丝绸画布渲染器 | null>(null)
+  const 是深色 = useShiFouAnSe()
+  const 墨迹启用 = useXingKongKaiGuan((s) => s.墨迹启用)
+  const 启用 = 启用属性 ?? 墨迹启用
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    if (!window.matchMedia('(hover: hover)').matches) return
 
-    // 浅色模式：创建动态丝绸渲染器作为遮罩源；深色模式：纯色遮罩
-    let silk: 丝绸画布渲染器 | null = null
-    if (!isDark) {
+    let 丝绸: 丝绸画布渲染器 | null = null
+    if (!是深色) {
       try {
-        silk = new 丝绸画布渲染器({
-          shaderCode: 丝绸着色器,
+        丝绸 = new 丝绸画布渲染器({
+          着色器代码: 丝绸着色器,
           uniforms: 丝绸参数,
         })
-        silk.start()
-        silkRef.current = silk
+        丝绸.开始()
+        丝绸引用.current = 丝绸
       } catch (e) {
         console.warn('丝绸遮罩初始化失败，回退纯色遮罩:', e)
-        silk = null
+        丝绸 = null
       }
     }
 
-    // 主题切换时经依赖数组整体重建渲染器，覆盖色随主题换色并重涂遮罩
-    const renderer = new 水墨显现渲染器({
-      enabled,
-      coverColor: 墨色深,
-      sourceCanvas: silk?.canvas ?? null,
-    })
-    rendererRef.current = renderer
-    renderer.mount(document.body)
-
-    const onMove = (e: PointerEvent) => {
-      renderer.onPointerMove(e.clientX, e.clientY)
-      silk?.setMouse(e.clientX, e.clientY, e.buttons > 0)
+    let 渲染器: 水墨显现渲染器
+    try {
+      渲染器 = new 水墨显现渲染器({
+        启用: 启用,
+        遮罩颜色: 墨色深,
+        遮罩源画布: 丝绸?.画布 ?? null,
+      })
+    } catch (错误) {
+      丝绸?.释放()
+      丝绸引用.current = null
+      console.warn('水墨遮罩初始化失败，已跳过:', 错误)
+      return
     }
-    const onDown = (e: PointerEvent) => silk?.setMouse(e.clientX, e.clientY, true)
-    const onUp = () => silk?.setMouse(0, 0, false)
-    window.addEventListener('pointermove', onMove, { passive: true })
-    window.addEventListener('pointerdown', onDown, { passive: true })
-    window.addEventListener('pointerup', onUp, { passive: true })
+    渲染器引用.current = 渲染器
+    渲染器.挂载(document.body)
+
+    const 指针移动 = (e: PointerEvent) => {
+      渲染器.onPointerMove(e.clientX, e.clientY)
+      丝绸?.设置鼠标位置(e.clientX, e.clientY, e.buttons > 0)
+    }
+    const 指针按下 = (e: PointerEvent) => {
+      渲染器.onPointerMove(e.clientX, e.clientY)
+      丝绸?.设置鼠标位置(e.clientX, e.clientY, true)
+    }
+    const 指针松开 = () => 丝绸?.设置鼠标位置(0, 0, false)
+    window.addEventListener('pointermove', 指针移动, { passive: true })
+    window.addEventListener('pointerdown', 指针按下, { passive: true })
+    window.addEventListener('pointerup', 指针松开, { passive: true })
 
     return () => {
-      window.removeEventListener('pointermove', onMove)
-      window.removeEventListener('pointerdown', onDown)
-      window.removeEventListener('pointerup', onUp)
-      renderer.unmount()
-      rendererRef.current = null
-      silk?.dispose()
-      silkRef.current = null
+      window.removeEventListener('pointermove', 指针移动)
+      window.removeEventListener('pointerdown', 指针按下)
+      window.removeEventListener('pointerup', 指针松开)
+      渲染器.卸载()
+      渲染器引用.current = null
+      丝绸?.释放()
+      丝绸引用.current = null
     }
-  }, [isDark, enabled])
+  }, [是深色, 启用])
 
   return null
 }

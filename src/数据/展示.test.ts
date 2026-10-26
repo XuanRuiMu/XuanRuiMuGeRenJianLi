@@ -5,24 +5,19 @@ import { t } from '../国际化/翻译'
 import { 展示行表, type 展示卡 } from './展示'
 
 const 项目根 = path.resolve(__dirname, '../..')
-/** public/ 是全站唯一静态资源目录，配图即 public/showcase/ 下的实体文件 */
+
 const 配图目录 = path.resolve(项目根, 'public/showcase')
 
-const 全部卡 = 展示行表.flatMap((行) => 行.cards)
-const 配图卡 = 全部卡.filter((卡) => Boolean(卡.image))
-const 无图卡 = 全部卡.filter((卡) => !卡.image)
-/** 项目名 = 卡片标题字面值，配图文件名与它一字不差 */
-const 项目名 = (卡: 展示卡) => t(卡.titleKey)
-const 图文件名 = (卡: 展示卡) => `${项目名(卡)}.png`
+const 全部卡 = 展示行表.flatMap((行) => 行.卡片表)
+const 配图卡 = 全部卡.filter((卡) => Boolean(卡.图片))
+const 无图卡 = 全部卡.filter((卡) => !卡.图片)
+
+const 项目名 = (卡: 展示卡) => t(卡.标题键)
+const 图文件名 = (卡: 展示卡) => `${项目名(卡)}.webp`
 const 源文件路径 = (卡: 展示卡) => path.resolve(配图目录, 图文件名(卡))
-/** 手写路径守卫读的是实现源码本身（类型系统已挡一层，这里再挡字符串与隐式 existsSync 两条退路） */
+
 const showcase源码 = fs.readFileSync(path.resolve(项目根, 'src/数据/展示.ts'), 'utf-8')
 
-/**
- * 项目名非法字符：Windows 文件名禁用字符（派生出的图片文件名必须能落盘）
- * + 都是 Windows 合法文件名字符、却会让派生 URL 出错的字符（# % ` { } 与 "）。
- * 与 showcase.ts 的 项目名转URL 分工：守卫负责「不允许出现在项目名里」，编码负责「必须转义才安全」。
- */
 const 非法字符正则 = /[\\/:*?"<>|#%`{}]/
 const 含控制字符 = (值: string) => Array.from(值).some((字) => (字.codePointAt(0) ?? 0) < 0x20 || 字 === '\x7f')
 
@@ -65,7 +60,7 @@ describe('FP-03 作品配图「文件名=项目名」派生守卫', () => {
   it('项目名可安全落盘：无非法字符、无控制字符、无首尾空白与尾点，且确已解析出中文名', () => {
     for (const 卡 of 全部卡) {
       const 名 = 项目名(卡)
-      expect(名, `卡片 ${卡.id} 的 titleKey 未解析出项目名（拿到了键路径本身）`).not.toBe(卡.titleKey)
+      expect(名, `卡片 ${卡.id} 的 titleKey 未解析出项目名（拿到了键路径本身）`).not.toBe(卡.标题键)
       expect(名, `项目名不得含文件系统非法字符：${卡.id}`).not.toMatch(非法字符正则)
       expect(含控制字符(名), `项目名不得含控制字符（如换行、制表符）：${卡.id}`).toBe(false)
       expect(名, `项目名不得有首尾空白或以点结尾（Windows 文件名规则）：${卡.id}`).not.toMatch(/^\s|\s$|\.$/)
@@ -83,26 +78,25 @@ describe('FP-03 作品配图「文件名=项目名」派生守卫', () => {
 
   it('image 由项目名严格派生：URL 解码回来必须一字不差等于 配图文件名，且不含空白', () => {
     for (const 卡 of 配图卡) {
-      const 图URL = 卡.image
+      const 图URL = 卡.图片
       expect(图URL).not.toMatch(/\s/)
       expect(decodeURIComponent(图URL.slice('/showcase/'.length)), `派生路径与项目名不一致：${卡.id}`).toBe(
         图文件名(卡)
       )
     }
-    expect(showcase源码, '配图路径必须由项目名派生，不得手写字符串路径').not.toMatch(/image:\s*['"]/)
+    expect(showcase源码, '配图路径必须由项目名派生，不得手写字符串路径').not.toMatch(/(image|图片):\s*['"]/)
   })
 
   it('派生 URL 命中独立预言：基准卡的字面量写死（手算并 decode 往返核对过，不复用被测实现）', () => {
     const 基准卡 = 全部卡.find((卡) => 卡.id === 'degree')
     expect(基准卡, '缺少 id=degree 的基准卡，本预言失效').toBeTruthy()
-    expect(基准卡?.image).toBe('/showcase/学历%20·%20天津仁爱学院.png')
-    expect(decodeURIComponent('/showcase/学历%20·%20天津仁爱学院.png'.slice('/showcase/'.length))).toBe(
-      '学历 · 天津仁爱学院.png'
+    expect(基准卡?.图片).toBe('/showcase/学历%20·%20天津仁爱学院.webp')
+    expect(decodeURIComponent('/showcase/学历%20·%20天津仁爱学院.webp'.slice('/showcase/'.length))).toBe(
+      '学历 · 天津仁爱学院.webp'
     )
   })
 
   it('编码字符类不得回退：空白、单双引号、圆括号都在内（unquoted url() 含它们会被浏览器整条丢弃）', () => {
-    /** 项目名转URL 刻意不导出（避免只为测试而扩 API），故只能在源码层守这条不变式 */
     const 编码字符类 = showcase源码.match(/项目名\.replace\(\/\[([^\]]*)\]\//)?.[1]
     expect(编码字符类, '未能在 showcase.ts 里定位 项目名转URL 的编码字符类').toBeTruthy()
     expect(编码字符类).toContain('\\s')
@@ -118,7 +112,7 @@ describe('FP-03 作品配图「文件名=项目名」派生守卫', () => {
     ).toBe(true)
     for (const 卡 of 配图卡) {
       const 元素 = document.createElement('div')
-      元素.style.backgroundImage = `url(${卡.image ?? ''})`
+      元素.style.backgroundImage = `url(${卡.图片 ?? ''})`
       expect(元素.style.backgroundImage, `该 URL 无法作为 CSS url() 生效（会被浏览器整条丢弃）：${卡.id}`).not.toBe('')
     }
   })

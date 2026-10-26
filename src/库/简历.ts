@@ -9,14 +9,14 @@ export function 构建简历Markdown(): string {
 ${求职方向()}
 
 ## ${t('resume.contact')}
-- ${t('contact.info.email')}：${个人信息.email}
-- ${t('contact.info.phone')}：${个人信息.phone}
-- ${t('contact.info.github')}：${个人信息.github}
-- ${t('contact.info.bilibili')}：${个人信息.bilibili}
+- ${t('contact.info.email')}：${个人信息.邮箱}
+- ${t('contact.info.phone')}：${个人信息.电话}
+- ${t('contact.info.github')}：${个人信息.GitHub}
+- ${t('contact.info.bilibili')}：${个人信息.哔哩哔哩}
 
 ## ${t('resume.education')}
-${个人信息.教育背景.school} · ${个人信息.教育背景.major} · ${个人信息.教育背景.degree}
-${个人信息.教育背景.period}
+${个人信息.教育背景.学校} · ${个人信息.教育背景.专业} · ${个人信息.教育背景.学位}
+${个人信息.教育背景.周期}
 `
 }
 

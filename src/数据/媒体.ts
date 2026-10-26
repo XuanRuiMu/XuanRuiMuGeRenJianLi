@@ -1,34 +1,34 @@
 import type { 媒体 } from './类型'
 
 export const 媒体数据: 媒体 = {
-  headlineKey: 'data.media.headline',
-  introKey: 'data.media.intro',
-  categories: [
+  标题键: 'data.media.headline',
+  介绍键: 'data.media.intro',
+  分类表: [
     {
       id: 'writing',
-      labelKey: 'data.media.categories.writing.label',
-      itemKeys: ['data.media.categories.writing.items.novel', 'data.media.categories.writing.items.blog'],
+      标签键: 'data.media.categories.writing.label',
+      条目键表: ['data.media.categories.writing.items.novel', 'data.media.categories.writing.items.blog'],
     },
     {
       id: 'comedy',
-      labelKey: 'data.media.categories.comedy.label',
-      itemKeys: ['data.media.categories.comedy.items.original', 'data.media.categories.comedy.items.voice'],
+      标签键: 'data.media.categories.comedy.label',
+      条目键表: ['data.media.categories.comedy.items.original', 'data.media.categories.comedy.items.voice'],
     },
     {
       id: 'game',
-      labelKey: 'data.media.categories.game.label',
-      itemKeys: ['data.media.categories.game.items.worlds', 'data.media.categories.game.items.boss'],
+      标签键: 'data.media.categories.game.label',
+      条目键表: ['data.media.categories.game.items.worlds', 'data.media.categories.game.items.boss'],
     },
     {
       id: 'video',
-      labelKey: 'data.media.categories.video.label',
-      itemKeys: ['data.media.categories.video.items.courses', 'data.media.categories.video.items.editing'],
+      标签键: 'data.media.categories.video.label',
+      条目键表: ['data.media.categories.video.items.courses', 'data.media.categories.video.items.editing'],
     },
   ],
-  timeline: [
-    { year: '2022', eventKey: 'data.media.timeline.2022' },
-    { year: '2023', eventKey: 'data.media.timeline.2023' },
-    { year: '2024', eventKey: 'data.media.timeline.2024' },
-    { year: '2025', eventKey: 'data.media.timeline.2025' },
+  时间线: [
+    { 年份: '2022', 事件键: 'data.media.timeline.2022' },
+    { 年份: '2023', 事件键: 'data.media.timeline.2023' },
+    { 年份: '2024', 事件键: 'data.media.timeline.2024' },
+    { 年份: '2025', 事件键: 'data.media.timeline.2025' },
   ],
 }

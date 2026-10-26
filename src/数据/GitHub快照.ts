@@ -1,8 +1,3 @@
-/**
- * GitHub 公开仓库快照 · 由 scripts/同步GitHub快照.js 自动生成，请勿手改。
- * 生成时间：2026-09-27T22:58:53.313Z
- * 数据来源：GitHub REST API（仓库列表 + 语言分布 + README）
- */
 export interface GitHub快照元信息类型 {
   账号: string
   公开仓库总数: number

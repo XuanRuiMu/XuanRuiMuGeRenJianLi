@@ -4,19 +4,19 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const rootDir = path.resolve(__dirname, '..')
+const 根目录 = path.resolve(__dirname, '..')
 
 describe('React Compiler setup', () => {
   it('declares required dependencies in package.json', () => {
-    const packageJson = JSON.parse(fs.readFileSync(path.resolve(rootDir, 'package.json'), 'utf-8'))
-    expect(packageJson.devDependencies).toHaveProperty('babel-plugin-react-compiler')
-    expect(packageJson.devDependencies).toHaveProperty('@rolldown/plugin-babel')
-    expect(packageJson.devDependencies).toHaveProperty('@babel/core')
+    const 包配置 = JSON.parse(fs.readFileSync(path.resolve(根目录, 'package.json'), 'utf-8'))
+    expect(包配置.devDependencies).toHaveProperty('babel-plugin-react-compiler')
+    expect(包配置.devDependencies).toHaveProperty('@rolldown/plugin-babel')
+    expect(包配置.devDependencies).toHaveProperty('@babel/core')
   })
 
   it('configures React Compiler in Vite', () => {
-    const viteConfig = fs.readFileSync(path.resolve(rootDir, 'vite.config.js'), 'utf-8')
-    expect(viteConfig).toContain('reactCompilerPreset')
-    expect(viteConfig).toContain('@rolldown/plugin-babel')
+    const Vite配置 = fs.readFileSync(path.resolve(根目录, 'vite.config.js'), 'utf-8')
+    expect(Vite配置).toContain('reactCompilerPreset')
+    expect(Vite配置).toContain('@rolldown/plugin-babel')
   })
 })

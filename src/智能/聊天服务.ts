@@ -6,51 +6,47 @@ import { 深度求索最大令牌, 深度求索检索条数 } from './深度求�
 import { 解析模型, 聊天超时毫秒, type 思考强度, type 模型定义 } from './模型'
 import { 取本地答案, 选择组件 } from './本地引擎'
 import { useYingYongZhuangTai, type 回退原因 } from '../状态/应用状态仓库'
-import { t, type TranslationKey } from '../国际化/翻译'
+import { t, type 翻译键 } from '../国际化/翻译'
 
 export interface 聊天选项 {
-  model?: string
-  /** /compact 可选聚焦说明 */
+  模型?: string
+
   focus?: string
-  /** 中断信号（对齐 Claude Code 的 Esc 中断语义）；abort 时抛出 AbortError，不回退本地兜底 */
+
   signal?: AbortSignal
-  /** SSE 流式增量回调：reasoning 阶段与 content 阶段分别回调，先思考流后回答流 */
-  onProgress?: (进度: { reasoning: string; content: string }) => void
+
+  进度回调?: (进度: { 思考内容: string; content: string }) => void
 }
 
 export interface 聊天服务结果 {
   message: AI消息
-  /** 检索轨迹元数据 */
+
   meta: AI工具元数据
 }
 
-/**
- * 依据来源取自本轮实际检索命中的语料（不是让模型自述），来源标注因此不可能被编造。
- * 保持检索排序、去重。
- */
-export function 取依据来源(块: Array<{ metadata: { category: string } }>): string[] {
+export function 取依据来源(块: Array<{ 元数据: { 分类: string } }>): string[] {
   return [
     ...new Set(
       块.map((项) => {
-        const 键 = `ai.sources.${项.metadata.category}` as unknown as TranslationKey
+        const 键 = `ai.sources.${项.元数据.分类}` as unknown as 翻译键
         const 译名 = t(键)
-        // 翻译缺失时 t() 原样返回键名，此时回退为分类 id，避免把键路径暴露给访客
-        return 译名 === 键 ? 项.metadata.category : 译名
+
+        return 译名 === 键 ? 项.元数据.分类 : 译名
       })
     ),
   ]
 }
 
-function 获取最后用户内容(messages: AI消息[]): string {
-  for (let i = messages.length - 1; i >= 0; i--) {
-    if (messages[i].role === 'user') {
-      return messages[i].content
+function 获取最后用户内容(消息表: AI消息[]): string {
+  for (let i = 消息表.length - 1; i >= 0; i--) {
+    if (消息表[i].role === 'user') {
+      return 消息表[i].content
     }
   }
   return ''
 }
 
-function buildSystemPrompt(context: string): string {
+function 构建系统提示词(上下文: string): string {
   return `你是玄锐暮本人的 AI 分身，不是他的助手：谈经历、项目、技能和背景时一律用第一人称「我／我的」，像本人在自我介绍与分析；不要说「玄锐暮他如何如何」「他的简历显示」这种第三人称转述。访客问「玄锐暮能不能…」时按「我能不能…」来答。
 你可以自由与用户交流任何话题，但不得生成违法违规内容；涉及本人信息时，以下方简历上下文为准，上下文没有的信息不要编造。
 
@@ -68,15 +64,15 @@ function buildSystemPrompt(context: string): string {
   回答末尾的「依据：…」由系统按本轮实际检索到的语料自动附加，回答里不要再写来源标注。
 
 简历上下文：
-${context}`
+${上下文}`
 }
 
-export function 是否中断错误(err: unknown): boolean {
-  return err instanceof DOMException && err.name === 'AbortError'
+export function 是否中断错误(错误: unknown): boolean {
+  return 错误 instanceof DOMException && 错误.name === 'AbortError'
 }
 
-export function 是否超时错误(err: unknown): boolean {
-  return err instanceof DOMException && err.name === 'TimeoutError'
+export function 是否超时错误(错误: unknown): boolean {
+  return 错误 instanceof DOMException && 错误.name === 'TimeoutError'
 }
 
 function 合并中断信号(用户信号?: AbortSignal, 超时毫秒?: number): { 信号: AbortSignal | undefined; 清理: () => void } {
@@ -87,9 +83,9 @@ function 合并中断信号(用户信号?: AbortSignal, 超时毫秒?: number): 
   const 清理项: Array<() => void> = []
   if (用户信号) {
     if (用户信号.aborted) {
-      控制器.abort((用户信号 as AbortSignal & { reason?: unknown }).reason)
+      控制器.abort((用户信号 as AbortSignal & { 原因?: unknown }).原因)
     } else {
-      const 转发中断 = () => 控制器.abort((用户信号 as AbortSignal & { reason?: unknown }).reason)
+      const 转发中断 = () => 控制器.abort((用户信号 as AbortSignal & { 原因?: unknown }).原因)
       用户信号.addEventListener('abort', 转发中断, { once: true })
       清理项.push(() => 用户信号.removeEventListener('abort', 转发中断))
     }
@@ -123,28 +119,22 @@ async function 带超时请求(
 }
 
 function 抛出响应错误(响应: Response): never {
-  // 安全：上游错误响应体可能含账号额度/请求 ID 等敏感信息，只保留状态码，不回显正文
   const 错误 = new Error(`LLM 请求失败：HTTP ${响应.status}`) as Error & { http状态?: number }
   错误.http状态 = 响应.status
   throw 错误
 }
 
-function 分类回退原因(err: unknown): { 回退原因: 回退原因; http状态?: number } {
-  if (是否超时错误(err)) return { 回退原因: 'timeout' }
-  const 状态 = (err as { http状态?: unknown } | null)?.http状态
+function 分类回退原因(错误: unknown): { 回退原因: 回退原因; http状态?: number } {
+  if (是否超时错误(错误)) return { 回退原因: 'timeout' }
+  const 状态 = (错误 as { http状态?: unknown } | null)?.http状态
   if (typeof 状态 === 'number') return { 回退原因: 'http', http状态: 状态 }
-  if (err instanceof Error && err.message.includes('返回格式异常')) return { 回退原因: 'format' }
+  if (错误 instanceof Error && 错误.message.includes('返回格式异常')) return { 回退原因: 'format' }
   return { 回退原因: 'network' }
 }
 
-/**
- * 「模型没给出可见正文」的唯一出口：本地预制答案接手，思考流原样保留。
- * 访客因此永远拿得到正文，工具轨迹也会诚实标注兜底原因，不会出现只有思考过程、
- * 没有任何回答的空回合。原因随实测传入（预算耗尽与格式异常不是一回事）。
- */
 function 构造无正文兜底(用户问题: string, 思考流: string, 检索命中数: number, 原因: 回退原因): AI消息 {
   const 兜底正文 = 取本地答案(用户问题)
-  if (思考流.length > 0) 兜底正文.reasoning = 思考流
+  if (思考流.length > 0) 兜底正文.思考内容 = 思考流
   兜底正文.meta = {
     命中数: 检索命中数,
     耗时毫秒: 0,
@@ -154,59 +144,38 @@ function 构造无正文兜底(用户问题: string, 思考流: string, 检索�
   return 兜底正文
 }
 
-/**
- * 把一条 AI消息 转为 API 消息体。
- * 带 images 的 user 消息按 vision 格式拆块数组（text 块 + image_url 块）；
- * 其余（含 assistant）保持纯字符串——API 限制图片仅允许出现在 user 消息中。
- */
-function 到Api消息(message: AI消息): Record<string, unknown> {
-  const hasImages = message.role === 'user' && !!message.images && message.images.length > 0
-  if (!hasImages) {
-    return { role: message.role, content: message.content }
+function 到Api消息(消息: AI消息): Record<string, unknown> {
+  const 有图片 = 消息.role === 'user' && !!消息.图片表 && 消息.图片表.length > 0
+  if (!有图片) {
+    return { role: 消息.role, content: 消息.content }
   }
   return {
-    role: message.role,
+    role: 消息.role,
     content: [
-      { type: 'text', text: message.content },
-      ...(message.images ?? []).map((url) => ({ type: 'image_url', image_url: { url } })),
+      { type: 'text', text: 消息.content },
+      ...(消息.图片表 ?? []).map((地址) => ({ type: 'image_url', image_url: { url: 地址 } })),
     ],
   }
 }
 
-/**
- * DeepSeek(OpenAI 兼容)思考体：官方 thinking_mode 档位——关闭即 thinking.disabled 且不带
- * reasoning_effort；开启档 thinking.enabled + reasoning_effort 直传 low/high/max。
- *
- * 为什么全程不发 response_format: json_object：官方限制表明确「不推荐同时启用
- * thinking.type=enabled 与 response_format.type=json_object」。实测（真实 API，thinking=high）
- * 同开时长回答会把整段 JSON 正文写进 reasoning_content、content 只剩 200+ 空格 padding，
- * 界面于是只剩工具轨迹与思考过程、没有回答（技术栈/项目类长回答 3/3 复现）。
- * 因此聊天链路改为纯自然语言正文，组件由意图表判定；只有 /compact 走官方推荐的
- * 「thinking.disabled + json_object」组合，那里 JSON 是硬要求。
- */
 function 思考体OpenAI(强度: 思考强度): Record<string, unknown> {
   if (强度 === 'off') return { thinking: { type: 'disabled' } }
   return { thinking: { type: 'enabled' }, reasoning_effort: 强度 }
 }
 
-/**
- * SSE 行解析：按 DeepSeek 官方 thinking_mode 流式示例累加 delta。
- * 同 chunk 双字段各自累加，禁丢 content；choices 空数组（如 [DONE] 后 usage 块）返回 null 跳过；
- * finish_reason 单独透传（没有 delta 的结束帧也要读得到，否则无法判断正文是否被 max_tokens 截断）。
- */
 export function 累加流式增量(
-  增量: { reasoning_content?: unknown; content?: unknown },
-  累加: { reasoning: string; content: string }
+  增量: { 思考原文?: unknown; content?: unknown },
+  累加: { 思考内容: string; content: string }
 ): void {
-  if (typeof 增量.reasoning_content === 'string' && 增量.reasoning_content.length > 0) {
-    累加.reasoning += 增量.reasoning_content
+  if (typeof 增量.思考原文 === 'string' && 增量.思考原文.length > 0) {
+    累加.思考内容 += 增量.思考原文
   }
   if (typeof 增量.content === 'string' && 增量.content.length > 0) {
     累加.content += 增量.content
   }
 }
 
-export function 解析SSE行(行: string): { reasoning_content?: string; content?: string; finish_reason?: string } | null {
+export function 解析SSE行(行: string): { 思考原文?: string; content?: string; 结束原因?: string } | null {
   const 去首空格 = 行.trim()
   if (去首空格 === '' || !去首空格.startsWith('data:')) return null
   const 载荷 = 去首空格.slice('data:'.length).trim()
@@ -220,98 +189,95 @@ export function 解析SSE行(行: string): { reasoning_content?: string; content
   const 选择 = (解析值 as { choices?: Array<{ delta?: unknown; finish_reason?: unknown }> })?.choices?.[0] as
     { delta?: unknown; finish_reason?: unknown } | undefined
   const 增量 = 选择?.delta as Record<string, unknown> | undefined
-  const 结果: { reasoning_content?: string; content?: string; finish_reason?: string } = {}
+  const 结果: { 思考原文?: string; content?: string; 结束原因?: string } = {}
   if (增量 && typeof 增量 === 'object') {
-    if (typeof 增量.reasoning_content === 'string') 结果.reasoning_content = 增量.reasoning_content
+    if (typeof 增量.reasoning_content === 'string') 结果.思考原文 = 增量.reasoning_content
     if (typeof 增量.content === 'string') 结果.content = 增量.content
   }
-  // finish_reason 是判断「正文是否被 max_tokens 截断」的唯一信号，读到就必须透传，
-  // 否则截断的回答会与完整回答长得一模一样，访客无从分辨
-  if (typeof 选择?.finish_reason === 'string') 结果.finish_reason = 选择.finish_reason
-  // usage-only 块（choices 空数组）没有任何可累加也没有结束信号，必须整行跳过
+
+  if (typeof 选择?.finish_reason === 'string') 结果.结束原因 = 选择.finish_reason
+
   return Object.keys(结果).length === 0 ? null : 结果
 }
 
-async function callOpenAICompletions(
+async function 调用OpenAI补全(
   模型: 模型定义,
-  messages: AI消息[],
-  systemPrompt: string,
+  消息表: AI消息[],
+  系统提示词: string,
   思考强度档: 思考强度,
-  signal?: AbortSignal,
-  onProgress?: (进度: { reasoning: string; content: string }) => void,
+  中止信号?: AbortSignal,
+  处理进度?: (进度: { 思考内容: string; content: string }) => void,
   检索命中数 = 0
 ): Promise<AI消息> {
-  const body: Record<string, unknown> = {
+  const 主体: Record<string, unknown> = {
     model: 模型.id,
-    messages: [{ role: 'system', content: systemPrompt }, ...messages.map(到Api消息)],
+    messages: [{ role: 'system', content: 系统提示词 }, ...消息表.map(到Api消息)],
     temperature: 0.6,
     max_tokens: 深度求索最大令牌,
     stream: true,
     ...思考体OpenAI(思考强度档),
   }
-  const 用户问题 = 获取最后用户内容(messages)
+  const 用户问题 = 获取最后用户内容(消息表)
 
-  // 凭据由同源反代注入：前端不得构造鉴权头（credentialGuard）
-  const response = await 带超时请求(
-    模型.endpoint,
+  const 响应 = await 带超时请求(
+    模型.端点,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(主体),
     },
-    signal,
+    中止信号,
     聊天超时毫秒
   )
 
-  if (!response.ok) {
-    抛出响应错误(response)
+  if (!响应.ok) {
+    抛出响应错误(响应)
   }
 
-  if (!response.body || typeof (response.body as ReadableStream<Uint8Array>).getReader !== 'function') {
-    const data = await response.json()
-    const rawContent = data.choices?.[0]?.message?.content
+  if (!响应.body || typeof (响应.body as ReadableStream<Uint8Array>).getReader !== 'function') {
+    const 数据 = await 响应.json()
+    const 原始内容 = 数据.choices?.[0]?.message?.content
 
-    if (typeof rawContent !== 'string') {
+    if (typeof 原始内容 !== 'string') {
       throw new Error('LLM 返回格式异常')
     }
 
-    const 截断 = data.choices?.[0]?.finish_reason === 'length'
-    if (!有可见正文(rawContent)) {
+    const 截断 = 数据.choices?.[0]?.finish_reason === 'length'
+    if (!有可见正文(原始内容)) {
       return 构造无正文兜底(用户问题, '', 检索命中数, 截断 ? 'truncated' : 'format')
     }
-    const 消息: AI消息 = { role: 'assistant', content: rawContent }
+    const 消息: AI消息 = { role: 'assistant', content: 原始内容 }
     if (截断) 消息.meta = { 命中数: 检索命中数, 耗时毫秒: 0, 本地兜底: false, 截断: true }
     return 消息
   }
 
-  const 读取器 = (response.body as ReadableStream<Uint8Array>).getReader()
+  const 读取器 = (响应.body as ReadableStream<Uint8Array>).getReader()
   const 解码器 = new TextDecoder()
   let 缓冲 = ''
   let 截断 = false
-  const 累加 = { reasoning: '', content: '' }
+  const 累加 = { 思考内容: '', content: '' }
   const 推送 = () => {
-    if (onProgress) onProgress({ reasoning: 累加.reasoning, content: 累加.content })
+    if (处理进度) 处理进度({ 思考内容: 累加.思考内容, content: 累加.content })
   }
   const 中断拒因 = (): unknown =>
-    (signal as AbortSignal & { reason?: unknown })?.reason ??
-    new DOMException('The operation was aborted.', 'AbortError')
+    (中止信号 as AbortSignal & { 原因?: unknown })?.原因 ?? new DOMException('The operation was aborted.', 'AbortError')
   const 推送行 = (行: string): void => {
     const 增量 = 解析SSE行(行)
     if (!增量) return
-    if (增量.finish_reason === 'length') 截断 = true
-    const 前思考长 = 累加.reasoning.length
+    if (增量.结束原因 === 'length') 截断 = true
+    const 前思考长 = 累加.思考内容.length
     const 前回答长 = 累加.content.length
     累加流式增量(增量, 累加)
-    if (累加.reasoning.length !== 前思考长 || 累加.content.length !== 前回答长) 推送()
+    if (累加.思考内容.length !== 前思考长 || 累加.content.length !== 前回答长) 推送()
   }
   try {
     for (;;) {
-      if (signal?.aborted) throw 中断拒因()
-      const { done, value } = await 读取器.read()
-      if (done) break
-      if (signal?.aborted) throw 中断拒因()
+      if (中止信号?.aborted) throw 中断拒因()
+      const { done: 完成, value } = await 读取器.read()
+      if (完成) break
+      if (中止信号?.aborted) throw 中断拒因()
       缓冲 += 解码器.decode(value, { stream: true })
       const 行列表 = 缓冲.split('\n')
       缓冲 = 行列表.pop() ?? ''
@@ -321,90 +287,76 @@ async function callOpenAICompletions(
   } catch (读取错) {
     try {
       读取器.releaseLock()
-    } catch {
-      // 释放锁失败不掩盖原始错误
-    }
+    } catch {}
     throw 读取错
   }
   读取器.releaseLock()
 
-  if (signal?.aborted) throw 中断拒因()
+  if (中止信号?.aborted) throw 中断拒因()
 
-  // 唯一空正文闸门（流式与非流式共用）：正文为空或只有不可见字符一律当失败，转本地兜底。
-  // 聊天正文是纯自然语言，这里不做任何 JSON 改写——访客主动索要 JSON 时他的内容必须原样送达。
   if (!有可见正文(累加.content)) {
-    return 构造无正文兜底(用户问题, 累加.reasoning, 检索命中数, 截断 ? 'truncated' : 'format')
+    return 构造无正文兜底(用户问题, 累加.思考内容, 检索命中数, 截断 ? 'truncated' : 'format')
   }
 
   const 消息: AI消息 = { role: 'assistant', content: 累加.content }
-  if (累加.reasoning.length > 0) 消息.reasoning = 累加.reasoning
-  // 截断不是兜底：如实打标让工具轨迹显示「回答已截断」，半截回答不许冒充完整回答
+  if (累加.思考内容.length > 0) 消息.思考内容 = 累加.思考内容
+
   if (截断) 消息.meta = { 命中数: 检索命中数, 耗时毫秒: 0, 本地兜底: false, 截断: true }
   return 消息
 }
 
-function 解析本次模型(options: 聊天选项): 模型定义 {
-  const storeModel = useYingYongZhuangTai.getState().aiModel
-  return 解析模型(options.model ?? storeModel)
+function 解析本次模型(选项: 聊天选项): 模型定义 {
+  const 存储模型 = useYingYongZhuangTai.getState().AI模型
+  return 解析模型(选项.模型 ?? 存储模型)
 }
 
-async function callChatModel(
-  messages: AI消息[],
-  systemPrompt: string,
+async function 调用聊天模型(
+  消息表: AI消息[],
+  系统提示词: string,
   思考强度档: 思考强度,
-  options: 聊天选项,
+  选项: 聊天选项,
   检索命中数 = 0
 ): Promise<AI消息> {
-  return callOpenAICompletions(
-    解析本次模型(options),
-    messages,
-    systemPrompt,
-    思考强度档,
-    options.signal,
-    options.onProgress,
-    检索命中数
-  )
+  return 调用OpenAI补全(解析本次模型(选项), 消息表, 系统提示词, 思考强度档, 选项.signal, 选项.进度回调, 检索命中数)
 }
 
-export async function 发送聊天消息(messages: AI消息[], options: 聊天选项 = {}): Promise<聊天服务结果> {
-  const userQuestion = 获取最后用户内容(messages)
-  const contextChunks = 检索知识块(userQuestion, 深度求索检索条数)
-  const 安全上下文块 = contextChunks.filter((块) => 块.id !== 'personal-info-contact')
-  const context = 安全上下文块.map((chunk, index) => `[${index + 1}] ${chunk.content}`).join('\n\n')
+export async function 发送聊天消息(消息表: AI消息[], 选项: 聊天选项 = {}): Promise<聊天服务结果> {
+  const 用户问题 = 获取最后用户内容(消息表)
+  const 上下文分块 = 检索知识块(用户问题, 深度求索检索条数)
+  const 安全上下文块 = 上下文分块.filter((块) => 块.id !== 'personal-info-contact')
+  const 上下文 = 安全上下文块.map((分块, 下标) => `[${下标 + 1}] ${分块.content}`).join('\n\n')
   const 依据来源 = 取依据来源(安全上下文块)
   const 开始毫秒 = Date.now()
 
   try {
-    // 思考开关来自全局 store；上下文默认拉满：每次请求发送完整对话历史（API 无状态需自行携带）。
-    const { aiThinking } = useYingYongZhuangTai.getState()
-    const answer = await callChatModel(messages, buildSystemPrompt(context), aiThinking, options, 安全上下文块.length)
+    const { AI思考强度 } = useYingYongZhuangTai.getState()
+    const 回答 = await 调用聊天模型(消息表, 构建系统提示词(上下文), AI思考强度, 选项, 安全上下文块.length)
     const 落定耗时 = Date.now() - 开始毫秒
-    // 组件由意图表判定后挂载（模型不再产出组件，见 思考体OpenAI 注释）：在线与本地兜底同源。
-    // 本地兜底路径 取本地答案 已带 component，短路避免重复判定。
-    const 组件 = answer.component ?? 选择组件(userQuestion)
-    const 挂载 = 组件 ? { component: 组件 } : {}
-    const 截断标注 = answer.meta?.截断 ? { 截断: true } : {}
-    if (answer.meta?.本地兜底) {
+
+    const 组件 = 回答.组件 ?? 选择组件(用户问题)
+    const 挂载 = 组件 ? { 组件 } : {}
+    const 截断标注 = 回答.meta?.截断 ? { 截断: true } : {}
+    if (回答.meta?.本地兜底) {
       return {
-        message: { ...answer, ...挂载, meta: undefined },
+        message: { ...回答, ...挂载, meta: undefined },
         meta: {
           命中数: 安全上下文块.length,
-          耗时毫秒: answer.meta.耗时毫秒 || 落定耗时,
+          耗时毫秒: 回答.meta.耗时毫秒 || 落定耗时,
           本地兜底: true,
           依据来源,
-          ...(answer.meta.回退原因 ? { 回退原因: answer.meta.回退原因 } : {}),
+          ...(回答.meta.回退原因 ? { 回退原因: 回答.meta.回退原因 } : {}),
         },
       }
     }
     return {
-      message: { ...answer, ...挂载, meta: undefined },
+      message: { ...回答, ...挂载, meta: undefined },
       meta: { 命中数: 安全上下文块.length, 耗时毫秒: 落定耗时, 本地兜底: false, 依据来源, ...截断标注 },
     }
-  } catch (err) {
-    if (是否中断错误(err)) throw err
-    const 分类 = 分类回退原因(err)
+  } catch (错误) {
+    if (是否中断错误(错误)) throw 错误
+    const 分类 = 分类回退原因(错误)
     return {
-      message: 取本地答案(userQuestion),
+      message: 取本地答案(用户问题),
       meta: {
         命中数: 安全上下文块.length,
         耗时毫秒: Date.now() - 开始毫秒,
@@ -416,25 +368,15 @@ export async function 发送聊天消息(messages: AI消息[], options: 聊天�
   }
 }
 
-/**
- * /compact 指令（对齐 Claude Code）：调用模型把历史对话压缩为一段语义摘要。
- * 与 /clear 的区别：保留语义而非完全清空。失败原样上抛（不本地兜底，
- * 因为兜底会伪造摘要，违反压缩语义）。
- *
- * 这里保留 json_object：它是官方推荐的「thinking.disabled + json_object」组合，
- * JSON 是硬要求（摘要必须是结构化文本），与聊天链路不同，故不受同开冲突影响。
- */
-export async function 压缩对话(messages: AI消息[], options: 聊天选项 = {}): Promise<string> {
-  const 对话序列化 = messages
-    .map((message) => `${message.role === 'user' ? '用户' : '助手'}：${message.content}`)
-    .join('\n')
+export async function 压缩对话(消息表: AI消息[], 选项: 聊天选项 = {}): Promise<string> {
+  const 对话序列化 = 消息表.map((消息) => `${消息.role === 'user' ? '用户' : '助手'}：${消息.content}`).join('\n')
   const 压缩指令 =
     '你是对话压缩器。把用户给出的对话历史压缩为一段简明中文摘要，保留关键事实与未完成的诉求。必须以 JSON 格式回复：{"text": "摘要内容"}' +
-    (options.focus ? `\n聚焦说明：${options.focus}` : '')
+    (选项.focus ? `\n聚焦说明：${选项.focus}` : '')
 
-  const 模型 = 解析本次模型(options)
-  const response = await 带超时请求(
-    模型.endpoint,
+  const 模型 = 解析本次模型(选项)
+  const 响应 = await 带超时请求(
+    模型.端点,
     {
       method: 'POST',
       headers: {
@@ -452,41 +394,40 @@ export async function 压缩对话(messages: AI消息[], options: 聊天选项 =
         thinking: { type: 'disabled' },
       }),
     },
-    options.signal,
+    选项.signal,
     聊天超时毫秒
   )
-  if (!response.ok) {
-    // 同上：不回显上游错误正文，只保留状态码
-    throw new Error(`压缩请求失败：HTTP ${response.status}`)
+  if (!响应.ok) {
+    throw new Error(`压缩请求失败：HTTP ${响应.status}`)
   }
-  const data = await response.json()
-  const rawContent: unknown = data.choices?.[0]?.message?.content
-  // 空摘要等于没压缩成功：宁可报错让 /compact 提示失败，也不写入空历史
-  const 摘要 = typeof rawContent === 'string' ? 提取信封正文(rawContent) : ''
+  const 数据 = await 响应.json()
+  const 原始内容: unknown = 数据.choices?.[0]?.message?.content
+
+  const 摘要 = typeof 原始内容 === 'string' ? 提取信封正文(原始内容) : ''
   if (!有可见正文(摘要)) {
     throw new Error('压缩返回格式异常')
   }
   return 摘要
 }
 
-export function useLiaoTianFuWu(options: 聊天选项 = {}) {
+export function useLiaoTianFuWu(选项: 聊天选项 = {}) {
   return useMutation({
     mutationFn: async ({
-      messages,
+      消息表,
       signal,
-      model,
-      onProgress,
+      模型,
+      进度回调,
     }: {
-      messages: AI消息[]
+      消息表: AI消息[]
       signal?: AbortSignal
-      model?: string
-      onProgress?: (进度: { reasoning: string; content: string }) => void
+      模型?: string
+      进度回调?: (进度: { 思考内容: string; content: string }) => void
     }) => {
-      return 发送聊天消息(messages, {
-        ...options,
-        ...(model ? { model } : {}),
+      return 发送聊天消息(消息表, {
+        ...选项,
+        ...(模型 ? { 模型 } : {}),
         signal,
-        ...(onProgress ? { onProgress } : {}),
+        ...(进度回调 ? { 进度回调 } : {}),
       })
     },
   })

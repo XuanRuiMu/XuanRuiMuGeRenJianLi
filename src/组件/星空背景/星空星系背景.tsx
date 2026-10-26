@@ -3,55 +3,60 @@ import { 合并类名 } from '../../库/工具'
 import { 资源路径 } from '../../库/资源路径'
 import { useJianShaoDongHua } from '../../钩子/useJianShaoDongHua'
 import { useXingNengDangWei } from '../../钩子/useXingNengDangWei'
-import { 创建星空控制面板, 创建星空星系场景, type 星空星系场景接口 } from './星空星系场景'
+import type { 星空星系场景接口 } from './星空星系场景'
+import { 当页面加载完毕且空闲 } from '../../工具/空闲加载'
 import { useShiFouAnSe } from './useShiFouAnSe'
 import { 星空场景引用 } from '../../库/星空场景引用'
 import { useXingKongKaiGuan } from '../../状态/星空开关仓库'
 
-interface StarryGalaxyBackgroundProps {
+interface 星空星系背景属性 {
   className?: string
   children?: ReactNode
 }
 
-// LightWallpaper滚动系数：每垂直滚动 1px，壁纸下移该系数 px（与星空视差同款"轻微呼吸感"）
 const 壁纸滚动系数 = 0.06
-// 位移上限 < CSS 溢出预留（320px），任何页面长度下都不会露底
+
 const 壁纸位移上限 = 280
-// 用户 2026-08-25 参数网页实调回传的《神奈川冲浪里》调色参数（提亮 + 适中反差 + 轻抬白）
+
 const 壁纸滤镜 = 'brightness(1.15) contrast(0.88)'
 const 壁纸抬白浓度 = 0.38
 
-/**
- * 浅色模式壁纸层：fixed 铺满（CSS 纵向各溢出 320px 预留位移空间）。
- * 画面 = 公有领域名画《神奈川冲浪里》（北斋，大都会美术馆 CC0 扫描件）微动循环，
- * 纯周期位移构造保证零跳变无缝循环；整层应用实调滤镜 + 抬白叠加实现"整体偏白"。
- * 底图 <img> 作为视频加载前的占位与 reduced-motion 降级；
- * 滚动时 rAF 合帧后整层轻微下移（与星空背景同款滚动视差）；
- * reduced-motion 时不挂载视频，仅显示静态底图。
- */
-function LightWallpaper({ reducedMotion }: { reducedMotion: boolean }) {
+function QianSeBiZhi({ 减少动画 }: { 减少动画: boolean }) {
   const ref = useRef<HTMLDivElement>(null)
+  const 视频引用 = useRef<HTMLVideoElement>(null)
+  const [视频开始加载, 设置视频开始加载] = useState(false)
+  const [视频就绪, 设置视频就绪] = useState(false)
 
   useEffect(() => {
-    if (reducedMotion) return
-    let raf = 0
+    if (减少动画) return
+    return 当页面加载完毕且空闲(() => 设置视频开始加载(true))
+  }, [减少动画])
+
+  const 视频可播放 = () => {
+    设置视频就绪(true)
+    void 视频引用.current?.play().catch(() => {})
+  }
+
+  useEffect(() => {
+    if (减少动画) return
+    let 帧请求 = 0
     const 应用位移 = () => {
-      raf = 0
-      const el = ref.current
-      if (!el) return
-      const shift = Math.min(window.scrollY * 壁纸滚动系数, 壁纸位移上限)
-      el.style.transform = `translate3d(0, ${shift}px, 0)`
+      帧请求 = 0
+      const 元素 = ref.current
+      if (!元素) return
+      const 偏移 = Math.min(window.scrollY * 壁纸滚动系数, 壁纸位移上限)
+      元素.style.transform = `translate3d(0, ${偏移}px, 0)`
     }
     const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(应用位移)
+      if (!帧请求) 帧请求 = requestAnimationFrame(应用位移)
     }
     应用位移()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => {
       window.removeEventListener('scroll', onScroll)
-      if (raf) cancelAnimationFrame(raf)
+      if (帧请求) cancelAnimationFrame(帧请求)
     }
-  }, [reducedMotion])
+  }, [减少动画])
 
   return (
     <div
@@ -59,7 +64,7 @@ function LightWallpaper({ reducedMotion }: { reducedMotion: boolean }) {
       className="light-wallpaper"
       aria-hidden="true"
       data-testid="light-wallpaper"
-      data-static={reducedMotion ? 'true' : 'false'}
+      data-static={减少动画 || !视频就绪 ? 'true' : 'false'}
     >
       <img
         src={资源路径('/images/kanagawa-wave-base.webp')}
@@ -68,19 +73,24 @@ function LightWallpaper({ reducedMotion }: { reducedMotion: boolean }) {
         style={{ filter: 壁纸滤镜 }}
         data-testid="kanagawa-base"
       />
-      {!reducedMotion && (
+      {!减少动画 && 视频开始加载 && (
         <video
+          ref={视频引用}
           src={资源路径('/videos/kanagawa-wave-loop.mp4')}
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
           style={{
             filter: 壁纸滤镜,
             animation: 'wallpaper-pulse 8s ease-in-out infinite',
+            opacity: 视频就绪 ? 1 : 0,
+            transition: 'opacity 0.6s ease',
           }}
-          autoPlay
+          autoPlay={视频就绪}
           muted
           loop
           playsInline
           preload="auto"
+          onCanPlayThrough={视频可播放}
+          data-ready={视频就绪 ? 'true' : 'false'}
           data-testid="kanagawa-video"
         />
       )}
@@ -89,54 +99,72 @@ function LightWallpaper({ reducedMotion }: { reducedMotion: boolean }) {
   )
 }
 
-export function XingKongXiXiBeiJing({ className, children }: StarryGalaxyBackgroundProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [, setApi] = useState<星空星系场景接口 | null>(null)
+export function XingKongXiXiBeiJing({ className, children }: 星空星系背景属性) {
+  const 容器引用 = useRef<HTMLDivElement>(null)
+  const [, 设置场景接口] = useState<星空星系场景接口 | null>(null)
+  const [场景就绪, 设置场景就绪] = useState(false)
   const { 设置, 加载中 } = useXingNengDangWei()
-  const reducedMotion = useJianShaoDongHua()
-  const isDark = useShiFouAnSe()
-  const starryHidden = useXingKongKaiGuan((s) => s.starryHidden)
+  const 减少动画 = useJianShaoDongHua()
+  const 是深色 = useShiFouAnSe()
+  const 星空隐藏 = useXingKongKaiGuan((s) => s.星空隐藏)
 
-  // FP-05：控制台与场景解耦——始终构建（DOM 存在时），不论场景是否创建。
-  // 这保证「彻底隐藏星空」时控制台依然有内容，可继续调整参数（只是看不到效果）。
   useEffect(() => {
-    创建星空控制面板()
+    let 已取消 = false
+    const 清理 = 当页面加载完毕且空闲(async () => {
+      try {
+        const { 创建星空控制面板 } = await import('./星空星系场景')
+        if (!已取消) 创建星空控制面板()
+      } catch {}
+    })
+    return () => {
+      已取消 = true
+      清理()
+    }
   }, [])
 
   useEffect(() => {
-    if (typeof window === 'undefined' || reducedMotion || !isDark) return
-    // 彻底隐藏星空：根因级修复 —— 不创建场景，WebGL 动画循环随之不启动，不消耗 GPU/CPU
-    if (starryHidden) return
-    const container = containerRef.current
-    if (!container) return
+    if (typeof window === 'undefined' || 减少动画 || !是深色 || 星空隐藏 || 加载中) return
+    const 容器 = 容器引用.current
+    if (!容器) return
 
-    const dpr = Array.isArray(设置.dpr) ? 设置.dpr[0] : 设置.dpr
-    const scene = 创建星空星系场景(container, { dpr })
-    setApi(scene)
-    星空场景引用.current = scene
+    let 已取消 = false
+    let 场景: 星空星系场景接口 | null = null
+    const 清理 = 当页面加载完毕且空闲(async () => {
+      try {
+        const { 创建星空星系场景 } = await import('./星空星系场景')
+        if (已取消) return
+        const 像素比 = Array.isArray(设置.dpr) ? 设置.dpr[0] : 设置.dpr
+        场景 = 创建星空星系场景(容器, { dpr: 像素比 })
+        星空场景引用.current = 场景
+        设置场景接口(场景)
+        设置场景就绪(true)
+      } catch {}
+    })
 
     return () => {
-      scene.destroy()
+      已取消 = true
+      清理()
+      场景?.destroy()
       星空场景引用.current = null
-      setApi(null)
+      设置场景接口(null)
+      设置场景就绪(false)
     }
-  }, [设置, reducedMotion, isDark, starryHidden])
+  }, [设置, 减少动画, 是深色, 星空隐藏, 加载中])
 
-  const showCanvas = isDark && !加载中 && !reducedMotion && !starryHidden
-  // 浅色模式壁纸：星空隐藏开关同时管住壁纸（控制面板文案"彻底隐藏星空背景和壁纸"）
-  const showWallpaper = !isDark && !starryHidden
+  const 显示画布 = 是深色 && !加载中 && !减少动画 && !星空隐藏 && 场景就绪
 
-  // starryHidden 开启时使用简单纯色背景（深黑/浅白）；关闭时维持原有回退样式
-  const fallbackClass = starryHidden ? (isDark ? 'bg-black' : 'bg-white') : isDark ? 'bg-[#05060f]' : 'bg-transparent'
+  const 显示壁纸 = !是深色 && !星空隐藏
+
+  const 兜底类名 = 星空隐藏 ? (是深色 ? 'bg-black' : 'bg-white') : 是深色 ? 'bg-[#05060f]' : 'bg-transparent'
 
   return (
     <div
-      ref={containerRef}
-      className={合并类名('fixed inset-0 z-0', showCanvas ? '' : fallbackClass, className)}
+      ref={容器引用}
+      className={合并类名('fixed inset-0 z-0', 显示画布 ? '' : 兜底类名, className)}
       aria-hidden="true"
-      data-testid={showCanvas ? 'starry-background-canvas' : 'starry-background-fallback'}
+      data-testid={显示画布 ? 'starry-background-canvas' : 'starry-background-fallback'}
     >
-      {showWallpaper && <LightWallpaper reducedMotion={reducedMotion} />}
+      {显示壁纸 && <QianSeBiZhi 减少动画={减少动画} />}
       {children}
     </div>
   )

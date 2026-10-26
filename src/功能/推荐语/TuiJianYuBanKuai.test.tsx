@@ -4,7 +4,6 @@ import { TuiJianYuBanKuai } from './TuiJianYuBanKuai'
 import { 推荐语列表 } from '../../数据/推荐语'
 import { t } from '../../国际化/翻译'
 
-/** XianXian 在不支持 IntersectionObserver 的环境里用 queueMicrotask 点亮，渲染须在 act 内冲刷 */
 async function 渲染推荐语(): Promise<HTMLElement> {
   let 容器: HTMLElement = document.createElement('div')
   await act(async () => {
@@ -28,11 +27,11 @@ describe('FP-05 推荐语板块渲染', () => {
     图形.forEach((图, 序) => {
       const 卡片 = 卡片表[序]
       const 段落 = Array.from(图.querySelectorAll('figcaption span'))
-      expect(图.querySelector('blockquote')?.textContent).toContain(卡片.quote)
+      expect(图.querySelector('blockquote')?.textContent).toContain(卡片.引用语)
       expect(图.querySelector('blockquote')?.textContent?.length ?? 0).toBeGreaterThan(10)
       expect(段落).toHaveLength(2)
       expect(段落[0].textContent).toBe(卡片.role)
-      expect(段落[1].textContent).toBe(卡片.context)
+      expect(段落[1].textContent).toBe(卡片.上下文)
     })
   })
 

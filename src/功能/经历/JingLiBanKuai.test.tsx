@@ -6,9 +6,9 @@ import { 个人信息 } from '../../数据/个人信息'
 import { t } from '../../国际化/翻译'
 
 describe('ExperienceSection', () => {
-  const originalMatchMedia = window.matchMedia
-  const originalGetBoundingClientRect = Element.prototype.getBoundingClientRect
-  const originalInnerHeight = window.innerHeight
+  const 原始媒体查询 = window.matchMedia
+  const 原始获取边界矩形 = Element.prototype.getBoundingClientRect
+  const 原始内部高度 = window.innerHeight
 
   beforeEach(() => {
     Object.defineProperty(window, 'matchMedia', {
@@ -43,16 +43,16 @@ describe('ExperienceSection', () => {
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
       configurable: true,
-      value: originalMatchMedia,
+      value: 原始媒体查询,
     })
 
     Object.defineProperty(window, 'innerHeight', {
       writable: true,
       configurable: true,
-      value: originalInnerHeight,
+      value: 原始内部高度,
     })
 
-    Element.prototype.getBoundingClientRect = originalGetBoundingClientRect
+    Element.prototype.getBoundingClientRect = 原始获取边界矩形
   })
 
   it('renders section title（经历副标题已移除，不得再渲染时间线副标题）', () => {
@@ -64,63 +64,63 @@ describe('ExperienceSection', () => {
 
   it('renders timeline as ordered list with accessible label', () => {
     render(<JingLiBanKuai />)
-    const timeline = screen.getByRole('list', { name: t('experience.timelineLabel') })
-    expect(timeline).toBeInTheDocument()
-    expect(timeline).toHaveClass('timeline')
+    const 时间线 = screen.getByRole('list', { name: t('experience.timelineLabel') })
+    expect(时间线).toBeInTheDocument()
+    expect(时间线).toHaveClass('timeline')
   })
 
   it('renders all experience entries as list items', () => {
     render(<JingLiBanKuai />)
-    const timeline = screen.getByRole('list', { name: t('experience.timelineLabel') })
-    const items = Array.from(timeline.querySelectorAll(':scope > li')) as HTMLElement[]
+    const 时间线 = screen.getByRole('list', { name: t('experience.timelineLabel') })
+    const 条目表 = Array.from(时间线.querySelectorAll(':scope > li')) as HTMLElement[]
 
-    expect(items).toHaveLength(经历表.length)
+    expect(条目表).toHaveLength(经历表.length)
 
-    for (const [index, entry] of 经历表.entries()) {
-      const item = items[index]
-      expect(item).toHaveAttribute('data-timeline-index', String(index))
-      expect(item).toHaveAttribute('aria-labelledby', `experience-title-${entry.id}`)
+    for (const [下标, 条目] of 经历表.entries()) {
+      const 项 = 条目表[下标]
+      expect(项).toHaveAttribute('data-timeline-index', String(下标))
+      expect(项).toHaveAttribute('aria-labelledby', `experience-title-${条目.id}`)
 
-      const title = within(item).getByRole('heading', { name: t(entry.titleKey) })
-      expect(title).toHaveAttribute('id', `experience-title-${entry.id}`)
-      expect(within(item).getByText(t(entry.periodKey))).toBeInTheDocument()
+      const title = within(项).getByRole('heading', { name: t(条目.标题键) })
+      expect(title).toHaveAttribute('id', `experience-title-${条目.id}`)
+      expect(within(项).getByText(t(条目.周期键))).toBeInTheDocument()
 
-      if (entry.organizationKey) {
-        expect(within(item).getByText(t(entry.organizationKey))).toBeInTheDocument()
+      if (条目.机构键) {
+        expect(within(项).getByText(t(条目.机构键))).toBeInTheDocument()
       }
 
-      for (const key of entry.descriptionKeys) {
-        expect(within(item).getByText(t(key))).toBeInTheDocument()
+      for (const key of 条目.描述键表) {
+        expect(within(项).getByText(t(key))).toBeInTheDocument()
       }
     }
   })
 
   it('renders achievements inside every card (hover reveal keeps content in DOM)', () => {
     render(<JingLiBanKuai />)
-    const cards = document.querySelectorAll('.experience-card')
-    expect(cards).toHaveLength(经历表.length)
-    for (const [index, entry] of 经历表.entries()) {
-      const card = cards[index]
-      const achievements = card.querySelector('.experience-achievements')
-      expect(achievements).not.toBeNull()
-      for (const key of entry.achievementKeys ?? []) {
-        expect(within(card as HTMLElement).getByText(t(key))).toBeInTheDocument()
+    const 卡片表 = document.querySelectorAll('.experience-card')
+    expect(卡片表).toHaveLength(经历表.length)
+    for (const [下标, 条目] of 经历表.entries()) {
+      const 卡片 = 卡片表[下标]
+      const 成就表 = 卡片.querySelector('.experience-achievements')
+      expect(成就表).not.toBeNull()
+      for (const key of 条目.成就键表 ?? []) {
+        expect(within(卡片 as HTMLElement).getByText(t(key))).toBeInTheDocument()
       }
     }
   })
 
   it('ports the react-three-fiber card design: gradient border, tertiary bg and tilt', () => {
     render(<JingLiBanKuai />)
-    const cards = document.querySelectorAll('.experience-card')
-    expect(cards.length).toBeGreaterThan(0)
-    for (const card of cards) {
-      const border = card.querySelector('.experience-gradient-border')
-      expect(border).not.toBeNull()
-      expect(border!.className).toContain('shadow-[0px_35px_120px_-15px_var(--color-panel-shadow)]')
-      const inner = card.querySelector('.bg-panel')
-      expect(inner).not.toBeNull()
-      expect(card).toHaveClass('tilt-card')
-      expect(card).toHaveAttribute('data-tilt-outer', 'true')
+    const 卡片表 = document.querySelectorAll('.experience-card')
+    expect(卡片表.length).toBeGreaterThan(0)
+    for (const 卡片 of 卡片表) {
+      const 边框 = 卡片.querySelector('.experience-gradient-border')
+      expect(边框).not.toBeNull()
+      expect(边框!.className).toContain('shadow-[0px_35px_120px_-15px_var(--color-panel-shadow)]')
+      const 内部 = 卡片.querySelector('.bg-panel')
+      expect(内部).not.toBeNull()
+      expect(卡片).toHaveClass('tilt-card')
+      expect(卡片).toHaveAttribute('data-tilt-outer', 'true')
     }
   })
 
@@ -131,21 +131,21 @@ describe('ExperienceSection', () => {
 
   it('renders timeline nodes for each entry', () => {
     render(<JingLiBanKuai />)
-    const nodes = document.querySelectorAll('.timeline-node')
-    expect(nodes).toHaveLength(经历表.length)
+    const 节点表 = document.querySelectorAll('.timeline-node')
+    expect(节点表).toHaveLength(经历表.length)
   })
 
   it('has experience id on section', () => {
-    const { container } = render(<JingLiBanKuai />)
-    expect(container.querySelector('section')).toHaveAttribute('id', 'experience')
+    const { container: 容器 } = render(<JingLiBanKuai />)
+    expect(容器.querySelector('section')).toHaveAttribute('id', 'experience')
   })
 
   it('marks timeline nodes as active when timeline progress reaches their position', () => {
     render(<JingLiBanKuai />)
-    const nodes = document.querySelectorAll('.timeline-node')
-    expect(nodes).toHaveLength(经历表.length)
-    for (const node of nodes) {
-      expect(node).toHaveClass('is-active')
+    const 节点表 = document.querySelectorAll('.timeline-node')
+    expect(节点表).toHaveLength(经历表.length)
+    for (const 节点 of 节点表) {
+      expect(节点).toHaveClass('is-active')
     }
   })
 
@@ -167,9 +167,9 @@ describe('ExperienceSection', () => {
     }) as unknown as typeof Element.prototype.getBoundingClientRect
 
     render(<JingLiBanKuai />)
-    const nodes = document.querySelectorAll('.timeline-node')
-    for (const node of nodes) {
-      expect(node).not.toHaveClass('is-active')
+    const 节点表 = document.querySelectorAll('.timeline-node')
+    for (const 节点 of 节点表) {
+      expect(节点).not.toHaveClass('is-active')
     }
   })
 
@@ -186,17 +186,17 @@ describe('ExperienceSection', () => {
     })
 
     render(<JingLiBanKuai />)
-    const nodes = document.querySelectorAll('.timeline-node')
-    for (const node of nodes) {
-      expect(node).not.toHaveClass('is-active')
+    const 节点表 = document.querySelectorAll('.timeline-node')
+    for (const 节点 of 节点表) {
+      expect(节点).not.toHaveClass('is-active')
     }
   })
 
   it('keeps cards focusable for keyboard users', () => {
     render(<JingLiBanKuai />)
-    const cards = document.querySelectorAll('.experience-card')
-    for (const card of cards) {
-      expect(card).toHaveAttribute('tabindex', '0')
+    const 卡片表 = document.querySelectorAll('.experience-card')
+    for (const 卡片 of 卡片表) {
+      expect(卡片).toHaveAttribute('tabindex', '0')
     }
   })
 
@@ -213,10 +213,10 @@ describe('ExperienceSection', () => {
     })
 
     render(<JingLiBanKuai />)
-    const achievementsBlocks = document.querySelectorAll('.experience-achievements')
-    expect(achievementsBlocks).toHaveLength(经历表.length)
-    for (const block of achievementsBlocks) {
-      expect(block).toHaveClass('is-visible')
+    const 成就块表 = document.querySelectorAll('.experience-achievements')
+    expect(成就块表).toHaveLength(经历表.length)
+    for (const 块 of 成就块表) {
+      expect(块).toHaveClass('is-visible')
     }
   })
 
@@ -227,41 +227,41 @@ describe('ExperienceSection', () => {
 
   it('FP-05：有外链的经历卡片链接可点击跳转', () => {
     render(<JingLiBanKuai />)
-    const cases = [
+    const 用例表 = [
       { id: 'mcserver', labelKey: 'projects.link.github', url: 暮澜链接 },
       { id: 'educator', labelKey: 'projects.link.bilibili', url: 教育者B站地址 },
       { id: 'wowguild', labelKey: 'projects.link.bilibili', url: 公会视频地址 },
-      { id: 'indie', labelKey: 'projects.link.github', url: 个人信息.github },
+      { id: 'indie', labelKey: 'projects.link.github', url: 个人信息.GitHub },
     ] as const
-    for (const c of cases) {
-      const card = document.querySelector(`[data-experience-card="${c.id}"]`)
-      expect(card).not.toBeNull()
-      const link = within(card as HTMLElement).getByRole('link', {
+    for (const c of 用例表) {
+      const 卡片 = document.querySelector(`[data-experience-card="${c.id}"]`)
+      expect(卡片).not.toBeNull()
+      const 链接 = within(卡片 as HTMLElement).getByRole('link', {
         name: `${t(`data.experience.entries.${c.id}.title`)}：${t(c.labelKey)}`,
       })
-      expect(link).toHaveAttribute('href', c.url)
-      expect(link).toHaveAttribute('target', '_blank')
-      expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+      expect(链接).toHaveAttribute('href', c.url)
+      expect(链接).toHaveAttribute('target', '_blank')
+      expect(链接).toHaveAttribute('rel', 'noopener noreferrer')
     }
   })
 
   it('FP-05：无外链的经历卡片不渲染链接', () => {
     render(<JingLiBanKuai />)
     for (const id of ['bachelor', 'aiengineer']) {
-      const card = document.querySelector(`[data-experience-card="${id}"]`)
-      expect(card).not.toBeNull()
-      expect(within(card as HTMLElement).queryByRole('link')).toBeNull()
+      const 卡片 = document.querySelector(`[data-experience-card="${id}"]`)
+      expect(卡片).not.toBeNull()
+      expect(within(卡片 as HTMLElement).queryByRole('link')).toBeNull()
     }
   })
 
   it('FP-01：经历首条挂指定暮澜链接', () => {
     expect(暮澜链接).toBe('https://github.com/XuanRuiMu/XRMChaJian')
-    const 首条 = 经历表.find((entry) => entry.id === 'mcserver')
-    expect(首条?.links?.[0].url).toBe('https://github.com/XuanRuiMu/XRMChaJian')
+    const 首条 = 经历表.find((条目) => 条目.id === 'mcserver')
+    expect(首条?.链接表?.[0].url).toBe('https://github.com/XuanRuiMu/XRMChaJian')
   })
 
   it('FP-05：独立开发者经历挂GitHub主页而非单个项目', () => {
-    const indie = 经历表.find((entry) => entry.id === 'indie')
-    expect(indie?.links?.[0].url).toBe(个人信息.github)
+    const 独立 = 经历表.find((条目) => 条目.id === 'indie')
+    expect(独立?.链接表?.[0].url).toBe(个人信息.GitHub)
   })
 })

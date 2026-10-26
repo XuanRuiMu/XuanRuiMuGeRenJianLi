@@ -1,17 +1,9 @@
-/**
- * 丝绸画布渲染器 — 独立 WebGL 丝绸背景渲染器。
- *
- * 从 SilkShaderToy 组件提取的纯 WebGL 渲染逻辑，不依赖 React。
- * 输出一个 canvas 元素，可被 水墨显现渲染器 作为遮罩源 drawImage。
- * 动画速度 0.5、柔化亮度 0.3 为浅色水墨屏最终选定参数。
- */
-
 export interface 丝绸画布选项 {
-  shaderCode: string
+  着色器代码: string
   uniforms?: Record<string, number | number[]>
 }
 
-const VERTEX_SHADER = `#version 300 es
+const 顶点着色器源码 = `#version 300 es
   precision highp float;
   in vec2 a_position;
   out vec2 v_uv;
@@ -22,36 +14,36 @@ const VERTEX_SHADER = `#version 300 es
 `
 
 export class 丝绸画布渲染器 {
-  readonly canvas: HTMLCanvasElement
-  private gl: WebGL2RenderingContext
-  private program: WebGLProgram
-  private vao: WebGLVertexArrayObject
-  private positionBuffer: WebGLBuffer
-  private vs: WebGLShader
-  private fs: WebGLShader
-  private resolutionLocation: WebGLUniformLocation | null
-  private timeLocation: WebGLUniformLocation | null
-  private mouseLocation: WebGLUniformLocation | null
-  private dateLocation: WebGLUniformLocation | null
-  private uniformsRef: Record<string, number | number[]>
-  private uniformLocations: Record<string, WebGLUniformLocation | null> = {}
-  private rafId: number | null = null
-  private startTime = 0
-  private running = false
-  private disposed = false
-  private mouseX = 0
-  private mouseY = 0
-  private mouseDown = false
+  readonly 画布: HTMLCanvasElement
+  private 绘图上下文: WebGL2RenderingContext
+  private 程序: WebGLProgram
+  private 顶点数组: WebGLVertexArrayObject
+  private 位置缓冲: WebGLBuffer
+  private 顶点着色器: WebGLShader
+  private 片元着色器: WebGLShader
+  private 分辨率变量: WebGLUniformLocation | null
+  private 时间变量: WebGLUniformLocation | null
+  private 鼠标变量: WebGLUniformLocation | null
+  private 日期变量: WebGLUniformLocation | null
+  private 统一变量引用: Record<string, number | number[]>
+  private 变量位置表: Record<string, WebGLUniformLocation | null> = {}
+  private 帧编号: number | null = null
+  private 起始时刻 = 0
+  private 运行中 = false
+  private 已释放 = false
+  private 鼠标横坐标 = 0
+  private 鼠标纵坐标 = 0
+  private 鼠标按下 = false
 
-  constructor(options: 丝绸画布选项) {
-    this.canvas = document.createElement('canvas')
-    this.uniformsRef = options.uniforms ?? {}
+  constructor(选项: 丝绸画布选项) {
+    this.画布 = document.createElement('canvas')
+    this.统一变量引用 = 选项.uniforms ?? {}
 
-    const gl = this.canvas.getContext('webgl2', { alpha: true, antialias: true })
-    if (!gl) throw new Error('WebGL2 not supported')
-    this.gl = gl
+    const 绘图上下文 = this.画布.getContext('webgl2', { alpha: true, antialias: true })
+    if (!绘图上下文) throw new Error('WebGL2 not supported')
+    this.绘图上下文 = 绘图上下文
 
-    const fragmentSource = `#version 300 es
+    const 片元源码 = `#version 300 es
       precision highp float;
       in vec2 v_uv;
       out vec4 fragColor;
@@ -59,143 +51,147 @@ export class 丝绸画布渲染器 {
       uniform float iTime;
       uniform vec4 iMouse;
       uniform vec4 iDate;
-      ${options.shaderCode}
+      ${选项.着色器代码}
       void main() {
         mainImage(fragColor, gl_FragCoord.xy);
       }
     `
 
-    this.vs = this.createShader(gl.VERTEX_SHADER, VERTEX_SHADER)
-    this.fs = this.createShader(gl.FRAGMENT_SHADER, fragmentSource)
-    this.program = this.createProgram(this.vs, this.fs)
+    this.顶点着色器 = this.创建着色器(绘图上下文.VERTEX_SHADER, 顶点着色器源码)
+    this.片元着色器 = this.创建着色器(绘图上下文.FRAGMENT_SHADER, 片元源码)
+    this.程序 = this.创建程序(this.顶点着色器, this.片元着色器)
 
-    this.positionBuffer = gl.createBuffer()!
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer)
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW)
+    this.位置缓冲 = 绘图上下文.createBuffer()!
+    绘图上下文.bindBuffer(绘图上下文.ARRAY_BUFFER, this.位置缓冲)
+    绘图上下文.bufferData(
+      绘图上下文.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+      绘图上下文.STATIC_DRAW
+    )
 
-    const positionLocation = gl.getAttribLocation(this.program, 'a_position')
-    this.resolutionLocation = gl.getUniformLocation(this.program, 'iResolution')
-    this.timeLocation = gl.getUniformLocation(this.program, 'iTime')
-    this.mouseLocation = gl.getUniformLocation(this.program, 'iMouse')
-    this.dateLocation = gl.getUniformLocation(this.program, 'iDate')
+    const 位置变量 = 绘图上下文.getAttribLocation(this.程序, 'a_position')
+    this.分辨率变量 = 绘图上下文.getUniformLocation(this.程序, 'iResolution')
+    this.时间变量 = 绘图上下文.getUniformLocation(this.程序, 'iTime')
+    this.鼠标变量 = 绘图上下文.getUniformLocation(this.程序, 'iMouse')
+    this.日期变量 = 绘图上下文.getUniformLocation(this.程序, 'iDate')
 
-    this.vao = gl.createVertexArray()!
-    gl.bindVertexArray(this.vao)
-    gl.enableVertexAttribArray(positionLocation)
-    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+    this.顶点数组 = 绘图上下文.createVertexArray()!
+    绘图上下文.bindVertexArray(this.顶点数组)
+    绘图上下文.enableVertexAttribArray(位置变量)
+    绘图上下文.vertexAttribPointer(位置变量, 2, 绘图上下文.FLOAT, false, 0, 0)
 
-    this.resize()
+    this.调整尺寸()
   }
 
-  setUniforms(uniforms: Record<string, number | number[]>) {
-    this.uniformsRef = uniforms
+  设置统一变量(统一变量: Record<string, number | number[]>) {
+    this.统一变量引用 = 统一变量
   }
 
-  setMouse(x: number, y: number, down: boolean) {
-    this.mouseX = x
-    this.mouseY = y
-    this.mouseDown = down
+  设置鼠标位置(x: number, y: number, 向下: boolean) {
+    this.鼠标横坐标 = x
+    this.鼠标纵坐标 = y
+    this.鼠标按下 = 向下
   }
 
-  resize() {
+  调整尺寸() {
     const w = Math.max(1, window.innerWidth)
     const h = Math.max(1, window.innerHeight)
-    if (this.canvas.width !== w || this.canvas.height !== h) {
-      this.canvas.width = w
-      this.canvas.height = h
+    if (this.画布.width !== w || this.画布.height !== h) {
+      this.画布.width = w
+      this.画布.height = h
     }
   }
 
-  start() {
-    if (this.running || this.disposed) return
-    this.running = true
-    this.startTime = performance.now()
-    this.rafId = requestAnimationFrame(this.tick)
+  开始() {
+    if (this.运行中 || this.已释放) return
+    this.运行中 = true
+    this.起始时刻 = performance.now()
+    this.帧编号 = requestAnimationFrame(this.帧步进)
   }
 
-  stop() {
-    this.running = false
-    if (this.rafId !== null) {
-      cancelAnimationFrame(this.rafId)
-      this.rafId = null
+  停止() {
+    this.运行中 = false
+    if (this.帧编号 !== null) {
+      cancelAnimationFrame(this.帧编号)
+      this.帧编号 = null
     }
   }
 
-  dispose() {
-    this.disposed = true
-    this.stop()
-    const gl = this.gl
-    gl.deleteProgram(this.program)
-    gl.deleteShader(this.vs)
-    gl.deleteShader(this.fs)
-    gl.deleteBuffer(this.positionBuffer)
-    gl.deleteVertexArray(this.vao)
+  释放() {
+    this.已释放 = true
+    this.停止()
+    const 绘图上下文 = this.绘图上下文
+    绘图上下文.deleteProgram(this.程序)
+    绘图上下文.deleteShader(this.顶点着色器)
+    绘图上下文.deleteShader(this.片元着色器)
+    绘图上下文.deleteBuffer(this.位置缓冲)
+    绘图上下文.deleteVertexArray(this.顶点数组)
   }
 
-  private createShader(type: number, source: string): WebGLShader {
-    const gl = this.gl
-    const shader = gl.createShader(type)!
-    gl.shaderSource(shader, source)
-    gl.compileShader(shader)
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      throw new Error(gl.getShaderInfoLog(shader) || 'Shader compile error')
+  private 创建着色器(type: number, 来源: string): WebGLShader {
+    const 绘图上下文 = this.绘图上下文
+    const 着色器 = 绘图上下文.createShader(type)!
+    绘图上下文.shaderSource(着色器, 来源)
+    绘图上下文.compileShader(着色器)
+    if (!绘图上下文.getShaderParameter(着色器, 绘图上下文.COMPILE_STATUS)) {
+      throw new Error(绘图上下文.getShaderInfoLog(着色器) || 'Shader compile error')
     }
-    return shader
+    return 着色器
   }
 
-  private createProgram(vs: WebGLShader, fs: WebGLShader): WebGLProgram {
-    const gl = this.gl
-    const program = gl.createProgram()!
-    gl.attachShader(program, vs)
-    gl.attachShader(program, fs)
-    gl.linkProgram(program)
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      throw new Error(gl.getProgramInfoLog(program) || 'Program link error')
+  private 创建程序(顶点着色器: WebGLShader, 片元着色器: WebGLShader): WebGLProgram {
+    const 绘图上下文 = this.绘图上下文
+    const 程序 = 绘图上下文.createProgram()!
+    绘图上下文.attachShader(程序, 顶点着色器)
+    绘图上下文.attachShader(程序, 片元着色器)
+    绘图上下文.linkProgram(程序)
+    if (!绘图上下文.getProgramParameter(程序, 绘图上下文.LINK_STATUS)) {
+      throw new Error(绘图上下文.getProgramInfoLog(程序) || 'Program link error')
     }
-    return program
+    return 程序
   }
 
-  private tick = (time: number) => {
-    if (!this.running || this.disposed) return
-    const gl = this.gl
-    const elapsed = (time - this.startTime) / 1000
+  private 帧步进 = (时间: number) => {
+    if (!this.运行中 || this.已释放) return
+    const 绘图上下文 = this.绘图上下文
+    const 已耗时 = (时间 - this.起始时刻) / 1000
 
-    this.resize()
+    this.调整尺寸()
 
-    gl.viewport(0, 0, this.canvas.width, this.canvas.height)
-    gl.clearColor(0, 0, 0, 0)
-    gl.clear(gl.COLOR_BUFFER_BIT)
+    绘图上下文.viewport(0, 0, this.画布.width, this.画布.height)
+    绘图上下文.clearColor(0, 0, 0, 0)
+    绘图上下文.clear(绘图上下文.COLOR_BUFFER_BIT)
 
-    gl.useProgram(this.program)
-    gl.bindVertexArray(this.vao)
+    绘图上下文.useProgram(this.程序)
+    绘图上下文.bindVertexArray(this.顶点数组)
 
-    gl.uniform3f(this.resolutionLocation, this.canvas.width, this.canvas.height, 1)
-    gl.uniform1f(this.timeLocation, elapsed)
-    gl.uniform4f(this.mouseLocation, this.mouseX, this.mouseY, this.mouseDown ? 1 : 0, 0)
-    gl.uniform4f(
-      this.dateLocation,
+    绘图上下文.uniform3f(this.分辨率变量, this.画布.width, this.画布.height, 1)
+    绘图上下文.uniform1f(this.时间变量, 已耗时)
+    绘图上下文.uniform4f(this.鼠标变量, this.鼠标横坐标, this.鼠标纵坐标, this.鼠标按下 ? 1 : 0, 0)
+    绘图上下文.uniform4f(
+      this.日期变量,
       new Date().getFullYear(),
       new Date().getMonth() + 1,
       new Date().getDate(),
-      (time % 86400000) / 1000
+      (时间 % 86400000) / 1000
     )
 
-    for (const [name, value] of Object.entries(this.uniformsRef)) {
-      if (!(name in this.uniformLocations)) {
-        this.uniformLocations[name] = gl.getUniformLocation(this.program, name)
+    for (const [name, value] of Object.entries(this.统一变量引用)) {
+      if (!(name in this.变量位置表)) {
+        this.变量位置表[name] = 绘图上下文.getUniformLocation(this.程序, name)
       }
-      const location = this.uniformLocations[name]
-      if (!location) continue
+      const 位置 = this.变量位置表[name]
+      if (!位置) continue
       if (typeof value === 'number') {
-        gl.uniform1f(location, value)
+        绘图上下文.uniform1f(位置, value)
       } else if (Array.isArray(value)) {
-        if (value.length === 2) gl.uniform2f(location, value[0], value[1])
-        else if (value.length === 3) gl.uniform3f(location, value[0], value[1], value[2])
-        else if (value.length === 4) gl.uniform4f(location, value[0], value[1], value[2], value[3])
+        if (value.length === 2) 绘图上下文.uniform2f(位置, value[0], value[1])
+        else if (value.length === 3) 绘图上下文.uniform3f(位置, value[0], value[1], value[2])
+        else if (value.length === 4) 绘图上下文.uniform4f(位置, value[0], value[1], value[2], value[3])
       }
     }
 
-    gl.drawArrays(gl.TRIANGLES, 0, 6)
-    this.rafId = requestAnimationFrame(this.tick)
+    绘图上下文.drawArrays(绘图上下文.TRIANGLES, 0, 6)
+    this.帧编号 = requestAnimationFrame(this.帧步进)
   }
 }

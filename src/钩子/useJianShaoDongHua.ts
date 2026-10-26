@@ -13,8 +13,8 @@ export function useJianShaoDongHua(): boolean {
 
     const 媒体查询 = window.matchMedia('(prefers-reduced-motion: reduce)')
 
-    const 处理器 = (event: MediaQueryListEvent) => {
-      设偏好减少动画(event.matches)
+    const 处理器 = (事件: MediaQueryListEvent) => {
+      设偏好减少动画(事件.matches)
     }
 
     媒体查询.addEventListener('change', 处理器)

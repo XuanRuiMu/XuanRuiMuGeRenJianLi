@@ -2,19 +2,19 @@ import { useEffect } from 'react'
 import { useYingYongZhuangTai } from '../状态/应用状态仓库'
 
 export function usePWAZhuangTai(): void {
-  const setOffline = useYingYongZhuangTai((state) => state.setOffline)
+  const 设置离线 = useYingYongZhuangTai((状态) => 状态.设置离线)
 
   useEffect(() => {
-    const handleOnline = () => setOffline(false)
-    const handleOffline = () => setOffline(true)
+    const 处理上线 = () => 设置离线(false)
+    const 处理离线 = () => 设置离线(true)
 
-    setOffline(!navigator.onLine)
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
+    设置离线(!navigator.onLine)
+    window.addEventListener('online', 处理上线)
+    window.addEventListener('offline', 处理离线)
 
     return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
+      window.removeEventListener('online', 处理上线)
+      window.removeEventListener('offline', 处理离线)
     }
-  }, [setOffline])
+  }, [设置离线])
 }

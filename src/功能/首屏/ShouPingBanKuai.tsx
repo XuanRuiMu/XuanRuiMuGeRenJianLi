@@ -14,10 +14,10 @@ export function ShouPingBanKuai() {
     >
       <div className="relative z-10 mx-auto grid w-full max-w-6xl gap-12 py-16 md:grid-cols-2 md:py-24">
         <div className="flex flex-col justify-center">
-          {/* 主页标题：手写签字图（public/images/签字-alpha.png 透明底黑字资产；浅色模式直接显示深色， dark:invert 在深色模式反转为浅色）；h1+img.alt 保持标题语义与无障碍名 */}
+          {}
           <h1 className="mb-4">
             <img
-              src={资源路径('/images/签字-alpha.png')}
+              src={资源路径('/images/签字-alpha.webp')}
               alt={个人信息.name}
               className="h-40 w-auto object-contain drop-shadow-[0_2px_10px_rgba(60,30,15,0.35)] sm:h-48 lg:h-56 dark:invert dark:drop-shadow-none light:drop-shadow-none"
               data-testid="hero-signature"

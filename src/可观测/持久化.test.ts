@@ -15,129 +15,129 @@ if (typeof crypto.randomUUID !== 'function') {
 }
 
 describe('LogStore', () => {
-  let store: 日志存储
+  let 仓库: 日志存储
 
   beforeEach(async () => {
-    store = new 日志存储('test-observability')
-    await store.open()
+    仓库 = new 日志存储('test-observability')
+    await 仓库.open()
   })
 
   afterEach(() => {
-    store.close()
-    const req = indexedDB.deleteDatabase('test-observability')
-    req.onsuccess = () => {}
+    仓库.关闭()
+    const 请求 = indexedDB.deleteDatabase('test-observability')
+    请求.onsuccess = () => {}
   })
 
   it('opens database', async () => {
     const s = new 日志存储('test-open-db')
     await s.open()
-    const stats = await s.getStats()
-    expect(stats).toHaveProperty('entryCount')
-    expect(stats).toHaveProperty('spanCount')
-    expect(stats).toHaveProperty('dbSize')
-    s.close()
+    const 统计 = await s.获取统计()
+    expect(统计).toHaveProperty('entryCount')
+    expect(统计).toHaveProperty('spanCount')
+    expect(统计).toHaveProperty('dbSize')
+    s.关闭()
     indexedDB.deleteDatabase('test-open-db')
   })
 
   it('writes and reads entries', async () => {
-    const ring = new 环形缓冲(4096)
-    ring.write('info', 日志分类.Runtime, 'hello persistence')
-    ring.write('error', 日志分类.Network, 'network error', { code: 500 })
-    const entries = ring.read()
-    expect(entries).toHaveLength(2)
+    const 环 = new 环形缓冲(4096)
+    环.写入('info', 日志分类.运行时分类, 'hello persistence')
+    环.写入('error', 日志分类.网络分类, 'network error', { code: 500 })
+    const 条目表 = 环.读取()
+    expect(条目表).toHaveLength(2)
 
-    await store.writeEntries(entries)
-    const read = await store.readEntries(10)
-    expect(read).toHaveLength(2)
-    expect(read.some((e) => e.message === 'hello persistence')).toBe(true)
-    expect(read.some((e) => e.message === 'network error')).toBe(true)
+    await 仓库.写入条目(条目表)
+    const 读取 = await 仓库.读取条目(10)
+    expect(读取).toHaveLength(2)
+    expect(读取.some((e) => e.message === 'hello persistence')).toBe(true)
+    expect(读取.some((e) => e.message === 'network error')).toBe(true)
   })
 
   it('writes and reads spans', async () => {
-    const ring = new 环形缓冲(4096)
-    const 追踪器实例 = new 追踪器(ring)
-    const sid1 = 追踪器实例.startSpan('span-a')
-    const sid2 = 追踪器实例.startSpan('span-b', sid1)
-    追踪器实例.endSpan(sid2)
-    追踪器实例.endSpan(sid1)
-    const spans = 追踪器实例.getSpans()
-    expect(spans).toHaveLength(2)
+    const 环 = new 环形缓冲(4096)
+    const 追踪器实例 = new 追踪器(环)
+    const sid1 = 追踪器实例.开始跨度('span-a')
+    const sid2 = 追踪器实例.开始跨度('span-b', sid1)
+    追踪器实例.结束跨度(sid2)
+    追踪器实例.结束跨度(sid1)
+    const 跨度表 = 追踪器实例.获取跨度表()
+    expect(跨度表).toHaveLength(2)
 
-    await store.writeSpans(spans)
-    const read = await store.readSpans(10)
-    expect(read).toHaveLength(2)
-    expect(read.some((s) => s.name === 'span-a')).toBe(true)
-    expect(read.some((s) => s.name === 'span-b')).toBe(true)
+    await 仓库.写入跨度(跨度表)
+    const 读取 = await 仓库.读取跨度(10)
+    expect(读取).toHaveLength(2)
+    expect(读取.some((s) => s.name === 'span-a')).toBe(true)
+    expect(读取.some((s) => s.name === 'span-b')).toBe(true)
   })
 
   it('queries by level', async () => {
-    const ring = new 环形缓冲(4096)
-    ring.write('info', 日志分类.Runtime, 'info msg')
-    ring.write('error', 日志分类.Runtime, 'error msg')
-    ring.write('warn', 日志分类.Runtime, 'warn msg')
-    ring.write('error', 日志分类.Runtime, 'another error')
-    const entries = ring.read()
-    await store.writeEntries(entries)
+    const 环 = new 环形缓冲(4096)
+    环.写入('info', 日志分类.运行时分类, 'info msg')
+    环.写入('error', 日志分类.运行时分类, 'error msg')
+    环.写入('warn', 日志分类.运行时分类, 'warn msg')
+    环.写入('error', 日志分类.运行时分类, 'another error')
+    const 条目表 = 环.读取()
+    await 仓库.写入条目(条目表)
 
-    const errors = await store.queryByLevel('error')
-    expect(errors).toHaveLength(2)
+    const 错误表 = await 仓库.按级别查询('error')
+    expect(错误表).toHaveLength(2)
 
-    const infos = await store.queryByLevel('info')
-    expect(infos).toHaveLength(1)
-    expect(infos[0].message).toBe('info msg')
+    const 信息表 = await 仓库.按级别查询('info')
+    expect(信息表).toHaveLength(1)
+    expect(信息表[0].message).toBe('info msg')
   })
 
   it('queries by spanId', async () => {
-    const ring = new 环形缓冲(4096)
-    const 追踪器实例 = new 追踪器(ring)
-    const sid = 追踪器实例.startSpan('test-span')
-    ring.write('info', 日志分类.Runtime, 'span log', { spanId: sid }, sid)
-    const entries = ring.read()
-    await store.writeEntries(entries)
+    const 环 = new 环形缓冲(4096)
+    const 追踪器实例 = new 追踪器(环)
+    const 会话编号 = 追踪器实例.开始跨度('test-span')
+    环.写入('info', 日志分类.运行时分类, 'span log', { spanId: 会话编号 }, 会话编号)
+    const 条目表 = 环.读取()
+    await 仓库.写入条目(条目表)
 
-    const found = await store.queryBySpanId(sid)
-    expect(found.length).toBeGreaterThanOrEqual(1)
-    found.forEach((e) => expect(e.spanId).toBe(sid))
+    const 已找到 = await 仓库.按跨度编号查询(会话编号)
+    expect(已找到.length).toBeGreaterThanOrEqual(1)
+    已找到.forEach((e) => expect(e.spanId).toBe(会话编号))
   })
 
   it('marks and retrieves unreported entries', async () => {
-    const ring = new 环形缓冲(4096)
-    ring.write('info', 日志分类.Runtime, 'reported-msg')
-    ring.write('info', 日志分类.Runtime, 'unreported-msg')
-    const entries = ring.read()
-    expect(entries).toHaveLength(2)
-    await store.writeEntries(entries)
+    const 环 = new 环形缓冲(4096)
+    环.写入('info', 日志分类.运行时分类, 'reported-msg')
+    环.写入('info', 日志分类.运行时分类, 'unreported-msg')
+    const 条目表 = 环.读取()
+    expect(条目表).toHaveLength(2)
+    await 仓库.写入条目(条目表)
 
-    const before = await store.getUnreportedEntries()
-    expect(before).toHaveLength(2)
+    const 之前 = await 仓库.获取未上报条目()
+    expect(之前).toHaveLength(2)
 
-    const ids = before.map((e) => (e as unknown as { id: string }).id)
-    expect(ids).toHaveLength(2)
+    const 编号表 = 之前.map((e) => (e as unknown as { id: string }).id)
+    expect(编号表).toHaveLength(2)
 
-    await store.markReported([ids[0]])
+    await 仓库.标记已上报([编号表[0]])
     await new Promise((r) => setTimeout(r, 10))
 
-    const after = await store.getUnreportedEntries()
-    expect(after).toHaveLength(1)
+    const 之后 = await 仓库.获取未上报条目()
+    expect(之后).toHaveLength(1)
   })
 
   it('getStats returns counts', async () => {
-    const ring = new 环形缓冲(4096)
-    ring.write('info', 日志分类.Runtime, 'stat entry')
-    const entries = ring.read()
-    await store.writeEntries(entries)
+    const 环 = new 环形缓冲(4096)
+    环.写入('info', 日志分类.运行时分类, 'stat entry')
+    const 条目表 = 环.读取()
+    await 仓库.写入条目(条目表)
 
-    const stats = await store.getStats()
-    expect(stats.entryCount).toBeGreaterThanOrEqual(1)
-    expect(stats.spanCount).toBeGreaterThanOrEqual(0)
-    expect(stats.dbSize).toBeGreaterThan(0)
+    const 统计 = await 仓库.获取统计()
+    expect(统计.entryCount).toBeGreaterThanOrEqual(1)
+    expect(统计.spanCount).toBeGreaterThanOrEqual(0)
+    expect(统计.dbSize).toBeGreaterThan(0)
   })
 })
 
 describe('WsTransport', () => {
-  let ring: 环形缓冲
-  let transport: WebSocket传输
-  let mockWebSocketInstance!: {
+  let 环: 环形缓冲
+  let 传输: WebSocket传输
+  let 模拟网络套接字实例!: {
     onopen: (() => void) | null
     onclose: ((e: Event) => void) | null
     onerror: (() => void) | null
@@ -146,7 +146,7 @@ describe('WsTransport', () => {
     readyState: number
   }
 
-  class MockWebSocket {
+  class 模拟网络套接字 {
     static CONNECTING = 0
     static OPEN = 1
     static CLOSING = 2
@@ -158,78 +158,78 @@ describe('WsTransport', () => {
     close = vi.fn()
     readyState = 1
     binaryType = ''
-    static capture(instance: MockWebSocket): void {
-      mockWebSocketInstance = instance
+    static 捕获(实例: 模拟网络套接字): void {
+      模拟网络套接字实例 = 实例
     }
     constructor() {
-      MockWebSocket.capture(this)
+      模拟网络套接字.捕获(this)
     }
   }
 
   beforeEach(() => {
-    ring = new 环形缓冲(4096)
+    环 = new 环形缓冲(4096)
 
     vi.stubGlobal('location', { protocol: 'http:', hostname: 'localhost', port: '9999' })
-    vi.stubGlobal('WebSocket', MockWebSocket)
+    vi.stubGlobal('WebSocket', 模拟网络套接字)
 
-    transport = new WebSocket传输(ring)
+    传输 = new WebSocket传输(环)
   })
 
   afterEach(() => {
-    transport.disconnect()
+    传输.断开()
     vi.unstubAllGlobals()
   })
 
   it('connects and disconnects', async () => {
-    const connectPromise = transport.connect()
-    mockWebSocketInstance.onopen!()
-    await connectPromise
-    expect(transport.connected).toBe(true)
+    const 连接承诺 = 传输.connect()
+    模拟网络套接字实例.onopen!()
+    await 连接承诺
+    expect(传输.已连接).toBe(true)
 
-    transport.disconnect()
-    expect(transport.connected).toBe(false)
+    传输.断开()
+    expect(传输.已连接).toBe(false)
   })
 
   it('sends log entries when subscribed', async () => {
-    const connectPromise = transport.connect()
-    mockWebSocketInstance.onopen!()
-    await connectPromise
+    const 连接承诺 = 传输.connect()
+    模拟网络套接字实例.onopen!()
+    await 连接承诺
 
-    ring.write('info', 日志分类.Runtime, 'ws test msg')
-    expect(mockWebSocketInstance.send).toHaveBeenCalled()
+    环.写入('info', 日志分类.运行时分类, 'ws test msg')
+    expect(模拟网络套接字实例.send).toHaveBeenCalled()
   })
 })
 
 describe('BeaconTransport', () => {
-  let ring: 环形缓冲
-  let store: 日志存储
-  let transport: 信标传输
-  let sendBeaconFn: ReturnType<typeof vi.fn>
+  let 环: 环形缓冲
+  let 仓库: 日志存储
+  let 传输: 信标传输
+  let 信标发送函数: ReturnType<typeof vi.fn>
 
   beforeEach(async () => {
-    ring = new 环形缓冲(4096)
-    store = new 日志存储('test-beacon-db')
-    await store.open()
-    sendBeaconFn = vi.fn(() => true)
-    vi.stubGlobal('navigator', { sendBeacon: sendBeaconFn })
-    transport = new 信标传输(ring, store, '/测试/logs')
+    环 = new 环形缓冲(4096)
+    仓库 = new 日志存储('test-beacon-db')
+    await 仓库.open()
+    信标发送函数 = vi.fn(() => true)
+    vi.stubGlobal('navigator', { sendBeacon: 信标发送函数 })
+    传输 = new 信标传输(环, 仓库, '/测试/logs')
   })
 
   afterEach(async () => {
-    transport.stop()
-    store.close()
+    传输.停止()
+    仓库.关闭()
     vi.unstubAllGlobals()
     indexedDB.deleteDatabase('test-beacon-db')
   })
 
   it('flushes unreported entries', async () => {
-    ring.write('info', 日志分类.Runtime, 'beacon test')
-    const entries = ring.read()
-    await store.writeEntries(entries)
+    环.写入('info', 日志分类.运行时分类, 'beacon test')
+    const 条目表 = 环.读取()
+    await 仓库.写入条目(条目表)
 
-    await transport.flush()
-    expect(sendBeaconFn).toHaveBeenCalled()
-    const [url, blob] = sendBeaconFn.mock.calls[0]
+    await 传输.刷新()
+    expect(信标发送函数).toHaveBeenCalled()
+    const [url, blob] = 信标发送函数.mock.calls[0]
     expect(url).toBe('/测试/logs')
     expect(blob).toBeInstanceOf(Blob)
     expect(blob.type).toBe('application/msgpack')

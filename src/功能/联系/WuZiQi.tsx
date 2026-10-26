@@ -3,25 +3,24 @@ import { RotateCcw } from 'lucide-react'
 import { 合并类名 } from '../../库/工具'
 import { t, 填充 } from '../../国际化/翻译'
 
-const SIZE = 15
-const EMPTY = 0
-const BLACK = 1 // 玩家（黑，先手）
-const WHITE = 2 // AI（白）或 多人模式的另一名玩家
+const 尺寸 = 15
+const 空位 = 0
+const 黑子 = 1
+const 白子 = 2
 
-type Cell = typeof EMPTY | typeof BLACK | typeof WHITE
-type Board = Cell[][]
-type Coord = [number, number]
-type Mode = 'pve' | 'pvp'
+type 棋子 = typeof 空位 | typeof 黑子 | typeof 白子
+type 棋盘结构 = 棋子[][]
+type 坐标 = [number, number]
+type 对局模式 = 'pve' | 'pvp'
 
-const DIRECTIONS: Coord[] = [
+const 方向表: 坐标[] = [
   [0, 1],
   [1, 0],
   [1, 1],
   [1, -1],
 ]
 
-/** 标准 15 路棋盘星位：天元 (7,7) + 四角星 (3,3)(3,11)(11,3)(11,11)（0-indexed） */
-const STAR_POINTS: Coord[] = [
+const 星位表: 坐标[] = [
   [7, 7],
   [3, 3],
   [3, 11],
@@ -29,16 +28,11 @@ const STAR_POINTS: Coord[] = [
   [11, 11],
 ]
 
-function createBoard(): Board {
-  return Array.from({ length: SIZE }, () => Array<Cell>(SIZE).fill(EMPTY))
+function 创建棋盘(): 棋盘结构 {
+  return Array.from({ length: 尺寸 }, () => Array<棋子>(尺寸).fill(空位))
 }
 
-/**
- * 棋盘格线 + 星位（纯展示，无交互）。
- * 正反两面共用：现实的棋盘正反都是棋面，掫桌翻面后背面同样呈现完整格线，
- * 而非一块纯黑板。
- */
-function BoardGrid() {
+function QiPanWangGe() {
   return (
     <svg
       viewBox="0 0 14 14"
@@ -46,228 +40,214 @@ function BoardGrid() {
       className="pointer-events-none absolute inset-0 h-full w-full"
       aria-hidden="true"
     >
-      {Array.from({ length: SIZE }).map((_, i) => (
+      {Array.from({ length: 尺寸 }).map((_, i) => (
         <line key={`v${i}`} x1={i} y1={0} x2={i} y2={14} stroke="var(--color-board-line)" strokeWidth={0.03} />
       ))}
-      {Array.from({ length: SIZE }).map((_, i) => (
+      {Array.from({ length: 尺寸 }).map((_, i) => (
         <line key={`h${i}`} x1={0} y1={i} x2={14} y2={i} stroke="var(--color-board-line)" strokeWidth={0.03} />
       ))}
-      {STAR_POINTS.map(([r, c]) => (
+      {星位表.map(([r, c]) => (
         <circle key={`s${r}${c}`} cx={c} cy={r} r={0.13} fill="var(--color-board-star)" />
       ))}
     </svg>
   )
 }
 
-/**
- * 落子音效：用 Web Audio 实时合成一记短促「咔嗒」，无需任何外部音频资源（零体积、零请求）。
- * AudioContext 惰性创建，并在用户手势上下文中 resume，规避浏览器自动播放限制。
- */
-let stoneAudioCtx: AudioContext | null = null
-function getStoneAudioCtx(): AudioContext | null {
+let 落子音频上下文: AudioContext | null = null
+function 获取落子音频上下文(): AudioContext | null {
   if (typeof window === 'undefined') return null
-  const Ctor =
-    window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-  if (!Ctor) return null
-  if (!stoneAudioCtx) stoneAudioCtx = new Ctor()
-  if (stoneAudioCtx.state === 'suspended') void stoneAudioCtx.resume()
-  return stoneAudioCtx
+  const 构造器 =
+    window.AudioContext || (window as unknown as { WebKit音频上下文?: typeof AudioContext }).WebKit音频上下文
+  if (!构造器) return null
+  if (!落子音频上下文) 落子音频上下文 = new 构造器()
+  if (落子音频上下文.state === 'suspended') void 落子音频上下文.resume()
+  return 落子音频上下文
 }
 
-function playStoneSound(color: Cell): void {
-  const ctx = getStoneAudioCtx()
-  if (!ctx) return
-  const now = ctx.currentTime
-  const startFreq = color === WHITE ? 616 : 440
-  const endFreq = color === WHITE ? 252 : 180
-  const osc = ctx.createOscillator()
-  const gain = ctx.createGain()
-  osc.type = 'triangle'
-  osc.frequency.setValueAtTime(startFreq, now)
-  osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.09)
-  gain.gain.setValueAtTime(0.0001, now)
-  gain.gain.exponentialRampToValueAtTime(0.22, now + 0.005)
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12)
-  osc.connect(gain).connect(ctx.destination)
-  osc.start(now)
-  osc.stop(now + 0.13)
+function 播放落子音效(颜色: 棋子): void {
+  const 上下文 = 获取落子音频上下文()
+  if (!上下文) return
+  const 当前时刻 = 上下文.currentTime
+  const 起始频率 = 颜色 === 白子 ? 616 : 440
+  const 结束频率 = 颜色 === 白子 ? 252 : 180
+  const 振荡 = 上下文.createOscillator()
+  const 增益 = 上下文.createGain()
+  振荡.type = 'triangle'
+  振荡.frequency.setValueAtTime(起始频率, 当前时刻)
+  振荡.frequency.exponentialRampToValueAtTime(结束频率, 当前时刻 + 0.09)
+  增益.gain.setValueAtTime(0.0001, 当前时刻)
+  增益.gain.exponentialRampToValueAtTime(0.22, 当前时刻 + 0.005)
+  增益.gain.exponentialRampToValueAtTime(0.0001, 当前时刻 + 0.12)
+  振荡.connect(增益).connect(上下文.destination)
+  振荡.start(当前时刻)
+  振荡.stop(当前时刻 + 0.13)
 }
 
-/** 评估在 (r,c) 落子 player 后，经过该点的最长连线（含两端延伸），返回启发式分数 */
-function evaluatePoint(board: Board, r: number, c: number, player: Cell): number {
-  let total = 0
-  for (const [dr, dc] of DIRECTIONS) {
-    let count = 1
-    let openEnds = 0
-    for (const sign of [1, -1]) {
-      let rr = r + dr * sign
-      let cc = c + dc * sign
-      while (rr >= 0 && rr < SIZE && cc >= 0 && cc < SIZE && board[rr][cc] === player) {
-        count++
-        rr += dr * sign
-        cc += dc * sign
+function 评估落点(棋盘: 棋盘结构, r: number, c: number, 玩家: 棋子): number {
+  let 总计 = 0
+  for (const [dr, dc] of 方向表) {
+    let 数量 = 1
+    let 开放端数 = 0
+    for (const 符号 of [1, -1]) {
+      let 半径 = r + dr * 符号
+      let 连子数 = c + dc * 符号
+      while (半径 >= 0 && 半径 < 尺寸 && 连子数 >= 0 && 连子数 < 尺寸 && 棋盘[半径][连子数] === 玩家) {
+        数量++
+        半径 += dr * 符号
+        连子数 += dc * 符号
       }
-      if (rr >= 0 && rr < SIZE && cc >= 0 && cc < SIZE && board[rr][cc] === EMPTY) openEnds++
+      if (半径 >= 0 && 半径 < 尺寸 && 连子数 >= 0 && 连子数 < 尺寸 && 棋盘[半径][连子数] === 空位) 开放端数++
     }
-    if (count >= 5) total += 1_000_000
-    else if (count === 4) total += openEnds === 2 ? 50_000 : 8_000
-    else if (count === 3) total += openEnds === 2 ? 2_000 : 400
-    else if (count === 2) total += openEnds === 2 ? 120 : 30
-    else total += 5
+    if (数量 >= 5) 总计 += 1_000_000
+    else if (数量 === 4) 总计 += 开放端数 === 2 ? 50_000 : 8_000
+    else if (数量 === 3) 总计 += 开放端数 === 2 ? 2_000 : 400
+    else if (数量 === 2) 总计 += 开放端数 === 2 ? 120 : 30
+    else 总计 += 5
   }
-  return total
+  return 总计
 }
 
-function findBestMove(board: Board, ai: Cell, human: Cell): Coord {
-  let best = -1
-  let move: Coord = [Math.floor(SIZE / 2), Math.floor(SIZE / 2)]
-  for (let r = 0; r < SIZE; r++) {
-    for (let c = 0; c < SIZE; c++) {
-      if (board[r][c] !== EMPTY) continue
-      let near = false
-      for (let rr = Math.max(0, r - 2); rr <= Math.min(SIZE - 1, r + 2) && !near; rr++) {
-        for (let cc = Math.max(0, c - 2); cc <= Math.min(SIZE - 1, c + 2); cc++) {
-          if (board[rr][cc] !== EMPTY) {
-            near = true
+function 寻找最佳落子(棋盘: 棋盘结构, 电脑玩家: 棋子, 人类玩家: 棋子): 坐标 {
+  let 最优 = -1
+  let 落子: 坐标 = [Math.floor(尺寸 / 2), Math.floor(尺寸 / 2)]
+  for (let r = 0; r < 尺寸; r++) {
+    for (let c = 0; c < 尺寸; c++) {
+      if (棋盘[r][c] !== 空位) continue
+      let 最近 = false
+      for (let 半径 = Math.max(0, r - 2); 半径 <= Math.min(尺寸 - 1, r + 2) && !最近; 半径++) {
+        for (let 连子数 = Math.max(0, c - 2); 连子数 <= Math.min(尺寸 - 1, c + 2); 连子数++) {
+          if (棋盘[半径][连子数] !== 空位) {
+            最近 = true
             break
           }
         }
       }
-      if (!near) continue
-      const score = evaluatePoint(board, r, c, ai) + evaluatePoint(board, r, c, human) * 1.15
-      if (score > best) {
-        best = score
-        move = [r, c]
+      if (!最近) continue
+      const 得分 = 评估落点(棋盘, r, c, 电脑玩家) + 评估落点(棋盘, r, c, 人类玩家) * 1.15
+      if (得分 > 最优) {
+        最优 = 得分
+        落子 = [r, c]
       }
     }
   }
-  return move
+  return 落子
 }
 
-/** 返回以 (r,c) 为终点、player 的连五（≥5）坐标序列；无则 null */
-function getWinningLine(board: Board, r: number, c: number, player: Cell): Coord[] | null {
-  for (const [dr, dc] of DIRECTIONS) {
-    const line: Coord[] = [[r, c]]
-    for (const sign of [1, -1]) {
-      let rr = r + dr * sign
-      let cc = c + dc * sign
-      while (rr >= 0 && rr < SIZE && cc >= 0 && cc < SIZE && board[rr][cc] === player) {
-        line.push([rr, cc])
-        rr += dr * sign
-        cc += dc * sign
+function 获取获胜连线(棋盘: 棋盘结构, r: number, c: number, 玩家: 棋子): 坐标[] | null {
+  for (const [dr, dc] of 方向表) {
+    const 行: 坐标[] = [[r, c]]
+    for (const 符号 of [1, -1]) {
+      let 半径 = r + dr * 符号
+      let 连子数 = c + dc * 符号
+      while (半径 >= 0 && 半径 < 尺寸 && 连子数 >= 0 && 连子数 < 尺寸 && 棋盘[半径][连子数] === 玩家) {
+        行.push([半径, 连子数])
+        半径 += dr * 符号
+        连子数 += dc * 符号
       }
     }
-    if (line.length >= 5) return line
+    if (行.length >= 5) return 行
   }
   return null
 }
 
-/**
- * 五子棋（标准 15×15）：
- * - 人机模式（pve，默认）：玩家执黑先手，AI 执白基于攻防启发式落子。
- * - 双人模式（pvp）：黑白双方均为玩家，原地轮流派落，无 AI。
- * 高端暗色玻璃棋盘：棋线 + 星位、黑白分明立体棋子、落子缩放入场、最后一手青环高亮、连珠金色脉冲。
- */
 export function WuZiQi() {
-  const [mode, setMode] = useState<Mode>('pve')
-  const [board, setBoard] = useState<Board>(createBoard)
-  const [turn, setTurn] = useState<Cell>(BLACK)
-  const [winner, setWinner] = useState<Cell | null>(null)
-  const [lastMove, setLastMove] = useState<Coord | null>(null)
-  const [winning, setWinning] = useState<Coord[]>([])
-  const [thinking, setThinking] = useState(false)
-  const [flipping, setFlipping] = useState(false)
-  const flipClearTimerRef = useRef<number | undefined>(undefined)
+  const [mode, 设置模式] = useState<对局模式>('pve')
+  const [棋盘, 设置棋盘] = useState<棋盘结构>(创建棋盘)
+  const [回合, 设置回合] = useState<棋子>(黑子)
+  const [获胜者, 设置获胜者] = useState<棋子 | null>(null)
+  const [最后落子, 设置最后落子] = useState<坐标 | null>(null)
+  const [获胜连线, 设置获胜连线] = useState<坐标[]>([])
+  const [思考中, 设置思考中] = useState(false)
+  const [翻转中, 设置翻转中] = useState(false)
+  const 翻转清除定时器引用 = useRef<number | undefined>(undefined)
 
-  useEffect(() => () => window.clearTimeout(flipClearTimerRef.current), [])
+  useEffect(() => () => window.clearTimeout(翻转清除定时器引用.current), [])
 
-  const aiMove = useCallback((next: Board) => {
-    const [r, c] = findBestMove(next, WHITE, BLACK)
-    const after = next.map((row) => row.slice())
-    after[r][c] = WHITE
-    playStoneSound(WHITE)
-    setBoard(after)
-    setLastMove([r, c])
-    const line = getWinningLine(after, r, c, WHITE)
-    if (line) {
-      setWinner(WHITE)
-      setWinning(line)
+  const 电脑落子 = useCallback((下一个: 棋盘结构) => {
+    const [r, c] = 寻找最佳落子(下一个, 白子, 黑子)
+    const 之后 = 下一个.map((行) => 行.slice())
+    之后[r][c] = 白子
+    播放落子音效(白子)
+    设置棋盘(之后)
+    设置最后落子([r, c])
+    const 行 = 获取获胜连线(之后, r, c, 白子)
+    if (行) {
+      设置获胜者(白子)
+      设置获胜连线(行)
     } else {
-      setTurn(BLACK)
+      设置回合(黑子)
     }
-    setThinking(false)
+    设置思考中(false)
   }, [])
 
-  const handleCell = useCallback(
+  const 处理落子 = useCallback(
     (r: number, c: number) => {
-      if (winner || board[r][c] !== EMPTY) return
-      // 人机模式：仅执黑的玩家可落子；双人模式：轮到谁谁落
-      if (mode === 'pve' && turn !== BLACK) return
-      const next = board.map((row) => row.slice())
-      next[r][c] = turn
-      playStoneSound(turn)
-      setBoard(next)
-      setLastMove([r, c])
-      const line = getWinningLine(next, r, c, turn)
-      if (line) {
-        setWinner(turn)
-        setWinning(line)
-        setThinking(false)
+      if (获胜者 || 棋盘[r][c] !== 空位) return
+
+      if (mode === 'pve' && 回合 !== 黑子) return
+      const 下一个 = 棋盘.map((行) => 行.slice())
+      下一个[r][c] = 回合
+      播放落子音效(回合)
+      设置棋盘(下一个)
+      设置最后落子([r, c])
+      const 行 = 获取获胜连线(下一个, r, c, 回合)
+      if (行) {
+        设置获胜者(回合)
+        设置获胜连线(行)
+        设置思考中(false)
         return
       }
       if (mode === 'pve') {
-        setTurn(WHITE)
-        setThinking(true)
-        window.setTimeout(() => aiMove(next), 240)
+        设置回合(白子)
+        设置思考中(true)
+        window.setTimeout(() => 电脑落子(下一个), 240)
       } else {
-        setTurn(turn === BLACK ? WHITE : BLACK)
+        设置回合(回合 === 黑子 ? 白子 : 黑子)
       }
     },
-    [board, turn, winner, mode, aiMove]
+    [棋盘, 回合, 获胜者, mode, 电脑落子]
   )
 
-  const clearBoard = useCallback(() => {
-    setBoard(createBoard())
-    setTurn(BLACK)
-    setWinner(null)
-    setLastMove(null)
-    setWinning([])
-    setThinking(false)
+  const 清空棋盘 = useCallback(() => {
+    设置棋盘(创建棋盘())
+    设置回合(黑子)
+    设置获胜者(null)
+    设置最后落子(null)
+    设置获胜连线([])
+    设置思考中(false)
   }, [])
 
-  const reset = useCallback(() => {
-    // 「掫桌」：绕垂直轴翻面 0.8s。清盘放在翻转中段（~90° 侧棱朝向观众、两面均不可见时），
-    // 而非动画结束瞬间——否则 rotateY 从 180° 归零与清盘同帧发生，会闪回一帧满盘旧棋盘。
-    if (flipping) return
-    const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduce) {
-      clearBoard()
+  const 重置 = useCallback(() => {
+    if (翻转中) return
+    const 归约 = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (归约) {
+      清空棋盘()
       return
     }
-    setFlipping(true)
-    window.clearTimeout(flipClearTimerRef.current)
-    flipClearTimerRef.current = window.setTimeout(clearBoard, 400)
-  }, [flipping, clearBoard])
+    设置翻转中(true)
+    window.clearTimeout(翻转清除定时器引用.current)
+    翻转清除定时器引用.current = window.setTimeout(清空棋盘, 400)
+  }, [翻转中, 清空棋盘])
 
-  const switchMode = useCallback((next: Mode) => {
-    setMode(next)
-    // 切换模式即重开一局，避免上局残子影响新模式的先后手语义
-    setBoard(createBoard())
-    setTurn(BLACK)
-    setWinner(null)
-    setLastMove(null)
-    setWinning([])
-    setThinking(false)
+  const 切换模式 = useCallback((下一个: 对局模式) => {
+    设置模式(下一个)
+
+    设置棋盘(创建棋盘())
+    设置回合(黑子)
+    设置获胜者(null)
+    设置最后落子(null)
+    设置获胜连线([])
+    设置思考中(false)
   }, [])
 
-  const status = useMemo(() => {
-    if (winner === BLACK) return mode === 'pve' ? t('contact.gomoku.winBlack') : t('contact.gomoku.winBlackPvp')
-    if (winner === WHITE) return mode === 'pve' ? t('contact.gomoku.winWhitePve') : t('contact.gomoku.winWhitePvp')
-    if (mode === 'pve') return thinking ? t('contact.gomoku.aiThinking') : t('contact.gomoku.yourTurn')
-    return turn === BLACK ? t('contact.gomoku.blackTurn') : t('contact.gomoku.whiteTurn')
-  }, [winner, turn, mode, thinking])
+  const 状态 = useMemo(() => {
+    if (获胜者 === 黑子) return mode === 'pve' ? t('contact.gomoku.winBlack') : t('contact.gomoku.winBlackPvp')
+    if (获胜者 === 白子) return mode === 'pve' ? t('contact.gomoku.winWhitePve') : t('contact.gomoku.winWhitePvp')
+    if (mode === 'pve') return 思考中 ? t('contact.gomoku.aiThinking') : t('contact.gomoku.yourTurn')
+    return 回合 === 黑子 ? t('contact.gomoku.blackTurn') : t('contact.gomoku.whiteTurn')
+  }, [获胜者, 回合, mode, 思考中])
 
-  const isWin = (r: number, c: number) => winning.some(([wr, wc]) => wr === r && wc === c)
+  const 获胜 = (r: number, c: number) => 获胜连线.some(([wr, wc]) => wr === r && wc === c)
 
   return (
     <div className="flex w-full max-w-[340px] flex-col items-center gap-3">
@@ -282,7 +262,7 @@ export function WuZiQi() {
         >
           <button
             type="button"
-            onClick={() => switchMode('pve')}
+            onClick={() => 切换模式('pve')}
             aria-pressed={mode === 'pve'}
             className={合并类名(
               'rounded-full px-2.5 py-1 text-xs transition-colors',
@@ -295,7 +275,7 @@ export function WuZiQi() {
           </button>
           <button
             type="button"
-            onClick={() => switchMode('pvp')}
+            onClick={() => 切换模式('pvp')}
             aria-pressed={mode === 'pvp'}
             className={合并类名(
               'rounded-full px-2.5 py-1 text-xs transition-colors',
@@ -309,7 +289,7 @@ export function WuZiQi() {
         </div>
         <button
           type="button"
-          onClick={reset}
+          onClick={重置}
           className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-xs text-text-primary transition-colors hover:border-[#d97757] hover:text-text-primary"
           aria-label={t('contact.gomoku.reset')}
         >
@@ -318,45 +298,44 @@ export function WuZiQi() {
         </button>
       </div>
 
-      <span className="font-mono text-xs text-text-secondary">{status}</span>
+      <span className="font-mono text-xs text-text-secondary">{状态}</span>
 
       <div
         className="relative w-full max-w-[320px] rounded-3xl bg-gradient-to-br from-[#d97757] via-[#f0abfc] to-[#38bdf8] p-[2px] shadow-[0_12px_44px_var(--color-panel-shadow)]"
         style={{ perspective: '900px' }}
       >
-        {/* 3D 翻转容器：绕垂直轴（Y）旋转 180°，正面棋盘转到背面（根因修复：单面 rotateY 仅镜像、无「背面」语义） */}
+        {}
         <div
-          className={合并类名('gomoku-flip', flipping && 'is-flipping')}
-          onAnimationEnd={(event) => {
-            // 只响应翻转容器自身的 animationend；棋子入场等子元素动画冒泡上来会误触清盘
-            if (flipping && event.target === event.currentTarget) {
-              setFlipping(false)
+          className={合并类名('gomoku-flip', 翻转中 && 'is-flipping')}
+          onAnimationEnd={(事件) => {
+            if (翻转中 && 事件.target === 事件.currentTarget) {
+              设置翻转中(false)
             }
           }}
         >
-          {/* 正面：棋盘（格线/星位/落子/连线），翻转后转到背面不可见 */}
+          {}
           <div className="gomoku-flip__face gomoku-flip__face--front">
             <div className="relative h-full w-full">
-              <BoardGrid />
+              <QiPanWangGe />
 
-              {/* 交叉点（可点击落子） */}
-              {board.map((row, r) =>
-                row.map((cell, c) => {
-                  const isLast = lastMove?.[0] === r && lastMove?.[1] === c
-                  const win = isWin(r, c)
+              {}
+              {棋盘.map((行, r) =>
+                行.map((格, c) => {
+                  const 是最后 = 最后落子?.[0] === r && 最后落子?.[1] === c
+                  const 是否获胜 = 获胜(r, c)
                   return (
                     <button
                       key={`${r}-${c}`}
                       type="button"
-                      onClick={() => handleCell(r, c)}
-                      disabled={winner !== null}
+                      onClick={() => 处理落子(r, c)}
+                      disabled={获胜者 !== null}
                       aria-label={填充(t('contact.gomoku.cell'), {
                         行: r + 1,
                         列: c + 1,
                         棋子:
-                          cell === BLACK
+                          格 === 黑子
                             ? t('contact.gomoku.cellBlack')
-                            : cell === WHITE
+                            : 格 === 白子
                               ? t('contact.gomoku.cellWhite')
                               : t('contact.gomoku.cellEmpty'),
                       })}
@@ -368,13 +347,13 @@ export function WuZiQi() {
                         height: `${100 / 15}%`,
                       }}
                     >
-                      {cell !== EMPTY && (
+                      {格 !== 空位 && (
                         <span
                           className={合并类名(
                             'gomoku-stone',
-                            cell === BLACK ? 'gomoku-stone--black' : 'gomoku-stone--white',
-                            isLast && 'gomoku-stone--last',
-                            win && 'gomoku-stone--win'
+                            格 === 黑子 ? 'gomoku-stone--black' : 'gomoku-stone--white',
+                            是最后 && 'gomoku-stone--last',
+                            是否获胜 && 'gomoku-stone--win'
                           )}
                         />
                       )}
@@ -384,10 +363,10 @@ export function WuZiQi() {
               )}
             </div>
           </div>
-          {/* 背面：同样是棋盘（现实逻辑：棋盘反面也是棋面），翻面后呈现完整格线 */}
+          {}
           <div className="gomoku-flip__face gomoku-flip__face--back" aria-hidden="true">
             <div className="relative h-full w-full">
-              <BoardGrid />
+              <QiPanWangGe />
             </div>
           </div>
         </div>

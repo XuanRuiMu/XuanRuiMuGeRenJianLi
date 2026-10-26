@@ -32,10 +32,10 @@ describe('随机超新星颜色（FP-04 根因修复）', () => {
   it('返回 THREE.Color 且饱和度固定为 0.9、亮度 0.6', () => {
     const c = 随机超新星颜色()
     expect(c).toBeInstanceOf(THREE.Color)
-    const hsl = { h: 0, s: 0, l: 0 }
-    c.getHSL(hsl)
-    expect(hsl.s).toBeCloseTo(0.9, 5)
-    expect(hsl.l).toBeCloseTo(0.6, 5)
+    const 色相饱和度亮度 = { h: 0, s: 0, l: 0 }
+    c.getHSL(色相饱和度亮度)
+    expect(色相饱和度亮度.s).toBeCloseTo(0.9, 5)
+    expect(色相饱和度亮度.l).toBeCloseTo(0.6, 5)
   })
 
   it('连续生成呈现多种色相（每次完全随机，非固定单色）', () => {

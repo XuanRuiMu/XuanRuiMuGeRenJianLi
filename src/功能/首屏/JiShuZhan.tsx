@@ -5,22 +5,12 @@ import { useShiFouAnSe } from '../../组件/星空背景/useShiFouAnSe'
 import { t } from '../../国际化/翻译'
 import { 创建点阵变形器, 技术字形, type 点阵图标定义 } from './DianZhenBianXing'
 
-/**
- * 技术栈 · ASCII 点阵变形动画（替换原 3D 旋转技术球）。
- *
- * 1:1 移植参考站（bilibilitoy wujisuan-ai-test）hero 区的 Logo 字符点阵动画：
- * 15 个技术栈图标逐一点阵化呈现，5 秒自动切换 / 点击切换，切换时最近点贪心配对
- * 形成左→右波次变形 + 弧线弯曲 + 字形过半程轮换，指针悬停产生高斯涟漪。
- * 交互与信息保全：点击画布切换，画布下方展示当前技术名 · 官网链接 · 使用该技术的项目归属；
- * reduced-motion 时静态成点阵、点击瞬切；深浅色主题切换字符颜色。
- */
-
 const 深色字形颜色 = '#cfe6ff'
 const 浅色字形颜色 = '#1e293b'
 
 export function JiShuZhan() {
-  const reducedMotion = useJianShaoDongHua()
-  const isDark = useShiFouAnSe()
+  const 减少动画 = useJianShaoDongHua()
+  const 是深色 = useShiFouAnSe()
   const 画布引用 = useRef<HTMLCanvasElement>(null)
   const 变形器引用 = useRef<ReturnType<typeof 创建点阵变形器>>(null)
   const [当前, 设当前] = useState<{ 序号: number; 名称: string; 总数: number } | null>(null)
@@ -31,22 +21,33 @@ export function JiShuZhan() {
       技术卡表.map((卡片) => ({
         id: 卡片.name,
         name: 卡片.name,
-        glyph: 技术字形(卡片.name),
-        src: 卡片.icon,
+        字形: 技术字形(卡片.name),
+        src: 卡片.图标,
         掩码模式: 卡片.掩码模式,
       })),
     []
   )
 
-  const 字形颜色 = isDark ? 深色字形颜色 : 浅色字形颜色
+  const 字形颜色 = 是深色 ? 深色字形颜色 : 浅色字形颜色
+  const 当前减少动画 = useRef(减少动画)
+  const 当前字形颜色 = useRef(字形颜色)
 
-  // 变形器只在挂载时创建一次；主题/reduced-motion 经 setter 同步，避免重建丢动画状态
+  useEffect(() => {
+    当前减少动画.current = 减少动画
+    变形器引用.current?.设静态(减少动画)
+  }, [减少动画])
+
+  useEffect(() => {
+    当前字形颜色.current = 字形颜色
+    变形器引用.current?.设颜色(字形颜色)
+  }, [字形颜色])
+
   useEffect(() => {
     const 画布 = 画布引用.current
     if (!画布) return
     const 变形器 = 创建点阵变形器(画布, 图标定义, {
-      静态: reducedMotion,
-      颜色: 字形颜色,
+      静态: 当前减少动画.current,
+      颜色: 当前字形颜色.current,
       on序号变更: (序号, 名称, 总数) => 设当前({ 序号, 名称, 总数 }),
       on加载失败: () => 设失败(true),
     })
@@ -55,16 +56,7 @@ export function JiShuZhan() {
       变形器?.销毁()
       变形器引用.current = null
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [图标定义])
-
-  useEffect(() => {
-    变形器引用.current?.设静态(reducedMotion)
-  }, [reducedMotion])
-
-  useEffect(() => {
-    变形器引用.current?.设颜色(字形颜色)
-  }, [字形颜色])
 
   const 当前卡片 = 当前 ? 技术卡表.find((卡片) => 卡片.name === 当前.名称) : undefined
   const 归属名表 = 当前卡片 ? 当前卡片.项目.map(取项目归属名) : []
@@ -76,7 +68,7 @@ export function JiShuZhan() {
       </h2>
       <button
         type="button"
-        // 点击切换由变形器在宿主按钮上监听（与参考站一致），此处不得再绑 onClick 以免双触发
+
         aria-label={当前 ? `${t('hero.techSwitchAria')} ${当前.名称}` : t('hero.techSwitchAria')}
         aria-disabled={失败 || undefined}
         data-testid="tech-morph-button"

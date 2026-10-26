@@ -9,43 +9,43 @@ describe('Card', () => {
   })
 
   it('renders header', () => {
-    render(<KaPian header={<span data-testid="header">header</span>}>content</KaPian>)
+    render(<KaPian 头部={<span data-testid="header">header</span>}>content</KaPian>)
     expect(screen.getByTestId('header')).toBeInTheDocument()
   })
 
   it('renders footer', () => {
-    render(<KaPian footer={<span data-testid="footer">footer</span>}>content</KaPian>)
+    render(<KaPian 页脚={<span data-testid="footer">footer</span>}>content</KaPian>)
     expect(screen.getByTestId('footer')).toBeInTheDocument()
   })
 
   it('does not apply glass panel class by default', () => {
-    const { container } = render(<KaPian>content</KaPian>)
-    expect(container.firstChild).not.toHaveClass('glass-panel')
+    const { container: 容器 } = render(<KaPian>content</KaPian>)
+    expect(容器.firstChild).not.toHaveClass('glass-panel')
   })
 
   it('applies baseline static classes without glass leftovers', () => {
-    const { container } = render(<KaPian>content</KaPian>)
-    expect(container.firstChild).toHaveClass('card-container')
-    expect(container.firstChild).not.toHaveClass('border')
-    expect(container.firstChild).not.toHaveClass('border-border')
-    expect(container.firstChild).not.toHaveClass('overflow-hidden')
+    const { container: 容器 } = render(<KaPian>content</KaPian>)
+    expect(容器.firstChild).toHaveClass('card-container')
+    expect(容器.firstChild).not.toHaveClass('border')
+    expect(容器.firstChild).not.toHaveClass('border-border')
+    expect(容器.firstChild).not.toHaveClass('overflow-hidden')
   })
 
   it('applies hover lift class', () => {
-    const { container } = render(<KaPian hover>content</KaPian>)
-    expect(container.firstChild).toHaveClass('hover:-translate-y-1')
+    const { container: 容器 } = render(<KaPian 悬停>content</KaPian>)
+    expect(容器.firstChild).toHaveClass('hover:-translate-y-1')
   })
 
   it('merges custom className', () => {
-    const { container } = render(<KaPian className="custom-card">content</KaPian>)
-    expect(container.firstChild).toHaveClass('custom-card')
+    const { container: 容器 } = render(<KaPian className="custom-card">content</KaPian>)
+    expect(容器.firstChild).toHaveClass('custom-card')
   })
 
   it('never writes inline transform (pure static container)', () => {
-    const { container } = render(<KaPian hover>content</KaPian>)
-    const card = container.firstChild as HTMLElement
-    expect(card.style.transform).toBe('')
-    expect(card).not.toHaveClass('tilt-card')
-    expect(card).not.toHaveClass('will-change-transform')
+    const { container: 容器 } = render(<KaPian 悬停>content</KaPian>)
+    const 卡片 = 容器.firstChild as HTMLElement
+    expect(卡片.style.transform).toBe('')
+    expect(卡片).not.toHaveClass('tilt-card')
+    expect(卡片).not.toHaveClass('will-change-transform')
   })
 })

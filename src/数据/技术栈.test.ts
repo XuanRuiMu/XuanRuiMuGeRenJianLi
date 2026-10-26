@@ -12,25 +12,20 @@ function 读图标(图标路径: string): string {
 describe('技术栈图标资源', () => {
   it('每个图标文件都真实存在', () => {
     for (const 卡 of 技术卡表) {
-      expect(() => 读图标(卡.icon), `缺失图标 ${卡.icon}`).not.toThrow()
+      expect(() => 读图标(卡.图标), `缺失图标 ${卡.图标}`).not.toThrow()
     }
   })
 
   it('带整面底色矩形（rect）的图标必须声明掩码模式，否则点阵会退化成实心方块', () => {
     for (const 卡 of 技术卡表) {
-      const svg = 读图标(卡.icon)
-      if (svg.includes('<rect')) {
+      const SVG文本 = 读图标(卡.图标)
+      if (SVG文本.includes('<rect')) {
         expect(卡.掩码模式, `${卡.name} 的图标含底色 rect，应声明 掩码模式`).toBeDefined()
       }
     }
   })
 })
 
-/**
- * 项目归属 id 白名单：简历自身项目 id 从翻译文件的 data.projects 派生，
- * 其余三项是派生不出来的附加归属（本站 / 全部项目 / 恋爱吧管理中心）。
- * 代码里只准出现 id，可见名称一律由翻译文件下发。
- */
 const 允许归属id表 = [...Object.keys(中文包.data.projects), ...Object.keys(中文包.data.项目归属)]
 
 describe('技术栈项目归属', () => {
@@ -66,7 +61,7 @@ describe('技术栈项目归属', () => {
     const 源码 = fs.readFileSync(path.resolve('src/数据/技术栈.ts'), 'utf-8')
     const 归属数组 = 源码.match(/项目:\s*\[([^\]]*)\]/g) ?? []
     expect(归属数组.length, '未抓到任何项目归属数组，断言空转').toBe(技术卡表.length)
-    // data.projects 里已有翻译显示名的项目，代码层只准用 id 引用，不得再写一遍中文显示名
+
     const 已翻译显示名表 = Object.values(中文包.data.projects).map((项) => 项.name)
     for (const 数组串 of 归属数组) {
       for (const 显示名 of 已翻译显示名表) {

@@ -10,8 +10,7 @@ export const 缓动时距 = { 滚动: 0.18, 悬停: 0.4, 恢复: 0.7 } as const
 export const 静止速度阈值 = 0.5
 export const 最大帧步长 = 0.05
 export const 最小位移精度 = 0.001
-// 真循环不变量：对任意 位移∈[0,周期)，可见窗口两侧都必须至少余 端部余量组数 个完整组，
-// 否则有限副本的轨道边界会在外层 perspective + rotateZ/rotateX 倾斜下被斜扫进视口形成空洞
+
 export const 端部余量组数 = 1
 export const 最小份数 = 2 * 端部余量组数 + 1
 

@@ -15,7 +15,6 @@ function 读源码(相对路径: string): string {
   return fs.readFileSync(path.resolve(项目根, 相对路径), 'utf-8')
 }
 
-/** 轮换岗位的唯一可编辑源（独立于 职业方向 的解析实现，充当预言） */
 const 岗位清单文件 = 'src/数据/职业定位.txt'
 
 function 岗位清单解析(原文: string): string[] {
@@ -34,7 +33,6 @@ function 收集文本(值: unknown): string[] {
   return []
 }
 
-/** 旧定位字面量 + 当前单一源岗位名：任何消费者源码再出现即视为重新硬编码 */
 const 禁止硬编码字面量 = [
   ...岗位名表(),
   '全栈开发工程师',
@@ -89,7 +87,7 @@ describe('FP-01 求职定位单一数据源守卫', () => {
     expect(源码).toContain('t(职业方向.directionKey)')
     expect(源码).toContain("from './职业定位.txt?raw'")
     expect(源码).not.toContain('career.roles')
-    // 返回值必须来自 t()/txt 解析，不允许出现任何带定位文案的字符串字面量
+
     const 字符串字面量表 = 源码.match(/(['"`])((?:\\.|(?!\1)[^\\])*)\1/g) ?? []
     for (const 字面量 of 字符串字面量表) {
       for (const 禁止 of 禁止硬编码字面量) {
@@ -101,7 +99,7 @@ describe('FP-01 求职定位单一数据源守卫', () => {
   })
 
   it('个人信息 薪资已改 salaryKey 且指向 career.salary', () => {
-    expect(个人信息.salaryKey).toBe(职业方向.salaryKey)
+    expect(个人信息.薪资键).toBe(职业方向.salaryKey)
     expect('salary' in 个人信息).toBe(false)
   })
 
@@ -144,18 +142,18 @@ describe('FP-01 求职定位单一数据源守卫', () => {
 
   it('AI 知识库有技能板块语料（技能组 + 量化指标）', () => {
     const 库 = 构建简历知识库()
-    const 技能块 = 库.filter((块) => 块.metadata.source === 'skillGroups.ts')
+    const 技能块 = 库.filter((块) => 块.元数据.来源 === 'skillGroups.ts')
     expect(技能块.length).toBe(技能组表().length + 1)
     const 全文 = 技能块.map((块) => 块.content).join('\n')
     for (const 组 of 技能组表()) {
-      expect(全文, `知识库缺能力组「${组.label}」`).toContain(组.label)
-      for (const 条 of 组.items) expect(全文).toContain(条)
+      expect(全文, `知识库缺能力组「${组.标签}」`).toContain(组.标签)
+      for (const 条 of 组.条目表) expect(全文).toContain(条)
     }
     for (const 指标 of 量化指标()) {
-      expect(全文, `知识库缺量化指标「${指标.label}」`).toContain(指标.value)
-      expect(全文).toContain(指标.label)
+      expect(全文, `知识库缺量化指标「${指标.标签}」`).toContain(指标.value)
+      expect(全文).toContain(指标.标签)
     }
-    expect(库.some((块) => 块.metadata.category === 'skills')).toBe(true)
+    expect(库.some((块) => 块.元数据.分类 === 'skills')).toBe(true)
   })
 
   it('index.html 与 manifest.json 内嵌 career.direction 且无 Java 后端定位残留', () => {
@@ -177,7 +175,7 @@ describe('FP-01 求职定位单一数据源守卫', () => {
     for (const 岗位 of 岗位名表()) {
       expect(关键词![1], `meta keywords 不得硬编码岗位「${岗位}」`).not.toContain(岗位)
     }
-    // 岗位名只允许作为 career.direction 的组成部分出现，其余位置都是第二数据源
+
     const 去掉方向的页面 = 内容.split(求职方向()).join('')
     for (const 岗位 of 岗位名表()) {
       expect(去掉方向的页面, `index.html 出现方向之外的岗位「${岗位}」= 第二数据源`).not.toContain(岗位)

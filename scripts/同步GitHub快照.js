@@ -1,30 +1,15 @@
-/**
- * 构建期 GitHub 仓库快照：把本人公开仓库的元信息与 README 摘录落成
- * `src/数据/GitHub快照.ts`，供询问 AI 的知识库检索使用。
- *
- * 为什么走构建期快照而不是运行时拉取：GitHub 未鉴权 REST 限额是 60 次/小时且按访客出口 IP 计，
- * 多访客会打满；构建期跑一次（CI 里可用 GITHUB_TOKEN，1000 次/小时/仓库）零运行时代价、离线也可用。
- *
- * 用法：
- *   npm run sync:github                    # 本地刷新（可匿名）
- *   GITHUB_TOKEN=xxx npm run sync:github   # 提高限额（CI 自动提供）
- *
- * 失败策略：网络或限额失败时若已有快照文件则保留旧快照并以 0 退出（不阻断构建）；无快照才非零退出。
- */
-
 import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-/** GitHub 账号（本人公开仓库的归属者） */
 const 账号 = process.env.GITHUB_SYNC_OWNER || 'XuanRuiMu'
 const 令牌 = process.env.GITHUB_TOKEN || ''
-/** 单个仓库 README 摘录的字符上限 */
+
 const README摘录上限 = Number(process.env.GITHUB_README_LIMIT || 1200)
 
 const 输出路径 = path.resolve('src/数据/GitHub快照.ts')
-/** 不纳入简历知识库的仓库（仓库名或「owner/name」），见同目录 同步GitHub快照.排除清单.json */
+
 const 排除清单路径 = path.resolve('scripts/同步GitHub快照.排除清单.json')
 
 function 读排除配置() {
@@ -41,7 +26,6 @@ function 读排除配置() {
   return { 仓库集, 屏蔽词 }
 }
 
-/** README 摘录截到第一个屏蔽词之前：知识库有硬断言的词不得借 README 回流 */
 export function 按屏蔽词截断(文本, 屏蔽词) {
   let 截点 = 文本.length
   for (const 词 of 屏蔽词) {
@@ -73,7 +57,6 @@ async function 取文本(地址) {
   return 响应.text()
 }
 
-/** README 去噪：代码块、图片、HTML 注释、徽章链接一律丢掉，只留可读正文 */
 export function 清洗README(原文) {
   return 原文
     .replace(/<!--[\s\S]*?-->/g, '')
@@ -85,10 +68,6 @@ export function 清洗README(原文) {
     .trim()
 }
 
-/**
- * 中英/中数相邻零空格（与 src/typography.test.ts 同源）：GitHub 的简介与 README 自带空格，
- * 直接进知识库会触发排版回归，故在此统一收紧。英文内部、· 分隔符两侧保留空格。
- */
 export function 去除中英间空格(文本) {
   const 中文 = '\\u4e00-\\u9fff\\u3400-\\u4dbf\\uf900-\\ufaff'
   const 字母数字 = 'A-Za-z0-9'
@@ -108,7 +87,6 @@ export function 取语言分布(语言字节表) {
 }
 
 async function 抓仓库快照(仓库, 屏蔽词 = []) {
-  // 语言分布与 README 都是"有则更好"：任一被限流或 404 都不拖垮整个仓库（未鉴权限额仅 60 次/小时）
   const [语言字节表, README原文] = await Promise.all([
     取JSON(`https://api.github.com/repos/${仓库.full_name}/languages`).catch(() => null),
     取文本(`https://api.github.com/repos/${仓库.full_name}/readme`).catch(() => ''),
@@ -194,7 +172,6 @@ async function 主流程() {
   console.log(`已写入 ${快照表.length}/${元信息.公开仓库总数} 个仓库快照 → src/数据/GitHub快照.ts（${生成时间}）`)
 }
 
-// 仅在被直接执行时联网同步（被测试导入时不发请求）
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   主流程().catch((错误) => {
     if (fs.existsSync(输出路径)) {

@@ -11,100 +11,98 @@ import 开发数据接口插件 from './scripts/KaiFaShuJuJieKouCaJian.js'
 import { 创建密钥注入钩子 } from './scripts/AIFanDai.js'
 import { 开发端口, 预览端口 } from './scripts/端口配置.js'
 
-const isAnalyze = process.env.ANALYZE === 'true'
+const 是分析模式 = process.env.ANALYZE === 'true'
 
-function inlineCriticalCSS() {
+function 内联关键样式() {
   return {
     name: 'inline-critical-css',
     transformIndexHtml: {
       order: 'pre',
-      handler(html) {
-        const criticalPath = path.resolve(import.meta.dirname, './src/样式/关键样式.css')
-        if (!fs.existsSync(criticalPath)) {
-          return html
+      handler(网页文本) {
+        const 关键样式路径 = path.resolve(import.meta.dirname, './src/样式/关键样式.css')
+        if (!fs.existsSync(关键样式路径)) {
+          return 网页文本
         }
-        const css = fs.readFileSync(criticalPath, 'utf-8')
-        return html.replace('<!-- CRITICAL_CSS -->', `<style>${css.replace(/\s+/g, ' ').trim()}</style>`)
+        const 样式文本 = fs.readFileSync(关键样式路径, 'utf-8')
+        return 网页文本.replace(
+          '<style data-critical-css></style>',
+          `<style>${样式文本.replace(/\s+/g, ' ').trim()}</style>`
+        )
       },
     },
   }
 }
 
-function preloadCSSPlugin() {
+function 预加载样式插件() {
   return {
     name: 'preload-css',
     transformIndexHtml: {
       order: 'post',
-      handler(html) {
-        const stylesheetMatch = html.match(
+      handler(网页文本) {
+        const 样式匹配 = 网页文本.match(
           /<link[^>]+rel="stylesheet"[^>]+href="((?:\.\/|\/)?assets\/index-[^"]+\.css)"[^>]*>/
         )
-        if (!stylesheetMatch) {
-          return html
+        if (!样式匹配) {
+          return 网页文本
         }
-        const cssHref = stylesheetMatch[1]
-        const preloadLink = `<link rel="preload" href="${cssHref}" as="style" crossorigin />`
-        return html.replace(stylesheetMatch[0], `${preloadLink}\n    ${stylesheetMatch[0]}`)
+        const 样式地址 = 样式匹配[1]
+        const 预加载链接 = `<link rel="preload" href="${样式地址}" as="style" crossorigin />`
+        return 网页文本.replace(样式匹配[0], `${预加载链接}\n    ${样式匹配[0]}`)
       },
     },
   }
 }
 
-// https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   return {
     base: process.env.VITE_BASE || '/',
     plugins: [
       可观测性插件(),
-      // dev 环境本地数据接口：/api/analytics 落盘到 data/（生产静态托管按 nginx 模板三选一处理）
+
       开发数据接口插件({ dataDir: path.resolve(import.meta.dirname, 'data') }),
-      // Serve /skill-test/ 单页应用
+
       {
         name: 'skill-test-spa',
-        configureServer(server) {
-          server.middlewares.use('/skill-test', async (req, res, next) => {
-            const indexPath = path.resolve(import.meta.dirname, 'skill-test.html')
-            if (fs.existsSync(indexPath)) {
-              const html = fs.readFileSync(indexPath, 'utf-8')
-              const transformed = await server.transformIndexHtml('/skill-test', html)
-              res.setHeader('Content-Type', 'text/html; charset=utf-8')
-              res.end(transformed)
+        configureServer(服务器) {
+          服务器.middlewares.use('/skill-test', async (请求, 响应, 下一个) => {
+            const 入口文件路径 = path.resolve(import.meta.dirname, 'skill-test.html')
+            if (fs.existsSync(入口文件路径)) {
+              const 网页文本 = fs.readFileSync(入口文件路径, 'utf-8')
+              const 已转换 = await 服务器.transformIndexHtml('/skill-test', 网页文本)
+              响应.setHeader('Content-Type', 'text/html; charset=utf-8')
+              响应.end(已转换)
               return
             }
-            next()
+            下一个()
           })
         },
       },
-      inlineCriticalCSS(),
-      preloadCSSPlugin(),
+      内联关键样式(),
+      预加载样式插件(),
       react(),
       babel({
         presets: [reactCompilerPreset()],
       }),
       tailwindcss(),
       VitePWA({
-        // 仅负责构建生产 SW 产物（src/服务工作线程.ts → dist/服务工作线程.js）；注册由 src/工具/注册服务工作线程.ts
-        // 用原生 navigator.serviceWorker 完成，业务代码不再依赖 virtual:pwa-register。
         strategies: 'injectManifest',
         srcDir: 'src',
         filename: '服务工作线程.ts',
-        // 业务侧自注册，禁止插件再向 HTML 注入注册脚本（否则与原生注册双轨）
+
         injectRegister: false,
-        // 手写 manifest.json 由 index.html 引用，插件不再生成
+
         manifest: false,
         injectManifest: {
           globPatterns: ['**/*.{js,css,html,svg,png,jpg,json,woff,woff2}'],
-          globIgnores: ['**/*.map', '**/sw.js'],
+          globIgnores: ['**/*.map', '**/sw.js', '**/showcase/**', '**/videos/**', '**/og-image.png'],
         },
-        // 开发模式禁用 Service Worker：dev SW 会缓存旧页面外壳，源码热更新后旧外壳
-        // 请求过期模块地址，导致 "Failed to fetch dynamically imported module" 反复出现。
-        // 需要验证 PWA 时用 npm run build && npm run preview（生产 SW 不受影响）。
+
         devOptions: {
           enabled: false,
         },
       }),
-      isAnalyze &&
+      是分析模式 &&
         visualizer({
           open: false,
           gzipSize: true,
@@ -120,26 +118,25 @@ export default defineConfig(({ mode }) => {
     server: {
       host: true,
       port: 开发端口,
-      // 端口被占用时直接失败，禁止静默换端口（否则用户仍连旧僵尸进程上的 5180）
+
       strictPort: true,
       watch: {
         ignored: ['**/.agents/**', '**/test-results/**', '**/PROGRESS.md'],
       },
       proxy: {
-        // 开发环境与生产 nginx 同契约：前端只打同源 /api/ai/*，密钥由本代理注入，绝不进前端产物。
         '/api/ai/deepseek': {
           target: 'https://api.deepseek.com',
           changeOrigin: true,
           secure: true,
-          rewrite: (path) => path.replace(/^\/api\/ai\/deepseek/, '/v1/chat/completions'),
+          rewrite: (路径) => 路径.replace(/^\/api\/ai\/deepseek/, '/v1/chat/completions'),
           configure: 创建密钥注入钩子(env, 'DEEPSEEK_API_KEY', '/api/ai/deepseek'),
         },
-        // GLM（Anthropic 兼容端点）预留通道：模型列表接入后把 endpoint 指到 /api/ai/glm。
+
         '/api/ai/glm': {
           target: env.GLM_BASE_URL || 'https://open.bigmodel.cn/api/anthropic',
           changeOrigin: true,
           secure: true,
-          rewrite: (path) => path.replace(/^\/api\/ai\/glm/, '/v1/messages'),
+          rewrite: (路径) => 路径.replace(/^\/api\/ai\/glm/, '/v1/messages'),
           configure: 创建密钥注入钩子(env, 'GLM_API_KEY', '/api/ai/glm'),
         },
       },
@@ -149,7 +146,7 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       target: 'es2022',
-      sourcemap: true,
+      sourcemap: false,
       minify: 'esbuild',
       rollupOptions: {
         input: {
@@ -157,12 +154,12 @@ export default defineConfig(({ mode }) => {
           'skill-test': path.resolve(import.meta.dirname, 'skill-test.html'),
         },
         output: {
-          manualChunks(id) {
+          手动分块(id) {
             if (!id.includes('node_modules')) return
-            if (['/react/', '/react-dom/', '/scheduler/'].some((prefix) => id.includes(prefix))) {
+            if (['/react/', '/react-dom/', '/scheduler/'].some((前缀) => id.includes(前缀))) {
               return 'react-vendor'
             }
-            if (['/three/', '/@react-three/'].some((prefix) => id.includes(prefix))) {
+            if (['/three/', '/@react-three/'].some((前缀) => id.includes(前缀))) {
               return 'three-vendor'
             }
             if (id.includes('/framer-motion/')) return 'animation-vendor'
@@ -175,7 +172,7 @@ export default defineConfig(({ mode }) => {
                 '/react-dialog/',
                 '/react-dismissable-layer/',
                 '/tailwind-merge/',
-              ].some((prefix) => id.includes(prefix))
+              ].some((前缀) => id.includes(前缀))
             ) {
               return 'ui-vendor'
             }
@@ -185,9 +182,6 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: 1400,
     },
     optimizeDeps: {
-      // 显式预构建懒加载 chunk 依赖，确保冷启动首次预构建一次性完成、确定性强，
-      // 避免首请求后才发现新依赖触发重优化 + 整页 reload，从而消除
-      // “Failed to fetch dynamically imported module” 这类懒加载竞态。
       include: [
         'react',
         'react-dom',
@@ -205,7 +199,7 @@ export default defineConfig(({ mode }) => {
         'zustand',
         '@msgpack/msgpack',
       ],
-      // 仅扫描真实入口，避免预打包扫描器误解析 public/ 下走 CDN importmap 的测试页（如 S2-effects.html）
+
       entries: ['index.html'],
     },
   }

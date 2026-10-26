@@ -13,110 +13,123 @@ export interface 跨度 {
 }
 
 export class 追踪器 {
-  private nextSpanId = 1
-  private activeSpans = new Map<number, 跨度>()
-  private completedSpans: 跨度[] = []
-  private perfStartTimes = new Map<number, number>()
+  private 下一个跨度编号 = 1
+  private 活跃跨度表 = new Map<number, 跨度>()
+  private 已完成跨度表: 跨度[] = []
+  private 性能起始时刻表 = new Map<number, number>()
 
   constructor(private 环形缓冲: 环形缓冲) {}
 
-  startSpan(name: string, parentSpanId?: number, metadata?: Record<string, unknown>): number {
-    const spanId = this.nextSpanId++
-    let parentId = parentSpanId ?? null
+  开始跨度(name: string, 父跨度编号?: number, 元数据?: Record<string, unknown>): number {
+    const 跨度编号 = this.下一个跨度编号++
+    let 父编号 = 父跨度编号 ?? null
 
-    if (parentId === null && this.activeSpans.size > 0) {
-      let innermost: 跨度 | null = null
-      let maxId = -1
-      for (const span of this.activeSpans.values()) {
-        if (span.spanId > maxId) {
-          maxId = span.spanId
-          innermost = span
+    if (父编号 === null && this.活跃跨度表.size > 0) {
+      let 最内层: 跨度 | null = null
+      let 最大编号 = -1
+      for (const 跨度 of this.活跃跨度表.values()) {
+        if (跨度.spanId > 最大编号) {
+          最大编号 = 跨度.spanId
+          最内层 = 跨度
         }
       }
-      if (innermost) parentId = innermost.spanId
+      if (最内层) 父编号 = 最内层.spanId
     }
 
-    const traceId = parentId === null ? spanId : this.resolveTraceId(parentId)
-    const startTime = BigInt(Date.now())
+    const 追踪编号 = 父编号 === null ? 跨度编号 : this.解析追踪编号(父编号)
+    const 起始时刻 = BigInt(Date.now())
 
-    const span: 跨度 = { spanId, traceId, parentSpanId: parentId, name, startTime, status: 'unset', metadata }
-    this.activeSpans.set(spanId, span)
-    this.perfStartTimes.set(spanId, performance.now())
+    const 跨度: 跨度 = {
+      spanId: 跨度编号,
+      traceId: 追踪编号,
+      parentSpanId: 父编号,
+      name,
+      startTime: 起始时刻,
+      status: 'unset',
+      metadata: 元数据,
+    }
+    this.活跃跨度表.set(跨度编号, 跨度)
+    this.性能起始时刻表.set(跨度编号, performance.now())
 
-    this.环形缓冲.write('info', 日志分类.Runtime, `[span:start] ${name}`, { spanId }, spanId)
-    return spanId
+    this.环形缓冲.写入('info', 日志分类.运行时分类, `[span:start] ${name}`, { spanId: 跨度编号 }, 跨度编号)
+    return 跨度编号
   }
 
-  endSpan(spanId: number, status?: 'ok' | 'error', finalMetadata?: Record<string, unknown>): void {
-    const span = this.activeSpans.get(spanId)
-    if (!span) return
+  结束跨度(跨度编号: number, 状态?: 'ok' | 'error', 最终元数据?: Record<string, unknown>): void {
+    const 跨度 = this.活跃跨度表.get(跨度编号)
+    if (!跨度) return
 
-    const endTime = BigInt(Date.now())
-    span.endTime = endTime
-    span.status = status ?? 'ok'
+    const 结束时刻 = BigInt(Date.now())
+    跨度.endTime = 结束时刻
+    跨度.status = 状态 ?? 'ok'
 
-    if (finalMetadata) {
-      span.metadata = { ...span.metadata, ...finalMetadata }
+    if (最终元数据) {
+      跨度.metadata = { ...跨度.metadata, ...最终元数据 }
     }
 
-    const perfStart = this.perfStartTimes.get(spanId) ?? 0
-    const duration = Math.round((performance.now() - perfStart) * 1000)
+    const 性能起始 = this.性能起始时刻表.get(跨度编号) ?? 0
+    const 持续时长 = Math.round((performance.now() - 性能起始) * 1000)
 
-    this.activeSpans.delete(spanId)
-    this.completedSpans.push(span)
-    this.perfStartTimes.delete(spanId)
+    this.活跃跨度表.delete(跨度编号)
+    this.已完成跨度表.push(跨度)
+    this.性能起始时刻表.delete(跨度编号)
 
-    this.环形缓冲.write('info', 日志分类.Runtime, `[span:end] ${span.name}`, { spanId, duration }, spanId)
+    this.环形缓冲.写入(
+      'info',
+      日志分类.运行时分类,
+      `[span:end] ${跨度.name}`,
+      { spanId: 跨度编号, duration: 持续时长 },
+      跨度编号
+    )
   }
 
-  getCurrentSpan(): 跨度 | null {
-    if (this.activeSpans.size === 0) return null
-    let innermost: 跨度 | null = null
-    let maxId = -1
-    for (const span of this.activeSpans.values()) {
-      if (span.spanId > maxId) {
-        maxId = span.spanId
-        innermost = span
+  获取当前跨度(): 跨度 | null {
+    if (this.活跃跨度表.size === 0) return null
+    let 最内层: 跨度 | null = null
+    let 最大编号 = -1
+    for (const 跨度 of this.活跃跨度表.values()) {
+      if (跨度.spanId > 最大编号) {
+        最大编号 = 跨度.spanId
+        最内层 = 跨度
       }
     }
-    return innermost
+    return 最内层
   }
 
-  getSpans(): 跨度[] {
-    return [...this.activeSpans.values(), ...this.completedSpans]
+  获取跨度表(): 跨度[] {
+    return [...this.活跃跨度表.values(), ...this.已完成跨度表]
   }
 
-  prune(): void {
-    if (this.completedSpans.length > 100) {
-      this.completedSpans = this.completedSpans.slice(-100)
+  修剪(): void {
+    if (this.已完成跨度表.length > 100) {
+      this.已完成跨度表 = this.已完成跨度表.slice(-100)
     }
   }
 
-  private resolveTraceId(spanId: number): number {
-    const span = this.activeSpans.get(spanId) ?? this.completedSpans.find((s) => s.spanId === spanId)
-    if (!span) return spanId
-    if (span.parentSpanId === null) return span.spanId
-    const parent =
-      this.activeSpans.get(span.parentSpanId) ?? this.completedSpans.find((s) => s.spanId === span.parentSpanId)
-    if (parent) return parent.traceId
-    return this.resolveTraceId(span.parentSpanId)
+  private 解析追踪编号(跨度编号: number): number {
+    const 跨度 = this.活跃跨度表.get(跨度编号) ?? this.已完成跨度表.find((s) => s.spanId === 跨度编号)
+    if (!跨度) return 跨度编号
+    if (跨度.parentSpanId === null) return 跨度.spanId
+    const 父级 = this.活跃跨度表.get(跨度.parentSpanId) ?? this.已完成跨度表.find((s) => s.spanId === 跨度.parentSpanId)
+    if (父级) return 父级.traceId
+    return this.解析追踪编号(跨度.parentSpanId)
   }
 }
 
-export function withSpan<T>(
+export function 包裹跨度<T>(
   追踪器实例: 追踪器,
   name: string,
-  fn: () => Promise<T>,
-  metadata?: Record<string, unknown>
+  函数: () => Promise<T>,
+  元数据?: Record<string, unknown>
 ): Promise<T> {
-  const spanId = 追踪器实例.startSpan(name, undefined, metadata)
-  return fn()
-    .then((result) => {
-      追踪器实例.endSpan(spanId, 'ok')
-      return result
+  const 跨度编号 = 追踪器实例.开始跨度(name, undefined, 元数据)
+  return 函数()
+    .then((结果) => {
+      追踪器实例.结束跨度(跨度编号, 'ok')
+      return 结果
     })
-    .catch((err) => {
-      追踪器实例.endSpan(spanId, 'error')
-      throw err
+    .catch((错误) => {
+      追踪器实例.结束跨度(跨度编号, 'error')
+      throw 错误
     })
 }

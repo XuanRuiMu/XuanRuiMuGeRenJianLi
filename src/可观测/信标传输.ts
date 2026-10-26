@@ -4,59 +4,56 @@ import type { 日志存储 } from './持久化'
 import { 解析可信上报端点 } from './上报端点校验'
 
 const 默认间隔 = 30000
-const DEFAULT_ENDPOINT = '/api/可观测/logs'
+const 默认端点 = '/api/可观测/logs'
 
 export class 信标传输 {
-  private store: 日志存储
-  private endpoint: string
-  private timer: ReturnType<typeof setInterval> | null = null
-  private _running = false
+  private 仓库: 日志存储
+  private 端点: string
+  private 定时器: ReturnType<typeof setInterval> | null = null
+  private 运行中 = false
 
-  constructor(_ringBuffer: 环形缓冲, store: 日志存储, endpoint?: string) {
-    this.store = store
-    // 外部输入（env 覆盖）必须过可信性校验，不信任则回落同源默认端点
-    this.endpoint =
-      解析可信上报端点(
-        endpoint ?? (import.meta as { env?: Record<string, string> }).env?.VITE_OBSERVABILITY_ENDPOINT
-      ) ?? DEFAULT_ENDPOINT
+  constructor(_环形缓冲: 环形缓冲, 仓库: 日志存储, 端点?: string) {
+    this.仓库 = 仓库
+
+    this.端点 =
+      解析可信上报端点(端点 ?? (import.meta as { env?: Record<string, string> }).env?.VITE_OBSERVABILITY_ENDPOINT) ??
+      默认端点
   }
 
-  start(intervalMs: number = 默认间隔): void {
-    if (this._running) return
-    this._running = true
-    this.timer = setInterval(() => {
-      this.flush()
-    }, intervalMs)
+  开始(间隔毫秒: number = 默认间隔): void {
+    if (this.运行中) return
+    this.运行中 = true
+    this.定时器 = setInterval(() => {
+      this.刷新()
+    }, 间隔毫秒)
   }
 
-  stop(): void {
-    this._running = false
-    if (this.timer !== null) {
-      clearInterval(this.timer)
-      this.timer = null
+  停止(): void {
+    this.运行中 = false
+    if (this.定时器 !== null) {
+      clearInterval(this.定时器)
+      this.定时器 = null
     }
   }
 
-  async flush(): Promise<void> {
+  async 刷新(): Promise<void> {
     try {
-      const entries = await this.store.getUnreportedEntries()
-      if (entries.length === 0) return
+      const 条目表 = await this.仓库.获取未上报条目()
+      if (条目表.length === 0) return
 
-      const plain = entries.map((e) => ({ ...e, timestamp: Number(e.timestamp) }))
-      const encoded = encode(plain)
-      const blob = new Blob([encoded], { type: 'application/msgpack' })
-      const sent = navigator.sendBeacon(this.endpoint, blob)
+      const 明文 = 条目表.map((e) => ({ ...e, timestamp: Number(e.timestamp) }))
+      const 已编码 = encode(明文)
+      const 数据块 = new Blob([已编码], { type: 'application/msgpack' })
+      const 已发送 = navigator.sendBeacon(this.端点, 数据块)
 
-      if (sent) {
-        const ids = (entries as (日志条目 & { id?: string })[])
+      if (已发送) {
+        const 编号表 = (条目表 as (日志条目 & { id?: string })[])
           .map((e) => (e as { id?: string }).id)
           .filter((id): id is string => id !== undefined)
-        if (ids.length > 0) {
-          await this.store.markReported(ids)
+        if (编号表.length > 0) {
+          await this.仓库.标记已上报(编号表)
         }
       }
-    } catch {
-      // 静默失败：后台上报不应影响主流程
-    }
+    } catch {}
   }
 }

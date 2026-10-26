@@ -4,100 +4,100 @@ import { 共享意图表 } from './意图表'
 import type { 界面组件 } from './结构化输出'
 import { 个人信息 } from '../数据/个人信息'
 import { 求职方向 } from '../数据/职业方向'
-import { t, type TranslationKey } from '../国际化/翻译'
+import { t, type 翻译键 } from '../国际化/翻译'
 
 describe('localEngine', () => {
   it('returns text answer for name question', () => {
-    const result = 取本地答案('你叫什么')
-    expect(result.role).toBe('assistant')
-    expect(result.content).toContain(个人信息.name)
-    expect(result.component).toBeUndefined()
+    const 结果 = 取本地答案('你叫什么')
+    expect(结果.role).toBe('assistant')
+    expect(结果.content).toContain(个人信息.name)
+    expect(结果.组件).toBeUndefined()
   })
 
   it('returns ContactLinks for contact question', () => {
-    const result = 取本地答案('联系方式')
-    expect(result.content).not.toContain(个人信息.email)
-    expect(result.content).not.toContain(个人信息.phone)
-    expect(result.component).toEqual({ type: 'ContactLinks' })
+    const 结果 = 取本地答案('联系方式')
+    expect(结果.content).not.toContain(个人信息.邮箱)
+    expect(结果.content).not.toContain(个人信息.电话)
+    expect(结果.组件).toEqual({ type: 'ContactLinks' })
   })
 
   it('qq微信手机稳定命中ContactLinks且无直给', () => {
     for (const q of ['怎么联系你', '你的微信是多少', 'qq多少', '手机号多少', '邮箱是什么']) {
-      const result = 取本地答案(q)
-      expect(result.component).toEqual({ type: 'ContactLinks' })
-      expect(result.content).not.toContain(个人信息.email)
-      expect(result.content).not.toContain(个人信息.phone)
+      const 结果 = 取本地答案(q)
+      expect(结果.组件).toEqual({ type: 'ContactLinks' })
+      expect(结果.content).not.toContain(个人信息.邮箱)
+      expect(结果.content).not.toContain(个人信息.电话)
     }
   })
 
   it('github项目问法不被联系意图污染', () => {
-    const result = 取本地答案('你的github项目有哪些')
-    expect(result.component).not.toEqual({ type: 'ContactLinks' })
+    const 结果 = 取本地答案('你的github项目有哪些')
+    expect(结果.组件).not.toEqual({ type: 'ContactLinks' })
   })
 
   it('returns ProjectCard with xrm for project name question', () => {
-    const result = 取本地答案('介绍一下暮澜纪元')
-    expect(result.component).toEqual({ type: 'ProjectCard', projectId: 'xrm' })
+    const 结果 = 取本地答案('介绍一下暮澜纪元')
+    expect(结果.组件).toEqual({ type: 'ProjectCard', 项目编号: 'xrm' })
   })
 
   it('detects lovewithme project from input', () => {
-    const result = 取本地答案('介绍一下和我恋爱吧')
-    expect(result.component).toEqual({ type: 'ProjectCard', projectId: 'lovewithme' })
+    const 结果 = 取本地答案('介绍一下和我恋爱吧')
+    expect(结果.组件).toEqual({ type: 'ProjectCard', 项目编号: 'lovewithme' })
   })
 
   it('羊来问法落到羊来项目卡片', () => {
-    const result = 取本地答案('羊来是做什么的')
-    expect(result.component).toEqual({ type: 'ProjectCard', projectId: 'yangLai' })
+    const 结果 = 取本地答案('羊来是做什么的')
+    expect(结果.组件).toEqual({ type: 'ProjectCard', 项目编号: 'yangLai' })
   })
 
   it('detects aiConsole project from input', () => {
-    const result = 取本地答案('介绍一下循环工程skill')
-    expect(result.component).toEqual({ type: 'ProjectCard', projectId: 'aiConsole' })
+    const 结果 = 取本地答案('介绍一下循环工程skill')
+    expect(结果.组件).toEqual({ type: 'ProjectCard', 项目编号: 'aiConsole' })
   })
 
   it('returns skills text answer (no component) for skill question', () => {
-    const result = 取本地答案('你的技术栈')
-    expect(result.role).toBe('assistant')
-    expect(result.component).toBeUndefined()
+    const 结果 = 取本地答案('你的技术栈')
+    expect(结果.role).toBe('assistant')
+    expect(结果.组件).toBeUndefined()
   })
 
   it('returns Timeline with education scope for education question', () => {
-    const result = 取本地答案('教育背景')
-    expect(result.component).toEqual({ type: 'Timeline', scope: 'education' })
+    const 结果 = 取本地答案('教育背景')
+    expect(结果.组件).toEqual({ type: 'Timeline', scope: 'education' })
   })
 
   it('returns Timeline with experience scope for experience question', () => {
-    const result = 取本地答案('工作经历')
-    expect(result.component).toEqual({ type: 'Timeline', scope: 'experience' })
+    const 结果 = 取本地答案('工作经历')
+    expect(结果.组件).toEqual({ type: 'Timeline', scope: 'experience' })
   })
 
   it('returns fallback text for unknown question', () => {
-    const result = 取本地答案('宇宙终极答案')
-    expect(result.content).not.toContain(个人信息.email)
-    expect(result.content).not.toContain(个人信息.phone)
-    expect(result.component).toBeUndefined()
+    const 结果 = 取本地答案('宇宙终极答案')
+    expect(结果.content).not.toContain(个人信息.邮箱)
+    expect(结果.content).not.toContain(个人信息.电话)
+    expect(结果.组件).toBeUndefined()
   })
 
   it('问候语返回问候终态而非没准备答案（你好/您好/hi/hello）', () => {
     const 期望问候 = t('chat.answers.greeting')
     for (const q of ['你好', '您好', 'hi', 'hello']) {
-      const result = 取本地答案(q)
-      expect(result.role).toBe('assistant')
-      expect(result.content).toBe(期望问候)
-      expect(result.content).not.toContain('没准备答案')
-      expect(result.component).toBeUndefined()
+      const 结果 = 取本地答案(q)
+      expect(结果.role).toBe('assistant')
+      expect(结果.content).toBe(期望问候)
+      expect(结果.content).not.toContain('没准备答案')
+      expect(结果.组件).toBeUndefined()
     }
   })
 
   it('谢谢返回感谢终态', () => {
-    const result = 取本地答案('谢谢')
-    expect(result.content).toBe(t('chat.answers.thanks'))
-    expect(result.content).not.toContain('没准备答案')
+    const 结果 = 取本地答案('谢谢')
+    expect(结果.content).toBe(t('chat.answers.thanks'))
+    expect(结果.content).not.toContain('没准备答案')
   })
 
   it('再见返回告别终态', () => {
-    const result = 取本地答案('再见')
-    expect(result.content).toBe(t('chat.answers.farewell'))
+    const 结果 = 取本地答案('再见')
+    expect(结果.content).toBe(t('chat.answers.farewell'))
   })
 })
 
@@ -105,13 +105,13 @@ describe('本地兜底答非所问根因（FP-04b）：只认话题独占的问�
   const 诚实兜底 = t('chat.answers.fallback')
 
   function 期望答案(key: 'name' | 'target' | 'contact' | 'projects' | 'skills' | 'education' | 'experience'): string {
-    return t(`chat.answers.${key}` as unknown as TranslationKey)
+    return t(`chat.answers.${key}` as unknown as 翻译键)
       .replace('{name}', 个人信息.name)
       .replace('{direction}', 求职方向())
-      .replace('{school}', 个人信息.教育背景.school)
-      .replace('{major}', 个人信息.教育背景.major)
-      .replace('{degree}', 个人信息.教育背景.degree)
-      .replace('{period}', 个人信息.教育背景.period)
+      .replace('{school}', 个人信息.教育背景.学校)
+      .replace('{major}', 个人信息.教育背景.专业)
+      .replace('{degree}', 个人信息.教育背景.学位)
+      .replace('{period}', 个人信息.教育背景.周期)
   }
 
   const 答非所问句 = [
@@ -136,55 +136,55 @@ describe('本地兜底答非所问根因（FP-04b）：只认话题独占的问�
   const 真实简历意图问句: Array<{
     问句: string
     key: 'name' | 'target' | 'contact' | 'projects' | 'skills' | 'education' | 'experience'
-    component?: 界面组件
+    组件?: 界面组件
   }> = [
     { 问句: '你是谁', key: 'name' },
     { 问句: '你的目标岗位是什么', key: 'target' },
-    { 问句: '介绍项目', key: 'projects', component: { type: 'ProjectCard', projectId: 'xrm' } },
-    { 问句: '分享项目', key: 'projects', component: { type: 'ProjectCard', projectId: 'xrm' } },
-    { 问句: '讲解项目', key: 'projects', component: { type: 'ProjectCard', projectId: 'xrm' } },
-    { 问句: '说说项目', key: 'projects', component: { type: 'ProjectCard', projectId: 'xrm' } },
-    { 问句: '介绍项目经历', key: 'projects', component: { type: 'ProjectCard', projectId: 'xrm' } },
-    { 问句: '介绍项目经历', key: 'projects', component: { type: 'ProjectCard', projectId: 'xrm' } },
-    { 问句: '你做过哪些项目', key: 'projects', component: { type: 'ProjectCard', projectId: 'xrm' } },
-    { 问句: '你的作品有哪些', key: 'projects', component: { type: 'ProjectCard', projectId: 'xrm' } },
-    { 问句: '我的工作经历', key: 'experience', component: { type: 'Timeline', scope: 'experience' } },
-    { 问句: '有没有实习经历', key: 'experience', component: { type: 'Timeline', scope: 'experience' } },
-    { 问句: '教育背景', key: 'education', component: { type: 'Timeline', scope: 'education' } },
-    { 问句: '什么学历', key: 'education', component: { type: 'Timeline', scope: 'education' } },
-    { 问句: '他是哪个学校毕业的?', key: 'education', component: { type: 'Timeline', scope: 'education' } },
+    { 问句: '介绍项目', key: 'projects', 组件: { type: 'ProjectCard', 项目编号: 'xrm' } },
+    { 问句: '分享项目', key: 'projects', 组件: { type: 'ProjectCard', 项目编号: 'xrm' } },
+    { 问句: '讲解项目', key: 'projects', 组件: { type: 'ProjectCard', 项目编号: 'xrm' } },
+    { 问句: '说说项目', key: 'projects', 组件: { type: 'ProjectCard', 项目编号: 'xrm' } },
+    { 问句: '介绍项目经历', key: 'projects', 组件: { type: 'ProjectCard', 项目编号: 'xrm' } },
+    { 问句: '介绍项目经历', key: 'projects', 组件: { type: 'ProjectCard', 项目编号: 'xrm' } },
+    { 问句: '你做过哪些项目', key: 'projects', 组件: { type: 'ProjectCard', 项目编号: 'xrm' } },
+    { 问句: '你的作品有哪些', key: 'projects', 组件: { type: 'ProjectCard', 项目编号: 'xrm' } },
+    { 问句: '我的工作经历', key: 'experience', 组件: { type: 'Timeline', scope: 'experience' } },
+    { 问句: '有没有实习经历', key: 'experience', 组件: { type: 'Timeline', scope: 'experience' } },
+    { 问句: '教育背景', key: 'education', 组件: { type: 'Timeline', scope: 'education' } },
+    { 问句: '什么学历', key: 'education', 组件: { type: 'Timeline', scope: 'education' } },
+    { 问句: '他是哪个学校毕业的?', key: 'education', 组件: { type: 'Timeline', scope: 'education' } },
     { 问句: '你的技术栈', key: 'skills' },
     { 问句: '你擅长什么', key: 'skills' },
-    { 问句: '怎么联系你', key: 'contact', component: { type: 'ContactLinks' } },
-    { 问句: '你微信多少', key: 'contact', component: { type: 'ContactLinks' } },
-    { 问句: '邮箱是什么', key: 'contact', component: { type: 'ContactLinks' } },
-    { 问句: '介绍一下暮澜纪元', key: 'projects', component: { type: 'ProjectCard', projectId: 'xrm' } },
-    { 问句: '和我恋爱吧是做什么的', key: 'projects', component: { type: 'ProjectCard', projectId: 'lovewithme' } },
-    { 问句: '羊来是做什么的', key: 'projects', component: { type: 'ProjectCard', projectId: 'yangLai' } },
-    { 问句: '循环工程是什么', key: 'projects', component: { type: 'ProjectCard', projectId: 'aiConsole' } },
+    { 问句: '怎么联系你', key: 'contact', 组件: { type: 'ContactLinks' } },
+    { 问句: '你微信多少', key: 'contact', 组件: { type: 'ContactLinks' } },
+    { 问句: '邮箱是什么', key: 'contact', 组件: { type: 'ContactLinks' } },
+    { 问句: '介绍一下暮澜纪元', key: 'projects', 组件: { type: 'ProjectCard', 项目编号: 'xrm' } },
+    { 问句: '和我恋爱吧是做什么的', key: 'projects', 组件: { type: 'ProjectCard', 项目编号: 'lovewithme' } },
+    { 问句: '羊来是做什么的', key: 'projects', 组件: { type: 'ProjectCard', 项目编号: 'yangLai' } },
+    { 问句: '循环工程是什么', key: 'projects', 组件: { type: 'ProjectCard', 项目编号: 'aiConsole' } },
   ]
 
   it('答非所问类问句全部落到诚实兜底且不弹任何组件', () => {
     for (const 问句 of 答非所问句) {
-      const result = 取本地答案(问句)
-      expect(result.content, `「${问句}」应诚实兜底`).toBe(诚实兜底)
-      expect(result.component, `「${问句}」不应弹组件`).toBeUndefined()
+      const 结果 = 取本地答案(问句)
+      expect(结果.content, `「${问句}」应诚实兜底`).toBe(诚实兜底)
+      expect(结果.组件, `「${问句}」不应弹组件`).toBeUndefined()
     }
   })
 
   it('真实简历意图问句全部命中对应预制答案与组件契约', () => {
     for (const 项 of 真实简历意图问句) {
-      const result = 取本地答案(项.问句)
-      expect(result.content, `「${项.问句}」应给出 ${项.key} 预制答案`).toBe(期望答案(项.key))
-      expect(result.component, `「${项.问句}」组件契约不符`).toEqual(项.component)
+      const 结果 = 取本地答案(项.问句)
+      expect(结果.content, `「${项.问句}」应给出 ${项.key} 预制答案`).toBe(期望答案(项.key))
+      expect(结果.组件, `「${项.问句}」组件契约不符`).toEqual(项.组件)
     }
   })
 
   it('联系方式预制答案不直给邮箱与电话', () => {
     for (const 问句 of ['联系方式', '怎么联系你', '你的微信是多少', '邮箱是什么']) {
-      const result = 取本地答案(问句)
-      expect(result.content).not.toContain(个人信息.email)
-      expect(result.content).not.toContain(个人信息.phone)
+      const 结果 = 取本地答案(问句)
+      expect(结果.content).not.toContain(个人信息.邮箱)
+      expect(结果.content).not.toContain(个人信息.电话)
     }
   })
 })
@@ -203,9 +203,9 @@ describe('兜底意图与预制答案的一致性不变量（FP-04b：不留死�
   it('每条兜底触发词都能产出非诚实兜底的预制答案', () => {
     for (const 定义 of 共享意图表) {
       for (const 词 of 定义.兜底触发词) {
-        const result = 取本地答案(词)
-        expect(result.content, `触发词「${词}」命中了意图却落回诚实兜底`).not.toBe(诚实兜底)
-        expect(result.content.length).toBeGreaterThan(0)
+        const 结果 = 取本地答案(词)
+        expect(结果.content, `触发词「${词}」命中了意图却落回诚实兜底`).not.toBe(诚实兜底)
+        expect(结果.content.length).toBeGreaterThan(0)
       }
     }
   })
@@ -249,12 +249,11 @@ describe('选择组件：在线与本地兜底共用的唯一组件判定（单�
       '我不想公开联系方式',
     ]
     for (const 问句 of 问句集) {
-      expect(选择组件(问句), `「${问句}」组件判定与本地兜底分叉`).toEqual(取本地答案(问句).component)
+      expect(选择组件(问句), `「${问句}」组件判定与本地兜底分叉`).toEqual(取本地答案(问句).组件)
     }
   })
 
   it('否定句与比较句不挂组件（模型会按提示词说「简历未体现」，卡片会与正文自相矛盾）', () => {
-    // 这组反例来自独立盲区审计对真实模块的实测，修复前全部会挂上矛盾卡片
     for (const 问句 of [
       '我没做过什么项目，能胜任大厂前端吗',
       '我没有工作经验，能做前端吗',
@@ -268,8 +267,8 @@ describe('选择组件：在线与本地兜底共用的唯一组件判定（单�
 
   it('闸门只挡组件不挡答案（访客说「我没做过项目」问的是他自己，答案不矛盾）', () => {
     const 结果 = 取本地答案('我没做过什么项目，能胜任大厂前端吗')
-    expect(结果.component).toBeUndefined()
-    // 答案仍是项目类预制文案（人称上不矛盾），不是诚实兜底
+    expect(结果.组件).toBeUndefined()
+
     expect(结果.content).toContain('暮澜纪元')
   })
 
@@ -278,23 +277,22 @@ describe('选择组件：在线与本地兜底共用的唯一组件判定（单�
   })
 
   it('通用连接词「还是/相比」不得当成否定（复审实测误伤的真卡片）', () => {
-    // 这组来自复审对真实模块的实测：收进闸门会把真卡片一起挡掉
     expect(选择组件('微信还是邮箱都行，怎么联系你')).toEqual({ type: 'ContactLinks' })
-    expect(选择组件('相比之下，你做过哪些项目')).toEqual({ type: 'ProjectCard', projectId: 'xrm' })
+    expect(选择组件('相比之下，你做过哪些项目')).toEqual({ type: 'ProjectCard', 项目编号: 'xrm' })
     expect(选择组件('相比之下你的教育背景如何')).toEqual({ type: 'Timeline', scope: 'education' })
     expect(选择组件('我还是更关心项目，怎么联系你')).toEqual({ type: 'ContactLinks' })
   })
 
   it('组件被闸门抑制时联系方式文案不得承诺不存在的按钮（复审确认缺陷）', () => {
     const 结果 = 取本地答案('我不想公开联系方式，可以匿名联系吗')
-    expect(结果.component).toBeUndefined()
+    expect(结果.组件).toBeUndefined()
     expect(结果.content).toBe(t('chat.answers.contactNoButton' as never))
     expect(结果.content).not.toContain('点下方按钮')
   })
 
   it('未触发闸门时联系方式文案与按钮卡片同时给出', () => {
     const 结果 = 取本地答案('怎么联系你')
-    expect(结果.component).toEqual({ type: 'ContactLinks' })
+    expect(结果.组件).toEqual({ type: 'ContactLinks' })
     expect(结果.content).toBe(t('chat.answers.contact'))
   })
 

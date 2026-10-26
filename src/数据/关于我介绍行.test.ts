@@ -22,21 +22,21 @@ describe('FP-02 关于我结构化行', () => {
   })
 
   it('{{tone|…}} 标记解析为着色片段，纯文本不丢字', () => {
-    const 片段 = 解析片段(行表.l3.text)
-    expect(片段.map((段) => 段.tone)).toEqual(['plain', 'tech', 'plain'])
-    expect(片段.map((段) => 段.text).join('')).toBe(行表.l3.text.replace(/\{\{(tech|dim|accent)\|([^}]*)\}\}/g, '$2'))
-    expect(片段[1].text).toBe('能力边界')
+    const 片段 = 解析片段(行表.l2.text)
+    expect(片段.map((段) => 段.语气)).toEqual(['plain', 'tech', 'plain'])
+    expect(片段.map((段) => 段.text).join('')).toBe(行表.l2.text.replace(/\{\{(tech|dim|accent)\|([^}]*)\}\}/g, '$2'))
+    expect(片段[1].text).toBe('AutoGLM、Mimo-V2.5/2.6、Qwen2609')
   })
 
   it('第 4 行 dim/accent 片段按语义着色', () => {
     const 片段 = 解析片段(行表.l4.text)
-    const 色调 = Object.fromEntries(片段.map((段) => [段.text, 段.tone]))
-    expect(色调['“只能做样品”']).toBe('dim')
-    expect(色调['“可交付可落地的高质量产品”']).toBe('accent')
+    const 色调 = Object.fromEntries(片段.map((段) => [段.text, 段.语气]))
+    expect(色调['样品级产出']).toBe('dim')
+    expect(色调['可交付、可落地的高质量产品']).toBe('accent')
   })
 
   it('无标记文本整段 plain', () => {
-    expect(解析片段(行表.l1.text)).toEqual([{ text: 行表.l1.text, tone: 'plain' }])
+    expect(解析片段(行表.l1.text)).toEqual([{ text: 行表.l1.text, 语气: 'plain' }])
   })
 
   it('源码无 style 字段硬依赖', () => {

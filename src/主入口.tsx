@@ -1,19 +1,18 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './入口样式.css'
-import App from './应用/YingYong'
+import YingYongRuKou from './应用/YingYong'
 import { CuoWuBianJie } from './组件/错误边界'
 import { TiGongQi } from './应用/TiGongQi'
 import { 注册服务工作线程 } from './工具/注册服务工作线程'
 import { 初始化可观测性, 环形缓冲实例, 初始化控制台仪表盘 } from './可观测'
 
-// 根因修复（FP-03）：尽早禁用浏览器滚动恢复，避免硬刷新后停留在非顶部位置。
 if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual'
 }
 
-初始化可观测性().catch((err) => {
-  环形缓冲实例.write('error', 1, 'Observability init failed', { error: String(err) })
+初始化可观测性().catch((错误) => {
+  环形缓冲实例.写入('error', 1, 'Observability init failed', { error: String(错误) })
 })
 
 注册服务工作线程()
@@ -22,11 +21,10 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <CuoWuBianJie>
       <TiGongQi>
-        <App />
+        <YingYongRuKou />
       </TiGongQi>
     </CuoWuBianJie>
   </StrictMode>
 )
 
-// 调试能力已迁移至 F12 控制台（零 DOM 浮层），消费 环形缓冲实例 与 useYingYongZhuangTai
 初始化控制台仪表盘()

@@ -26,8 +26,6 @@ import {
 import { 展示行表, 暮澜链接 } from '../../数据/展示'
 import { t } from '../../国际化/翻译'
 
-// 固定高度残留检测：覆盖任意变体前缀（sm:/md:/2xl:/任意变体:，以冒号分隔）与 min-h-/max-h- 前缀。
-// 旧正则 (^|\s)(sm:|md:|lg:)?h-\[ 抓不到 min-h-[…] 与 max-h-[…]，死白同类残留会从检测缝里漏掉
 const 固定高度残留正则 = /(^|\s)([^\s:]+:)*(min-|max-)?h-\[/
 
 describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
@@ -43,7 +41,7 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
     const { 前缀段, 后缀段 } = 解析副标题段(副标题)
     const 容器 = document.querySelector('[data-showcase-subtitle]') as HTMLElement
     expect(容器).not.toBeNull()
-    // 逗号只作切分分隔符，渲染结果不带逗号
+
     expect(容器.textContent).toBe(`${前缀段.join('、')}${后缀段}`)
     expect(容器.textContent).not.toContain('，')
     for (const 短语 of ['设计', '教育', '艺术']) {
@@ -53,8 +51,8 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
   })
 
   it('副标题三短语各配不同渐变、文本仍来自翻译文件', () => {
-    const { container } = render(<ZhanShiBanKuai />)
-    const 容器 = container.querySelector('[data-showcase-subtitle]') as HTMLElement
+    const { container: 渲染容器 } = render(<ZhanShiBanKuai />)
+    const 容器 = 渲染容器.querySelector('[data-showcase-subtitle]') as HTMLElement
     const 切分 = 解析副标题段(t('showcase.subtitle'))
     expect(容器.textContent).toBe(`${切分.前缀段.join('、')}${切分.后缀段}`)
     const 渐变段 = Array.from(容器.querySelectorAll('span.bg-clip-text')) as HTMLElement[]
@@ -75,14 +73,14 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
     const 旧切分 = 解析副标题段('设计、教育、艺术，探索未至之境。')
     expect(旧切分.前缀段).toEqual(['设计', '教育', '艺术'])
     expect(旧切分.后缀段).toBe('探索未至之境')
-    const { container } = render(<ZhanShiBanKuai />)
-    const 容器 = container.querySelector('[data-showcase-subtitle]') as HTMLElement
+    const { container: 渲染容器 } = render(<ZhanShiBanKuai />)
+    const 容器 = 渲染容器.querySelector('[data-showcase-subtitle]') as HTMLElement
     expect(容器.textContent).toBe(`${前缀段.join('、')}${后缀段}`)
   })
 
   it('FP-05 后缀渲染为 DeepSeek 官网 h1 实测规格（深蓝纯色/居中块/无渐变）', () => {
-    const { container } = render(<ZhanShiBanKuai />)
-    const 后缀 = container.querySelector('[data-showcase-subtitle-suffix]') as HTMLElement
+    const { container: 容器 } = render(<ZhanShiBanKuai />)
+    const 后缀 = 容器.querySelector('[data-showcase-subtitle-suffix]') as HTMLElement
     expect(后缀).not.toBeNull()
     expect(后缀.textContent).toBe('探索未至之境')
     expect(后缀.textContent.startsWith('，')).toBe(false)
@@ -107,86 +105,84 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
 
   it('renders every card of all three rows', () => {
     render(<ZhanShiBanKuai />)
-    for (const row of 展示行表) {
-      for (const card of row.cards) {
-        // 每张逻辑卡片至少渲染一次（marquee 无缝循环渲染 份数 份相同卡片组）
-        expect(screen.getAllByText(t(card.titleKey)).length).toBeGreaterThanOrEqual(1)
-        expect(screen.getAllByText(t(card.descKey)).length).toBeGreaterThanOrEqual(1)
+    for (const 行 of 展示行表) {
+      for (const 卡片 of 行.卡片表) {
+        expect(screen.getAllByText(t(卡片.标题键)).length).toBeGreaterThanOrEqual(1)
+        expect(screen.getAllByText(t(卡片.描述键)).length).toBeGreaterThanOrEqual(1)
       }
     }
-    // 逻辑卡总数 × 最小份数（jsdom 无布局宽度，份数取下限；数据驱动，随showcaseRows扩展自动同步）
-    const expected = 展示行表.reduce((n, r) => n + r.cards.length, 0) * 最小份数
-    const cards = document.querySelectorAll('.group\\/card')
-    expect(cards).toHaveLength(expected)
+
+    const 期望值 = 展示行表.reduce((n, r) => n + r.卡片表.length, 0) * 最小份数
+    const 卡片表 = document.querySelectorAll('.group\\/card')
+    expect(卡片表).toHaveLength(期望值)
   })
 
   it('keeps original section anchors so navigation still works', () => {
     render(<ZhanShiBanKuai />)
     for (const id of ['education', 'design', 'media']) {
-      const anchor = document.getElementById(id)
-      expect(anchor).not.toBeNull()
+      const 锚点 = document.getElementById(id)
+      expect(锚点).not.toBeNull()
     }
   })
 
   it('ports the neon gradient border design on every card', () => {
     render(<ZhanShiBanKuai />)
-    // 逻辑卡总数 × 最小份数marquee轨道（数据驱动，随showcaseRows扩展自动同步）
-    const expected = 展示行表.reduce((n, r) => n + r.cards.length, 0) * 最小份数
-    const cards = document.querySelectorAll('.group\\/card')
-    expect(cards).toHaveLength(expected)
-    for (const card of cards) {
-      const border = card.querySelector('.bg-gradient-to-r') as HTMLElement
-      expect(border).not.toBeNull()
-      expect(border.className).toMatch(/shadow-\[0_0_30px_5px_rgba\(/)
-      const inner = border.firstElementChild as HTMLElement
-      expect(inner.className).toContain('bg-black')
+
+    const 期望值 = 展示行表.reduce((n, r) => n + r.卡片表.length, 0) * 最小份数
+    const 卡片表 = document.querySelectorAll('.group\\/card')
+    expect(卡片表).toHaveLength(期望值)
+    for (const 卡片 of 卡片表) {
+      const 边框 = 卡片.querySelector('.bg-gradient-to-r') as HTMLElement
+      expect(边框).not.toBeNull()
+      expect(边框.className).toMatch(/shadow-\[0_0_30px_5px_rgba\(/)
+      const 内部 = 边框.firstElementChild as HTMLElement
+      expect(内部.className).toContain('bg-black')
     }
   })
 
   it('renders the bilibili card as an external link and others as plain cards', () => {
     render(<ZhanShiBanKuai />)
-    const escapedTitle = t('showcase.cards.courses.title').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    // marquee 渲染 份数 份，故 bilibili 链接出现 份数 次，均应为外链
-    const links = screen.getAllByRole('link', { name: new RegExp(escapedTitle) })
-    expect(links.length).toBe(最小份数)
-    for (const link of links) {
-      expect(link).toHaveAttribute('target', '_blank')
-      expect(link).toHaveAttribute('href', 'https://space.bilibili.com/383504924')
+    const 已转义标题 = t('showcase.cards.courses.title').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+    const 链接表 = screen.getAllByRole('link', { name: new RegExp(已转义标题) })
+    expect(链接表.length).toBe(1)
+    for (const 链接 of 链接表) {
+      expect(链接).toHaveAttribute('target', '_blank')
+      expect(链接).toHaveAttribute('href', 'https://space.bilibili.com/383504924')
     }
 
-    const degreeTextNodes = screen.getAllByText(t('showcase.cards.degree.title'))
-    for (const node of degreeTextNodes) {
-      const degreeCard = node.closest('.group\\/card') as HTMLElement
-      expect(within(degreeCard).queryByRole('link')).toBeNull()
+    const 学位文本节点表 = screen.getAllByText(t('showcase.cards.degree.title'))
+    for (const 节点 of 学位文本节点表) {
+      const 学位卡片 = 节点.closest('.group\\/card') as HTMLElement
+      expect(within(学位卡片).queryByRole('link')).toBeNull()
     }
   })
 
   it('每排跑马灯使用不可收缩的完整周期副本，轨道由整块 3D 平面包裹', () => {
-    const { container } = render(<ZhanShiBanKuai />)
-    const 轨道表 = container.querySelectorAll('.showcase-marquee')
+    const { container: 容器 } = render(<ZhanShiBanKuai />)
+    const 轨道表 = 容器.querySelectorAll('.showcase-marquee')
     expect(轨道表).toHaveLength(4)
     for (const 轨道 of 轨道表) {
       expect(轨道.children.length).toBe(最小份数)
+      expect(轨道.children[0]).not.toHaveAttribute('inert')
+      for (let i = 1; i < 最小份数; i++) expect(轨道.children[i]).toHaveAttribute('inert')
       for (const 周期组 of 轨道.children) {
         expect(周期组.className).toContain('shrink-0')
       }
     }
-    // 入场 3D 倾斜挂在 perspective 直接子级的包裹层上（perspective 只作用于直接子级，
-    // 挂到单卡会退化为无透视仿射变换，整排卡片不再作为同一块平面倾斜）
-    const 包裹层 = container.querySelector('section[aria-label] > div > div[class*="preserve-3d"]')
+
+    const 包裹层 = 容器.querySelector('section[aria-label] > div > div[class*="preserve-3d"]')
     expect(包裹层).not.toBeNull()
     expect((包裹层 as HTMLElement).className).toContain('preserve-3d')
   })
 
   it('展示区外层无固定高度（高度由内容驱动，消除死白）并保留整体透视', () => {
-    const { container } = render(<ZhanShiBanKuai />)
-    const 外层 = container.querySelector('section[aria-label] > div') as HTMLElement
+    const { container: 容器 } = render(<ZhanShiBanKuai />)
+    const 外层 = 容器.querySelector('section[aria-label] > div') as HTMLElement
     expect(外层.className).not.toMatch(固定高度残留正则)
     expect(外层.style.height).toBe('')
     expect(外层.className).toContain('[perspective:1000px]')
-    // FP-06 尾部节奏契约：外层不得再有底部 padding（pb-40 是旧固定高度时代的尾部填充残留，
-    // 固定高度删除后已无职责）。现契约 = 末排 mb-20(80) + #contact py-16/md:py-24(96) ≈176px，
-    // 与站点其它区块的 BanKuai py 节奏一致
+
     expect(外层.className).not.toMatch(/(^|\s)([^\s:]+:)*pb-(\d|\[)/)
   })
 
@@ -202,7 +198,7 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
     ]) {
       expect(`relative flex ${残留} flex-col`).toMatch(固定高度残留正则)
     }
-    // 现存的合法类（任意值但非高度、非变体高度）不得被误伤
+
     expect(
       'relative flex flex-col antialiased [perspective:1000px] [transform-style:preserve-3d] z-[100] isolate'
     ).not.toMatch(固定高度残留正则)
@@ -218,14 +214,14 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
     })) as unknown as typeof window.matchMedia
 
     render(<ZhanShiBanKuai />)
-    // 逻辑卡总数 × 最小份数（reduced-motion下静止但仍渲染 最小份数 份，数据驱动）
-    const expected = 展示行表.reduce((n, r) => n + r.cards.length, 0) * 最小份数
-    const cards = document.querySelectorAll('.group\\/card')
-    expect(cards).toHaveLength(expected)
-    for (const card of cards) {
-      const el = card as HTMLElement
-      // 减少动效时不应注入 transform 行内样式（仅保留 drift 动画所需的 CSS 变量）
-      expect(el.style.transform).toBe('')
+
+    const 期望值 = 展示行表.reduce((n, r) => n + r.卡片表.length, 0) * 最小份数
+    const 卡片表 = document.querySelectorAll('.group\\/card')
+    expect(卡片表).toHaveLength(期望值)
+    for (const 卡片 of 卡片表) {
+      const 元素 = 卡片 as HTMLElement
+
+      expect(元素.style.transform).toBe('')
     }
     for (const 轨道 of document.querySelectorAll<HTMLElement>('.showcase-marquee')) {
       expect(轨道.style.transform).toBe('')
@@ -234,9 +230,9 @@ describe('ShowcaseSection（12-next-spline-3d HeroParallax 移植）', () => {
 
   it('renders every showcase row anchor so navigation still works', () => {
     render(<ZhanShiBanKuai />)
-    for (const row of 展示行表) {
-      const anchor = document.getElementById(row.anchorId)
-      expect(anchor).not.toBeNull()
+    for (const 行 of 展示行表) {
+      const 锚点 = document.getElementById(行.锚点编号)
+      expect(锚点).not.toBeNull()
     }
   })
 })
@@ -246,38 +242,38 @@ describe('FP-06探索板块重构：8视频与开源仓库可达', () => {
     cleanup()
   })
 
-  const 视频映射: Array<{ id: string; titleKey: Parameters<typeof t>[0]; href: string }> = [
-    { id: 'coding', titleKey: 'showcase.cards.coding.title', href: 'https://www.bilibili.com/video/BV11r421j7UV' },
-    { id: 'systems', titleKey: 'showcase.cards.systems.title', href: 'https://www.bilibili.com/video/BV1x36HYjEoA' },
-    { id: 'lowlevel', titleKey: 'showcase.cards.lowlevel.title', href: 'https://www.bilibili.com/video/BV1Cw4m1R7SN' },
-    { id: 'teaching', titleKey: 'showcase.cards.teaching.title', href: 'https://www.bilibili.com/video/BV1UYGy6rEmj' },
-    { id: 'assembly', titleKey: 'showcase.cards.assembly.title', href: 'https://www.bilibili.com/video/BV1ghmfYCELF' },
-    { id: 'arch', titleKey: 'showcase.cards.arch.title', href: 'https://www.bilibili.com/video/BV12TVfzfEVu' },
-    { id: 'marx', titleKey: 'showcase.cards.marx.title', href: 'https://www.bilibili.com/video/BV11m421K7vq' },
-    { id: 'comedy', titleKey: 'showcase.cards.comedy.title', href: 'https://www.bilibili.com/video/BV1vkDGY8Eyw' },
+  const 视频映射: Array<{ id: string; 标题键: Parameters<typeof t>[0]; href: string }> = [
+    { id: 'coding', 标题键: 'showcase.cards.coding.title', href: 'https://www.bilibili.com/video/BV11r421j7UV' },
+    { id: 'systems', 标题键: 'showcase.cards.systems.title', href: 'https://www.bilibili.com/video/BV1x36HYjEoA' },
+    { id: 'lowlevel', 标题键: 'showcase.cards.lowlevel.title', href: 'https://www.bilibili.com/video/BV1Cw4m1R7SN' },
+    { id: 'teaching', 标题键: 'showcase.cards.teaching.title', href: 'https://www.bilibili.com/video/BV1UYGy6rEmj' },
+    { id: 'assembly', 标题键: 'showcase.cards.assembly.title', href: 'https://www.bilibili.com/video/BV1ghmfYCELF' },
+    { id: 'arch', 标题键: 'showcase.cards.arch.title', href: 'https://www.bilibili.com/video/BV12TVfzfEVu' },
+    { id: 'marx', 标题键: 'showcase.cards.marx.title', href: 'https://www.bilibili.com/video/BV11m421K7vq' },
+    { id: 'comedy', 标题键: 'showcase.cards.comedy.title', href: 'https://www.bilibili.com/video/BV1vkDGY8Eyw' },
   ]
 
-  const 仓库映射: Array<{ id: string; titleKey: Parameters<typeof t>[0]; href: string; 仓库名?: string }> = [
+  const 仓库映射: Array<{ id: string; 标题键: Parameters<typeof t>[0]; href: string; 仓库名?: string }> = [
     {
       id: 'resumeTheater',
-      titleKey: 'showcase.cards.resumeTheater.title',
+      标题键: 'showcase.cards.resumeTheater.title',
       href: 'https://github.com/XuanRuiMu/XuanRuiMuGeRenJianLi',
     },
     {
       id: 'repoLoop',
-      titleKey: 'showcase.cards.repoLoop.title',
+      标题键: 'showcase.cards.repoLoop.title',
       href: 'https://github.com/XuanRuiMu/loop-engineering',
       仓库名: 'loop-engineering',
     },
     {
       id: 'repoLove',
-      titleKey: 'showcase.cards.repoLove.title',
+      标题键: 'showcase.cards.repoLove.title',
       href: 'https://github.com/XuanRuiMu/HeWoLianAiBa',
       仓库名: 'HeWoLianAiBa',
     },
     {
       id: 'repoData',
-      titleKey: 'showcase.cards.repoData.title',
+      标题键: 'showcase.cards.repoData.title',
       href: 'https://github.com/XuanRuiMu/LianAiBaGuanLiZhongXin',
       仓库名: 'LianAiBaGuanLiZhongXin',
     },
@@ -287,13 +283,13 @@ describe('FP-06探索板块重构：8视频与开源仓库可达', () => {
     render(<ZhanShiBanKuai />)
     expect(视频映射).toHaveLength(8)
     for (const 视频 of 视频映射) {
-      const escapedTitle = t(视频.titleKey).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-      const links = screen.getAllByRole('link', { name: new RegExp(escapedTitle) })
-      expect(links.length).toBeGreaterThanOrEqual(1)
-      for (const link of links) {
-        expect(link).toHaveAttribute('href', 视频.href)
-        expect(link).toHaveAttribute('target', '_blank')
-        const rel = link.getAttribute('rel') ?? ''
+      const 已转义标题 = t(视频.标题键).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const 链接表 = screen.getAllByRole('link', { name: new RegExp(已转义标题) })
+      expect(链接表.length).toBeGreaterThanOrEqual(1)
+      for (const 链接 of 链接表) {
+        expect(链接).toHaveAttribute('href', 视频.href)
+        expect(链接).toHaveAttribute('target', '_blank')
+        const rel = 链接.getAttribute('rel') ?? ''
         expect(rel).toContain('noopener')
         expect(rel).toContain('noreferrer')
       }
@@ -301,22 +297,22 @@ describe('FP-06探索板块重构：8视频与开源仓库可达', () => {
   })
 
   it('数据源中8视频href与卡片一一对应', () => {
-    const href卡片 = 展示行表.flatMap((row) => row.cards).filter((card) => card.href?.includes('bilibili.com/video/BV'))
+    const href卡片 = 展示行表.flatMap((行) => 行.卡片表).filter((卡片) => 卡片.href?.includes('bilibili.com/video/BV'))
     expect(href卡片).toHaveLength(8)
-    expect(new Set(href卡片.map((card) => card.href)).size).toBe(8)
+    expect(new Set(href卡片.map((卡片) => 卡片.href)).size).toBe(8)
   })
 
   it('GitHub仓库板块有源且外链新开', () => {
     render(<ZhanShiBanKuai />)
     for (const 仓库 of 仓库映射) {
-      if (仓库.仓库名 !== undefined) expect(t(仓库.titleKey)).toContain(仓库.仓库名)
-      const escapedTitle = t(仓库.titleKey).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-      const links = screen.getAllByRole('link', { name: new RegExp(escapedTitle) })
-      expect(links.length).toBeGreaterThanOrEqual(1)
-      for (const link of links) {
-        expect(link).toHaveAttribute('href', 仓库.href)
-        expect(link).toHaveAttribute('target', '_blank')
-        const rel = link.getAttribute('rel') ?? ''
+      if (仓库.仓库名 !== undefined) expect(t(仓库.标题键)).toContain(仓库.仓库名)
+      const 已转义标题 = t(仓库.标题键).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const 链接表 = screen.getAllByRole('link', { name: new RegExp(已转义标题) })
+      expect(链接表.length).toBeGreaterThanOrEqual(1)
+      for (const 链接 of 链接表) {
+        expect(链接).toHaveAttribute('href', 仓库.href)
+        expect(链接).toHaveAttribute('target', '_blank')
+        const rel = 链接.getAttribute('rel') ?? ''
         expect(rel).toContain('noopener')
         expect(rel).toContain('noreferrer')
       }
@@ -325,11 +321,11 @@ describe('FP-06探索板块重构：8视频与开源仓库可达', () => {
 
   it('展示区所有外链统一新开并带安全rel', () => {
     render(<ZhanShiBanKuai />)
-    const links = screen.getAllByRole('link')
-    expect(links.length).toBeGreaterThanOrEqual(1)
-    for (const link of links) {
-      expect(link).toHaveAttribute('target', '_blank')
-      const rel = link.getAttribute('rel') ?? ''
+    const 链接表 = screen.getAllByRole('link')
+    expect(链接表.length).toBeGreaterThanOrEqual(1)
+    for (const 链接 of 链接表) {
+      expect(链接).toHaveAttribute('target', '_blank')
+      const rel = 链接.getAttribute('rel') ?? ''
       expect(rel).toContain('noopener')
       expect(rel).toContain('noreferrer')
     }
@@ -343,27 +339,27 @@ describe('FP-06探索板块重构：8视频与开源仓库可达', () => {
   })
 
   it('FP-04：opensource行末羊来卡标题描述链接配图数据驱动', () => {
-    const media行 = 展示行表.find((row) => row.anchorId === 'media')
+    const media行 = 展示行表.find((行) => 行.锚点编号 === 'media')
     expect(media行).toBeDefined()
-    expect(media行?.cards.map((card) => card.id)).not.toContain('yanglai')
-    expect(media行?.cards).toHaveLength(4)
-    const opensource行 = 展示行表.find((row) => row.anchorId === 'opensource')
+    expect(media行?.卡片表.map((卡片) => 卡片.id)).not.toContain('yanglai')
+    expect(media行?.卡片表).toHaveLength(4)
+    const opensource行 = 展示行表.find((行) => 行.锚点编号 === 'opensource')
     expect(opensource行).toBeDefined()
-    expect(opensource行?.cards).toHaveLength(4)
-    const 羊来卡 = opensource行?.cards.at(-1)
+    expect(opensource行?.卡片表).toHaveLength(4)
+    const 羊来卡 = opensource行?.卡片表.at(-1)
     expect(羊来卡?.id).toBe('yanglai')
-    expect(羊来卡?.titleKey).toBe('showcase.cards.yanglai.title')
-    expect(羊来卡?.descKey).toBe('showcase.cards.yanglai.desc')
+    expect(羊来卡?.标题键).toBe('showcase.cards.yanglai.title')
+    expect(羊来卡?.描述键).toBe('showcase.cards.yanglai.desc')
     expect(羊来卡?.href).toBe('https://xuanruimu.github.io/YangLai/')
-    expect(羊来卡?.image).toBe('/showcase/羊来.png')
+    expect(羊来卡?.图片).toBe('/showcase/羊来.webp')
     expect(t('showcase.cards.yanglai.title')).toBe('羊来')
     expect(t('showcase.cards.yanglai.desc')).toBe('2026年动画电影《羊来》宣传直播间 · 3D互动整蛊舞台')
-    expect(fs.existsSync(path.resolve('public/showcase/羊来.png'))).toBe(true)
-    expect(fs.existsSync(path.resolve('public/showcase', `${String.fromCharCode(0x8702, 0x6765)}.png`))).toBe(false)
+    expect(fs.existsSync(path.resolve('public/showcase/羊来.webp'))).toBe(true)
+    expect(fs.existsSync(path.resolve('public/showcase', `${String.fromCharCode(0x8702, 0x6765)}.webp`))).toBe(false)
   })
 
   it('每张展示卡都有专属图标映射，缺映射必须显式失败而非静默退化', () => {
-    const 全部卡id = 展示行表.flatMap((row) => row.cards.map((card) => card.id))
+    const 全部卡id = 展示行表.flatMap((行) => 行.卡片表.map((卡片) => 卡片.id))
     expect(全部卡id.length).toBeGreaterThan(0)
     const 缺映射 = 全部卡id.filter((id) => !(id in 卡片图标表))
     expect(缺映射).toEqual([])
@@ -374,13 +370,13 @@ describe('FP-06探索板块重构：8视频与开源仓库可达', () => {
 
   it('FP-04：羊来卡外链新开并带安全rel', () => {
     render(<ZhanShiBanKuai />)
-    const escapedTitle = t('showcase.cards.yanglai.title').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    const links = screen.getAllByRole('link', { name: new RegExp(escapedTitle) })
-    expect(links.length).toBeGreaterThanOrEqual(1)
-    for (const link of links) {
-      expect(link).toHaveAttribute('href', 'https://xuanruimu.github.io/YangLai/')
-      expect(link).toHaveAttribute('target', '_blank')
-      const rel = link.getAttribute('rel') ?? ''
+    const 已转义标题 = t('showcase.cards.yanglai.title').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const 链接表 = screen.getAllByRole('link', { name: new RegExp(已转义标题) })
+    expect(链接表.length).toBeGreaterThanOrEqual(1)
+    for (const 链接 of 链接表) {
+      expect(链接).toHaveAttribute('href', 'https://xuanruimu.github.io/YangLai/')
+      expect(链接).toHaveAttribute('target', '_blank')
+      const rel = 链接.getAttribute('rel') ?? ''
       expect(rel).toContain('noopener')
       expect(rel).toContain('noreferrer')
     }
@@ -388,9 +384,9 @@ describe('FP-06探索板块重构：8视频与开源仓库可达', () => {
 
   it('FP-01：xrmUi与gameWorld展示卡均为指定暮澜链接', () => {
     expect(暮澜链接).toBe('https://github.com/XuanRuiMu/XRMChaJian')
-    const 所有卡片 = 展示行表.flatMap((row) => row.cards)
-    const 展示暮澜 = 所有卡片.find((card) => card.id === 'xrmUi')
-    const 游戏世界 = 所有卡片.find((card) => card.id === 'gameWorld')
+    const 所有卡片 = 展示行表.flatMap((行) => 行.卡片表)
+    const 展示暮澜 = 所有卡片.find((卡片) => 卡片.id === 'xrmUi')
+    const 游戏世界 = 所有卡片.find((卡片) => 卡片.id === 'gameWorld')
     expect(展示暮澜?.href).toBe('https://github.com/XuanRuiMu/XRMChaJian')
     expect(游戏世界?.href).toBe('https://github.com/XuanRuiMu/XRMChaJian')
   })
@@ -528,11 +524,6 @@ describe('跑马灯滚动联动与暂停语义', () => {
   })
 
   it('副本数钉死字面金值（覆盖视口变化与非法输入）', () => {
-    // 金值来源=「轨道两侧各余一整组」不变量（端部余量组数=1 ⇒ 最小份数=2*1+1=3，
-    // 份数 ≥ ceil(视口/组宽)+3 保证左余量+可见窗口+右余量+回绕承接全覆盖）。
-    // 这里是显式字面反例断言而非复制实现公式：任何人把 端部余量组数 归零或改动基准，
-    // 至少一条字面断言必须变红（例如 端部余量组数=0 时 计算份数(0,500)=1≠3、(1024,500)=4≠6，
-    // 且循环内 份数*500 ≤ 视口+999 < 视口+1000 必然击穿）
     expect(计算份数(1024, 500)).toBe(6)
     expect(计算份数(0, 500)).toBe(3)
     expect(计算份数(1024, 0)).toBe(3)
@@ -541,18 +532,13 @@ describe('跑马灯滚动联动与暂停语义', () => {
     for (const 视口 of [320, 768, 1024, 1440, 1920, 3840]) {
       const 份数 = 计算份数(视口, 500)
       expect(份数).toBeGreaterThanOrEqual(3)
-      // 总宽必须 ≥ 视口 + 左右各一整组（组宽 500 为字面值，不随常量取值而自洽放松）
+
       expect(份数 * 500).toBeGreaterThanOrEqual(视口 + 500 + 500)
     }
   })
 })
 
 describe('轨道两端余量不变量（真循环根因，字面金值锁死）', () => {
-  // 金值全部来自「可见窗口两侧各余一整组」不变量在 端部余量组数=1 下的实例：
-  //   轨道屏幕偏移 = -(归一化位移(位移,周期) + 周期*1) ⇒ 对任意位移恒 ∈ [-2*周期, -周期]，
-  //   位移=0 与位移=周期（回绕）两个极端都恰为 -周期；份数=ceil(视口/周期)+3。
-  // 全部用字面数字断言，任何人把基准偏移归零（写回 -位移）、把 端部余量组数 改成 0 或 2，
-  // 都必然击穿至少一条——不存在"公式与实现同构而改不动"的可能
   const 周期 = 1200
   const 视口宽 = 1440
 
@@ -566,8 +552,6 @@ describe('轨道两端余量不变量（真循环根因，字面金值锁死）'
   })
 
   it('任意位移下轨道最左完整组恒整体位于视口左缘之外（左余量≥1整组）', () => {
-    // 显式反例：基准偏移若被归零，轨道屏幕偏移(0,1200)=0 > -1200，本条等值断言立即变红；
-    // 端部余量组数 若被改成 2，位移带整体左移，>-2400 变红
     expect(轨道屏幕偏移(0, 周期)).toBe(-1200)
     for (let i = 0; i <= 24; i++) {
       const 位移 = (i / 24) * 周期
@@ -631,13 +615,12 @@ describe('跑马灯布局不变量测量', () => {
     vi.stubGlobal('requestAnimationFrame', () => 0)
     render(<ZhanShiBanKuai />)
     await waitFor(() => {
-      const expected = 展示行表.reduce((n, r) => n + r.cards.length, 0) * 6
-      expect(document.querySelectorAll('.group\\/card')).toHaveLength(expected)
+      const 期望值 = 展示行表.reduce((n, r) => n + r.卡片表.length, 0) * 6
+      expect(document.querySelectorAll('.group\\/card')).toHaveLength(期望值)
     })
     const 轨道 = document.querySelector('.showcase-marquee') as HTMLElement
     expect(轨道.children).toHaveLength(6)
-    // 视口 1024/组宽 500 → 份数=ceil(1024/500)+3=6；位移=0 时组件写入点必须等于
-    // -(0 + 500*1) = -500px（字面金值）。写入点若被改回 -位移 或丢掉端部余量基准，此处为 0px，必红
+
     expect(轨道.style.transform).toBe('translate3d(-500px, 0, 0)')
   })
 })
@@ -731,7 +714,7 @@ describe('FP-03跑马灯启停根因：意图输入与缓冲滚动解耦', () =>
     })) as unknown as typeof window.matchMedia
     const 添加 = vi.spyOn(window, 'addEventListener')
     const 移除 = vi.spyOn(window, 'removeEventListener')
-    const { unmount } = render(<ZhanShiBanKuai />)
+    const { unmount: 卸载 } = render(<ZhanShiBanKuai />)
     expect(添加).toHaveBeenCalledWith('wheel', expect.any(Function), expect.objectContaining({ passive: true }))
     expect(添加).toHaveBeenCalledWith('touchmove', expect.any(Function), expect.objectContaining({ passive: true }))
     expect(添加).toHaveBeenCalledWith('scroll', expect.any(Function), expect.objectContaining({ passive: true }))
@@ -741,7 +724,7 @@ describe('FP-03跑马灯启停根因：意图输入与缓冲滚动解耦', () =>
     window.dispatchEvent(new Event('scroll'))
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }))
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }))
-    unmount()
+    卸载()
     expect(移除).toHaveBeenCalledWith('wheel', expect.any(Function))
     expect(移除).toHaveBeenCalledWith('touchmove', expect.any(Function))
     expect(移除).toHaveBeenCalledWith('scroll', expect.any(Function))

@@ -4,54 +4,54 @@ import { useYingYongZhuangTai, 板块表, 板块顺序 } from './应用状态仓
 describe('useAppStore', () => {
   beforeEach(() => {
     useYingYongZhuangTai.setState({
-      activeSection: null,
-      theme: 'dark',
-      commandOpen: false,
-      chatOpen: false,
-      aiMessages: [],
-      aiThinking: 'high',
-      reducedMotion: false,
-      performanceMetrics: {},
-      frameMetrics: { fps: 0, p95: 0, avg: 0, downgradeCount: 0, upgradeCount: 0 },
+      活跃区块: null,
+      主题: 'dark',
+      命令面板打开: false,
+      聊天打开: false,
+      AI消息表: [],
+      AI思考强度: 'high',
+      减少动画: false,
+      性能指标: {},
+      帧指标: { fps: 0, p95: 0, avg: 0, 降档次数: 0, 升档次数: 0 },
     })
   })
 
   it('should have correct initial state', () => {
-    const state = useYingYongZhuangTai.getState()
-    expect(state.activeSection).toBeNull()
-    expect(state.theme).toBe('dark')
-    expect(state.commandOpen).toBe(false)
-    expect(state.chatOpen).toBe(false)
-    expect(state.aiMessages).toHaveLength(0)
-    expect(state.aiThinking).toBe('high')
+    const 状态 = useYingYongZhuangTai.getState()
+    expect(状态.活跃区块).toBeNull()
+    expect(状态.主题).toBe('dark')
+    expect(状态.命令面板打开).toBe(false)
+    expect(状态.聊天打开).toBe(false)
+    expect(状态.AI消息表).toHaveLength(0)
+    expect(状态.AI思考强度).toBe('high')
   })
 
   it('should set ai thinking intensity', () => {
-    const { setAiThinking } = useYingYongZhuangTai.getState()
-    setAiThinking('max')
-    expect(useYingYongZhuangTai.getState().aiThinking).toBe('max')
-    setAiThinking('off')
-    expect(useYingYongZhuangTai.getState().aiThinking).toBe('off')
+    const { 设置AI思考 } = useYingYongZhuangTai.getState()
+    设置AI思考('max')
+    expect(useYingYongZhuangTai.getState().AI思考强度).toBe('max')
+    设置AI思考('off')
+    expect(useYingYongZhuangTai.getState().AI思考强度).toBe('off')
   })
 
   it('should set active section', () => {
-    const { setActiveSection } = useYingYongZhuangTai.getState()
-    setActiveSection(板块表.HERO)
-    expect(useYingYongZhuangTai.getState().activeSection).toBe('hero')
+    const { 设置活跃区块 } = useYingYongZhuangTai.getState()
+    设置活跃区块(板块表.HERO)
+    expect(useYingYongZhuangTai.getState().活跃区块).toBe('hero')
   })
 
   it('should toggle command palette', () => {
-    const { toggleCommand } = useYingYongZhuangTai.getState()
-    toggleCommand()
-    expect(useYingYongZhuangTai.getState().commandOpen).toBe(true)
-    toggleCommand()
-    expect(useYingYongZhuangTai.getState().commandOpen).toBe(false)
+    const { 切换命令面板 } = useYingYongZhuangTai.getState()
+    切换命令面板()
+    expect(useYingYongZhuangTai.getState().命令面板打开).toBe(true)
+    切换命令面板()
+    expect(useYingYongZhuangTai.getState().命令面板打开).toBe(false)
   })
 
   it('should toggle chat', () => {
-    const { toggleChat } = useYingYongZhuangTai.getState()
-    toggleChat()
-    expect(useYingYongZhuangTai.getState().chatOpen).toBe(true)
+    const { 切换聊天 } = useYingYongZhuangTai.getState()
+    切换聊天()
+    expect(useYingYongZhuangTai.getState().聊天打开).toBe(true)
   })
 
   it('should have nine sections in order', () => {
@@ -63,31 +63,31 @@ describe('useAppStore', () => {
   })
 
   it('should set performance metrics', () => {
-    const { setPerformanceMetrics } = useYingYongZhuangTai.getState()
-    setPerformanceMetrics({ lcp: 1200, cls: 0.05 })
-    const state = useYingYongZhuangTai.getState()
-    expect(state.performanceMetrics.lcp).toBe(1200)
-    expect(state.performanceMetrics.cls).toBe(0.05)
+    const { 设置性能指标 } = useYingYongZhuangTai.getState()
+    设置性能指标({ lcp: 1200, cls: 0.05 })
+    const 状态 = useYingYongZhuangTai.getState()
+    expect(状态.性能指标.lcp).toBe(1200)
+    expect(状态.性能指标.cls).toBe(0.05)
   })
 
   it('should update one ai message in place for streaming progress', () => {
-    const { addAiMessage, updateAiMessage } = useYingYongZhuangTai.getState()
-    addAiMessage({ role: 'user', content: '流式问题' })
-    addAiMessage({ role: 'assistant', content: '' })
-    updateAiMessage(1, { reasoning: '思考一', content: '回答一' })
-    const state = useYingYongZhuangTai.getState()
-    expect(state.aiMessages).toHaveLength(2)
-    expect(state.aiMessages[0].content).toBe('流式问题')
-    expect(state.aiMessages[1].reasoning).toBe('思考一')
-    expect(state.aiMessages[1].content).toBe('回答一')
+    const { 添加AI消息, 更新AI消息 } = useYingYongZhuangTai.getState()
+    添加AI消息({ role: 'user', content: '流式问题' })
+    添加AI消息({ role: 'assistant', content: '' })
+    更新AI消息(1, { 思考内容: '思考一', content: '回答一' })
+    const 状态 = useYingYongZhuangTai.getState()
+    expect(状态.AI消息表).toHaveLength(2)
+    expect(状态.AI消息表[0].content).toBe('流式问题')
+    expect(状态.AI消息表[1].思考内容).toBe('思考一')
+    expect(状态.AI消息表[1].content).toBe('回答一')
   })
 
   it('should merge frame metrics', () => {
-    const { setFrameMetrics } = useYingYongZhuangTai.getState()
-    setFrameMetrics({ fps: 60, downgradeCount: 1 })
-    const state = useYingYongZhuangTai.getState()
-    expect(state.frameMetrics.fps).toBe(60)
-    expect(state.frameMetrics.downgradeCount).toBe(1)
-    expect(state.frameMetrics.upgradeCount).toBe(0)
+    const { 设置帧指标 } = useYingYongZhuangTai.getState()
+    设置帧指标({ fps: 60, 降档次数: 1 })
+    const 状态 = useYingYongZhuangTai.getState()
+    expect(状态.帧指标.fps).toBe(60)
+    expect(状态.帧指标.降档次数).toBe(1)
+    expect(状态.帧指标.升档次数).toBe(0)
   })
 })

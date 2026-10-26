@@ -138,9 +138,9 @@ function 并发打包(根, 数量) {
 
 describe('佐证材料 dist 防回归守卫', () => {
   it('public/佐证材料.zip 存在且非空', () => {
-    const zip = path.join(项目根, 'public', '佐证材料.zip')
-    expect(fs.existsSync(zip), '缺少 public/佐证材料.zip，请运行 python scripts/打包佐证材料.py').toBe(true)
-    expect(fs.statSync(zip).size).toBeGreaterThan(1_000_000)
+    const 压缩包 = path.join(项目根, 'public', '佐证材料.zip')
+    expect(fs.existsSync(压缩包), '缺少 public/佐证材料.zip，请运行 python scripts/打包佐证材料.py').toBe(true)
+    expect(fs.statSync(压缩包).size).toBeGreaterThan(1_000_000)
   })
 
   it('打包脚本审计判定逻辑自检（python --selftest）', { timeout: 60_000 }, () => {
@@ -250,7 +250,6 @@ describe('佐证材料 --仅打包（不重新脱敏）', () => {
     }
   })
 
-  // 已知覆盖缺口：该路径依赖 Windows 文件占用语义（占用中的 zip 无法被 os.replace 替换），ubuntu CI 无此语义故本用例恒 skip（加 windows matrix 成本过高）
   it.skipIf(process.platform !== 'win32')(
     '目标 zip 被占用时退出码 1 且给中文指引，旧 zip 不受损、无临时文件残留',
     { timeout: 120_000 },
@@ -292,9 +291,9 @@ describe('佐证材料 临时最小项目根（不触碰工作区 佐证材料/�
       const 详情 = `退出码=${结果.status}\nstdout:\n${结果.stdout}\nstderr:\n${结果.stderr}`
       expect(结果.status, `临时根内 --仅打包 应成功\n${详情}`).toBe(0)
       expect(结果.stdout, 详情).toContain('打包')
-      const zip = path.join(根, 'public', '佐证材料.zip')
-      expect(fs.existsSync(zip), 详情).toBe(true)
-      expect(fs.statSync(zip).size).toBeGreaterThan(1_000_000)
+      const 压缩包 = path.join(根, 'public', '佐证材料.zip')
+      expect(fs.existsSync(压缩包), 详情).toBe(true)
+      expect(fs.statSync(压缩包).size).toBeGreaterThan(1_000_000)
     } finally {
       fs.rmSync(根, { recursive: true, force: true })
     }
@@ -303,7 +302,6 @@ describe('佐证材料 临时最小项目根（不触碰工作区 佐证材料/�
   it('超龄残片清理是「双条件」：非本进程 pid 且 mtime 超龄才删；新残片与非匹配名一律保留', { timeout: 180_000 }, () => {
     const 根 = 建临时项目根()
     try {
-      /** 4294967 / 4294969 不可能是活进程 pid：Linux pid_max 上限为 4194304（2^22），Windows pid 恒为 4 的倍数（这两个是奇数） */
       const 老他进程 = '4294967'
       const 新他进程 = '4294969'
       const 超龄秒 = 2 * 60 * 60
@@ -354,8 +352,8 @@ describe('佐证材料 临时最小项目根（不触碰工作区 佐证材料/�
     try {
       const 串行 = 临时项目根打包(根)
       expect(串行.status, `临时根串行 --仅打包 应成功\n${串行.stderr}`).toBe(0)
-      const zip = path.join(根, 'public', '佐证材料.zip')
-      const 基准哈希 = 文件哈希(zip)
+      const 压缩包 = path.join(根, 'public', '佐证材料.zip')
+      const 基准哈希 = 文件哈希(压缩包)
       const 并发结果 = await 并发打包(根, 2)
       const 详情 = 并发结果
         .map((r, i) => `#${i} 退出码=${r.码}\nstdout:\n${r.标准输出}\nstderr:\n${r.错误输出}`)
@@ -364,8 +362,8 @@ describe('佐证材料 临时最小项目根（不触碰工作区 佐证材料/�
         expect(r.码, `并发 --仅打包 #${i} 应退出 0（旧的先删后写写法在此必失败）\n${详情}`).toBe(0)
         expect(r.错误输出, `并发 #${i} 不应报错\n${详情}`).toBe('')
       }
-      expect(fs.statSync(zip).size, 详情).toBeGreaterThan(1_000_000)
-      expect(文件哈希(zip), `并发打包后 zip 应与串行一致（未损坏）\n${详情}`).toBe(基准哈希)
+      expect(fs.statSync(压缩包).size, 详情).toBeGreaterThan(1_000_000)
+      expect(文件哈希(压缩包), `并发打包后 zip 应与串行一致（未损坏）\n${详情}`).toBe(基准哈希)
       expect(
         fs.readdirSync(path.join(根, 'public')).filter((名) => 名.endsWith('.tmp')),
         '临时文件必须清理干净'

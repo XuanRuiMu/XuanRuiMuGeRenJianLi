@@ -54,8 +54,6 @@ describe('Layout', () => {
       </BuJu>
     )
 
-    // 注：NavDock 组件已在先前工作中删除，导航现由 KeDiaoDaoHang 渲染（其契约见
-    // KeDiaoDaoHang.test.tsx，断言 nav-dock 不应存在）。此处仅校验全局覆盖层挂载。
     expect(document.getElementById('starry-gui-root')).toBeInTheDocument()
     expect(screen.getByTestId('theme-toggle')).toBeInTheDocument()
     expect(screen.getByTestId('command-palette')).toBeInTheDocument()

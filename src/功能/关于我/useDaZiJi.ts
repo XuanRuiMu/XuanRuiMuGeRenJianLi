@@ -1,33 +1,23 @@
 import { useEffect, useRef, useState } from 'react'
 
 export interface 打字机选项 {
-  /** 每一行完整的文本（按顺序拼接后与源文本一致） */
   每行文本: string[]
-  /** 是否开始打字：由 IntersectionObserver 在进入视口时置为 true */
+
   开始: boolean
-  /** 是否启用减少动画：为 true 时直接呈现全文，不播放打字 */
+
   减少动画?: boolean
-  /** 每个字符之间的间隔（毫秒） */
+
   每字毫秒?: number
 }
 
 export interface 打字机状态 {
-  /** 跨所有行累计已显示的字符数 */
   已显字符数: number
-  /** 全部文本的总字符数 */
+
   总长: number
-  /** 是否已全部打完 */
+
   已打完: boolean
 }
 
-/**
- * 零依赖打字机 hook：按时间片批量推进累计字符数，避免 setTimeout 逐字在
- * React 重渲染下被拖慢。组件按累计数裁剪每一行的可见子串，即可实现逐字、
- * 逐行、顺序揭示。卸载时取消动画帧，避免泄漏。
- *
- * 重置逻辑走 React 官方「props 变化时渲染期调整 state」模式（渲染期同步重置，
- * 而非 effect 内 setState），避免 set-state-in-effect 的级联重渲染。
- */
 export function useDaZiJi({ 每行文本, 开始, 减少动画 = false, 每字毫秒 = 48 }: 打字机选项): 打字机状态 {
   const 总长 = 每行文本.reduce((累计, 行) => 累计 + 行.length, 0)
   const 重置键 = `${减少动画 ? 1 : 0}|${开始 ? 1 : 0}|${总长}`

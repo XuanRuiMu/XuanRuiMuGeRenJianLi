@@ -9,12 +9,12 @@ describe('Tag', () => {
   })
 
   it('uses small text size', () => {
-    const { container } = render(<BiaoQian>react</BiaoQian>)
-    expect(container.firstChild).toHaveClass('text-[10px]')
+    const { container: 容器 } = render(<BiaoQian>react</BiaoQian>)
+    expect(容器.firstChild).toHaveClass('text-[10px]')
   })
 
   it('merges custom className', () => {
-    const { container } = render(<BiaoQian className="custom-tag">react</BiaoQian>)
-    expect(container.firstChild).toHaveClass('custom-tag')
+    const { container: 容器 } = render(<BiaoQian className="custom-tag">react</BiaoQian>)
+    expect(容器.firstChild).toHaveClass('custom-tag')
   })
 })

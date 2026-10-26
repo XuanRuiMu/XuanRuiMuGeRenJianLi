@@ -1,20 +1,18 @@
 import { useEffect, useState } from 'react'
+import { 读取初始明暗 } from '../../状态/应用状态仓库'
 
 export function useShiFouAnSe(): boolean {
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof document === 'undefined') return true
-    return document.documentElement.classList.contains('dark')
-  })
+  const [是深色, 设置是深色] = useState(() => 读取初始明暗() === 'dark')
 
   useEffect(() => {
     if (typeof document === 'undefined') return
-    const root = document.documentElement
-    const update = () => setIsDark(root.classList.contains('dark'))
-    update()
-    const observer = new MutationObserver(update)
-    observer.observe(root, { attributes: true, attributeFilter: ['class'] })
-    return () => observer.disconnect()
+    const 根元素 = document.documentElement
+    const 更新 = () => 设置是深色(根元素.classList.contains('dark'))
+    更新()
+    const 观察器 = new MutationObserver(更新)
+    观察器.observe(根元素, { attributes: true, attributeFilter: ['class'] })
+    return () => 观察器.disconnect()
   }, [])
 
-  return isDark
+  return 是深色
 }

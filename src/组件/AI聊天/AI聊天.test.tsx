@@ -2,36 +2,33 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, cleanup, act } from '@testing-library/react'
 import { AILiaoTian } from './AI聊天'
 import { useYingYongZhuangTai } from '../../状态/应用状态仓库'
-import { t, ta } from '../../国际化/翻译'
+import { t, 翻译数组 } from '../../国际化/翻译'
 
-const setChatOpen = vi.fn()
-const clearAiMessages = vi.fn()
-const mutateAsync = vi.fn()
-const mutationReset = vi.fn()
-const mockCompact = vi.fn()
-const setAiThinking = vi.fn()
-const setAiModel = vi.fn()
-const stashSession = vi.fn()
-const restoreSession = vi.fn()
+const 设置聊天打开 = vi.fn()
+const 清空AI消息 = vi.fn()
+const 执行异步变更 = vi.fn()
+const 重置变更 = vi.fn()
+const 模拟压缩 = vi.fn()
+const 设置AI思考 = vi.fn()
+const 设置AI模型 = vi.fn()
+const 暂存会话 = vi.fn()
+const 恢复会话 = vi.fn()
 
-// jsdom 未内置 Blob objectURL：stub 供预览与泄漏断言使用，afterEach 还原原生实现
-let objectUrlCounter = 0
-const createObjectURLMock = vi.fn(() => {
-  objectUrlCounter += 1
-  return `blob:mock-${objectUrlCounter}`
+let 对象地址计数 = 0
+const 模拟创建对象地址 = vi.fn(() => {
+  对象地址计数 += 1
+  return `blob:mock-${对象地址计数}`
 })
-const revokeObjectURLMock = vi.fn()
+const 模拟撤销对象地址 = vi.fn()
 const 原生CreateObjectURL = URL.createObjectURL
 const 原生RevokeObjectURL = URL.revokeObjectURL
 
-let mockAiMessages: Array<{ role: 'user' | 'assistant'; content: string; reasoning?: string }> = []
+let 模拟AI消息表: Array<{ role: 'user' | 'assistant'; content: string; 思考内容?: string }> = []
 
-// 模拟真实运行时的响应式：zustand store 变更与 react-query isPending 翻转都会触发重渲染，
-// mock 必须提供同等能力，否则测的是 mock 缺陷而非组件行为。
-const mockRuntime = vi.hoisted(() => ({ isPending: false, listeners: new Set<() => void>() }))
+const 模拟运行时 = vi.hoisted(() => ({ isPending: false, listeners: new Set<() => void>() }))
 
-function notifyMockState() {
-  mockRuntime.listeners.forEach((listener) => listener())
+function 通知模拟状态() {
+  模拟运行时.listeners.forEach((监听器) => 监听器())
 }
 
 vi.mock('../../状态/应用状态仓库', () => ({
@@ -42,66 +39,66 @@ vi.mock('../../智能/聊天服务', async () => {
   const { useEffect, useReducer } = await import('react')
   return {
     useLiaoTianFuWu: () => {
-      const [, forceRender] = useReducer((x: number) => x + 1, 0)
+      const [, 强制渲染] = useReducer((x: number) => x + 1, 0)
       useEffect(() => {
-        mockRuntime.listeners.add(forceRender)
+        模拟运行时.listeners.add(强制渲染)
         return () => {
-          mockRuntime.listeners.delete(forceRender)
+          模拟运行时.listeners.delete(强制渲染)
         }
       }, [])
       return {
-        mutateAsync,
+        mutateAsync: 执行异步变更,
         get isPending() {
-          return mockRuntime.isPending
+          return 模拟运行时.isPending
         },
-        reset: mutationReset,
+        reset: 重置变更,
         error: null,
       }
     },
-    压缩对话: (...args: unknown[]) => mockCompact(...args),
-    是否中断错误: (err: unknown) => err instanceof DOMException && err.name === 'AbortError',
+    压缩对话: (...参数: unknown[]) => 模拟压缩(...参数),
+    是否中断错误: (错误: unknown) => 错误 instanceof DOMException && 错误.name === 'AbortError',
   }
 })
 
-const mockUseAppStore = useYingYongZhuangTai as unknown as ReturnType<typeof vi.fn>
+const 模拟应用仓库 = useYingYongZhuangTai as unknown as ReturnType<typeof vi.fn>
 
-function createMockState(overrides: Record<string, unknown> = {}) {
+function 创建模拟状态(覆盖项: Record<string, unknown> = {}) {
   return {
-    chatOpen: false,
-    setChatOpen,
-    aiMessages: mockAiMessages,
-    aiModel: 'deepseek-v4.1-flash-expires-on-0910',
-    aiThinking: 'high',
-    stashedSession: [],
-    addAiMessage: vi.fn((message) => {
-      mockAiMessages.push(message)
-      notifyMockState()
+    聊天打开: false,
+    设置聊天打开,
+    AI消息表: 模拟AI消息表,
+    AI模型: 'deepseek-v4.1-flash-expires-on-0910',
+    AI思考强度: 'high',
+    暂存的会话: [],
+    添加AI消息: vi.fn((消息) => {
+      模拟AI消息表.push(消息)
+      通知模拟状态()
     }),
-    updateAiMessage: vi.fn((index: number, patch: Record<string, unknown>) => {
-      mockAiMessages[index] = { ...mockAiMessages[index], ...patch }
-      notifyMockState()
+    更新AI消息: vi.fn((下标: number, 补丁: Record<string, unknown>) => {
+      模拟AI消息表[下标] = { ...模拟AI消息表[下标], ...补丁 }
+      通知模拟状态()
     }),
-    clearAiMessages,
-    setAiModel,
-    stashSession,
-    restoreSession,
-    setAiThinking,
-    ...overrides,
+    清空AI消息,
+    设置AI模型,
+    暂存会话,
+    恢复会话,
+    设置AI思考,
+    ...覆盖项,
   }
 }
 
 describe('AIChat', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockAiMessages = []
-    mockRuntime.isPending = false
-    objectUrlCounter = 0
-    URL.createObjectURL = createObjectURLMock as unknown as typeof URL.createObjectURL
-    URL.revokeObjectURL = revokeObjectURLMock as unknown as typeof URL.revokeObjectURL
+    模拟AI消息表 = []
+    模拟运行时.isPending = false
+    对象地址计数 = 0
+    URL.createObjectURL = 模拟创建对象地址 as unknown as typeof URL.createObjectURL
+    URL.revokeObjectURL = 模拟撤销对象地址 as unknown as typeof URL.revokeObjectURL
     if (!Element.prototype.scrollIntoView) {
       Element.prototype.scrollIntoView = vi.fn()
     }
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) => selector(createMockState()))
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态()))
   })
 
   afterEach(() => {
@@ -120,13 +117,11 @@ describe('AIChat', () => {
   it('opens chat dialog when floating button clicked', () => {
     render(<AILiaoTian />)
     fireEvent.click(screen.getByRole('button', { name: t('ai.title') }))
-    expect(setChatOpen).toHaveBeenCalledWith(true)
+    expect(设置聊天打开).toHaveBeenCalledWith(true)
   })
 
   it('renders chat dialog with quick questions when open', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
     expect(screen.getByRole('dialog', { name: t('ai.title') })).toBeInTheDocument()
@@ -137,16 +132,14 @@ describe('AIChat', () => {
     expect(screen.getByTestId('welcome-full').textContent).toContain(t('ai.welcomeTitle'))
     expect(screen.getByTestId('welcome-full').textContent).toContain(t('ai.welcomeTitleSuffix'))
 
-    const quickQuestions = ta('ai.quickQuestions')
-    for (const question of quickQuestions) {
-      expect(screen.getByText(question)).toBeInTheDocument()
+    const 快捷问题表 = 翻译数组('ai.quickQuestions')
+    for (const 问题 of 快捷问题表) {
+      expect(screen.getByText(问题)).toBeInTheDocument()
     }
   })
 
   it('底部状态条显示 >> 模型·思考与切换提示', async () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
     const 状态条 = await screen.findByTestId('chat-status-line')
@@ -156,141 +149,130 @@ describe('AIChat', () => {
   })
 
   it('/think 按档循环思考强度并输出状态行', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true, aiThinking: 'high' }))
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(创建模拟状态({ 聊天打开: true, AI思考强度: 'high' }))
     )
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '/think' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '/think' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
-    expect(setAiThinking).toHaveBeenCalledWith('max')
+    expect(设置AI思考).toHaveBeenCalledWith('max')
     expect(screen.getByText(t('ai.thinkLevel').replace('{level}', 'max'))).toBeInTheDocument()
   })
 
-  /** 造一个指定大小的 File（jsdom 中 File.size 由内容长度决定，用 defineProperty 覆写） */
-  function 创建图片文件(type = 'image/png', size = 8): File {
-    const file = new File([new Uint8Array(8)], '测试图片.png', { type })
-    if (size !== 8) {
-      Object.defineProperty(file, 'size', { value: size })
+  function 创建图片文件(type = 'image/png', 尺寸 = 8): File {
+    const 文件 = new File([new Uint8Array(8)], '测试图片.png', { type })
+    if (尺寸 !== 8) {
+      Object.defineProperty(文件, 'size', { value: 尺寸 })
     }
-    return file
+    return 文件
   }
 
-  function 获取文件输入(container: HTMLElement): HTMLInputElement {
-    return container.querySelector('input[type="file"]') as HTMLInputElement
+  function 获取文件输入(容器: HTMLElement): HTMLInputElement {
+    return 容器.querySelector('input[type="file"]') as HTMLInputElement
   }
 
   it('非法类型的图片被忽略并提示上传失败', async () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
-    const { container } = render(<AILiaoTian />)
-    const fileInput = 获取文件输入(container)
-    Object.defineProperty(fileInput, 'files', { value: [创建图片文件('text/plain')] })
-    fireEvent.change(fileInput)
+    const { container: 容器 } = render(<AILiaoTian />)
+    const 文件输入 = 获取文件输入(容器)
+    Object.defineProperty(文件输入, 'files', { value: [创建图片文件('text/plain')] })
+    fireEvent.change(文件输入)
 
     expect(screen.getByText(t('ai.imageUploadFailed'))).toBeInTheDocument()
     expect(screen.queryByTestId('pending-images')).not.toBeInTheDocument()
   })
 
   it('超过单张大小上限的图片显示红字上传失败缩略图且不发送', async () => {
-    mutateAsync.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    执行异步变更.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
-    const { container } = render(<AILiaoTian />)
-    const fileInput = 获取文件输入(container)
-    Object.defineProperty(fileInput, 'files', { value: [创建图片文件('image/png', 17 * 1024 * 1024)] })
-    fireEvent.change(fileInput)
+    const { container: 容器 } = render(<AILiaoTian />)
+    const 文件输入 = 获取文件输入(容器)
+    Object.defineProperty(文件输入, 'files', { value: [创建图片文件('image/png', 17 * 1024 * 1024)] })
+    fireEvent.change(文件输入)
 
     const 失败标记 = await screen.findByTestId('pending-images-failed')
     expect(失败标记).toHaveTextContent(t('ai.imageRejected'))
     expect(screen.queryByText(t('ai.imageUploadFailed'))).not.toBeInTheDocument()
 
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '带一张坏图' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '带一张坏图' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
     await waitFor(() => {
-      expect(mutateAsync).toHaveBeenCalledWith({
-        messages: [{ role: 'user', content: '带一张坏图' }],
+      expect(执行异步变更).toHaveBeenCalledWith({
+        消息表: [{ role: 'user', content: '带一张坏图' }],
         signal: expect.any(AbortSignal),
-        onProgress: expect.any(Function),
+        进度回调: expect.any(Function),
       })
     })
   })
 
   it('粘贴合法 PNG 进入待发区并可随消息发出', async () => {
-    mutateAsync.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    执行异步变更.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
-    fireEvent.paste(input, { clipboardData: { files: [创建图片文件()] } })
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
+    fireEvent.paste(输入, { clipboardData: { files: [创建图片文件()] } })
     await waitFor(() => {
       expect(screen.getByTestId('pending-images')).toBeInTheDocument()
     })
 
-    fireEvent.change(input, { target: { value: '看这张截图' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    fireEvent.change(输入, { target: { value: '看这张截图' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
     await waitFor(() => {
-      expect(mutateAsync).toHaveBeenCalledWith({
-        messages: [
+      expect(执行异步变更).toHaveBeenCalledWith({
+        消息表: [
           {
             role: 'user',
             content: '看这张截图',
-            images: [expect.stringMatching(/^data:image\/png;base64,/)],
+            图片表: [expect.stringMatching(/^data:image\/png;base64,/)],
           },
         ],
         signal: expect.any(AbortSignal),
-        onProgress: expect.any(Function),
+        进度回调: expect.any(Function),
       })
     })
-    // 发送消费后清空待发区并释放预览 objectURL
+
     await waitFor(() => {
       expect(screen.queryByTestId('pending-images')).not.toBeInTheDocument()
     })
-    expect(revokeObjectURLMock).toHaveBeenCalledWith('blob:mock-1')
+    expect(模拟撤销对象地址).toHaveBeenCalledWith('blob:mock-1')
   })
 
   it('粘贴文本不触发上传且不影响正常输入', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
-    fireEvent.paste(input, { clipboardData: { files: [] } })
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
+    fireEvent.paste(输入, { clipboardData: { files: [] } })
 
-    expect(createObjectURLMock).not.toHaveBeenCalled()
+    expect(模拟创建对象地址).not.toHaveBeenCalled()
     expect(screen.queryByTestId('pending-images')).not.toBeInTheDocument()
   })
 
   it('粘贴 BMP 显示红字「上传失败」且不随消息发出', async () => {
-    mutateAsync.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    执行异步变更.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
-    fireEvent.paste(input, { clipboardData: { files: [创建图片文件('image/bmp')] } })
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
+    fireEvent.paste(输入, { clipboardData: { files: [创建图片文件('image/bmp')] } })
 
     const 失败标记 = await screen.findByTestId('pending-images-failed')
     expect(失败标记).toHaveTextContent(t('ai.imageRejected'))
 
-    fireEvent.change(input, { target: { value: '描述一下' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    fireEvent.change(输入, { target: { value: '描述一下' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
     await waitFor(() => {
-      expect(mutateAsync).toHaveBeenCalledWith({
-        messages: [{ role: 'user', content: '描述一下' }],
+      expect(执行异步变更).toHaveBeenCalledWith({
+        消息表: [{ role: 'user', content: '描述一下' }],
         signal: expect.any(AbortSignal),
-        onProgress: expect.any(Function),
+        进度回调: expect.any(Function),
       })
     })
     await waitFor(() => {
@@ -299,35 +281,33 @@ describe('AIChat', () => {
   })
 
   it('待发区上限4张对合格与失败图片一并计数，超出提示上传失败', async () => {
-    mutateAsync.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    执行异步变更.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
-    fireEvent.paste(input, { clipboardData: { files: [创建图片文件(), 创建图片文件('image/bmp'), 创建图片文件()] } })
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
+    fireEvent.paste(输入, { clipboardData: { files: [创建图片文件(), 创建图片文件('image/bmp'), 创建图片文件()] } })
     await waitFor(() => {
       expect(screen.getByTestId('pending-images').children.length).toBe(3)
     })
 
-    fireEvent.paste(input, { clipboardData: { files: [创建图片文件(), 创建图片文件()] } })
+    fireEvent.paste(输入, { clipboardData: { files: [创建图片文件(), 创建图片文件()] } })
     await waitFor(() => {
       expect(screen.getByText(t('ai.imageUploadFailed'))).toBeInTheDocument()
     })
     expect(screen.getByTestId('pending-images').children.length).toBe(4)
     expect(screen.getAllByTestId('pending-images-failed').length).toBe(1)
 
-    fireEvent.change(input, { target: { value: '混排发送' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    fireEvent.change(输入, { target: { value: '混排发送' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
     await waitFor(() => {
-      expect(mutateAsync).toHaveBeenCalledWith(
+      expect(执行异步变更).toHaveBeenCalledWith(
         expect.objectContaining({
-          messages: [
+          消息表: [
             expect.objectContaining({
               role: 'user',
               content: '混排发送',
-              images: [
+              图片表: [
                 expect.stringMatching(/^data:image\/png;base64,/),
                 expect.stringMatching(/^data:image\/png;base64,/),
                 expect.stringMatching(/^data:image\/png;base64,/),
@@ -340,33 +320,27 @@ describe('AIChat', () => {
   })
 
   it('移除与重置清空时对不再使用的预览调用 revokeObjectURL', async () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
-    const { container } = render(<AILiaoTian />)
-    const fileInput = 获取文件输入(container)
-    Object.defineProperty(fileInput, 'files', { value: [创建图片文件(), 创建图片文件()] })
-    fireEvent.change(fileInput)
+    const { container: 容器 } = render(<AILiaoTian />)
+    const 文件输入 = 获取文件输入(容器)
+    Object.defineProperty(文件输入, 'files', { value: [创建图片文件(), 创建图片文件()] })
+    fireEvent.change(文件输入)
     await waitFor(() => {
       expect(screen.getByTestId('pending-images').children.length).toBe(2)
     })
-    expect(createObjectURLMock).toHaveBeenCalledTimes(2)
+    expect(模拟创建对象地址).toHaveBeenCalledTimes(2)
 
-    // 移除第一张：仅释放其 objectURL
     fireEvent.click(screen.getAllByRole('button', { name: t('ai.removeImage') })[0])
-    expect(revokeObjectURLMock).toHaveBeenCalledTimes(1)
-    expect(revokeObjectURLMock).toHaveBeenCalledWith('blob:mock-1')
+    await waitFor(() => expect(模拟撤销对象地址).toHaveBeenCalledTimes(1), { timeout: 5000 })
+    expect(模拟撤销对象地址).toHaveBeenCalledWith('blob:mock-1')
 
-    // 重置清空其余：释放剩余 objectURL
     fireEvent.click(screen.getByRole('button', { name: t('ai.reset') }))
-    expect(revokeObjectURLMock).toHaveBeenCalledTimes(2)
-    expect(revokeObjectURLMock).toHaveBeenCalledWith('blob:mock-2')
+    await waitFor(() => expect(模拟撤销对象地址).toHaveBeenCalledTimes(2), { timeout: 5000 })
+    expect(模拟撤销对象地址).toHaveBeenCalledWith('blob:mock-2')
   })
 
   it('两次粘贴读取交错完成时待发图 key 不冲突，移除互不影响', async () => {
-    // 手动放行式 FileReader 假体：控制两批粘贴的读取完成顺序（后发起的先完成），
-    // 复现「await 期间计数器被另一批前移」的交错场景；key 冲突时按 key 移除会误删两张。
     const 待放行: Array<() => void> = []
     class 手动FileReader {
       onload: (() => void) | null = null
@@ -383,14 +357,12 @@ describe('AIChat', () => {
     window.FileReader = 手动FileReader as unknown as typeof FileReader
 
     try {
-      mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-        selector(createMockState({ chatOpen: true }))
-      )
+      模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
       render(<AILiaoTian />)
-      const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
-      fireEvent.paste(input, { clipboardData: { files: [创建图片文件()] } })
-      fireEvent.paste(input, { clipboardData: { files: [创建图片文件()] } })
+      const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
+      fireEvent.paste(输入, { clipboardData: { files: [创建图片文件()] } })
+      fireEvent.paste(输入, { clipboardData: { files: [创建图片文件()] } })
       expect(待放行.length).toBe(2)
 
       待放行[1]()
@@ -407,36 +379,33 @@ describe('AIChat', () => {
   })
 
   it('合法图片进入待发区，随消息一起发送且发送后清空', async () => {
-    mutateAsync.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    执行异步变更.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
-    const { container } = render(<AILiaoTian />)
-    const fileInput = 获取文件输入(container)
-    Object.defineProperty(fileInput, 'files', { value: [创建图片文件()] })
-    // 根因：fireEvent 不得包进 act——FileReader.load 是宏任务，act 退出后其回调触发的
-    // 状态更新不会被提交；裸 fireEvent + waitFor（真定时器轮询）才能等到落地。
-    fireEvent.change(fileInput)
+    const { container: 容器 } = render(<AILiaoTian />)
+    const 文件输入 = 获取文件输入(容器)
+    Object.defineProperty(文件输入, 'files', { value: [创建图片文件()] })
+
+    fireEvent.change(文件输入)
     await waitFor(() => {
       expect(screen.getByTestId('pending-images')).toBeInTheDocument()
     })
 
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '图里有什么' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '图里有什么' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     await waitFor(() => {
-      expect(mutateAsync).toHaveBeenCalledWith({
-        messages: [
+      expect(执行异步变更).toHaveBeenCalledWith({
+        消息表: [
           {
             role: 'user',
             content: '图里有什么',
-            images: [expect.stringMatching(/^data:image\/png;base64,/)],
+            图片表: [expect.stringMatching(/^data:image\/png;base64,/)],
           },
         ],
         signal: expect.any(AbortSignal),
-        onProgress: expect.any(Function),
+        进度回调: expect.any(Function),
       })
     })
     await waitFor(() => {
@@ -445,110 +414,99 @@ describe('AIChat', () => {
   })
 
   it('does not send message when input is empty', async () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '   ' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '   ' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     await waitFor(() => {
-      expect(mutateAsync).not.toHaveBeenCalled()
+      expect(执行异步变更).not.toHaveBeenCalled()
     })
   })
 
   it('sends message when form submitted', async () => {
-    mutateAsync.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
+    执行异步变更.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
 
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '你是谁' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '你是谁' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     await waitFor(() => {
-      expect(mutateAsync).toHaveBeenCalledWith({
-        messages: [{ role: 'user', content: '你是谁' }],
+      expect(执行异步变更).toHaveBeenCalledWith({
+        消息表: [{ role: 'user', content: '你是谁' }],
         signal: expect.any(AbortSignal),
-        onProgress: expect.any(Function),
+        进度回调: expect.any(Function),
       })
     })
   })
 
   it('clears the input box right after sending（对齐 Claude Code）', async () => {
-    mutateAsync.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
+    执行异步变更.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
 
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
-    fireEvent.change(input, { target: { value: '你是谁' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
+    fireEvent.change(输入, { target: { value: '你是谁' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
-    expect(input.value).toBe('')
+    expect(输入.value).toBe('')
   })
 
   it('keeps the input editable while busy and queues the message（Claude Code queued 语义）', async () => {
-    mutateAsync.mockImplementation(() => new Promise(() => {}))
-    mockRuntime.isPending = true
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    执行异步变更.mockImplementation(() => new Promise(() => {}))
+    模拟运行时.isPending = true
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
-    expect(input.disabled).toBe(false)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLInputElement
+    expect(输入.disabled).toBe(false)
 
-    fireEvent.change(input, { target: { value: '第二条消息' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    fireEvent.change(输入, { target: { value: '第二条消息' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
-    expect(mutateAsync).not.toHaveBeenCalled()
+    expect(执行异步变更).not.toHaveBeenCalled()
     expect(screen.getByText(/第二条消息/)).toBeInTheDocument()
     expect(screen.getByText(t('ai.queue.hint'))).toBeInTheDocument()
 
-    // 忙→闲：排队消息自动发出（依次）
     act(() => {
-      mockRuntime.isPending = false
-      notifyMockState()
+      模拟运行时.isPending = false
+      通知模拟状态()
     })
     await waitFor(() => {
-      expect(mutateAsync).toHaveBeenCalledWith({
-        messages: [{ role: 'user', content: '第二条消息' }],
+      expect(执行异步变更).toHaveBeenCalledWith({
+        消息表: [{ role: 'user', content: '第二条消息' }],
         signal: expect.any(AbortSignal),
-        onProgress: expect.any(Function),
+        进度回调: expect.any(Function),
       })
     })
   })
 
   it('/clear 与 /new 都开启新会话（清空历史）', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true, aiMessages: [{ role: 'user', content: '旧消息' }] }))
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(创建模拟状态({ 聊天打开: true, AI消息表: [{ role: 'user', content: '旧消息' }] }))
     )
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '/new' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
-    expect(clearAiMessages).toHaveBeenCalled()
-    expect(mutationReset).toHaveBeenCalled()
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '/new' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
+    expect(清空AI消息).toHaveBeenCalled()
+    expect(重置变更).toHaveBeenCalled()
   })
 
   it('/help 列出对齐 Claude Code 的指令清单', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '/help' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '/help' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     expect(screen.getByText(/\/clear\s*清空对话历史，开始新会话/)).toBeInTheDocument()
     expect(screen.getByText(/\/compact\s*压缩对话历史，保留语义/)).toBeInTheDocument()
@@ -557,58 +515,50 @@ describe('AIChat', () => {
   })
 
   it('/model 无参数列出可用模型', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '/model' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '/model' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     expect(screen.getByTestId('model-picker')).toBeInTheDocument()
     expect(screen.getByTestId('model-option-1')).toHaveTextContent('deepseek-v4.1-flash-expires-on-0910')
     expect(screen.queryByTestId('model-option-2')).not.toBeInTheDocument()
-    expect(mutateAsync).not.toHaveBeenCalled()
+    expect(执行异步变更).not.toHaveBeenCalled()
   })
 
   it('/model 序号越界报错且不切换', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '/model 2' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '/model 2' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
-    expect(setAiModel).not.toHaveBeenCalled()
+    expect(设置AI模型).not.toHaveBeenCalled()
     expect(screen.getByText(/未知模型：/)).toBeInTheDocument()
   })
 
   it('/model 未知模型报错且不切换', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '/model 不存在的模型' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '/model 不存在的模型' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
-    expect(setAiModel).not.toHaveBeenCalled()
+    expect(设置AI模型).not.toHaveBeenCalled()
     expect(screen.getByText(/未知模型：/)).toBeInTheDocument()
   })
 
   it('/model 裸指令开启键盘选择器（❯高亮当前模型）', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '/model' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '/model' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     expect(screen.getByTestId('model-picker')).toBeInTheDocument()
     expect(screen.getByText(t('ai.modelPicker.selectTitle'))).toBeInTheDocument()
@@ -617,99 +567,93 @@ describe('AIChat', () => {
     expect(第一行).toHaveTextContent('❯')
     expect(第一行).toHaveTextContent('deepseek-v4.1-flash-expires-on-0910')
     expect(第一行).toHaveTextContent('✓')
-    expect(mutateAsync).not.toHaveBeenCalled()
+    expect(执行异步变更).not.toHaveBeenCalled()
   })
 
   it('选择器内↑/↓移动高亮，⏎确认切换模型', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
-    fireEvent.change(input, { target: { value: '/model' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
+    fireEvent.change(输入, { target: { value: '/model' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
-    fireEvent.keyDown(input, { key: 'ArrowDown' })
+    fireEvent.keyDown(输入, { key: 'ArrowDown' })
     expect(screen.getByTestId('model-option-1')).toHaveTextContent('❯')
 
-    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    fireEvent.keyDown(输入, { key: 'ArrowUp' })
     expect(screen.getByTestId('model-option-1')).toHaveTextContent('❯')
 
-    fireEvent.keyDown(input, { key: 'Enter' })
-    expect(setAiModel).toHaveBeenCalledWith('deepseek-v4.1-flash-expires-on-0910')
+    fireEvent.keyDown(输入, { key: 'Enter' })
+    expect(设置AI模型).toHaveBeenCalledWith('deepseek-v4.1-flash-expires-on-0910')
     expect(screen.getByText(/已切换模型：deepseek-v4\.1-flash-expires-on-0910/)).toBeInTheDocument()
-    expect(mutateAsync).not.toHaveBeenCalled()
+    expect(执行异步变更).not.toHaveBeenCalled()
   })
 
   it('选择器内←/→按档步进思考强度而不发送', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true, aiThinking: 'high' }))
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(创建模拟状态({ 聊天打开: true, AI思考强度: 'high' }))
     )
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
-    fireEvent.change(input, { target: { value: '/model' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
+    fireEvent.change(输入, { target: { value: '/model' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
-    fireEvent.keyDown(input, { key: 'ArrowRight' })
-    expect(setAiThinking).toHaveBeenCalledWith('max')
+    fireEvent.keyDown(输入, { key: 'ArrowRight' })
+    expect(设置AI思考).toHaveBeenCalledWith('max')
 
-    fireEvent.keyDown(input, { key: 'ArrowLeft' })
-    expect(setAiThinking).toHaveBeenCalledWith('low')
-    expect(mutateAsync).not.toHaveBeenCalled()
+    fireEvent.keyDown(输入, { key: 'ArrowLeft' })
+    expect(设置AI思考).toHaveBeenCalledWith('low')
+    expect(执行异步变更).not.toHaveBeenCalled()
   })
 
   it('选择器在强度两端钳制（max 处 → 无操作）', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true, aiThinking: 'max' }))
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(创建模拟状态({ 聊天打开: true, AI思考强度: 'max' }))
     )
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
-    fireEvent.change(input, { target: { value: '/model' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
+    fireEvent.change(输入, { target: { value: '/model' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
-    fireEvent.keyDown(input, { key: 'ArrowRight' })
-    expect(setAiThinking).not.toHaveBeenCalled()
-    expect(mutateAsync).not.toHaveBeenCalled()
+    fireEvent.keyDown(输入, { key: 'ArrowRight' })
+    expect(设置AI思考).not.toHaveBeenCalled()
+    expect(执行异步变更).not.toHaveBeenCalled()
   })
 
   it('选择器内 Esc 关闭选择器而不最小化面板', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
-    fireEvent.change(input, { target: { value: '/model' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
+    fireEvent.change(输入, { target: { value: '/model' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
     expect(screen.getByTestId('model-picker')).toBeInTheDocument()
 
-    fireEvent.keyDown(input, { key: 'Escape' })
+    fireEvent.keyDown(输入, { key: 'Escape' })
     expect(screen.queryByTestId('model-picker')).not.toBeInTheDocument()
-    expect(setChatOpen).not.toHaveBeenCalled()
+    expect(设置聊天打开).not.toHaveBeenCalled()
   })
 
   it('选择器开启后一旦打字方向键恢复编辑语义', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true, aiThinking: 'high' }))
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(创建模拟状态({ 聊天打开: true, AI思考强度: 'high' }))
     )
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
-    fireEvent.change(input, { target: { value: '/model' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
+    fireEvent.change(输入, { target: { value: '/model' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
-    fireEvent.change(input, { target: { value: 'hello' } })
-    fireEvent.keyDown(input, { key: 'ArrowLeft' })
-    expect(setAiThinking).not.toHaveBeenCalled()
+    fireEvent.change(输入, { target: { value: 'hello' } })
+    fireEvent.keyDown(输入, { key: 'ArrowLeft' })
+    expect(设置AI思考).not.toHaveBeenCalled()
   })
 
   it('对话面板阻止 Lenis 滚轮劫持（原生滚动归面板）', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
     expect(screen.getByTestId('chat-messages').hasAttribute('data-lenis-prevent')).toBe(true)
@@ -718,45 +662,44 @@ describe('AIChat', () => {
   })
 
   it('/resume 无暂存时提示且不恢复', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true, stashedSession: [] }))
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(创建模拟状态({ 聊天打开: true, 暂存的会话: [] }))
     )
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '/resume' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '/resume' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
-    expect(restoreSession).not.toHaveBeenCalled()
+    expect(恢复会话).not.toHaveBeenCalled()
     expect(screen.getByText(t('ai.commands.resumeEmpty'))).toBeInTheDocument()
   })
 
   it('/resume 恢复上一次清空前的会话', () => {
     const 暂存 = [{ role: 'user', content: '旧会话' }]
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true, stashedSession: 暂存 }))
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(创建模拟状态({ 聊天打开: true, 暂存的会话: 暂存 }))
     )
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '/resume' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '/resume' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
-    expect(restoreSession).toHaveBeenCalledWith(暂存)
+    expect(恢复会话).toHaveBeenCalledWith(暂存)
     expect(screen.getByText(t('ai.commands.resumeRestored'))).toBeInTheDocument()
   })
 
   it('发送在途时渲染会话视图而非主页（根因回归）', () => {
-    mockRuntime.isPending = true
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true, aiMessages: [] }))
+    模拟运行时.isPending = true
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(创建模拟状态({ 聊天打开: true, AI消息表: [] }))
     )
 
     render(<AILiaoTian />)
 
     expect(screen.queryByText(t('ai.empty'))).not.toBeInTheDocument()
-    // 思考行带计时与中断提示后缀（对齐 Claude Code 的 Thinking…(Xs)），按前缀包含断言；
-    // 底部忙提示同样含 esc中断，故此处断言忙提示整行唯一文本
+
     expect(screen.getByText(t('ai.thinking'), { exact: false })).toBeInTheDocument()
     expect(screen.getByText(t('ai.busyHint'))).toBeInTheDocument()
     expect(screen.getByText(t('ai.toolName'))).toBeInTheDocument()
@@ -765,24 +708,22 @@ describe('AIChat', () => {
   })
 
   it('首条消息待回答态显示三要素：问题回显+思考计时+Retrieve占位（pending零⏺单转圈）', async () => {
-    mutateAsync.mockImplementation(() => new Promise(() => {}))
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    执行异步变更.mockImplementation(() => new Promise(() => {}))
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '待回答三要素问题' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '待回答三要素问题' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
     act(() => {
-      mockRuntime.isPending = true
-      notifyMockState()
+      模拟运行时.isPending = true
+      通知模拟状态()
     })
 
     await waitFor(() => {
       expect(screen.getByText('待回答三要素问题')).toBeInTheDocument()
     })
-    // 占位先行后思考计时与Retrieve占位落在空助手占位行内（单轨迹仍用 pending-thinking 标识），零⏺单转圈
+
     const pending块 = screen.getByTestId('pending-thinking')
     expect(pending块.querySelectorAll('svg.animate-spin').length).toBe(1)
     expect(pending块.textContent).toContain(t('ai.thinking'))
@@ -798,12 +739,12 @@ describe('AIChat', () => {
   })
 
   it('FP-03 pending单图标与助手⏺列对齐： settled⏺保留，pending零⏺单转圈同列', () => {
-    mockRuntime.isPending = true
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    模拟运行时.isPending = true
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '已落定问题' },
             { role: 'assistant', content: '已落定答案' },
           ],
@@ -812,27 +753,27 @@ describe('AIChat', () => {
     )
 
     render(<AILiaoTian />)
-    // 已落定助手行自带⏺；在途全局 pending 行仅在无助手位时兜底出现，此处应无全局行
+
     expect(screen.queryByTestId('pending-thinking')).not.toBeInTheDocument()
     expect(screen.queryAllByText('⏺').length).toBe(1)
   })
 
   it('排队时系统行不被清空且排队仍显示', async () => {
-    mutateAsync.mockImplementation(() => new Promise(() => {}))
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true, aiThinking: 'high' }))
+    执行异步变更.mockImplementation(() => new Promise(() => {}))
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(创建模拟状态({ 聊天打开: true, AI思考强度: 'high' }))
     )
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '/think' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '/think' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
     expect(screen.getByText(t('ai.thinkLevel').replace('{level}', 'max'))).toBeInTheDocument()
 
-    mockRuntime.isPending = true
-    notifyMockState()
-    fireEvent.change(input, { target: { value: '排队第二条' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    模拟运行时.isPending = true
+    通知模拟状态()
+    fireEvent.change(输入, { target: { value: '排队第二条' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     expect(screen.getByText(t('ai.thinkLevel').replace('{level}', 'max'))).toBeInTheDocument()
     expect(screen.getByText(/排队第二条/)).toBeInTheDocument()
@@ -840,114 +781,104 @@ describe('AIChat', () => {
   })
 
   it('未知指令给出 Claude Code 风格的报错', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '/不存在的指令' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '/不存在的指令' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     expect(screen.getByText(/未知指令：\/不存在的指令/)).toBeInTheDocument()
-    expect(mutateAsync).not.toHaveBeenCalled()
+    expect(执行异步变更).not.toHaveBeenCalled()
   })
 
   it('/compact 在无历史时提示而不调用模型', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '/compact' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '/compact' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     expect(screen.getByText(t('ai.commands.compactEmpty'))).toBeInTheDocument()
-    expect(mockCompact).not.toHaveBeenCalled()
+    expect(模拟压缩).not.toHaveBeenCalled()
   })
 
   it('/compact 在请求进行中时被闸门拦截（在途回合不得漏压）', () => {
-    mockRuntime.isPending = true
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true, aiMessages: [{ role: 'user', content: '旧消息' }] }))
+    模拟运行时.isPending = true
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(创建模拟状态({ 聊天打开: true, AI消息表: [{ role: 'user', content: '旧消息' }] }))
     )
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '/compact' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '/compact' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     expect(screen.getByText(t('ai.commands.compactBusy'))).toBeInTheDocument()
-    expect(mockCompact).not.toHaveBeenCalled()
+    expect(模拟压缩).not.toHaveBeenCalled()
   })
 
   it('/clear 后在途请求的迟到响应不得写入新会话（孤儿守护）', async () => {
     let 解决请求: ((value: { message: { role: 'assistant'; content: string } }) => void) | undefined
-    mutateAsync.mockImplementation(
+    执行异步变更.mockImplementation(
       () =>
-        new Promise((resolve) => {
-          解决请求 = resolve
+        new Promise((完成) => {
+          解决请求 = 完成
         })
     )
-    const addAiMessage = vi.fn((message) => {
-      mockAiMessages.push(message)
-      notifyMockState()
+    const 添加AI消息 = vi.fn((消息) => {
+      模拟AI消息表.push(消息)
+      通知模拟状态()
     })
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true, addAiMessage }))
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(创建模拟状态({ 聊天打开: true, 添加AI消息: 添加AI消息 }))
     )
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '在途问题' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '在途问题' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
-    // 请求在途时 /clear 开新会话
-    fireEvent.change(input, { target: { value: '/clear' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    fireEvent.change(输入, { target: { value: '/clear' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
-    // 迟到的响应此刻才返回：不得写入已清空的新会话
     await act(async () => {
       解决请求?.({ message: { role: 'assistant', content: '孤儿响应' } })
       await Promise.resolve()
     })
 
-    const 写入过的内容 = addAiMessage.mock.calls.map((调用) => 调用[0].content)
+    const 写入过的内容 = 添加AI消息.mock.calls.map((调用) => 调用[0].content)
     expect(写入过的内容).not.toContain('孤儿响应')
   })
 
   it('sends quick question when clicked', async () => {
-    mutateAsync.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
+    执行异步变更.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
 
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const quickQuestions = ta('ai.quickQuestions')
-    fireEvent.click(screen.getByText(quickQuestions[0]))
+    const 快捷问题表 = 翻译数组('ai.quickQuestions')
+    fireEvent.click(screen.getByText(快捷问题表[0]))
 
     await waitFor(() => {
-      expect(mutateAsync).toHaveBeenCalledWith({
-        messages: [{ role: 'user', content: quickQuestions[0] }],
+      expect(执行异步变更).toHaveBeenCalledWith({
+        消息表: [{ role: 'user', content: 快捷问题表[0] }],
         signal: expect.any(AbortSignal),
-        onProgress: expect.any(Function),
+        进度回调: expect.any(Function),
       })
     })
   })
 
   it('shows optimistic user message immediately and persists assistant message after success', async () => {
-    mutateAsync.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
+    执行异步变更.mockResolvedValueOnce({ message: { role: 'assistant', content: '回答' } })
 
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '你是谁' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '你是谁' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     await waitFor(() => {
       expect(screen.getByText('你是谁')).toBeInTheDocument()
@@ -959,16 +890,14 @@ describe('AIChat', () => {
   })
 
   it('keeps user message and shows error on failure（异步optimistic保留上下文）', async () => {
-    mutateAsync.mockRejectedValueOnce(new Error('失败'))
+    执行异步变更.mockRejectedValueOnce(new Error('失败'))
 
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '你是谁' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '你是谁' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     await waitFor(() => {
       expect(screen.getByText('你是谁')).toBeInTheDocument()
@@ -981,11 +910,11 @@ describe('AIChat', () => {
   })
 
   it('renders existing messages and assistant answer', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '问题' },
             { role: 'assistant', content: '答案' },
           ],
@@ -999,11 +928,11 @@ describe('AIChat', () => {
   })
 
   it('用户消息图片渲染缩略图，点击开灯箱，Esc 关灯箱且不关面板', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [{ role: 'user', content: '看图', images: ['data:image/png;base64,QUJD'] }],
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [{ role: 'user', content: '看图', 图片表: ['data:image/png;base64,QUJD'] }],
         })
       )
     )
@@ -1017,46 +946,44 @@ describe('AIChat', () => {
 
     fireEvent.keyDown(window, { key: 'Escape' })
     expect(screen.queryByTestId('chat-lightbox')).not.toBeInTheDocument()
-    expect(setChatOpen).not.toHaveBeenCalledWith(false)
+    expect(设置聊天打开).not.toHaveBeenCalledWith(false)
   })
 
   it('clears messages when reset button clicked', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [{ role: 'user', content: '问题' }],
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [{ role: 'user', content: '问题' }],
         })
       )
     )
 
     render(<AILiaoTian />)
     fireEvent.click(screen.getByRole('button', { name: t('ai.reset') }))
-    expect(clearAiMessages).toHaveBeenCalled()
-    expect(mutationReset).toHaveBeenCalled()
+    expect(清空AI消息).toHaveBeenCalled()
+    expect(重置变更).toHaveBeenCalled()
   })
 
   it('closes chat when close button clicked', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
     fireEvent.click(screen.getByRole('button', { name: t('ai.close') }))
-    expect(setChatOpen).toHaveBeenCalledWith(false)
+    expect(设置聊天打开).toHaveBeenCalledWith(false)
   })
 
   it('renders ProjectCard component when assistant message has structured component', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '推荐项目' },
             {
               role: 'assistant',
               content: '推荐暮澜纪元项目',
-              component: { type: 'ProjectCard', projectId: 'xrm' },
+              组件: { type: 'ProjectCard', 项目编号: 'xrm' },
             },
           ],
         })
@@ -1069,13 +996,13 @@ describe('AIChat', () => {
   })
 
   it('renders Timeline component when assistant message has timeline component', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '经历' },
-            { role: 'assistant', content: '这是我的经历', component: { type: 'Timeline', scope: 'experience' } },
+            { role: 'assistant', content: '这是我的经历', 组件: { type: 'Timeline', scope: 'experience' } },
           ],
         })
       )
@@ -1086,13 +1013,13 @@ describe('AIChat', () => {
   })
 
   it('renders ContactLinks component when assistant message has contact component', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '联系' },
-            { role: 'assistant', content: '点下方按钮联系', component: { type: 'ContactLinks' } },
+            { role: 'assistant', content: '点下方按钮联系', 组件: { type: 'ContactLinks' } },
           ],
         })
       )
@@ -1104,164 +1031,146 @@ describe('AIChat', () => {
   })
 
   it('Esc 空闲时最小化面板（有输入草稿也不例外，用户确认语义）', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
-    fireEvent.change(input, { target: { value: '未发出的草稿' } })
-    fireEvent.keyDown(input, { key: 'Escape' })
-    expect(setChatOpen).toHaveBeenCalledWith(false)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
+    fireEvent.change(输入, { target: { value: '未发出的草稿' } })
+    fireEvent.keyDown(输入, { key: 'Escape' })
+    expect(设置聊天打开).toHaveBeenCalledWith(false)
   })
 
   it('Esc 为空输入时最小化面板', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.keyDown(input, { key: 'Escape' })
-    expect(setChatOpen).toHaveBeenCalledWith(false)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.keyDown(输入, { key: 'Escape' })
+    expect(设置聊天打开).toHaveBeenCalledWith(false)
   })
 
   it('Enter 提交、Shift+Enter 不提交只换行', async () => {
-    mutateAsync.mockResolvedValue({ message: { role: 'assistant', content: '回答' } })
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    执行异步变更.mockResolvedValue({ message: { role: 'assistant', content: '回答' } })
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
-    fireEvent.change(input, { target: { value: '第一行第二行' } })
-    fireEvent.keyDown(input, { key: 'Enter', shiftKey: true })
-    expect(mutateAsync).not.toHaveBeenCalled()
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
+    fireEvent.change(输入, { target: { value: '第一行第二行' } })
+    fireEvent.keyDown(输入, { key: 'Enter', shiftKey: true })
+    expect(执行异步变更).not.toHaveBeenCalled()
 
-    fireEvent.keyDown(input, { key: 'Enter' })
+    fireEvent.keyDown(输入, { key: 'Enter' })
     await waitFor(() => {
-      expect(mutateAsync).toHaveBeenCalled()
+      expect(执行异步变更).toHaveBeenCalled()
     })
   })
 
   it('? 展开指令与快捷键帮助', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '?' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '?' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     expect(screen.getByText(t('ai.shortcuts').split('\n')[0])).toBeInTheDocument()
-    expect(mutateAsync).not.toHaveBeenCalled()
+    expect(执行异步变更).not.toHaveBeenCalled()
   })
 
   it('! 开头输入被诚实拦截而不发送', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '!ls -la' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '!ls -la' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     expect(screen.getByText(t('ai.shellUnsupported'))).toBeInTheDocument()
-    expect(mutateAsync).not.toHaveBeenCalled()
+    expect(执行异步变更).not.toHaveBeenCalled()
   })
 
   it('/ 前缀弹出指令补全，Tab 接受选中项', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
     expect(screen.queryByTestId('command-palette')).not.toBeInTheDocument()
 
-    fireEvent.change(input, { target: { value: '/mod' } })
+    fireEvent.change(输入, { target: { value: '/mod' } })
     expect(screen.getByTestId('command-palette')).toBeInTheDocument()
     expect(screen.getByRole('option', { name: /\/model/ })).toBeInTheDocument()
 
-    fireEvent.keyDown(input, { key: 'Tab' })
-    expect(input.value).toBe('/model')
-    expect(mutateAsync).not.toHaveBeenCalled()
+    fireEvent.keyDown(输入, { key: 'Tab' })
+    expect(输入.value).toBe('/model')
+    expect(执行异步变更).not.toHaveBeenCalled()
   })
 
   it('补全打开时回车直接执行输入', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
-    fireEvent.change(input, { target: { value: '/mod' } })
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
+    fireEvent.change(输入, { target: { value: '/mod' } })
     expect(screen.getByTestId('command-palette')).toBeInTheDocument()
 
-    fireEvent.keyDown(input, { key: 'Enter' })
+    fireEvent.keyDown(输入, { key: 'Enter' })
     expect(screen.getByText(`${t('ai.commands.didYouMean')} /model`)).toBeInTheDocument()
-    expect(mutateAsync).not.toHaveBeenCalled()
+    expect(执行异步变更).not.toHaveBeenCalled()
   })
 
   it('补全打开时 Esc 仍最小化面板而不清空输入', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
-    fireEvent.change(input, { target: { value: '/mod' } })
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
+    fireEvent.change(输入, { target: { value: '/mod' } })
     expect(screen.getByTestId('command-palette')).toBeInTheDocument()
 
-    fireEvent.keyDown(input, { key: 'Escape' })
-    expect(setChatOpen).toHaveBeenCalledWith(false)
+    fireEvent.keyDown(输入, { key: 'Escape' })
+    expect(设置聊天打开).toHaveBeenCalledWith(false)
   })
 
   it('拼写相近的未知指令给出联想建议', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '/modle' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '/modle' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     expect(screen.getByText(`${t('ai.commands.didYouMean')} /model`)).toBeInTheDocument()
-    expect(mutateAsync).not.toHaveBeenCalled()
+    expect(执行异步变更).not.toHaveBeenCalled()
   })
 
   it('Alt+T 按档循环思考强度', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true, aiThinking: 'high' }))
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(创建模拟状态({ 聊天打开: true, AI思考强度: 'high' }))
     )
 
     render(<AILiaoTian />)
     fireEvent.keyDown(window, { key: 't', altKey: true })
-    expect(setAiThinking).toHaveBeenCalledWith('max')
+    expect(设置AI思考).toHaveBeenCalledWith('max')
     expect(screen.getByText(t('ai.thinkLevel').replace('{level}', 'max'))).toBeInTheDocument()
   })
 
   it('Alt+P 轮换模型并输出切换行', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true, aiModel: 'deepseek-v4.1-flash-expires-on-0910' }))
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(创建模拟状态({ 聊天打开: true, AI模型: 'deepseek-v4.1-flash-expires-on-0910' }))
     )
 
     render(<AILiaoTian />)
     fireEvent.keyDown(window, { key: 'p', altKey: true })
-    expect(setAiModel).toHaveBeenCalledTimes(1)
-    expect(setAiModel.mock.calls[0][0]).toBe('deepseek-v4.1-flash-expires-on-0910')
+    expect(设置AI模型).toHaveBeenCalledTimes(1)
+    expect(设置AI模型.mock.calls[0][0]).toBe('deepseek-v4.1-flash-expires-on-0910')
     expect(screen.getByText(t('ai.commands.modelSwitchedPrefix'), { exact: false })).toBeInTheDocument()
   })
 
   it('助手消息渲染 ⏺/⎿ 工具轨迹（含命中数与耗时）', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '问题' },
             {
               role: 'assistant',
@@ -1280,11 +1189,11 @@ describe('AIChat', () => {
   })
 
   it('远程回答末尾标注依据来源（来源来自检索元数据）', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '他能胜任文员吗' },
             {
               role: 'assistant',
@@ -1301,11 +1210,11 @@ describe('AIChat', () => {
   })
 
   it('本地兜底不标注依据来源（预制文案没有真实检索依据）', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '问题' },
             {
               role: 'assistant',
@@ -1323,11 +1232,11 @@ describe('AIChat', () => {
   })
 
   it('本地兜底消息明确标注本地兜底', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '问题' },
             {
               role: 'assistant',
@@ -1341,18 +1250,18 @@ describe('AIChat', () => {
 
     render(<AILiaoTian />)
     expect(screen.getByText(t('ai.toolLocalFallback'), { exact: false })).toBeInTheDocument()
-    // 没有回退原因时不得谎报任何一个原因（复审确认缺陷：无原因 → 「格式异常」）
+
     expect(screen.getByTestId('tool-detail').textContent).toBe(
       `⎿${t('ai.toolHits')} 0 ${t('ai.toolSegments')} · 5ms · ${t('ai.toolLocalFallback')}`
     )
   })
 
   it('无元数据的历史消息回退为通用知识库标注', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '问题' },
             { role: 'assistant', content: '老答案' },
           ],
@@ -1364,22 +1273,17 @@ describe('AIChat', () => {
     expect(screen.getByText(t('ai.toolGeneric'))).toBeInTheDocument()
   })
 
-  /**
-   * 根因回归：上游把正文挤进 reasoning、content 只剩空白 padding 时，旧实现按
-   * `content.length > 0` 判定「已落定」，界面于是渲染出「工具轨迹 + 空白正文 + 思考过程」，
-   * 看起来回答完了其实什么都没说。现在落定判据与 chatService 同源（剥离不可见字符后非空）。
-   */
   it('纯空白正文不算已落定：空闲时既无空白工具轨迹也无永久转圈', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '你的技术栈是什么？' },
             {
               role: 'assistant',
               content: ' '.repeat(232),
-              reasoning: '用户问技术栈……',
+              思考内容: '用户问技术栈……',
               meta: { 命中数: 2, 耗时毫秒: 2300, 本地兜底: false, 依据来源: ['技术栈'] },
             },
           ],
@@ -1388,24 +1292,24 @@ describe('AIChat', () => {
     )
 
     render(<AILiaoTian />)
-    // 回合已结束（isPending=false）却无正文：不得显示假完成的工具轨迹，也不得停在「检索中」
+
     expect(screen.queryByTestId('pending-thinking')).not.toBeInTheDocument()
     expect(screen.queryByText(/命中 2 段/)).not.toBeInTheDocument()
     expect(screen.queryAllByText('⏺').length).toBe(0)
     expect(screen.queryByTestId('assistant-answer')).not.toBeInTheDocument()
-    // 思考流仍可展开查看，机制信息不丢
+
     expect(screen.getByTestId('message-reasoning')).toBeInTheDocument()
   })
 
   it('无正文但在途时显示思考中占位（区分「还在跑」与「跑完了但没说话」）', () => {
-    mockRuntime.isPending = true
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    模拟运行时.isPending = true
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '你的技术栈是什么？' },
-            { role: 'assistant', content: '', reasoning: '用户问技术栈……' },
+            { role: 'assistant', content: '', 思考内容: '用户问技术栈……' },
           ],
         })
       )
@@ -1417,16 +1321,16 @@ describe('AIChat', () => {
   })
 
   it('正文落定后渲染工具轨迹与正文（trim 判据下正常路径不受影响）', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '你的技术栈是什么？' },
             {
               role: 'assistant',
               content: '核心技术栈：Java 25、Node.js、Python。',
-              reasoning: '用户问技术栈……',
+              思考内容: '用户问技术栈……',
               meta: { 命中数: 2, 耗时毫秒: 2300, 本地兜底: false, 依据来源: ['技术栈'] },
             },
           ],
@@ -1446,41 +1350,37 @@ describe('AIChat', () => {
     const 滚动记录 = vi.fn()
     Element.prototype.scrollIntoView = 滚动记录
     const 造状态 = (正文: string) =>
-      createMockState({
-        chatOpen: true,
-        aiMessages: [
+      创建模拟状态({
+        聊天打开: true,
+        AI消息表: [
           { role: 'user', content: '你的技术栈是什么？' },
           { role: 'assistant', content: 正文 },
         ],
       })
     try {
-      mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-        selector(造状态('核心技术栈：Java 25'))
-      )
+      模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(造状态('核心技术栈：Java 25')))
 
-      const { rerender } = render(<AILiaoTian />)
+      const { rerender: 重渲染 } = render(<AILiaoTian />)
       await waitFor(() => {
         expect(滚动记录).toHaveBeenCalledWith({ behavior: 'smooth' })
       })
 
-      // 在途时改用 auto：逐帧滚动不能用平滑动画互相打断
-      mockRuntime.isPending = true
+      模拟运行时.isPending = true
       滚动记录.mockClear()
       act(() => {
-        rerender(<AILiaoTian />)
+        重渲染(<AILiaoTian />)
       })
       await waitFor(() => {
         expect(滚动记录).toHaveBeenCalledWith({ behavior: 'auto' })
       })
 
-      // 同一条消息正文变长（流式推进）：消息条数不变，但必须再次贴底
-      mockRuntime.isPending = false
+      模拟运行时.isPending = false
       滚动记录.mockClear()
-      mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-        selector(造状态('核心技术栈：Java 25、Node.js、Python、React 19、Three.js、Tailwind。'))
+      模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+        选择器(造状态('核心技术栈：Java 25、Node.js、Python、React 19、Three.js、Tailwind。'))
       )
       act(() => {
-        rerender(<AILiaoTian />)
+        重渲染(<AILiaoTian />)
       })
       await waitFor(() => {
         expect(滚动记录).toHaveBeenCalledWith({ behavior: 'smooth' })
@@ -1495,16 +1395,16 @@ describe('AIChat', () => {
     const 滚动记录 = vi.fn()
     Element.prototype.scrollIntoView = 滚动记录
     try {
-      mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-        selector(
-          createMockState({
-            chatOpen: true,
-            aiMessages: [
+      模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+        选择器(
+          创建模拟状态({
+            聊天打开: true,
+            AI消息表: [
               { role: 'user', content: '你的技术栈是什么？' },
               {
                 role: 'assistant',
                 content: '核心技术栈：Java 25、Node.js、Python。',
-                reasoning: '一段很长的思考流'.repeat(20),
+                思考内容: '一段很长的思考流'.repeat(20),
               },
             ],
           })
@@ -1528,11 +1428,11 @@ describe('AIChat', () => {
   })
 
   it('正文被 max_tokens 截断时轨迹如实标注（半截回答不许冒充完整回答）', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '你做过哪些项目' },
             {
               role: 'assistant',
@@ -1545,7 +1445,7 @@ describe('AIChat', () => {
     )
 
     render(<AILiaoTian />)
-    // 截断且非兜底：只标「回答已截断」，不得混进「本地兜底」
+
     expect(screen.getByTestId('tool-detail')).toHaveTextContent(t('ai.toolTruncated'))
     expect(screen.getByTestId('tool-detail').textContent).toBe(
       `⎿${t('ai.toolHits')} 4 ${t('ai.toolSegments')} · 2500ms · ${t('ai.toolTruncated')}`
@@ -1553,11 +1453,11 @@ describe('AIChat', () => {
   })
 
   it('预算耗尽导致的兜底标注为「输出预算耗尽」而非「格式异常」', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '教育背景' },
             {
               role: 'assistant',
@@ -1576,11 +1476,11 @@ describe('AIChat', () => {
   })
 
   it('标题栏显示三行式头部（名称版本/模型计费/路径），底部状态只读不可点', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '问题' },
             { role: 'assistant', content: '答案' },
           ],
@@ -1599,40 +1499,38 @@ describe('AIChat', () => {
   })
 
   it('↑/↓ 翻看输入历史', async () => {
-    mutateAsync.mockResolvedValue({ message: { role: 'assistant', content: '回答' } })
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    执行异步变更.mockResolvedValue({ message: { role: 'assistant', content: '回答' } })
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
-    const 表单 = input.closest('form') as HTMLFormElement
-    fireEvent.change(input, { target: { value: '第一个问题' } })
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
+    const 表单 = 输入.closest('form') as HTMLFormElement
+    fireEvent.change(输入, { target: { value: '第一个问题' } })
     fireEvent.submit(表单)
-    fireEvent.change(input, { target: { value: '第二个问题' } })
+    fireEvent.change(输入, { target: { value: '第二个问题' } })
     fireEvent.submit(表单)
 
-    fireEvent.keyDown(input, { key: 'ArrowUp' })
-    expect(input.value).toBe('第二个问题')
-    fireEvent.keyDown(input, { key: 'ArrowUp' })
-    expect(input.value).toBe('第一个问题')
-    fireEvent.keyDown(input, { key: 'ArrowDown' })
-    expect(input.value).toBe('第二个问题')
+    fireEvent.keyDown(输入, { key: 'ArrowUp' })
+    expect(输入.value).toBe('第二个问题')
+    fireEvent.keyDown(输入, { key: 'ArrowUp' })
+    expect(输入.value).toBe('第一个问题')
+    fireEvent.keyDown(输入, { key: 'ArrowDown' })
+    expect(输入.value).toBe('第二个问题')
   })
 
   it('/compact 支持聚焦说明并透传给压缩', async () => {
-    mockCompact.mockResolvedValueOnce('聚焦摘要')
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true, aiMessages: [{ role: 'user', content: '旧消息' }] }))
+    模拟压缩.mockResolvedValueOnce('聚焦摘要')
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(创建模拟状态({ 聊天打开: true, AI消息表: [{ role: 'user', content: '旧消息' }] }))
     )
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '/compact 只看项目' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '/compact 只看项目' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     await waitFor(() => {
-      expect(mockCompact).toHaveBeenCalledWith(
+      expect(模拟压缩).toHaveBeenCalledWith(
         [{ role: 'user', content: '旧消息' }],
         expect.objectContaining({ focus: '只看项目' })
       )
@@ -1641,9 +1539,7 @@ describe('AIChat', () => {
   })
 
   it('拖拽图片进入待发区', async () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
     const 面板 = screen.getByRole('dialog', { name: t('ai.title') })
@@ -1655,80 +1551,72 @@ describe('AIChat', () => {
   })
 
   it('输入框为多行且上限放宽到 2000', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    expect(input.tagName).toBe('TEXTAREA')
-    expect(input).toHaveAttribute('maxlength', '2000')
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    expect(输入.tagName).toBe('TEXTAREA')
+    expect(输入).toHaveAttribute('maxlength', '2000')
   })
 
   it('选择器内 s 仅本次会话切换且发送时透传模型', async () => {
-    mutateAsync.mockResolvedValue({
+    执行异步变更.mockResolvedValue({
       message: { role: 'assistant', content: '答' },
       meta: { 命中数: 0, 耗时毫秒: 1, 本地兜底: false },
     })
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
-    fireEvent.change(input, { target: { value: '/model' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
+    fireEvent.change(输入, { target: { value: '/model' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
-    fireEvent.keyDown(input, { key: 's' })
-    expect(setAiModel).not.toHaveBeenCalled()
+    fireEvent.keyDown(输入, { key: 's' })
+    expect(设置AI模型).not.toHaveBeenCalled()
     expect(screen.queryByTestId('model-picker')).not.toBeInTheDocument()
     expect(screen.getByTestId('chat-status-line')).toHaveTextContent(t('ai.modelPicker.sessionBadge'))
 
-    fireEvent.change(input, { target: { value: '你好' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    fireEvent.change(输入, { target: { value: '你好' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
     await waitFor(() => {
-      expect(mutateAsync).toHaveBeenCalledWith(
-        expect.objectContaining({ model: 'deepseek-v4.1-flash-expires-on-0910' })
+      expect(执行异步变更).toHaveBeenCalledWith(
+        expect.objectContaining({ 模型: 'deepseek-v4.1-flash-expires-on-0910' })
       )
     })
   })
 
   it('选择器内数字键直选并持久化', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
-    fireEvent.change(input, { target: { value: '/model' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
+    fireEvent.change(输入, { target: { value: '/model' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
-    fireEvent.keyDown(input, { key: '1' })
-    expect(setAiModel).toHaveBeenCalledWith('deepseek-v4.1-flash-expires-on-0910')
+    fireEvent.keyDown(输入, { key: '1' })
+    expect(设置AI模型).toHaveBeenCalledWith('deepseek-v4.1-flash-expires-on-0910')
     expect(screen.queryByTestId('model-picker')).not.toBeInTheDocument()
-    expect(mutateAsync).not.toHaveBeenCalled()
+    expect(执行异步变更).not.toHaveBeenCalled()
   })
 
   it('Shift+Tab 轮换默认模型', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true, aiModel: 'deepseek-v4.1-flash-expires-on-0910' }))
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(创建模拟状态({ 聊天打开: true, AI模型: 'deepseek-v4.1-flash-expires-on-0910' }))
     )
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
-    fireEvent.keyDown(input, { key: 'Tab', shiftKey: true })
-    expect(setAiModel).toHaveBeenCalledWith('deepseek-v4.1-flash-expires-on-0910')
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
+    fireEvent.keyDown(输入, { key: 'Tab', shiftKey: true })
+    expect(设置AI模型).toHaveBeenCalledWith('deepseek-v4.1-flash-expires-on-0910')
     expect(screen.getByText(t('ai.commands.modelSwitchedPrefix'), { exact: false })).toBeInTheDocument()
   })
 
   it('指令补全为双列且最多显示5行', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
-    fireEvent.change(input, { target: { value: '/' } })
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
+    fireEvent.change(输入, { target: { value: '/' } })
 
     const 选项 = screen.getAllByRole('option')
     expect(选项.length).toBe(5)
@@ -1737,14 +1625,14 @@ describe('AIChat', () => {
   })
 
   it('选择器展示思考强度行与调整提示', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true, aiThinking: 'high' }))
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(创建模拟状态({ 聊天打开: true, AI思考强度: 'high' }))
     )
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
-    fireEvent.change(input, { target: { value: '/model' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
+    fireEvent.change(输入, { target: { value: '/model' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     const 选择器 = screen.getByTestId('model-picker')
     expect(选择器).toHaveTextContent('High effort')
@@ -1752,27 +1640,23 @@ describe('AIChat', () => {
   })
 
   it('/clear 清除本次会话模型回到默认', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
-    fireEvent.change(input, { target: { value: '/model' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
-    fireEvent.keyDown(input, { key: 'ArrowDown' })
-    fireEvent.keyDown(input, { key: 's' })
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') }) as HTMLTextAreaElement
+    fireEvent.change(输入, { target: { value: '/model' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
+    fireEvent.keyDown(输入, { key: 'ArrowDown' })
+    fireEvent.keyDown(输入, { key: 's' })
     expect(screen.getByTestId('chat-status-line')).toHaveTextContent(t('ai.modelPicker.sessionBadge'))
 
-    fireEvent.change(input, { target: { value: '/clear' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    fireEvent.change(输入, { target: { value: '/clear' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
     expect(screen.getByTestId('chat-status-line')).not.toHaveTextContent(t('ai.modelPicker.sessionBadge'))
   })
 
   it('左边缘拖动加宽窗口', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
     const 面板 = screen.getByRole('dialog', { name: t('ai.title') })
@@ -1790,9 +1674,7 @@ describe('AIChat', () => {
   })
 
   it('顶边缘拖动加高窗口', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
     const 面板 = screen.getByRole('dialog', { name: t('ai.title') })
@@ -1810,9 +1692,7 @@ describe('AIChat', () => {
   })
 
   it('拐角拖动同时调整宽高且不小于最小尺寸', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
     const 面板 = screen.getByRole('dialog', { name: t('ai.title') })
@@ -1830,11 +1710,11 @@ describe('AIChat', () => {
   })
 
   it('回答完成后显示3个继续聊天选项（技术栈场景）', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '和我恋爱吧项目用了什么技术栈' },
             { role: 'assistant', content: '用了Express等' },
           ],
@@ -1846,22 +1726,22 @@ describe('AIChat', () => {
     const 建议区 = screen.getByTestId('follow-up-suggestions')
     expect(建议区).toBeInTheDocument()
     expect(screen.getByText(t('ai.followUps.label'))).toBeInTheDocument()
-    for (const 建议 of ta('ai.followUps.tech')) {
+    for (const 建议 of 翻译数组('ai.followUps.tech')) {
       expect(screen.getByText(建议)).toBeInTheDocument()
     }
   })
 
   it('LLM组件信号同样驱动继续选项（羊来ProjectCard场景）', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '羊来是做什么的' },
             {
               role: 'assistant',
               content: '羊来介绍',
-              component: { type: 'ProjectCard', projectId: 'yangLai' },
+              组件: { type: 'ProjectCard', 项目编号: 'yangLai' },
             },
           ],
         })
@@ -1871,18 +1751,18 @@ describe('AIChat', () => {
     render(<AILiaoTian />)
     const 建议区 = screen.getByTestId('follow-up-suggestions')
     expect(建议区).toBeInTheDocument()
-    for (const 建议 of ta('ai.followUps.projectsYangLai')) {
+    for (const 建议 of 翻译数组('ai.followUps.projectsYangLai')) {
       expect(screen.getByText(建议)).toBeInTheDocument()
     }
   })
 
   it('点击继续选项会发送该问题', async () => {
-    mutateAsync.mockResolvedValue({ message: { role: 'assistant', content: '答' } })
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    执行异步变更.mockResolvedValue({ message: { role: 'assistant', content: '答' } })
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '介绍一下暮澜纪元' },
             { role: 'assistant', content: '暮澜纪元介绍' },
           ],
@@ -1891,24 +1771,22 @@ describe('AIChat', () => {
     )
 
     render(<AILiaoTian />)
-    const 首个建议 = ta('ai.followUps.projectsXrm')[0]
+    const 首个建议 = 翻译数组('ai.followUps.projectsXrm')[0]
     fireEvent.click(screen.getByText(首个建议))
     await waitFor(() => {
-      expect(mutateAsync).toHaveBeenCalled()
+      expect(执行异步变更).toHaveBeenCalled()
     })
   })
 
   it('FP-04 流式中断/超时分类语义不变：AbortError 不走本地兜底语义', async () => {
-    mutateAsync.mockRejectedValueOnce(new DOMException('The operation was aborted.', 'AbortError'))
+    执行异步变更.mockRejectedValueOnce(new DOMException('The operation was aborted.', 'AbortError'))
 
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '中断语义问题' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '中断语义问题' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     await waitFor(() => {
       expect(screen.getByText(t('ai.commands.interrupted'))).toBeInTheDocument()
@@ -1917,23 +1795,21 @@ describe('AIChat', () => {
   })
 
   it('FP-04 流式增量经onProgress落到占位助手消息逐字显示', async () => {
-    mutateAsync.mockImplementationOnce(
-      (入参: { onProgress?: (增量: { reasoning: string; content: string }) => void }) => {
-        入参.onProgress?.({ reasoning: '思考一', content: '' })
-        入参.onProgress?.({ reasoning: '思考一思考二', content: '' })
-        入参.onProgress?.({ reasoning: '思考一思考二', content: '{"text":"流式"}' })
-        return Promise.resolve({ message: { role: 'assistant', content: '流式', reasoning: '思考一思考二' } })
+    执行异步变更.mockImplementationOnce(
+      (入参: { 进度回调?: (增量: { 思考内容: string; content: string }) => void }) => {
+        入参.进度回调?.({ 思考内容: '思考一', content: '' })
+        入参.进度回调?.({ 思考内容: '思考一思考二', content: '' })
+        入参.进度回调?.({ 思考内容: '思考一思考二', content: '{"text":"流式"}' })
+        return Promise.resolve({ message: { role: 'assistant', content: '流式', 思考内容: '思考一思考二' } })
       }
     )
 
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '流式问题' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '流式问题' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     await waitFor(() => {
       expect(screen.getByTestId('message-reasoning')).toBeInTheDocument()
@@ -1945,25 +1821,25 @@ describe('AIChat', () => {
 
   it('FP-R3 占位先行：mutateAsync执行前已有用户+空助手占位', async () => {
     let 执行时消息: Array<{ role: string; content: string }> = []
-    mutateAsync.mockImplementationOnce(() => {
-      执行时消息 = mockAiMessages.map((消息) => ({ role: 消息.role, content: 消息.content }))
+    执行异步变更.mockImplementationOnce(() => {
+      执行时消息 = 模拟AI消息表.map((消息) => ({ role: 消息.role, content: 消息.content }))
       return Promise.resolve({ message: { role: 'assistant', content: '占位后落定' } })
     })
-    const addAiMessage = vi.fn((message) => {
-      mockAiMessages.push(message)
-      notifyMockState()
+    const 添加AI消息 = vi.fn((消息) => {
+      模拟AI消息表.push(消息)
+      通知模拟状态()
     })
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true, addAiMessage }))
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(创建模拟状态({ 聊天打开: true, 添加AI消息: 添加AI消息 }))
     )
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '占位先行问题' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '占位先行问题' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     await waitFor(() => {
-      expect(mutateAsync).toHaveBeenCalled()
+      expect(执行异步变更).toHaveBeenCalled()
     })
     expect(执行时消息).toEqual([
       { role: 'user', content: '占位先行问题' },
@@ -1976,34 +1852,34 @@ describe('AIChat', () => {
 
   it('SSE增量即落屏多帧递增：正文原样逐帧直写，不做任何格式改写', async () => {
     const 更新序列: string[] = []
-    let 捕获进度: ((增量: { reasoning: string; content: string }) => void) | undefined
-    mutateAsync.mockImplementationOnce(
-      (入参: { onProgress?: (增量: { reasoning: string; content: string }) => void }) => {
-        捕获进度 = 入参.onProgress
+    let 捕获进度: ((增量: { 思考内容: string; content: string }) => void) | undefined
+    执行异步变更.mockImplementationOnce(
+      (入参: { 进度回调?: (增量: { 思考内容: string; content: string }) => void }) => {
+        捕获进度 = 入参.进度回调
         return new Promise(() => {})
       }
     )
-    const updateAiMessage = vi.fn((index: number, patch: Record<string, unknown>) => {
-      mockAiMessages[index] = { ...mockAiMessages[index], ...patch }
-      if (typeof patch.content === 'string') 更新序列.push(patch.content as string)
-      notifyMockState()
+    const 更新AI消息 = vi.fn((下标: number, 补丁: Record<string, unknown>) => {
+      模拟AI消息表[下标] = { ...模拟AI消息表[下标], ...补丁 }
+      if (typeof 补丁.content === 'string') 更新序列.push(补丁.content as string)
+      通知模拟状态()
     })
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true, updateAiMessage }))
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(创建模拟状态({ 聊天打开: true, 更新AI消息: 更新AI消息 }))
     )
 
     render(<AILiaoTian />)
-    const input = screen.getByRole('textbox', { name: t('ai.title') })
-    fireEvent.change(input, { target: { value: '多帧递增问题' } })
-    fireEvent.submit(input.closest('form') as HTMLFormElement)
+    const 输入 = screen.getByRole('textbox', { name: t('ai.title') })
+    fireEvent.change(输入, { target: { value: '多帧递增问题' } })
+    fireEvent.submit(输入.closest('form') as HTMLFormElement)
 
     await waitFor(() => {
       expect(捕获进度).toBeDefined()
     })
     await act(async () => {
-      捕获进度?.({ reasoning: '', content: '流' })
-      捕获进度?.({ reasoning: '', content: '流式真' })
-      捕获进度?.({ reasoning: '', content: '流式真逐字' })
+      捕获进度?.({ 思考内容: '', content: '流' })
+      捕获进度?.({ 思考内容: '', content: '流式真' })
+      捕获进度?.({ 思考内容: '', content: '流式真逐字' })
     })
 
     expect(更新序列).toEqual(['流', '流式真', '流式真逐字'])
@@ -2013,22 +1889,22 @@ describe('AIChat', () => {
   })
 
   it('FP-04 落定助手消息保留reasoning且历史无reasoning回退兼容', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '老问题' },
             { role: 'assistant', content: '老答案' },
             { role: 'user', content: '新问题' },
-            { role: 'assistant', content: '新答案', reasoning: '完整思考流' },
+            { role: 'assistant', content: '新答案', 思考内容: '完整思考流' },
           ],
         })
       )
     )
 
     render(<AILiaoTian />)
-    // 思考流默认折叠：原文铺在答案上方会把内部输出协议（「返回JSON」等）暴露给访客
+
     expect(screen.queryByText('完整思考流')).not.toBeInTheDocument()
     expect(screen.getByText('老答案')).toBeInTheDocument()
 
@@ -2040,19 +1916,17 @@ describe('AIChat', () => {
   })
 
   it('思考中与空会话不显示继续选项', () => {
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(createMockState({ chatOpen: true }))
-    )
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) => 选择器(创建模拟状态({ 聊天打开: true })))
     render(<AILiaoTian />)
     expect(screen.queryByTestId('follow-up-suggestions')).not.toBeInTheDocument()
     cleanup()
 
-    mockRuntime.isPending = true
-    mockUseAppStore.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector(
-        createMockState({
-          chatOpen: true,
-          aiMessages: [
+    模拟运行时.isPending = true
+    模拟应用仓库.mockImplementation((选择器: (状态: unknown) => unknown) =>
+      选择器(
+        创建模拟状态({
+          聊天打开: true,
+          AI消息表: [
             { role: 'user', content: '你的技术栈' },
             { role: 'assistant', content: '技术栈回答' },
           ],
@@ -2061,6 +1935,6 @@ describe('AIChat', () => {
     )
     render(<AILiaoTian />)
     expect(screen.queryByTestId('follow-up-suggestions')).not.toBeInTheDocument()
-    mockRuntime.isPending = false
+    模拟运行时.isPending = false
   })
 })

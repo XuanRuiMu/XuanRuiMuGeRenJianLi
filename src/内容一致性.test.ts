@@ -5,17 +5,17 @@ import zhCN from './国际化/zh-CN.json'
 import { t } from './国际化/翻译'
 import { 构建简历知识库 } from './智能/简历知识库'
 
-function collectStrings(value: unknown): string[] {
+function 收集字符串(value: unknown): string[] {
   if (typeof value === 'string') return [value]
-  if (Array.isArray(value)) return value.flatMap(collectStrings)
+  if (Array.isArray(value)) return value.flatMap(收集字符串)
   if (value !== null && typeof value === 'object')
-    return Object.values(value as Record<string, unknown>).flatMap(collectStrings)
+    return Object.values(value as Record<string, unknown>).flatMap(收集字符串)
   return []
 }
 
-const 翻译文本 = collectStrings(zhCN).join('\n')
+const 翻译文本 = 收集字符串(zhCN).join('\n')
 const 知识库文本 = 构建简历知识库()
-  .map((chunk) => chunk.content)
+  .map((分块) => 分块.content)
   .join('\n')
 
 function 读文件(相对路径: string): string {
@@ -31,7 +31,6 @@ function 键存在(路径: string): boolean {
   return true
 }
 
-/** 逐个 grep 证明过「src 与 functions 中无任何 t()/ta()/键路径引用」的死文案节点，加回即红 */
 const 死键路径表 = [
   'intro',
   'intro.enterButton',
@@ -88,9 +87,9 @@ describe('FP-02内容一致性回归', () => {
     const { 经历表 } = await import('./数据/经历')
     const { 展示行表 } = await import('./数据/展示')
     const 指定地址 = 'https://github.com/XuanRuiMu/XRMChaJian'
-    expect(项目表.find((项目) => 项目.id === 'xrm')?.links[0].url).toBe(指定地址)
-    expect(经历表.find((条目) => 条目.id === 'mcserver')?.links?.[0].url).toBe(指定地址)
-    const 所有卡片 = 展示行表.flatMap((行) => 行.cards)
+    expect(项目表.find((项目) => 项目.id === 'xrm')?.链接表[0].url).toBe(指定地址)
+    expect(经历表.find((条目) => 条目.id === 'mcserver')?.链接表?.[0].url).toBe(指定地址)
+    const 所有卡片 = 展示行表.flatMap((行) => 行.卡片表)
     expect(所有卡片.find((卡片) => 卡片.id === 'xrmUi')?.href).toBe(指定地址)
     expect(所有卡片.find((卡片) => 卡片.id === 'gameWorld')?.href).toBe(指定地址)
   })
@@ -114,13 +113,18 @@ describe('FP-02内容一致性回归', () => {
     for (const 残留 of ['架子鼓', '爵士乐', '乐理', '频谱', '音乐经历']) {
       expect(翻译文本, `翻译文本不得残留「${残留}」`).not.toContain(残留)
     }
-    const 展示卡id = (await import('./数据/展示')).展示行表.flatMap((行) => 行.cards).map((卡) => 卡.id)
+    const 展示卡id = (await import('./数据/展示')).展示行表.flatMap((行) => 行.卡片表).map((卡) => 卡.id)
     expect(展示卡id).not.toContain('escape')
-    expect(fs.existsSync(path.resolve('public/showcase/爵士乐.png'))).toBe(false)
+    expect(fs.existsSync(path.resolve('public/showcase/爵士乐.webp'))).toBe(false)
     expect(fs.existsSync(path.resolve('src/数据/music.ts'))).toBe(false)
-    // 「9」这类单字符在整坨翻译文本里必然命中，等于没断言：改钉 skills.metrics 的真实指标值
-    const { javaClasses, aiSkills, agentSkills, serverOps } = zhCN.skills.metrics
-    expect([javaClasses.value, aiSkills.value, agentSkills.value, serverOps.value]).toEqual(['425', '85+', '9', '7年'])
+
+    const {
+      javaClasses: Java类名表,
+      aiSkills: AI技能,
+      agentSkills: 智能体技能,
+      serverOps: 服务操作,
+    } = zhCN.skills.metrics
+    expect([Java类名表.value, AI技能.value, 智能体技能.value, 服务操作.value]).toEqual(['425', '85+', '9', '7年'])
     for (const 指标 of ['425', '85+', '7年']) {
       expect(翻译文本, `量化指标「${指标}」必须仍在前端文案里`).toContain(指标)
     }
@@ -139,36 +143,36 @@ describe('FP-10 文案错误、口径不一致与死文案守卫', () => {
     for (const 路径 of 死键路径表) {
       expect(键存在(路径), `zh-CN.json.${路径} 无消费者，属死文案`).toBe(false)
     }
-    // 学历/媒体 的板块标题仍是 AI 助手时间线的数据源，不得连带误删
+
     expect(键存在('education.title')).toBe(true)
     expect(键存在('media.title')).toBe(true)
     expect(Object.keys(zhCN.education)).toEqual(['title'])
   })
 
-  it('五子棋重开按钮：aria-label 前缀、可见文案、CSS 注释三处用词同源', () => {
-    // 三处用词统一由翻译文件下发：aria-label 以可见文案为前缀，CSS 注释同样引用可见文案
+  it('五子棋重开按钮：aria-label 前缀与可见文案同源', () => {
     const 可见文案 = t('contact.gomoku.flipTable')
     expect(t('contact.gomoku.reset')).toContain(可见文案)
     expect(t('contact.gomoku.reset').indexOf(可见文案)).toBe(0)
     const 源码 = 读文件('src/功能/联系/WuZiQi.tsx')
     expect(源码).toContain(`aria-label={t('contact.gomoku.reset')}`)
     expect(源码).toContain(`{t('contact.gomoku.flipTable')}`)
-    expect(读文件('src/入口样式.css')).toContain(`${可见文案}：`)
   })
 
   it('PWA 技能快捷方式说明与技能板块实际小标题同源，且不含已删概念', () => {
     const 内容 = 读文件('public/manifest.json')
     expect(内容).not.toContain(['量化', '结果'].join(''))
     expect(键存在('skills.metricsTitle')).toBe(false)
-    // 正向：描述词必须与技能板块实际渲染的两个小标题同源
+
     expect(内容).toContain(t('skills.groupsTitle'))
     expect(内容).toContain(t('skills.radarTitle'))
   })
 
-  it('关于我第 4 行不再是缺谓语的句子', () => {
+  it('关于我第 4 行保持完整主谓结构', () => {
     const 第4行 = t('about.introLines.l4.text')
-    expect(第4行).toContain('让AI从')
+    expect(第4行).toContain('擅长对产品进行测试与完善')
+    expect(第4行).toContain('推进为')
     expect(第4行).not.toContain('——')
+    expect(第4行.endsWith('。')).toBe(true)
   })
 
   it('推荐语 AI开发者条目与「循环工程开源仓库」自洽', () => {
@@ -176,14 +180,14 @@ describe('FP-10 文案错误、口径不一致与死文案守卫', () => {
     expect(仓库事实).toContain('循环工程')
     expect(仓库事实).toContain('Agent技能')
     const role = t('testimonials.items.aiDeveloper.role')
-    const quote = t('testimonials.items.aiDeveloper.quote')
+    const 引用语 = t('testimonials.items.aiDeveloper.quote')
     expect(role).toContain('开源')
     expect(role).toContain('工具')
-    expect(quote).toContain('循环工程')
-    expect(quote).toContain('skill')
-    // 站内 85+ 工作流模板从未声明开源，推荐语不得把它说成开源物
+    expect(引用语).toContain('循环工程')
+    expect(引用语).toContain('skill')
+
     expect(role).not.toContain('工作流模板')
-    expect(quote).not.toMatch(/开源[^。]*工作流模板/)
+    expect(引用语).not.toMatch(/开源[^。]*工作流模板/)
     expect(t('testimonials.items.aiDeveloper.context')).toContain('开源仓库')
   })
 
@@ -209,7 +213,7 @@ describe('FP-10 文案错误、口径不一致与死文案守卫', () => {
     expect(提示).toContain('Ctrl')
     expect(提示).toContain('⌘')
     const 绑定 = 读文件('src/组件/命令面板/MingLingMianBan.tsx')
-    expect(绑定).toContain('event.metaKey || event.ctrlKey')
+    expect(绑定).toContain('事件.metaKey || 事件.ctrlKey')
   })
 
   it('AI 兜底回答引导的联系方式不超过联系板块实际提供的项', () => {

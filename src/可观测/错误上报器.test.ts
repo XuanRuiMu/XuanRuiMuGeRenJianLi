@@ -4,7 +4,7 @@ import { 环形缓冲实例 } from './全局'
 
 describe('errorReporter', () => {
   beforeEach(() => {
-    环形缓冲实例.clear()
+    环形缓冲实例.清空()
   })
 
   it('should classify webgl errors', () => {
@@ -20,21 +20,21 @@ describe('errorReporter', () => {
   })
 
   it('should report errors with unique ids', () => {
-    const report1 = 错误上报器实例.report(new Error('first'))
-    const report2 = 错误上报器实例.report(new Error('second'))
-    expect(report1?.id).not.toBe(report2?.id)
+    const 报告一 = 错误上报器实例.报告(new Error('first'))
+    const 报告二 = 错误上报器实例.报告(new Error('second'))
+    expect(报告一?.id).not.toBe(报告二?.id)
   })
 
   it('should handle non-error values', () => {
-    const report = 错误上报器实例.report('string error')
-    expect(report).not.toBeNull()
-    expect(report?.message).toBe('string error')
+    const 报告 = 错误上报器实例.报告('string error')
+    expect(报告).not.toBeNull()
+    expect(报告?.message).toBe('string error')
   })
 
   it('should write error entries to ringBuffer', () => {
-    错误上报器实例.report(new Error('test error'))
-    const entries = 环形缓冲实例.read()
-    expect(entries.length).toBeGreaterThan(0)
-    expect(entries.some((e) => e.message.includes('test error'))).toBe(true)
+    错误上报器实例.报告(new Error('test error'))
+    const 条目表 = 环形缓冲实例.读取()
+    expect(条目表.length).toBeGreaterThan(0)
+    expect(条目表.some((e) => e.message.includes('test error'))).toBe(true)
   })
 })

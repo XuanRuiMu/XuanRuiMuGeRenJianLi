@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { AnNiu } from './AnNiu'
 
-const IconMock = () => <span data-testid="icon">*</span>
+const TuBiaoCeShiTiShen = () => <span data-testid="icon">*</span>
 
 describe('Button', () => {
   it('renders children', () => {
@@ -30,32 +30,32 @@ describe('Button', () => {
   })
 
   it('renders icon', () => {
-    render(<AnNiu icon={<IconMock />}>click me</AnNiu>)
+    render(<AnNiu 图标={<TuBiaoCeShiTiShen />}>click me</AnNiu>)
     expect(screen.getByTestId('icon')).toBeInTheDocument()
   })
 
   it('applies primary variant class by default', () => {
-    const { container } = render(<AnNiu>click me</AnNiu>)
-    expect(container.firstChild).toHaveClass('bg-primary')
+    const { container: 容器 } = render(<AnNiu>click me</AnNiu>)
+    expect(容器.firstChild).toHaveClass('bg-primary')
   })
 
   it('applies secondary variant class', () => {
-    const { container } = render(<AnNiu variant="secondary">click me</AnNiu>)
-    expect(container.firstChild).toHaveClass('bg-secondary')
+    const { container: 容器 } = render(<AnNiu 变体="secondary">click me</AnNiu>)
+    expect(容器.firstChild).toHaveClass('bg-secondary')
   })
 
   it('applies ghost variant class', () => {
-    const { container } = render(<AnNiu variant="ghost">click me</AnNiu>)
-    expect(container.firstChild).toHaveClass('bg-transparent')
+    const { container: 容器 } = render(<AnNiu 变体="ghost">click me</AnNiu>)
+    expect(容器.firstChild).toHaveClass('bg-transparent')
   })
 
   it('applies size classes', () => {
-    const { container } = render(<AnNiu size="lg">click me</AnNiu>)
-    expect(container.firstChild).toHaveClass('h-12', 'px-6', 'text-base')
+    const { container: 容器 } = render(<AnNiu 尺寸="lg">click me</AnNiu>)
+    expect(容器.firstChild).toHaveClass('h-12', 'px-6', 'text-base')
   })
 
   it('merges custom className', () => {
-    const { container } = render(<AnNiu className="custom-class">click me</AnNiu>)
-    expect(container.firstChild).toHaveClass('custom-class')
+    const { container: 容器 } = render(<AnNiu className="custom-class">click me</AnNiu>)
+    expect(容器.firstChild).toHaveClass('custom-class')
   })
 })

@@ -1,74 +1,74 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { useYingYongZhuangTai } from './状态/应用状态仓库'
 
-type WorkerLike = {
+type 工作者接口 = {
   state: string
   postMessage: ReturnType<typeof vi.fn>
   addEventListener: ReturnType<typeof vi.fn>
 }
 
-type RegistrationLike = {
+type 注册对象接口 = {
   scope: string
-  waiting: WorkerLike | null
-  installing: WorkerLike | null
-  active: WorkerLike | null
+  waiting: 工作者接口 | null
+  installing: 工作者接口 | null
+  active: 工作者接口 | null
   update: ReturnType<typeof vi.fn>
   addEventListener: ReturnType<typeof vi.fn>
-  __trigger: (event: string) => void
+  __trigger: (事件: string) => void
 }
 
-function 创建Worker(state = 'installing'): WorkerLike {
-  const listeners = new Map<string, () => void>()
+function 创建Worker(状态 = 'installing'): 工作者接口 {
+  const 监听器表 = new Map<string, () => void>()
   return {
-    state,
+    state: 状态,
     postMessage: vi.fn(),
-    addEventListener: vi.fn((event: string, handler: () => void) => {
-      listeners.set(event, handler)
+    addEventListener: vi.fn((事件: string, 处理器: () => void) => {
+      监听器表.set(事件, 处理器)
     }),
-    __setState(next: string) {
-      this.state = next
-      listeners.get('statechange')?.()
+    __setState(下一个: string) {
+      this.state = 下一个
+      监听器表.get('statechange')?.()
     },
-  } as WorkerLike & { __setState(next: string): void }
+  } as 工作者接口 & { __setState(下一个: string): void }
 }
 
-function 创建注册(overrides: Partial<RegistrationLike> = {}): RegistrationLike {
-  const listeners = new Map<string, () => void>()
+function 创建注册(覆盖项: Partial<注册对象接口> = {}): 注册对象接口 {
+  const 监听器表 = new Map<string, () => void>()
   return {
     scope: '/',
     waiting: null,
     installing: null,
     active: null,
     update: vi.fn(() => Promise.resolve()),
-    addEventListener: vi.fn((event: string, handler: () => void) => {
-      listeners.set(event, handler)
+    addEventListener: vi.fn((事件: string, 处理器: () => void) => {
+      监听器表.set(事件, 处理器)
     }),
-    __trigger(event: string) {
-      listeners.get(event)?.()
+    __trigger(事件: string) {
+      监听器表.get(事件)?.()
     },
-    ...overrides,
+    ...覆盖项,
   }
 }
 
-function 安装ServiceWorkerMock(options?: {
+function 安装ServiceWorkerMock(选项?: {
   register?: ReturnType<typeof vi.fn>
-  registration?: RegistrationLike
+  registration?: 注册对象接口
   controller?: object | null
 }) {
-  const registration = options?.registration ?? 创建注册()
-  const register = options?.register ?? vi.fn(() => Promise.resolve(registration))
-  const swListeners = new Map<string, (event: { data: unknown; origin?: string }) => void>()
+  const registration = 选项?.registration ?? 创建注册()
+  const register = 选项?.register ?? vi.fn(() => Promise.resolve(registration))
+  const 服务线程监听器表 = new Map<string, (事件: { data: unknown; origin?: string }) => void>()
   const mock = {
     register,
     getRegistration: vi.fn(() => Promise.resolve(registration)),
     ready: Promise.resolve(registration),
-    controller: options?.controller ?? null,
-    addEventListener: (event: string, handler: (event: { data: unknown; origin?: string }) => void) => {
-      swListeners.set(event, handler)
+    controller: 选项?.controller ?? null,
+    addEventListener: (事件: string, 处理器: (事件: { data: unknown; origin?: string }) => void) => {
+      服务线程监听器表.set(事件, 处理器)
     },
     removeEventListener: vi.fn(),
-    __triggerMessage: (data: unknown, origin: string = window.location.origin) => {
-      swListeners.get('message')?.({ data, origin })
+    __triggerMessage: (数据: unknown, 来源: string = window.location.origin) => {
+      服务线程监听器表.get('message')?.({ data: 数据, origin: 来源 })
     },
     __registration: registration,
     __register: register,
@@ -91,18 +91,16 @@ function 移除ServiceWorker() {
 }
 
 async function 导入SwRegister() {
-  // 不 resetModules：reset 会让 swRegister 拿到另一份 useYingYongZhuangTai 实例，
-  // 断言写在测试顶层 import 的 store 上永远为 false。共享同一 store 即可。
   return import('./工具/注册服务工作线程')
 }
 
 describe('swRegister 公共行为（原生注册，无 virtual 模块）', () => {
   beforeEach(() => {
     useYingYongZhuangTai.setState({
-      isOffline: false,
-      updateAvailable: false,
-      offlineReady: false,
-      cacheQuotaWarning: false,
+      是离线: false,
+      有可用更新: false,
+      离线就绪: false,
+      缓存配额警告: false,
     })
   })
 
@@ -114,18 +112,18 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
   it('不支持 serviceWorker 时返回 null（降级，不抛出）', async () => {
     移除ServiceWorker()
     const { 注册服务工作线程, 更新服务工作线程 } = await 导入SwRegister()
-    const result = 注册服务工作线程()
-    expect(result).toBeNull()
+    const 结果 = 注册服务工作线程()
+    expect(结果).toBeNull()
     await expect(更新服务工作线程(true)).resolves.toBeUndefined()
   })
 
   it('支持时调用原生 navigator.serviceWorker.register 并返回更新函数', async () => {
     const mock = 安装ServiceWorkerMock()
     const { 注册服务工作线程 } = await 导入SwRegister()
-    const updateSW = 注册服务工作线程()
+    const 更新服务线程 = 注册服务工作线程()
 
     expect(mock.__register).toHaveBeenCalledWith('/服务工作线程.js')
-    expect(updateSW).toBeTypeOf('function')
+    expect(更新服务线程).toBeTypeOf('function')
   })
 
   it('注册成功且已有 controller 且存在 waiting → 置 updateAvailable', async () => {
@@ -135,7 +133,7 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
     const { 注册服务工作线程 } = await 导入SwRegister()
     注册服务工作线程()
     await vi.waitFor(() => {
-      expect(useYingYongZhuangTai.getState().updateAvailable).toBe(true)
+      expect(useYingYongZhuangTai.getState().有可用更新).toBe(true)
     })
   })
 
@@ -149,11 +147,11 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
       expect(registration.addEventListener).toHaveBeenCalledWith('updatefound', expect.any(Function))
     })
     registration.__trigger('updatefound')
-    ;(installing as WorkerLike & { __setState(s: string): void }).__setState('installed')
+    ;(installing as 工作者接口 & { __setState(s: string): void }).__setState('installed')
     await vi.waitFor(() => {
-      expect(useYingYongZhuangTai.getState().offlineReady).toBe(true)
+      expect(useYingYongZhuangTai.getState().离线就绪).toBe(true)
     })
-    expect(useYingYongZhuangTai.getState().updateAvailable).toBe(false)
+    expect(useYingYongZhuangTai.getState().有可用更新).toBe(false)
   })
 
   it('已有 controller 时新 worker 进入 installed → 置 updateAvailable', async () => {
@@ -166,9 +164,9 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
       expect(registration.addEventListener).toHaveBeenCalledWith('updatefound', expect.any(Function))
     })
     registration.__trigger('updatefound')
-    ;(installing as WorkerLike & { __setState(s: string): void }).__setState('installed')
+    ;(installing as 工作者接口 & { __setState(s: string): void }).__setState('installed')
     await vi.waitFor(() => {
-      expect(useYingYongZhuangTai.getState().updateAvailable).toBe(true)
+      expect(useYingYongZhuangTai.getState().有可用更新).toBe(true)
     })
   })
 
@@ -177,7 +175,7 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
     const { 注册服务工作线程 } = await 导入SwRegister()
     注册服务工作线程()
     mock.__triggerMessage({ type: 'CACHE_QUOTA_WARNING', payload: { ratio: 0.85 } })
-    expect(useYingYongZhuangTai.getState().cacheQuotaWarning).toBe(true)
+    expect(useYingYongZhuangTai.getState().缓存配额警告).toBe(true)
   })
 
   it('SW 消息 OFFLINE_READY → 置 offlineReady', async () => {
@@ -185,7 +183,7 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
     const { 注册服务工作线程 } = await 导入SwRegister()
     注册服务工作线程()
     mock.__triggerMessage({ type: 'OFFLINE_READY' })
-    expect(useYingYongZhuangTai.getState().offlineReady).toBe(true)
+    expect(useYingYongZhuangTai.getState().离线就绪).toBe(true)
   })
 
   it('跨源伪造的 SW 消息被同源校验拒绝，不得改写应用状态', async () => {
@@ -194,36 +192,36 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
     注册服务工作线程()
     mock.__triggerMessage({ type: 'OFFLINE_READY' }, 'https://evil.example.com')
     mock.__triggerMessage({ type: 'CACHE_QUOTA_WARNING', payload: { ratio: 0.85 } }, 'https://evil.example.com')
-    expect(useYingYongZhuangTai.getState().offlineReady).toBe(false)
-    expect(useYingYongZhuangTai.getState().cacheQuotaWarning).toBe(false)
+    expect(useYingYongZhuangTai.getState().离线就绪).toBe(false)
+    expect(useYingYongZhuangTai.getState().缓存配额警告).toBe(false)
   })
 
   it('更新服务工作线程 向 waiting 发送 SKIP_WAITING 并刷新', async () => {
     const waiting = 创建Worker('installed')
     const registration = 创建注册({ waiting, active: 创建Worker('activated') })
     安装ServiceWorkerMock({ registration, controller: {} })
-    const reload = vi.fn()
-    vi.stubGlobal('location', { ...window.location, reload })
+    const 刷新 = vi.fn()
+    vi.stubGlobal('location', { ...window.location, reload: 刷新 })
 
     const { 注册服务工作线程, 更新服务工作线程 } = await 导入SwRegister()
     注册服务工作线程()
     await 更新服务工作线程(true)
 
     expect(waiting.postMessage).toHaveBeenCalledWith({ type: 'SKIP_WAITING' })
-    expect(reload).toHaveBeenCalled()
+    expect(刷新).toHaveBeenCalled()
   })
 
   it('无 waiting 时 更新服务工作线程 为 no-op（不刷新）', async () => {
     const registration = 创建注册({ waiting: null })
     安装ServiceWorkerMock({ registration })
-    const reload = vi.fn()
-    vi.stubGlobal('location', { ...window.location, reload })
+    const 刷新 = vi.fn()
+    vi.stubGlobal('location', { ...window.location, reload: 刷新 })
 
     const { 注册服务工作线程, 更新服务工作线程 } = await 导入SwRegister()
     注册服务工作线程()
     await 更新服务工作线程(true)
 
-    expect(reload).not.toHaveBeenCalled()
+    expect(刷新).not.toHaveBeenCalled()
   })
 
   it('注册失败时降级为 no-op，更新服务工作线程 不抛出', async () => {
@@ -231,10 +229,10 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
       register: vi.fn(() => Promise.reject(new Error('register failed'))),
     })
     const { 注册服务工作线程, 更新服务工作线程 } = await 导入SwRegister()
-    const updateSW = 注册服务工作线程()
-    expect(updateSW).toBeTypeOf('function')
+    const 更新服务线程 = 注册服务工作线程()
+    expect(更新服务线程).toBeTypeOf('function')
     await vi.waitFor(() => {
-      expect(useYingYongZhuangTai.getState().updateAvailable).toBe(false)
+      expect(useYingYongZhuangTai.getState().有可用更新).toBe(false)
     })
     await expect(更新服务工作线程(true)).resolves.toBeUndefined()
   })
@@ -242,16 +240,13 @@ describe('swRegister 公共行为（原生注册，无 virtual 模块）', () =>
   it('Vite 开发态（import.meta.hot）跳过注册，返回 null', async () => {
     const mock = 安装ServiceWorkerMock()
     vi.stubEnv('DEV', true)
-    // import.meta.hot 在 vitest 中不存在；直接 stub 模块图上的 hot 无法影响静态分析，
-    // 因此用动态 import 前注入 import.meta.hot 等价开关：通过 vi.doMock 不可行，
-    // 改为验证「无 hot 时会注册」的反面已在上一用例覆盖；本用例验证热更新上下文的返回契约。
-    // 若环境无 import.meta.hot，则 register 会被调用——此时断言仍为「返回函数」以兼容两种环境。
+
     const { 注册服务工作线程 } = await 导入SwRegister()
-    const result = 注册服务工作线程()
-    if (result === null) {
+    const 结果 = 注册服务工作线程()
+    if (结果 === null) {
       expect(mock.__register).not.toHaveBeenCalled()
     } else {
-      expect(result).toBeTypeOf('function')
+      expect(结果).toBeTypeOf('function')
     }
   })
 })

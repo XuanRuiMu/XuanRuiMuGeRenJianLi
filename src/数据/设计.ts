@@ -1,29 +1,29 @@
 import type { 设计 } from './类型'
 
 export const 设计数据: 设计 = {
-  headlineKey: 'data.design.headline',
-  introKey: 'data.design.intro',
-  works: [
+  标题键: 'data.design.headline',
+  介绍键: 'data.design.intro',
+  作品表: [
     {
       id: 'resumeTheater',
-      nameKey: 'data.design.works.resumeTheater.name',
-      categoryKey: 'data.design.works.resumeTheater.category',
-      descKey: 'data.design.works.resumeTheater.desc',
+      名称键: 'data.design.works.resumeTheater.name',
+      分类键: 'data.design.works.resumeTheater.category',
+      描述键: 'data.design.works.resumeTheater.desc',
     },
     {
       id: 'xrmUi',
-      nameKey: 'data.design.works.xrmUi.name',
-      categoryKey: 'data.design.works.xrmUi.category',
-      descKey: 'data.design.works.xrmUi.desc',
+      名称键: 'data.design.works.xrmUi.name',
+      分类键: 'data.design.works.xrmUi.category',
+      描述键: 'data.design.works.xrmUi.desc',
     },
     {
       id: 'aiToolchain',
-      nameKey: 'data.design.works.aiToolchain.name',
-      categoryKey: 'data.design.works.aiToolchain.category',
-      descKey: 'data.design.works.aiToolchain.desc',
+      名称键: 'data.design.works.aiToolchain.name',
+      分类键: 'data.design.works.aiToolchain.category',
+      描述键: 'data.design.works.aiToolchain.desc',
     },
   ],
-  toolKeys: [
+  工具键表: [
     'data.design.tools.figma',
     'data.design.tools.threejs',
     'data.design.tools.tailwind',

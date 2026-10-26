@@ -11,7 +11,6 @@ function 包装器(客户端: QueryClient) {
   }
 }
 
-/** 访问统计开关 是模块级常量，必须在导入前落定环境开关，测试才不受 .env.local 影响 */
 async function 载入模块(开关: string) {
   vi.stubEnv('VITE_ENABLE_ANALYTICS', 开关)
   vi.resetModules()
@@ -74,7 +73,7 @@ describe('库/api 访客统计（FP-05 公网降级）', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(result.current.data).toBeNull()
     expect(result.current.isError).toBe(false)
-    // 失败即重试会在无后端的生产环境上打出 4 次请求
+
     expect(模拟请求).toHaveBeenCalledTimes(1)
     expect(报错spy).not.toHaveBeenCalled()
   })

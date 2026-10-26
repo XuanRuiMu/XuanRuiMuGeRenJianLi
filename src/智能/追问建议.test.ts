@@ -1,44 +1,44 @@
 import { describe, it, expect } from 'vitest'
 import { 生成追问建议 } from './追问建议'
 import { 取本地答案 } from './本地引擎'
-import { t, ta } from '../国际化/翻译'
+import { t, 翻译数组 } from '../国际化/翻译'
 
 describe('追问建议根因：每次回答后3个可继续选项', () => {
   it('技术栈问题返回技术追问三元', () => {
     const 建议 = 生成追问建议('和我恋爱吧项目用了什么技术栈')
     expect(建议).toHaveLength(3)
-    expect(建议).toEqual(ta('ai.followUps.tech'))
+    expect(建议).toEqual(翻译数组('ai.followUps.tech'))
   })
 
   it('暮澜纪元问题返回项目追问三元', () => {
     const 建议 = 生成追问建议('介绍一下暮澜纪元')
-    expect(建议).toEqual(ta('ai.followUps.projectsXrm'))
+    expect(建议).toEqual(翻译数组('ai.followUps.projectsXrm'))
   })
 
   it('恋爱项目问题返回恋爱追问三元', () => {
     const 建议 = 生成追问建议('和我恋爱吧是做什么的')
-    expect(建议).toEqual(ta('ai.followUps.projectsLove'))
+    expect(建议).toEqual(翻译数组('ai.followUps.projectsLove'))
   })
 
   it('羊来问法命中羊来追问且选项含羊来玩法', () => {
     const 建议 = 生成追问建议('羊来是做什么的')
-    expect(建议).toEqual(ta('ai.followUps.projectsYangLai'))
-    expect(ta('ai.followUps.projectsYangLai').join('')).toContain('羊来')
+    expect(建议).toEqual(翻译数组('ai.followUps.projectsYangLai'))
+    expect(翻译数组('ai.followUps.projectsYangLai').join('')).toContain('羊来')
   })
 
   it('本地与LLM链路共用同一引擎：组件信号优先于文本', () => {
     const 本地建议 = 生成追问建议('随便问问', {
       role: 'assistant',
       content: '答',
-      component: { type: 'ProjectCard', projectId: 'xrm' },
+      组件: { type: 'ProjectCard', 项目编号: 'xrm' },
     })
-    expect(本地建议).toEqual(ta('ai.followUps.projectsXrm'))
+    expect(本地建议).toEqual(翻译数组('ai.followUps.projectsXrm'))
     const 大模型建议 = 生成追问建议('换个问法', {
       role: 'assistant',
       content: '答',
-      component: { type: 'Timeline', scope: 'experience' },
+      组件: { type: 'Timeline', scope: 'experience' },
     })
-    expect(大模型建议).toEqual(ta('ai.followUps.experience'))
+    expect(大模型建议).toEqual(翻译数组('ai.followUps.experience'))
   })
 
   it('问候与空输入有兜底三元且无空字符串', () => {
@@ -50,7 +50,7 @@ describe('追问建议根因：每次回答后3个可继续选项', () => {
   })
 
   it('未知问题回退到通用三元', () => {
-    expect(生成追问建议('今天天气怎么样')).toEqual(ta('ai.followUps.fallback'))
+    expect(生成追问建议('今天天气怎么样')).toEqual(翻译数组('ai.followUps.fallback'))
   })
 })
 
@@ -95,14 +95,14 @@ describe('兜底答案的追问分组（FP-04b）：诚实兜底与预制答案�
     for (const 问句 of 答非所问句) {
       const 助手消息 = 取本地答案(问句)
       expect(助手消息.content, `「${问句}」应诚实兜底`).toBe(诚实兜底)
-      expect(生成追问建议(问句, 助手消息), `「${问句}」的追问不该假装相关`).toEqual(ta('ai.followUps.fallback'))
+      expect(生成追问建议(问句, 助手消息), `「${问句}」的追问不该假装相关`).toEqual(翻译数组('ai.followUps.fallback'))
     }
   })
 
   it('真实简历意图的追问各自归组', () => {
     for (const 项 of 真实简历意图追问组) {
       expect(生成追问建议(项.问句, 取本地答案(项.问句)), `「${项.问句}」的追问组不符`).toEqual(
-        ta(`ai.followUps.${项.组}` as never)
+        翻译数组(`ai.followUps.${项.组}` as never)
       )
     }
   })

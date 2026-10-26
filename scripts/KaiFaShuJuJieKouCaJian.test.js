@@ -2,26 +2,26 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { createDevDataHandler, 校验访问, 登记访问, 读Json, 写Json } from './KaiFaShuJuJieKouCaJian.js'
+import { 创建开发数据处理器, 校验访问, 登记访问, 读Json, 写Json } from './KaiFaShuJuJieKouCaJian.js'
 
-let dataDir
+let 数据目录
 let log
 let 处理
 
 function 构造Req(method, url, body) {
-  const req = { method, url }
+  const 请求 = { method, url }
   if (body !== undefined) {
-    const payload = JSON.stringify(body)
-    req.on = (event, cb) => {
-      if (event === 'data') setTimeout(() => cb(payload), 0)
-      if (event === 'end') setTimeout(cb, 5)
+    const 载荷 = JSON.stringify(body)
+    请求.on = (事件, 回调) => {
+      if (事件 === 'data') setTimeout(() => 回调(载荷), 0)
+      if (事件 === 'end') setTimeout(回调, 5)
     }
   } else {
-    req.on = (event, cb) => {
-      if (event === 'end') setTimeout(cb, 0)
+    请求.on = (事件, 回调) => {
+      if (事件 === 'end') setTimeout(回调, 0)
     }
   }
-  return req
+  return 请求
 }
 
 function 构造Res() {
@@ -33,33 +33,33 @@ function 构造Res() {
     setHeader(k, v) {
       this.headers[k] = v
     },
-    end(payload) {
+    end(载荷) {
       this.writableEnded = true
-      this.body = payload ? JSON.parse(payload) : null
+      this.body = 载荷 ? JSON.parse(载荷) : null
     },
   }
 }
 
-function 调用(req) {
-  const res = 构造Res()
+function 调用(请求) {
+  const 响应 = 构造Res()
   return new Promise((resolve) => {
-    res.end = function (payload) {
+    响应.end = function (载荷) {
       this.writableEnded = true
-      this.body = payload ? JSON.parse(payload) : null
-      resolve(res)
+      this.body = 载荷 ? JSON.parse(载荷) : null
+      resolve(响应)
     }
-    处理(req, res, () => resolve({ nexted: true, res }))
+    处理(请求, 响应, () => resolve({ nexted: true, res: 响应 }))
   })
 }
 
 beforeEach(() => {
-  dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dev-api-'))
+  数据目录 = fs.mkdtempSync(path.join(os.tmpdir(), 'dev-api-'))
   log = vi.fn()
-  处理 = createDevDataHandler({ dataDir, log })
+  处理 = 创建开发数据处理器({ dataDir: 数据目录, log })
 })
 
 afterEach(() => {
-  fs.rmSync(dataDir, { recursive: true, force: true })
+  fs.rmSync(数据目录, { recursive: true, force: true })
 })
 
 describe('校验函数', () => {
@@ -85,37 +85,37 @@ describe('登记访问（纯逻辑）', () => {
 
 describe('createDevDataHandler（HTTP 层）', () => {
   it('GET /analytics 初始为全零', async () => {
-    const res = await 调用(构造Req('GET', '/analytics'))
-    expect(res.body).toEqual({ total: 0, last24h: 0, stored: true })
+    const 响应 = await 调用(构造Req('GET', '/analytics'))
+    expect(响应.body).toEqual({ total: 0, last24h: 0, stored: true })
   })
 
   it('POST /analytics 登记并持久化；GET 可读回', async () => {
     await 调用(构造Req('POST', '/analytics', { path: '/', timestamp: Date.now() }))
-    const res = await 调用(构造Req('GET', '/analytics'))
-    expect(res.body.total).toBe(1)
+    const 响应 = await 调用(构造Req('GET', '/analytics'))
+    expect(响应.body.total).toBe(1)
 
-    const 持久化 = 读Json(dataDir, 'dev-analytics.json', null)
+    const 持久化 = 读Json(数据目录, 'dev-analytics.json', null)
     expect(持久化.events).toHaveLength(1)
   })
 
   it('损坏的 JSON 请求体返回 400 而非崩溃', async () => {
-    const req = 构造Req('POST', '/analytics')
-    req.on = (event, cb) => {
-      if (event === 'data') setTimeout(() => cb('{broken'), 0)
-      if (event === 'end') setTimeout(cb, 5)
+    const 请求 = 构造Req('POST', '/analytics')
+    请求.on = (事件, 回调) => {
+      if (事件 === 'data') setTimeout(() => 回调('{broken'), 0)
+      if (事件 === 'end') setTimeout(回调, 5)
     }
-    const res = await 调用(req)
-    expect(res.statusCode).toBe(400)
+    const 响应 = await 调用(请求)
+    expect(响应.statusCode).toBe(400)
   })
 
   it('未匹配路由放行 next()', async () => {
-    const res = await 调用(构造Req('GET', '/deepseek'))
-    expect(res.nexted).toBe(true)
+    const 响应 = await 调用(构造Req('GET', '/deepseek'))
+    expect(响应.nexted).toBe(true)
   })
 
   it('写Json→读Json 往返一致', () => {
-    写Json(dataDir, 'probe.json', { a: 1 })
-    expect(读Json(dataDir, 'probe.json', null)).toEqual({ a: 1 })
-    expect(读Json(dataDir, 'missing.json', 'fallback')).toBe('fallback')
+    写Json(数据目录, 'probe.json', { a: 1 })
+    expect(读Json(数据目录, 'probe.json', null)).toEqual({ a: 1 })
+    expect(读Json(数据目录, 'missing.json', 'fallback')).toBe('fallback')
   })
 })

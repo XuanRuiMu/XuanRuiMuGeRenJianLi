@@ -31,57 +31,57 @@ describe('deviceCapabilities', () => {
   })
 
   describe('检测WebGL2支持', () => {
-    let originalGetContext: typeof HTMLCanvasElement.prototype.getContext
+    let 原始获取上下文: typeof HTMLCanvasElement.prototype.getContext
 
     beforeEach(() => {
-      originalGetContext = HTMLCanvasElement.prototype.getContext
+      原始获取上下文 = HTMLCanvasElement.prototype.getContext
     })
 
     afterEach(() => {
-      HTMLCanvasElement.prototype.getContext = originalGetContext
+      HTMLCanvasElement.prototype.getContext = 原始获取上下文
     })
 
     it('returns true when webgl2 context is available', () => {
-      HTMLCanvasElement.prototype.getContext = vi.fn((contextId: string) =>
-        contextId === 'webgl2' ? ({} as unknown as RenderingContext) : null
-      ) as typeof originalGetContext
+      HTMLCanvasElement.prototype.getContext = vi.fn((上下文编号: string) =>
+        上下文编号 === 'webgl2' ? ({} as unknown as RenderingContext) : null
+      ) as typeof 原始获取上下文
       expect(检测WebGL2支持()).toBe(true)
     })
 
     it('returns false when getContext returns null', () => {
-      HTMLCanvasElement.prototype.getContext = vi.fn(() => null) as typeof originalGetContext
+      HTMLCanvasElement.prototype.getContext = vi.fn(() => null) as typeof 原始获取上下文
       expect(检测WebGL2支持()).toBe(false)
     })
   })
 
   describe('获取画质设置', () => {
     it('returns ultra settings for ultra level', () => {
-      const settings = 获取画质设置(画质档位.极致)
-      expect(settings.particleCount).toBe(20000)
-      expect(settings.postProcessing).toBe(true)
-      expect(settings.volumetric).toBe(true)
+      const 设置 = 获取画质设置(画质档位.极致)
+      expect(设置.粒子数量).toBe(20000)
+      expect(设置.后处理).toBe(true)
+      expect(设置.体积光).toBe(true)
     })
 
     it('returns low settings for low level', () => {
-      const settings = 获取画质设置(画质档位.低)
-      expect(settings.particleCount).toBe(5000)
-      expect(settings.postProcessing).toBe(false)
-      expect(settings.volumetric).toBe(false)
+      const 设置 = 获取画质设置(画质档位.低)
+      expect(设置.粒子数量).toBe(5000)
+      expect(设置.后处理).toBe(false)
+      expect(设置.体积光).toBe(false)
     })
 
     it('falls back to high settings for unknown level', () => {
-      const settings = 获取画质设置('unknown' as typeof 画质档位.高)
-      expect(settings.particleCount).toBe(15000)
+      const 设置 = 获取画质设置('unknown' as typeof 画质档位.高)
+      expect(设置.粒子数量).toBe(15000)
     })
 
     it('returns monotonically decreasing particle counts', () => {
-      const ultra = 获取画质设置(画质档位.极致).particleCount
-      const high = 获取画质设置(画质档位.高).particleCount
-      const medium = 获取画质设置(画质档位.中).particleCount
-      const low = 获取画质设置(画质档位.低).particleCount
-      expect(ultra).toBeGreaterThan(high)
-      expect(high).toBeGreaterThan(medium)
-      expect(medium).toBeGreaterThan(low)
+      const 极致 = 获取画质设置(画质档位.极致).粒子数量
+      const 高 = 获取画质设置(画质档位.高).粒子数量
+      const 中 = 获取画质设置(画质档位.中).粒子数量
+      const 低 = 获取画质设置(画质档位.低).粒子数量
+      expect(极致).toBeGreaterThan(高)
+      expect(高).toBeGreaterThan(中)
+      expect(中).toBeGreaterThan(低)
     })
   })
 })

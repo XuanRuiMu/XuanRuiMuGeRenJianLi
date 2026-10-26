@@ -3,15 +3,15 @@ import { Command } from 'cmdk'
 import { Search, Sun, Moon, Monitor, MessageSquare, Mail, Link, Download } from 'lucide-react'
 import { useYingYongZhuangTai, 板块顺序, type 应用板块, type 应用主题 } from '../../状态/应用状态仓库'
 import { useZhuTiXiTong } from '../主题切换/useZhuTiXiTong'
-import { t, type TranslationKey } from '../../国际化/翻译'
+import { t, type 翻译键 } from '../../国际化/翻译'
 import { 个人信息 } from '../../数据/个人信息'
 import { 下载简历 } from '../../库/简历'
 import { 合并类名 } from '../../库/工具'
 import { 启动视图过渡 } from '../../工具/视图过渡'
 import { 平滑滚动引用 } from '../../库/平滑滚动实例'
 
-function sectionLabel(section: 应用板块): string {
-  return t(`nav.${section}` as unknown as TranslationKey)
+function 区块标签(区块: 应用板块): string {
+  return t(`nav.${区块}` as unknown as 翻译键)
 }
 
 function 格式化命令数(序号: number): string {
@@ -55,11 +55,11 @@ function 保持对话框焦点(键盘事件: React键盘事件<HTMLDivElement>) 
 }
 
 export function MingLingMianBan() {
-  const open = useYingYongZhuangTai((state) => state.commandOpen)
-  const setOpen = useYingYongZhuangTai((state) => state.setCommandOpen)
-  const toggleChat = useYingYongZhuangTai((state) => state.toggleChat)
-  const transitionToSection = useYingYongZhuangTai((state) => state.transitionToSection)
-  const { theme, setTheme } = useZhuTiXiTong()
+  const open = useYingYongZhuangTai((状态) => 状态.命令面板打开)
+  const 设置展开 = useYingYongZhuangTai((状态) => 状态.设置命令面板打开)
+  const 切换聊天 = useYingYongZhuangTai((状态) => 状态.切换聊天)
+  const 切换区块 = useYingYongZhuangTai((状态) => 状态.切换到区块)
+  const { theme: 主题, setTheme: 设置主题 } = useZhuTiXiTong()
   const 触发元素引用 = useRef<HTMLElement | null>(null)
   const 跳过焦点恢复引用 = useRef(false)
   const 目标打开状态引用 = useRef(open)
@@ -69,7 +69,7 @@ export function MingLingMianBan() {
     目标打开状态引用.current = open
   }, [open])
 
-  const setOpenWithTransition = useCallback(
+  const 带过渡设置展开 = useCallback(
     (value: boolean) => {
       目标打开状态引用.current = value
       const 切换序号 = ++切换序号引用.current
@@ -80,28 +80,28 @@ export function MingLingMianBan() {
       if (value) {
         void 启动视图过渡(() => {
           if (切换序号 !== 切换序号引用.current || !目标打开状态引用.current) return
-          setOpen(value)
+          设置展开(value)
         })
       } else {
-        setOpen(value)
+        设置展开(value)
       }
     },
-    [setOpen]
+    [设置展开]
   )
 
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
-        event.preventDefault()
-        setOpenWithTransition(!目标打开状态引用.current)
+    const 处理按键 = (事件: KeyboardEvent) => {
+      if ((事件.metaKey || 事件.ctrlKey) && 事件.key.toLowerCase() === 'k') {
+        事件.preventDefault()
+        带过渡设置展开(!目标打开状态引用.current)
       }
-      if (event.key === 'Escape') {
-        setOpenWithTransition(false)
+      if (事件.key === 'Escape') {
+        带过渡设置展开(false)
       }
     }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [open, setOpenWithTransition])
+    window.addEventListener('keydown', 处理按键)
+    return () => window.removeEventListener('keydown', 处理按键)
+  }, [open, 带过渡设置展开])
 
   useEffect(() => {
     if (open) return
@@ -132,18 +132,18 @@ export function MingLingMianBan() {
     }
   }, [open])
 
-  const run = useCallback(
+  const 运行 = useCallback(
     (动作: () => void) => {
       动作()
-      setOpenWithTransition(false)
+      带过渡设置展开(false)
     },
-    [setOpenWithTransition]
+    [带过渡设置展开]
   )
 
   const 关闭后执行 = useCallback(
     (目标区块: string, 动作: () => void) => {
       跳过焦点恢复引用.current = true
-      setOpenWithTransition(false)
+      带过渡设置展开(false)
       window.requestAnimationFrame(() => {
         动作()
         const 锚点 = document.getElementById(目标区块)
@@ -155,31 +155,27 @@ export function MingLingMianBan() {
         }
       })
     },
-    [setOpenWithTransition]
+    [带过渡设置展开]
   )
 
-  const toggleTheme = useCallback(() => {
-    const next: 应用主题 = theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark'
-    setTheme(next)
-  }, [theme, setTheme])
+  const 切换主题 = useCallback(() => {
+    const 下一个: 应用主题 = 主题 === 'dark' ? 'light' : 主题 === 'light' ? 'system' : 'dark'
+    设置主题(下一个)
+  }, [主题, 设置主题])
 
-  const copyEmail = useCallback(async () => {
+  const 复制邮箱 = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(个人信息.email)
-    } catch {
-      // ignore clipboard errors
-    }
+      await navigator.clipboard.writeText(个人信息.邮箱)
+    } catch {}
   }, [])
 
-  const copyGithub = useCallback(async () => {
+  const 复制GitHub = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(个人信息.github)
-    } catch {
-      // ignore clipboard errors
-    }
+      await navigator.clipboard.writeText(个人信息.GitHub)
+    } catch {}
   }, [])
 
-  const handleDownloadResume = useCallback(() => {
+  const 处理下载简历 = useCallback(() => {
     下载简历()
   }, [])
 
@@ -188,7 +184,7 @@ export function MingLingMianBan() {
   return (
     <div
       className="fixed inset-0 z-[80] flex min-h-full items-start justify-center overflow-x-hidden overflow-y-auto overscroll-contain bg-black/55 p-3 pt-[10dvh] backdrop-blur-md sm:p-6 sm:pt-[12dvh]"
-      onClick={() => setOpenWithTransition(false)}
+      onClick={() => 带过渡设置展开(false)}
       onKeyDown={保持对话框焦点}
       role="dialog"
       aria-modal="true"
@@ -241,11 +237,11 @@ export function MingLingMianBan() {
             }
             className="space-y-1"
           >
-            {板块顺序.map((section, 序号) => (
+            {板块顺序.map((区块, 序号) => (
               <Command.Item
-                key={section}
-                value={`section-${section} ${sectionLabel(section)}`}
-                onSelect={() => 关闭后执行(section, () => transitionToSection(section))}
+                key={区块}
+                value={`section-${区块} ${区块标签(区块)}`}
+                onSelect={() => 关闭后执行(区块, () => 切换区块(区块))}
                 data-command-index={格式化命令数(序号 + 1)}
                 className={命令项类}
               >
@@ -261,7 +257,7 @@ export function MingLingMianBan() {
                 >
                   <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                 </span>
-                <span className="min-w-0 flex-1 truncate">{sectionLabel(section)}</span>
+                <span className="min-w-0 flex-1 truncate">{区块标签(区块)}</span>
                 <span aria-hidden="true" className="font-mono text-xs text-muted/40">
                   ↵
                 </span>
@@ -280,7 +276,7 @@ export function MingLingMianBan() {
           >
             <Command.Item
               value={t('command.toggleTheme')}
-              onSelect={() => run(toggleTheme)}
+              onSelect={() => 运行(切换主题)}
               data-command-index={格式化命令数(板块顺序.length + 1)}
               className={命令项类}
             >
@@ -291,7 +287,7 @@ export function MingLingMianBan() {
                 {格式化命令数(板块顺序.length + 1)}
               </span>
               <span className={命令图标类}>
-                {theme === 'dark' ? <Moon size={15} /> : theme === 'light' ? <Sun size={15} /> : <Monitor size={15} />}
+                {主题 === 'dark' ? <Moon size={15} /> : 主题 === 'light' ? <Sun size={15} /> : <Monitor size={15} />}
               </span>
               <span className="min-w-0 flex-1 truncate">{t('command.toggleTheme')}</span>
               <span aria-hidden="true" className="font-mono text-xs text-muted/40">
@@ -300,7 +296,7 @@ export function MingLingMianBan() {
             </Command.Item>
             <Command.Item
               value={t('command.copyEmail')}
-              onSelect={() => run(copyEmail)}
+              onSelect={() => 运行(复制邮箱)}
               data-command-index={格式化命令数(板块顺序.length + 2)}
               className={命令项类}
             >
@@ -320,7 +316,7 @@ export function MingLingMianBan() {
             </Command.Item>
             <Command.Item
               value={t('command.copyGithub')}
-              onSelect={() => run(copyGithub)}
+              onSelect={() => 运行(复制GitHub)}
               data-command-index={格式化命令数(板块顺序.length + 3)}
               className={命令项类}
             >
@@ -340,7 +336,7 @@ export function MingLingMianBan() {
             </Command.Item>
             <Command.Item
               value={t('command.openChat')}
-              onSelect={() => run(toggleChat)}
+              onSelect={() => 运行(切换聊天)}
               data-command-index={格式化命令数(板块顺序.length + 4)}
               className={命令项类}
             >
@@ -360,7 +356,7 @@ export function MingLingMianBan() {
             </Command.Item>
             <Command.Item
               value={t('command.downloadResume')}
-              onSelect={() => run(handleDownloadResume)}
+              onSelect={() => 运行(处理下载简历)}
               data-command-index={格式化命令数(板块顺序.length + 5)}
               className={命令项类}
             >

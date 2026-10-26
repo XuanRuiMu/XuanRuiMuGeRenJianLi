@@ -2,128 +2,128 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { 环形缓冲, 日志分类 } from './环形缓冲'
 
 describe('RingBuffer', () => {
-  let buf: 环形缓冲
+  let 缓冲区: 环形缓冲
 
   beforeEach(() => {
-    buf = new 环形缓冲(1024)
+    缓冲区 = new 环形缓冲(1024)
   })
 
   it('writes and reads a single entry', () => {
-    buf.write('info', 日志分类.Runtime, 'test message')
-    const entries = buf.read()
-    expect(entries).toHaveLength(1)
-    expect(entries[0].message).toBe('test message')
-    expect(entries[0].level).toBe('info')
-    expect(entries[0].category).toBe(日志分类.Runtime)
+    缓冲区.写入('info', 日志分类.运行时分类, 'test message')
+    const 条目表 = 缓冲区.读取()
+    expect(条目表).toHaveLength(1)
+    expect(条目表[0].message).toBe('test message')
+    expect(条目表[0].level).toBe('info')
+    expect(条目表[0].category).toBe(日志分类.运行时分类)
   })
 
   it('writes and reads multiple entries', () => {
-    buf.write('debug', 日志分类.Render, 'msg1', { a: 1 })
-    buf.write('error', 日志分类.Network, 'msg2')
-    const entries = buf.read()
-    expect(entries).toHaveLength(2)
-    expect(entries[0].message).toBe('msg1')
-    expect(entries[0].context?.a).toBe(1)
-    expect(entries[1].message).toBe('msg2')
-    expect(entries[1].level).toBe('error')
+    缓冲区.写入('debug', 日志分类.渲染分类, 'msg1', { a: 1 })
+    缓冲区.写入('error', 日志分类.网络分类, 'msg2')
+    const 条目表 = 缓冲区.读取()
+    expect(条目表).toHaveLength(2)
+    expect(条目表[0].message).toBe('msg1')
+    expect(条目表[0].context?.a).toBe(1)
+    expect(条目表[1].message).toBe('msg2')
+    expect(条目表[1].level).toBe('error')
   })
 
   it('wraps around when buffer is full', () => {
-    const ring = new 环形缓冲(512)
+    const 环 = new 环形缓冲(512)
     for (let i = 0; i < 10; i++) {
-      ring.write('info', 日志分类.Runtime, `wrap-${i}`)
+      环.写入('info', 日志分类.运行时分类, `wrap-${i}`)
     }
-    const entries = ring.read()
-    expect(entries.length).toBeGreaterThan(0)
+    const 条目表 = 环.读取()
+    expect(条目表.length).toBeGreaterThan(0)
   })
 
   it('returns empty array when nothing new', () => {
-    buf.write('info', 日志分类.Runtime, 'test')
-    buf.read()
-    const entries = buf.read()
-    expect(entries).toHaveLength(0)
+    缓冲区.写入('info', 日志分类.运行时分类, 'test')
+    缓冲区.读取()
+    const 条目表 = 缓冲区.读取()
+    expect(条目表).toHaveLength(0)
   })
 
   it('subscribes and receives realtime callbacks', () => {
-    const received: unknown[] = []
-    const unsub = buf.subscribe((entry) => {
-      received.push(entry)
+    const 已接收: unknown[] = []
+    const 取消订阅 = 缓冲区.订阅((条目) => {
+      已接收.push(条目)
     })
-    buf.write('info', 日志分类.Runtime, 'hello')
-    expect(received).toHaveLength(1)
-    const e = received[0] as { message: string }
+    缓冲区.写入('info', 日志分类.运行时分类, 'hello')
+    expect(已接收).toHaveLength(1)
+    const e = 已接收[0] as { message: string }
     expect(e.message).toBe('hello')
-    unsub()
+    取消订阅()
   })
 
   it('unsubscribe stops callbacks', () => {
-    const received: unknown[] = []
-    const unsub = buf.subscribe((entry) => {
-      received.push(entry)
+    const 已接收: unknown[] = []
+    const 取消订阅 = 缓冲区.订阅((条目) => {
+      已接收.push(条目)
     })
-    buf.write('info', 日志分类.Runtime, 'first')
-    expect(received).toHaveLength(1)
-    unsub()
-    buf.write('info', 日志分类.Runtime, 'second')
-    expect(received).toHaveLength(1)
+    缓冲区.写入('info', 日志分类.运行时分类, 'first')
+    expect(已接收).toHaveLength(1)
+    取消订阅()
+    缓冲区.写入('info', 日志分类.运行时分类, 'second')
+    expect(已接收).toHaveLength(1)
   })
 
   it('snapshot returns correct byte data', () => {
-    buf.write('info', 日志分类.Runtime, 'snap test')
-    const snap = buf.snapshot()
-    expect(snap.byteLength).toBeGreaterThan(0)
-    const entries = buf.read()
-    expect(entries).toHaveLength(1)
+    缓冲区.写入('info', 日志分类.运行时分类, 'snap test')
+    const 快照 = 缓冲区.快照数据()
+    expect(快照.byteLength).toBeGreaterThan(0)
+    const 条目表 = 缓冲区.读取()
+    expect(条目表).toHaveLength(1)
   })
 
   it('preserves message content across write/read cycle', () => {
-    const longMsg = 'Hello World! 你好世界! こんにちは! 🌍'
-    buf.write('info', 日志分类.Runtime, longMsg)
-    const entries = buf.read()
-    expect(entries[0].message).toBe(longMsg)
+    const 长消息 = 'Hello World! 你好世界! こんにちは! 🌍'
+    缓冲区.写入('info', 日志分类.运行时分类, 长消息)
+    const 条目表 = 缓冲区.读取()
+    expect(条目表[0].message).toBe(长消息)
   })
 
   it('preserves context across write/read cycle', () => {
-    buf.write('info', 日志分类.Runtime, 'with ctx', { key: 'value', num: 42 })
-    const entries = buf.read()
-    expect(entries[0].context?.key).toBe('value')
-    expect(entries[0].context?.num).toBe(42)
+    缓冲区.写入('info', 日志分类.运行时分类, 'with ctx', { key: 'value', num: 42 })
+    const 条目表 = 缓冲区.读取()
+    expect(条目表[0].context?.key).toBe('value')
+    expect(条目表[0].context?.num).toBe(42)
   })
 
   it('does not allocate in hot write path', () => {
-    const big = new 环形缓冲() // 默认 128KB
+    const 大 = new 环形缓冲()
     for (let i = 0; i < 100; i++) {
-      big.write('debug', 日志分类.Render, `bulk msg ${i}`)
+      大.写入('debug', 日志分类.渲染分类, `bulk msg ${i}`)
     }
-    const entries = big.read()
-    expect(entries).toHaveLength(100)
+    const 条目表 = 大.读取()
+    expect(条目表).toHaveLength(100)
   })
 
   it('handles unreadBytes correctly', () => {
-    expect(buf.unreadBytes).toBe(0)
-    buf.write('info', 日志分类.Runtime, 'test')
-    expect(buf.unreadBytes).toBeGreaterThan(0)
-    buf.read()
-    expect(buf.unreadBytes).toBe(0)
+    expect(缓冲区.未读字节).toBe(0)
+    缓冲区.写入('info', 日志分类.运行时分类, 'test')
+    expect(缓冲区.未读字节).toBeGreaterThan(0)
+    缓冲区.读取()
+    expect(缓冲区.未读字节).toBe(0)
   })
 
   it('clear resets state', () => {
-    buf.write('info', 日志分类.Runtime, 'test')
-    buf.clear()
-    expect(buf.unreadBytes).toBe(0)
-    expect(buf.read()).toHaveLength(0)
+    缓冲区.写入('info', 日志分类.运行时分类, 'test')
+    缓冲区.清空()
+    expect(缓冲区.未读字节).toBe(0)
+    expect(缓冲区.读取()).toHaveLength(0)
   })
 
   it('handles empty context', () => {
-    buf.write('info', 日志分类.Runtime, 'no ctx', {})
-    const entries = buf.read()
-    expect(entries[0].message).toBe('no ctx')
-    expect(entries[0].context).toBeUndefined()
+    缓冲区.写入('info', 日志分类.运行时分类, 'no ctx', {})
+    const 条目表 = 缓冲区.读取()
+    expect(条目表[0].message).toBe('no ctx')
+    expect(条目表[0].context).toBeUndefined()
   })
 
   it('handles fatal level', () => {
-    buf.write('fatal', 日志分类.Other, 'fatal error')
-    const entries = buf.read()
-    expect(entries[0].level).toBe('fatal')
+    缓冲区.写入('fatal', 日志分类.其他分类, 'fatal error')
+    const 条目表 = 缓冲区.读取()
+    expect(条目表[0].level).toBe('fatal')
   })
 })

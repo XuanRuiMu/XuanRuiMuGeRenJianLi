@@ -5,13 +5,15 @@ import { AILiaoTian } from '../组件/AI聊天/AI聊天'
 import { PWAZhuangTaiZhiShiQi } from '../组件/PWA状态指示器'
 import { XingKongXiXiBeiJing, ShuiMoXianXianZheZhao } from '../组件/星空背景'
 import { FangKeJiShu } from '../组件/访客计数/FangKeJiShu'
+import { useJingMoZhanShiTu } from '../钩子/useJingMoZhanShiTu'
 import { t } from '../国际化/翻译'
 
-interface LayoutProps {
+interface 布局属性 {
   children: ReactNode
 }
 
-export function BuJu({ children }: LayoutProps) {
+export function BuJu({ children }: 布局属性) {
+  useJingMoZhanShiTu()
   return (
     <div className="relative flex min-h-screen flex-col bg-bg text-text-primary">
       <XingKongXiXiBeiJing className="z-0" />

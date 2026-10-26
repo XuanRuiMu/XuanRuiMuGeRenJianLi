@@ -10,7 +10,7 @@ describe('Section', () => {
 
   it('renders title and subtitle', () => {
     render(
-      <BanKuai title="about" subtitle="subtitle text">
+      <BanKuai title="about" 副标题="subtitle text">
         content
       </BanKuai>
     )
@@ -19,23 +19,23 @@ describe('Section', () => {
   })
 
   it('assigns an accessible label without rendering a visible heading', () => {
-    const { container } = render(<BanKuai ariaLabel="testimonials">content</BanKuai>)
-    expect(container.querySelector('section')).toHaveAttribute('aria-label', 'testimonials')
+    const { container: 容器 } = render(<BanKuai 无障碍标签="testimonials">content</BanKuai>)
+    expect(容器.querySelector('section')).toHaveAttribute('aria-label', 'testimonials')
     expect(screen.queryByRole('heading')).not.toBeInTheDocument()
   })
 
   it('assigns id to section element', () => {
-    const { container } = render(<BanKuai id="about">content</BanKuai>)
-    expect(container.querySelector('section')).toHaveAttribute('id', 'about')
+    const { container: 容器 } = render(<BanKuai id="about">content</BanKuai>)
+    expect(容器.querySelector('section')).toHaveAttribute('id', 'about')
   })
 
   it('wraps the title block in a reveal element', () => {
-    const { container } = render(<BanKuai title="about">content</BanKuai>)
-    expect(container.querySelector('.reveal')).toBeTruthy()
+    const { container: 容器 } = render(<BanKuai title="about">content</BanKuai>)
+    expect(容器.querySelector('.reveal')).toBeTruthy()
   })
 
   it('merges custom className', () => {
-    const { container } = render(<BanKuai className="custom-section">content</BanKuai>)
-    expect(container.querySelector('section')).toHaveClass('custom-section')
+    const { container: 容器 } = render(<BanKuai className="custom-section">content</BanKuai>)
+    expect(容器.querySelector('section')).toHaveClass('custom-section')
   })
 })

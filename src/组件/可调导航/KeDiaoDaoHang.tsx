@@ -3,54 +3,48 @@ import { createPortal } from 'react-dom'
 import { Menu, X, SlidersHorizontal } from 'lucide-react'
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion'
 import { 合并类名 } from '../../库/工具'
-import { t, type TranslationKey } from '../../国际化/翻译'
+import { t, type 翻译键 } from '../../国际化/翻译'
 import { useYingYongZhuangTai, type 应用板块 } from '../../状态/应用状态仓库'
 import { ZhuTiQieHuan } from '../主题切换/ZhuTiQieHuan'
 import { 个人信息 } from '../../数据/个人信息'
 
-/** 中部导航锚点（联系与其他分区同款胶囊并列居中） */
-const NAV_SECTIONS: 应用板块[] = ['about', 'projects', 'skills', 'experience', 'education', 'contact']
+const 导航区块表: 应用板块[] = ['about', 'projects', 'skills', 'experience', 'education', 'contact']
 
-const SCROLL_THRESHOLD = 100
+const 滚动阈值 = 100
 
-interface ResizableNavProps {
+interface 可调导航属性 {
   className?: string
 }
 
-/**
- * 顶部菜单栏 · 移植自 12-next-spline-3d 的 resizable-navbar。
- * 页面顶部完全展开，滚动超过 100px 后收缩为 40% 宽（min 800px）并叠加毛玻璃与投影；
- * 桌面端胶囊导航居中，窄屏折叠为汉堡下拉（emerald 毛玻璃面板）。
- */
-export function KeDiaoDaoHang({ className }: ResizableNavProps) {
-  const transitionToSection = useYingYongZhuangTai((state) => state.transitionToSection)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [visible, setVisible] = useState(false)
-  const [isDesktop, setIsDesktop] = useState(
+export function KeDiaoDaoHang({ className }: 可调导航属性) {
+  const 切换区块 = useYingYongZhuangTai((状态) => 状态.切换到区块)
+  const [移动菜单打开, 设置移动菜单打开] = useState(false)
+  const [可见, 设置可见] = useState(false)
+  const [是桌面, 设置是桌面] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
   )
   const { scrollY } = useScroll()
 
   useEffect(() => {
-    const query = window.matchMedia('(min-width: 1024px)')
-    const handleChange = (event: MediaQueryListEvent) => setIsDesktop(event.matches)
-    query.addEventListener('change', handleChange)
-    return () => query.removeEventListener('change', handleChange)
+    const 查询 = window.matchMedia('(min-width: 1024px)')
+    const 处理变更 = (事件: MediaQueryListEvent) => 设置是桌面(事件.matches)
+    查询.addEventListener('change', 处理变更)
+    return () => 查询.removeEventListener('change', 处理变更)
   }, [])
 
-  useMotionValueEvent(scrollY, 'change', (latest) => {
-    setVisible(latest > SCROLL_THRESHOLD)
+  useMotionValueEvent(scrollY, 'change', (最新) => {
+    设置可见(最新 > 滚动阈值)
   })
 
-  const goTo = (section: 应用板块) => {
-    setIsMobileMenuOpen(false)
-    transitionToSection(section)
+  const 跳转 = (区块: 应用板块) => {
+    设置移动菜单打开(false)
+    切换区块(区块)
   }
 
-  const logo = (
+  const 标志 = (
     <button
       type="button"
-      onClick={() => goTo('hero')}
+      onClick={() => 跳转('hero')}
       className="relative z-20 flex shrink-0 cursor-pointer items-center"
       aria-label={t('nav.hero')}
     >
@@ -60,7 +54,7 @@ export function KeDiaoDaoHang({ className }: ResizableNavProps) {
     </button>
   )
 
-  const effectsPanelTrigger = (
+  const 特效面板触发器 = (
     <div id="starry-gui-root" className="relative z-20 shrink-0">
       <button
         id="starry-gui-trigger"
@@ -76,12 +70,7 @@ export function KeDiaoDaoHang({ className }: ResizableNavProps) {
     </div>
   )
 
-  // 根因修复（特效面板定位）：#starry-gui-slot 使用 position:fixed，但原本嵌套在
-  // framer-motion 的 glass-nav（含 transform / backdrop-filter）内 —— 该变换/滤镜祖先会成为
-  // fixed 的包含块，使按视口坐标计算的 left/top 被解释为相对祖先，导致面板落点错位
-  // （菜单收起时偏移约 240px，表现为“乱跑”）。将其渲染到 document.body（无任何变换/滤镜祖先），
-  // position:fixed 重新相对视口定位，落点恒等于鼠标点击的视口坐标，与菜单展开/收起状态无关。
-  const effectsPanelSlot =
+  const 特效面板插槽 =
     typeof document !== 'undefined'
       ? createPortal(
           <div
@@ -92,14 +81,14 @@ export function KeDiaoDaoHang({ className }: ResizableNavProps) {
         )
       : null
 
-  const navLinkPill = (section: 应用板块, extraClassName?: string) => (
+  const 导航链接胶囊 = (区块: 应用板块, 额外类名?: string) => (
     <button
-      key={section}
+      key={区块}
       type="button"
-      onClick={() => goTo(section)}
-      className={合并类名('nav-link-pill cursor-pointer px-4 py-2 text-sm font-medium', extraClassName)}
+      onClick={() => 跳转(区块)}
+      className={合并类名('nav-link-pill cursor-pointer px-4 py-2 text-sm font-medium', 额外类名)}
     >
-      {t(`nav.${section}` as TranslationKey)}
+      {t(`nav.${区块}` as 翻译键)}
     </button>
   )
 
@@ -107,54 +96,54 @@ export function KeDiaoDaoHang({ className }: ResizableNavProps) {
     <div className={合并类名('fixed inset-x-0 top-0 z-50 w-full pt-2', className)}>
       <motion.div
         animate={{
-          backdropFilter: visible ? 'blur(16px) saturate(180%)' : 'none',
-          boxShadow: visible
+          backdropFilter: 可见 ? 'blur(16px) saturate(180%)' : 'none',
+          boxShadow: 可见
             ? '0 8px 32px rgba(12, 74, 110, 0.3), 0 4px 16px rgba(12, 74, 110, 0.2), 0 0 0 1px rgba(125, 211, 252, 0.1), 0 1px 0 rgba(255, 255, 255, 0.05) inset'
             : 'none',
-          width: visible ? (isDesktop ? '40%' : '90%') : '100%',
-          y: visible ? 20 : 0,
+          width: 可见 ? (是桌面 ? '40%' : '90%') : '100%',
+          y: 可见 ? 20 : 0,
         }}
         transition={{ type: 'spring', stiffness: 200, damping: 50 }}
         style={{ minWidth: 'min(800px, 100%)' }}
         className={合并类名(
           'glass-nav relative z-[60] mx-auto flex w-full max-w-[calc(100vw-2rem)] flex-row items-center justify-between self-start rounded-full px-4 py-2 lg:max-w-7xl',
-          visible && 'shadow-lg'
+          可见 && 'shadow-lg'
         )}
       >
         <div className="relative z-20 flex shrink-0 items-center gap-2">
-          {logo}
-          {effectsPanelTrigger}
+          {标志}
+          {特效面板触发器}
         </div>
-        {effectsPanelSlot}
+        {特效面板插槽}
 
         <div className="absolute inset-0 hidden flex-1 flex-row items-center justify-center space-x-2 lg:flex">
-          {NAV_SECTIONS.map((section) => navLinkPill(section))}
+          {导航区块表.map((区块) => 导航链接胶囊(区块))}
         </div>
 
         <div className="relative z-20 ml-auto flex items-center gap-2">
           <ZhuTiQieHuan />
           <button
             type="button"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            onClick={() => 设置移动菜单打开(!移动菜单打开)}
             className="inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:hidden"
-            aria-expanded={isMobileMenuOpen}
+            aria-expanded={移动菜单打开}
             aria-label={t('nav.main')}
           >
-            {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+            {移动菜单打开 ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
       </motion.div>
 
-      {/* 窄屏下拉菜单（emerald 毛玻璃面板） */}
+      {}
       <AnimatePresence>
-        {isMobileMenuOpen && (
+        {移动菜单打开 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="relative z-50 mx-auto mt-2 flex w-full max-w-[calc(100vw-2rem)] flex-col items-center justify-start gap-4 rounded-3xl border border-emerald-500/20 bg-slate-900/85 px-4 py-8 shadow-lg shadow-slate-900/30 backdrop-blur-md lg:hidden"
           >
-            {NAV_SECTIONS.map((section) => navLinkPill(section, 'w-full px-6 py-3 text-center'))}
+            {导航区块表.map((区块) => 导航链接胶囊(区块, 'w-full px-6 py-3 text-center'))}
           </motion.div>
         )}
       </AnimatePresence>

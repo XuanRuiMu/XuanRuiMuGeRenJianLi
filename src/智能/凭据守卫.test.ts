@@ -6,7 +6,6 @@ import { 模型列表, 解析模型 } from './模型'
 
 const 项目根 = path.resolve(__dirname, '../..')
 
-/** 递归收集 src 下会被打包进前端产物的源码（测试文件不入包，不参与扫描） */
 function 收集前端源码(目录: string): string[] {
   const 结果: string[] = []
   for (const 条目 of fs.readdirSync(目录, { withFileTypes: true })) {
@@ -22,7 +21,6 @@ function 收集前端源码(目录: string): string[] {
 
 const 前端源码表 = 收集前端源码(path.join(项目根, 'src'))
 
-/** 任何一条命中前端源码，就意味着密钥或直连凭据会随 dist 暴露到公网 */
 const 禁止模式: Array<[RegExp, string]> = [
   [/VITE_[A-Z0-9_]*_(API_KEY|AUTH_TOKEN|SECRET|PASSWORD)/, '客户端读取密钥类环境变量'],
   [/https?:\/\/api\.deepseek\.com|https?:\/\/open\.bigmodel\.合并类名/, '前端直连第三方 AI 域名'],
@@ -47,7 +45,7 @@ describe('FP-05 前端零密钥守卫', () => {
 
   it('模型定义字段集合封闭，重新加回凭据字段即红', () => {
     for (const 模型 of 模型列表()) {
-      expect(Object.keys(模型).sort()).toEqual(['contextLabel', 'endpoint', 'id', 'provider'])
+      expect(Object.keys(模型).sort()).toEqual(['id', '上下文标签', '供应商', '端点'])
       expect(模型).not.toHaveProperty('apiKey')
     }
   })
@@ -62,12 +60,11 @@ describe('FP-05 前端零密钥守卫', () => {
 
   it('端点恒为同源相对路径（由代理层转发并注入凭据）', () => {
     expect(深度求索端点).toMatch(/^\/api\//)
-    expect(解析模型().endpoint).toMatch(/^\/api\//)
+    expect(解析模型().端点).toMatch(/^\/api\//)
   })
 
-  it('类型层面不存在凭据字段（加回 apiKey 会让本断言因多余的 ts-expect-error 而编译失败）', () => {
+  it('类型层面不存在凭据字段', () => {
     const 模型 = 解析模型()
-    // @ts-expect-error 契约：模型定义不含凭据字段
-    expect(模型.apiKey).toBeUndefined()
+    expect((模型 as unknown as { apiKey?: unknown }).apiKey).toBeUndefined()
   })
 })

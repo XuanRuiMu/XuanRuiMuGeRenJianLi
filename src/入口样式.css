@@ -1,7 +1,5 @@
 @import 'tailwindcss';
 
-/* 主题变体与 useZhuTiXiTong 的 class 切换体系对齐（documentElement .light/.dark），
-   覆盖 Tailwind v4 默认的 prefers-color-scheme 媒体查询语义 */
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant light (&:where(.light, .light *));
 
@@ -18,7 +16,7 @@
   --color-muted: #8b8fa3;
   --color-glass: rgba(17, 19, 30, 0.55);
   --color-glass-border: rgba(255, 255, 255, 0.14);
-  /* 卡面/棋盘语义令牌：暗色默认值取自浅色主题修复前组件里写死的字面值，暗色视觉零变化 */
+
   --color-panel: #151030;
   --color-panel-shadow: #211e35;
   --color-board-start: #0f1b2e;
@@ -30,10 +28,7 @@
   --color-board-focus: rgba(56, 189, 248, 0.5);
   --color-stone-last-ring: rgba(255, 255, 255, 0.85);
   --color-stone-win: #fde047;
-  /* 顶部导航语义令牌：暗色默认值取自 glass-nav 移植原样的字面值，暗色视觉零变化；
-     玻璃条（surface/border）浅色值在顶层 .light 块，胶囊浅色值只在
-     .light .glass-nav .nav-link-pill 作用域覆盖——移动端下拉面板恒为深色底，
-     其内胶囊不在 .glass-nav 内，继续继承这里的暗色值 */
+
   --color-nav-surface: rgba(7, 19, 45, 0.18);
   --color-nav-border: rgba(125, 211, 252, 0.08);
   --color-nav-pill-text: #bae6fd;
@@ -69,8 +64,7 @@
   --color-board-focus: rgba(0, 122, 153, 0.85);
   --color-stone-last-ring: rgba(3, 105, 161, 0.95);
   --color-stone-win: #c2410c;
-  /* 导航玻璃条浅色值：白玻璃压丝绸纹理底；胶囊文字/描边等见
-     .light .glass-nav .nav-link-pill 作用域覆盖（原因见 @theme 处注释） */
+
   --color-nav-surface: rgba(255, 255, 255, 0.72);
   --color-nav-border: rgba(7, 89, 133, 0.2);
 }
@@ -132,7 +126,6 @@ body,
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Quantico 字体（8112 TECH STACK 标题用） */
 .font-quantico {
   font-family: 'Quantico', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
@@ -153,10 +146,6 @@ body,
   position: relative;
 }
 
-/* 表单控件基线样式：必须位于 @layer base 内。
-   若为裸全局规则（无 layer），按 Cascade Layers 规则会战胜 @layer utilities 中的
-   Tailwind utilities（bg-transparent/bg-black/40/text-* 等全部失效），导致组件级
-   样式控制权被剥夺（浅色模式 AI 聊天输入框被刷成 var(--color-surface) 的根因）。 */
 @layer base {
   ::placeholder {
     color: var(--color-muted);
@@ -197,30 +186,16 @@ body,
     border-color: var(--color-primary);
   }
 
-  /* ============ 自动填充态根治（需求3：Edge/Chrome「保存的信息」刷白输入框） ============ */
-  /* 根因：Chromium 系 UA stylesheet 对 autofill 态（:-webkit-autofill）施加不透明内阴影
-     （-webkit-box-shadow: 0 0 0 1000px <填充色> inset）与 -webkit-text-fill-color，
-     盖住输入框自身的深色背景与浅色文字；任意字符输入后 autofill 态解除、样式恢复。
-     autocomplete=off 被浏览器普遍无视，根治只能由项目 CSS 显式覆盖。
-     变量语义：
-     - --autofill-overlay：autofill 态内阴影铺底实色（box-shadow 无法半透明，只能取实色）
-     - --autofill-text：autofill 态文字与光标颜色 */
   :root {
     --autofill-overlay: #121212;
     --autofill-text: #e6e6e6;
   }
 
-  /* 浅色对近似 ContactSection 表单底（bg-black/[0.04] 叠白卡片 ≈ 96% 白），取纯白铺底
-     允许轻微差异；同时覆盖 UiComponentRegistry 表单（bg-bg 双主题跟随） */
   .light {
     --autofill-overlay: #ffffff;
     --autofill-text: #0b0c15;
   }
 
-  /* 锚点例外：AI聊天 输入框为终端风组件，容器 bg-[#121212]/文字 text-[#e6e6e6]
-     写死于 JSX 不随主题切换，浅色主题下若沿用白色铺底会在深色终端框内出现白块——
-     正是本需求要根除的缺陷。name="message" 为全站唯一锚点（AI聊天.tsx），
-     元素级重声明变量优先于 .light 的继承值，使该框双主题恒用终端深色配对 */
   input[name='message'],
   textarea[name='message'],
   select[name='message'] {
@@ -228,8 +203,6 @@ body,
     --autofill-text: #e6e6e6;
   }
 
-  /* 覆盖规则：hover/focus 变体防部分版本 UA 分态加强；transition 超长过渡是经典对策——
-     UA 以 background-color 过渡动画刷入填充底色，令其永不完成 */
   input:-webkit-autofill,
   textarea:-webkit-autofill,
   select:-webkit-autofill,
@@ -384,7 +357,6 @@ body,
   }
 }
 
-/* 可访问性：减少动画偏好 */
 .reduced-motion *,
 .reduced-motion *::before,
 .reduced-motion *::after {
@@ -405,7 +377,6 @@ body,
   }
 }
 
-/* View Transitions API */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: 0.8s;
@@ -482,7 +453,6 @@ body,
   }
 }
 
-/* Circular reveal theme transition */
 html.circular-reveal-active::view-transition-new(root) {
   animation-name: circular-reveal-in;
   animation-duration: 0.7s;
@@ -515,18 +485,12 @@ html.circular-reveal-active::view-transition-old(root) {
   }
 }
 
-/* 统一入场动画 — IntersectionObserver 驱动（见 组件/显现.tsx） */
 .reveal {
   opacity: 0;
   transform: translateY(28px);
   transition:
     opacity 1.4s cubic-bezier(0.22, 1, 0.36, 1),
     transform 1.4s cubic-bezier(0.22, 1, 0.36, 1);
-  /* 根因修复（交界白线）：原本永久 will-change:opacity,transform 会把每个 .reveal（含
-     恰好落在「项目作品/技能」交界处的技能标题）永久提升为独立合成层。快速滚动时该层边缘
-     与相邻 section 在分数像素处错位，露出浏览器默认白色（而非深色底），表现为交界粗白线。
-     移除永久 will-change：过渡期间浏览器会自动提升图层，动画结束后自动降级，既不损失入场
-     性能，也消除了长期驻留的合成层这一整类交界闪白问题。 */
 }
 
 .reveal--visible {
@@ -539,7 +503,6 @@ html.circular-reveal-active::view-transition-old(root) {
   transition: opacity 1.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* 减少动画偏好转为静态：内容直接可见，无位移、无过渡 */
 @media (prefers-reduced-motion: reduce) {
   .reveal,
   .reveal--visible {
@@ -556,7 +519,6 @@ html.circular-reveal-active::view-transition-old(root) {
   transition: none !important;
 }
 
-/* Container Queries */
 .card-container {
   container-type: inline-size;
   container-name: card;
@@ -600,9 +562,6 @@ html.circular-reveal-active::view-transition-old(root) {
   }
 }
 
-/* 经历卡片倾斜由外层 .experience-card 承接（data-tilt-outer），.tilt-card 仅保留兼容空壳，禁止写 transform 语义 */
-
-/* Experience Timeline */
 .timeline {
   --timeline-progress: 0;
   --timeline-line-width: 2px;
@@ -639,7 +598,6 @@ html.circular-reveal-active::view-transition-old(root) {
   z-index: 1;
 }
 
-/* 浅色模式：进度线光晕改淡蓝色，亮色底上白光会看不见 */
 .light .timeline::after {
   box-shadow:
     0 0 12px rgba(125, 211, 252, 0.95),
@@ -666,8 +624,6 @@ html.circular-reveal-active::view-transition-old(root) {
   }
 }
 
-/* 不设 perspective、wrapper 不设 preserve-3d：卡片倾斜由 .tilt-card 自带 perspective() 自洽；
-   多层 3D 上下文嵌套会让内部链接的绘制位置与命中位置分离（经历链接点不中的根因，e2e: experience-links） */
 .timeline-card-wrapper {
   border-radius: 16px;
   opacity: 0;
@@ -682,9 +638,6 @@ html.circular-reveal-active::view-transition-old(root) {
   opacity: 1;
   transform: translateY(0);
 }
-
-/* 不为 timeline-card-wrapper 绘制悬停描边：经历卡片自带 .experience-gradient-border，
-   外层 ::before 不随 is-pressed 的 scale(0.985) 缩小，会在按压后于卡外露出青色残留线。 */
 
 .timeline-node {
   transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
@@ -811,7 +764,6 @@ html.circular-reveal-active::view-transition-old(root) {
   max-height: none;
 }
 
-/* Anchor Positioning */
 .nav-anchor {
   position: relative;
 }
@@ -839,7 +791,6 @@ html.circular-reveal-active::view-transition-old(root) {
   }
 }
 
-/* Skill Galaxy Fallback */
 .skill-galaxy-aurora {
   background:
     radial-gradient(circle at 20% 30%, var(--color-primary) 0%, transparent 35%),
@@ -900,7 +851,6 @@ html.circular-reveal-active::view-transition-old(root) {
   }
 }
 
-/* Advanced Tabs */
 .advanced-tabs-list {
   box-shadow:
     0 0 28px color-mix(in srgb, var(--color-primary) 8%, transparent),
@@ -912,7 +862,6 @@ html.circular-reveal-active::view-transition-old(root) {
   box-shadow: 0 0 20px color-mix(in srgb, var(--color-primary) 55%, transparent);
 }
 
-/* Projects Clothesline — 物理晾衣架便签 */
 .clothesline-region {
   --rope-silver-light: #e8eaed;
   --rope-silver-mid: #9aa0a6;
@@ -932,15 +881,12 @@ html.circular-reveal-active::view-transition-old(root) {
   }
 }
 
-/* 测试页用：区域撑满父容器剩余高度（flex 列布局） */
 .clothesline-region--fill {
   flex: 1 1 auto;
   min-height: 0;
   height: auto;
 }
 
-/* 画布与容器（.clothesline-region）同宽同左缘，银绳恰好跨满便签区，
-   不再满幅溢出视口；放大缩放时随区域一并被外层 .clothesline-scroll 横向滚动揭示。 */
 .clothesline-canvas {
   position: absolute;
   inset: 0;
@@ -976,7 +922,6 @@ html.circular-reveal-active::view-transition-old(root) {
   background-clip: padding-box;
 }
 
-/* 测试页填充模式：让滚动容器也撑满父级剩余高度 */
 .clothesline-scroll:has(.clothesline-region--fill) {
   display: flex;
   flex-direction: column;
@@ -990,9 +935,6 @@ html.circular-reveal-active::view-transition-old(root) {
   left: 0;
   opacity: 0;
   transform-origin: 50% 50%;
-  /* 根因修复（交界白线）：原本 will-change:transform 把每张（白色）便签永久提升为独立合成层，
-     其层边缘在滚动分数像素处与下层错位会露白。便签本就由物理引擎每帧 transform 驱动，
-     过渡/摆动期间浏览器会自动提升图层、静止后自动降级，无需永久 will-change。 */
 }
 
 .clothesline-note-img {
@@ -1011,7 +953,7 @@ html.circular-reveal-active::view-transition-old(root) {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  /* 染色只落在羊皮卷不透明区域，避免矩形光晕 */
+
   -webkit-mask-image: url('/images/标准.png');
   mask-image: url('/images/标准.png');
   -webkit-mask-size: contain;
@@ -1022,7 +964,6 @@ html.circular-reveal-active::view-transition-old(root) {
   mask-repeat: no-repeat;
 }
 
-/* 四张便签浅色系：纯白 / 象牙白 / 浅粉 / 浅杏 */
 .clothesline-note[data-tint='0'] .clothesline-note-tint {
   background: rgba(255, 255, 255, 0.5);
 }
@@ -1041,26 +982,15 @@ html.circular-reveal-active::view-transition-old(root) {
 
 .clothesline-note-content {
   position: absolute;
-  /* FP-01 像素级实测（Playwright canvas getImageData 扫描标准.png 547×638）：
-   * 算法：①dark=max(r,g,b)<70 边框/螺旋；②cream=非dark且非纯白；
-   * ③螺旋下沿=上部35%内左25%区域dark密度>30%的最后一行→y=137px(21.47%)；
-   * ④安全矩形=螺旋下沿以下逐行扫cream，左缘P70分位数、右缘P30分位数（统计法避过渡行污染）；
-   * ⑤四边各内缩6px安全边距。
-   * 测得(px): top=143 left=107 right=506 bottom=609
-   * 转百分比: top=22.41% / right=7.50% / bottom=4.55% / left=19.56%
-   * 基于此修复了文字越出羊皮卷实际边界（尤其左侧螺旋卷曲区） */
+
   inset: 22.41% 7.5% 4.55% 19.56%;
   z-index: 1;
   display: flex;
   flex-direction: column;
-  /* 段间距（标题↔正文、正文↔链接）钉死为 1em = 正文自身字号，
-     满足「间隙不超过正文字号大小」的排版规范；与正文行距（--note-body-line 1.38）解耦——
-     段落间距 < 行距，使同段文字聚合更紧、段间仍清晰可辨。
-     em 以 --note-fit 为基准，间距随字号缩放，自动规范。 */
+
   --note-body-line: 1.38;
   gap: 1em;
-  /* FP-04：单一字号旋钮，运行时由 useNoteAutoFit 二分搜索推到「刚好放得下」的最大值。
-     兜底 0.8rem 保证 JS 未执行时仍有可读默认字号。 */
+
   font-size: var(--note-fit, 0.8rem);
   overflow: hidden;
   pointer-events: none;
@@ -1071,8 +1001,6 @@ html.circular-reveal-active::view-transition-old(root) {
 }
 
 .clothesline-note-title {
-  /* 根因修复：移除旧 flex-shrink:0 上下硬钉，三板块作为一组随自然流排版。
-     FP-04：em 相对 --note-fit（保持「标题最大」层次，1.45em 对应基准 0.8 的约 1.16rem） */
   margin: 0 3% 0 1%;
   font-size: 1.45em;
   line-height: 1.2;
@@ -1087,19 +1015,13 @@ html.circular-reveal-active::view-transition-old(root) {
   line-height: var(--note-body-line);
   letter-spacing: 0.004em;
   color: var(--note-text-soft);
-  /* 项目描述自然分行：不限字母/单词必须同行，允许在任意字符处换行 */
+
   overflow-wrap: anywhere;
   word-break: break-all;
   line-break: anywhere;
 }
 
 .clothesline-note-link {
-  /* 根因修复：移除旧 flex-shrink:0 上下硬钉；同时移除 margin-top:auto 的「底部锚定」——
-     该属性会把盒子剩余空白全部吸到正文与链接之间，导致部分便签空隙过大。
-     改为自然流式：链接紧跟正文（仅 1.38em 统一段间距，与标题-正文间距一致），
-     剩余留白落到羊皮卷底部，符合手写便签的自然排版；
-     顺带使 useNoteAutoFit 的 4% 保守回退仅在内容真填满时才触发，不再被 auto 误触发。
-     FP-04：font-size 1.05em 相对 --note-fit */
   margin: 0 3% 0 1%;
   font-size: 1.05em;
   font-weight: 600;
@@ -1120,7 +1042,6 @@ html.circular-reveal-active::view-transition-old(root) {
   border-radius: 2px;
 }
 
-/* 打字机块状光标 */
 .caret-blink {
   animation: caret-blink 1s steps(1, end) infinite;
 }
@@ -1137,9 +1058,6 @@ html.circular-reveal-active::view-transition-old(root) {
   }
 }
 
-/* ============ 五子棋 · 高端重做 ============ */
-
-/* 落子缩放入场（弹性缓动） */
 @keyframes gomoku-drop {
   0% {
     transform: scale(0.2);
@@ -1155,7 +1073,6 @@ html.circular-reveal-active::view-transition-old(root) {
   }
 }
 
-/* 连珠高亮脉冲 */
 @keyframes gomoku-win-pulse {
   0%,
   100% {
@@ -1170,9 +1087,6 @@ html.circular-reveal-active::view-transition-old(root) {
   }
 }
 
-/* 掫桌：绕垂直轴（Y）旋转 180°，正面棋盘转到背面（正面/背面双面 3D 翻转）。
-   契约锁：时长 0.8s 与 Gomoku.tsx 的 400ms 中段清盘定时器双源耦合（清盘须发生在
-   ~90° 侧棱时刻），改此时长必须同步改 Gomoku.tsx 的 flipClearTimerRef 延时。 */
 @keyframes gomoku-flip {
   0% {
     transform: rotateY(0deg);
@@ -1182,7 +1096,6 @@ html.circular-reveal-active::view-transition-old(root) {
   }
 }
 
-/* 3D 翻转容器：perspective 由父级外层提供；preserve-3d 让正/背面构成真实立体 */
 .gomoku-flip {
   position: relative;
   width: 100%;
@@ -1198,8 +1111,6 @@ html.circular-reveal-active::view-transition-old(root) {
   backface-visibility: hidden;
 }
 
-/* 棋盘格线与星位：颜色走 CSS 规则而非 SVG 呈现属性（var() 在呈现属性上无实现保证）。
-   暗底半透明白线 / 浅黄木底墨线由同一令牌随主题切换 */
 .gomoku-grid__line {
   stroke: var(--color-board-line);
 }
@@ -1208,15 +1119,12 @@ html.circular-reveal-active::view-transition-old(root) {
   fill: var(--color-board-star);
 }
 
-/* 正面：棋盘底色 + 描边 + 内边距（暗为深蓝玻璃，浅为浅黄木色） */
 .gomoku-flip__face--front {
   background: linear-gradient(135deg, var(--color-board-start), var(--color-board-end));
   border: 1px solid var(--color-board-border);
   padding: 12px;
 }
 
-/* 背面：同样是棋盘（现实的棋盘正反两面都是棋面），与正面同底色/同内边距，
-   格线/星位由 Gomoku.tsx 的共享棋盘格线组件渲染，翻面后依然是完整棋面而非纯黑板 */
 .gomoku-flip__face--back {
   transform: rotateY(180deg);
   background: linear-gradient(135deg, var(--color-board-end), var(--color-board-start));
@@ -1250,23 +1158,19 @@ html.circular-reveal-active::view-transition-old(root) {
 
 .gomoku-stone--white {
   background: radial-gradient(circle at 35% 30%, #ffffff, #cbd5e1 72%);
-  /* 深色描边：真实围棋白子在深色棋盘上靠暗边轮廓成像；无描边时白色石与
-     浅色格线/光晕融为一团不可辨。用 border 而非 box-shadow，避免被 --last/--win 的环覆盖；
-     3px 保证小尺寸棋子（单元格约 20px）上描边清晰可辨 */
+
   border: 3px solid rgba(10, 15, 26, 0.95);
   box-shadow:
     inset 0 -2px 4px rgba(0, 0, 0, 0.15),
     0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
-/* 最后一手高亮（青色环） */
 .gomoku-stone--last {
   box-shadow:
     0 0 0 2px var(--color-stone-last-ring),
     0 0 14px rgba(56, 189, 248, 0.85);
 }
 
-/* 连珠高亮（金色脉冲） */
 .gomoku-stone--win {
   box-shadow:
     0 0 0 2px var(--color-stone-win),
@@ -1293,7 +1197,6 @@ html.circular-reveal-active::view-transition-old(root) {
   animation: gomoku-win-pulse 1.2s ease-in-out infinite;
 }
 
-/* 水墨显现遮罩 — 100% mimo.xiaomi.com algorithm */
 .ink-reveal-overlay {
   position: fixed;
   inset: 0;
@@ -1303,11 +1206,6 @@ html.circular-reveal-active::view-transition-old(root) {
   z-index: 1;
 }
 
-/* ============ 浅色模式壁纸 · 神奈川冲浪里（真实名画扫描底图 + 微动循环视频） ============ */
-
-/* 纵向上下各溢出 320px：预留滚动位移空间（位移上限 280px），任何页面长度下不露底。
-   画面由组件内挂的 <img> 静态底图（真实名画扫描帧，object-cover 铺满）+
-   <video> 微动循环 + 抬白叠加层构成。 */
 .light-wallpaper {
   position: fixed;
   left: 0;
@@ -1317,7 +1215,6 @@ html.circular-reveal-active::view-transition-old(root) {
   will-change: transform;
 }
 
-/* 壁纸微脉冲动画：轻微缩放呼吸感，增强动图视觉效果 */
 @keyframes wallpaper-pulse {
   0%,
   100% {
@@ -1330,16 +1227,12 @@ html.circular-reveal-active::view-transition-old(root) {
   }
 }
 
-/* ============ 经历卡片 · 02-react-three-fiber 移植 ============ */
-
-/* 绿粉渐变描边（green-pink-gradient 原样移植）：单层描边容器，圆角裁剪，禁止内部再套圆角容器 */
 .experience-card {
   transform-style: flat;
   isolation: isolate;
   transition: box-shadow 0.25s ease;
 }
 
-/* 按压态：整卡回正并轻微下沉，消除倾斜透视下描边层与阴影层的错位重影 */
 .experience-card.is-pressed {
   box-shadow: none;
 }
@@ -1348,7 +1241,6 @@ html.circular-reveal-active::view-transition-old(root) {
   box-shadow: none;
 }
 
-/* 外层卡片圆角与描边层同值，避免内外层圆角差形成底部线条错位 */
 .experience-card.rounded-2xl {
   border-radius: 16px;
 }
@@ -1360,10 +1252,6 @@ html.circular-reveal-active::view-transition-old(root) {
   transform: translateZ(0);
 }
 
-/* 标签渐变文字（8102 blue/green/pink-text-gradient 原样移植）：渐变图由 --渐变-*
-   自定义属性提供，clip 机制只在基线规则里写一次；任何主题覆盖（含 .light）只允许
-   重新赋值 --渐变-*，禁止写 background/color 等简写——background 简写会把未指定的
-   background-clip 静默重置回 border-box，整条渐变将不再被文字裁切而画成实心色块 */
 .text-gradient-blue {
   --渐变-蓝: linear-gradient(to top, #2f80ed, #56ccf2);
   background-image: var(--渐变-蓝);
@@ -1391,7 +1279,6 @@ html.circular-reveal-active::view-transition-old(root) {
   color: transparent;
 }
 
-/* 五子棋标题（青→靛→粉横滚）：暗色三端点与替换前的字面渐变类逐字相同，视觉零变化 */
 .text-gradient-teal {
   --渐变-青: linear-gradient(to right, #5eead4, #818cf8, #f0abfc);
   background-image: var(--渐变-青);
@@ -1401,8 +1288,6 @@ html.circular-reveal-active::view-transition-old(root) {
   color: transparent;
 }
 
-/* 亮端渐变（#56ccf2/#38ef7d/#fc6767）在白底卡面上只有 1.4–2.9:1，浅色主题整组压到
-   同色系的深端（对白底 5.0–6.7:1）；暗色主题沿用上面的原值，视觉零变化 */
 .light .text-gradient-blue {
   --渐变-蓝: linear-gradient(to top, #1d4ed8, #0369a1);
 }
@@ -1415,8 +1300,6 @@ html.circular-reveal-active::view-transition-old(root) {
   --渐变-粉: linear-gradient(to top, #be185d, #b91c1c);
 }
 
-/* #5eead4/#818cf8/#f0abfc 在浅色卡片底（#fbfbfd）上只有 1.43/2.89/1.70:1，14px 粗体
-   走 4.5:1 门槛；浅色整组压到同色系深端（5.30/7.65/6.12:1） */
 .light .text-gradient-teal {
   --渐变-青: linear-gradient(to right, #0f766e, #4338ca, #a21caf);
 }
@@ -1478,7 +1361,6 @@ html.circular-reveal-active::view-transition-old(root) {
   -webkit-text-fill-color: var(--xuan-harness-gradient-fallback);
 }
 
-/* 成就列表：悬停/聚焦时浮现（8102 .Box1 hover 揭示交互） */
 .experience-achievements {
   max-height: 0;
   opacity: 0;
@@ -1524,8 +1406,6 @@ html.circular-reveal-active::view-transition-old(root) {
   transition: none;
 }
 
-/* ============ 联系卡片 · 01-threejs-particles Get In Touch 移植 ============ */
-
 .contact-item-link {
   display: flex;
   align-items: center;
@@ -1536,7 +1416,7 @@ html.circular-reveal-active::view-transition-old(root) {
   backdrop-filter: blur(20px);
   border: 1px solid var(--color-glass-border);
   border-radius: 15px;
-  /* 防御：常驻合成层稳定 backdrop-filter 渲染面，避免子层动画收尾时重栅格化错位 */
+
   transform: translateZ(0);
   will-change: transform;
   transition: all 0.3s ease;
@@ -1545,7 +1425,6 @@ html.circular-reveal-active::view-transition-old(root) {
 
 .contact-item-link:hover,
 .contact-item-link:focus-visible {
-  /* 与静止态保持同一矩阵基序（translateZ 打头），杜绝插值终态与静态绘制不一致 */
   transform: translate3d(10px, 0, 0) rotate(1deg);
   box-shadow: 0 10px 30px rgba(0, 245, 255, 0.1);
 }
@@ -1565,9 +1444,7 @@ html.circular-reveal-active::view-transition-old(root) {
   background: linear-gradient(135deg, #00f5ff, #8338ec);
   border-radius: 15px;
   transform-origin: center center;
-  /* 根因修复：常驻合成层（基线 translateZ(0)）。无此声明时，过渡期间浏览器临时提升图层、
-     过渡结束 transform 回归静态后销毁图层，两次栅格化的子像素对齐不一致 → 图案在动画结束
-     瞬间向左上「瞬移」。常驻层使过渡前后栅格化完全一致（已用 A/B 像素对比验证）。 */
+
   transform: translateZ(0);
   will-change: transform;
   transition:
@@ -1575,7 +1452,6 @@ html.circular-reveal-active::view-transition-old(root) {
     box-shadow 0.3s ease;
 }
 
-/* 图案（SVG）：作为父级常驻合成层的一部分渲染，无需自身独立层/backface，避免收尾重栅格化缝隙 */
 .contact-item-icon svg {
   display: block;
   backface-visibility: hidden;
@@ -1583,7 +1459,6 @@ html.circular-reveal-active::view-transition-old(root) {
 
 .contact-item-link:hover .contact-item-icon,
 .contact-item-link:focus-visible .contact-item-icon {
-  /* 与静止态同一矩阵基序（translateZ 打头）：插值两端结构一致，终帧即静止帧 */
   transform: translateZ(0) rotate(-5deg) scale(1.1);
   box-shadow:
     0 5px 20px rgba(0, 245, 255, 0.45),
@@ -1606,8 +1481,6 @@ html.circular-reveal-active::view-transition-old(root) {
   color: var(--color-primary);
 }
 
-/* 联系行右侧胶囊按钮：复制与跳转同款（仅图标/功能不同）。
-   点击有 active:scale-95 反馈；复制成功后发光。 */
 .contact-pill {
   display: inline-flex;
   align-items: center;
@@ -1698,8 +1571,6 @@ html.circular-reveal-active::view-transition-old(root) {
   transform: none;
 }
 
-/* ============ 顶部菜单栏 · 12-next-spline-3d glass-nav 移植 ============ */
-
 .glass-nav {
   background: var(--color-nav-surface);
   -webkit-backdrop-filter: blur(10px) saturate(160%);
@@ -1736,11 +1607,6 @@ html.circular-reveal-active::view-transition-old(root) {
   outline-offset: 2px;
 }
 
-/* 浅色主题导航胶囊：原淡天蓝文字压白玻璃只有 ≈1.3:1，文字/描边/光晕整组换深天蓝系
-   （#075985 对合成底 ≈7.0:1，描边 rgba(12,74,110,0.8) ≈5.4:1，焦点环 ≈4.7:1，
-   均达正文级 4.5:1；hover 态描边 rgba(12,74,110,0.95) ≈6.9:1）。
-   浅色值只在 .glass-nav 后代作用域内覆盖令牌：移动端下拉面板（bg-slate-900/85）
-   两主题恒为深色底，其内胶囊不在 .glass-nav 内，继续用 @theme 暗值保持可读 */
 .light .glass-nav .nav-link-pill {
   --color-nav-pill-text: #075985;
   --color-nav-pill-border: rgba(12, 74, 110, 0.8);
@@ -1757,8 +1623,6 @@ html.circular-reveal-active::view-transition-old(root) {
 .light .glass-nav .nav-link-pill:focus-visible {
   --color-nav-focus-ring: rgba(3, 105, 161, 0.9);
 }
-
-/* ============ 页脚层级体系 · 一级：访问徽章（高级显眼）/ 二级：版权与状态（继承 text-muted） ============ */
 
 @keyframes visitor-counter-glow {
   0%,
@@ -1850,8 +1714,6 @@ html.circular-reveal-active::view-transition-old(root) {
 .reduced-motion .visitor-counter-card:hover {
   transform: none;
 }
-
-/* ============ Skill Test Page Animations ============ */
 
 @keyframes fade-in {
   from {

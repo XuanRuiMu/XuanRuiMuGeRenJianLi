@@ -6,6 +6,8 @@ export default defineConfig({
   timeout: 90_000,
   expect: { timeout: 15_000 },
   reporter: [['list']],
+  workers: 1,
+  fullyParallel: false,
   use: {
     baseURL: 开发地址(),
     viewport: { width: 1440, height: 900 },
@@ -14,7 +16,6 @@ export default defineConfig({
     locale: 'zh-CN',
   },
   webServer: {
-    // 端口统一由 scripts/端口配置.js → vite.config.js 下发，此处不重复写死
     command: 'npm exec -- vite --host',
     url: 开发地址(),
     reuseExistingServer: true,

@@ -5,7 +5,6 @@ import { 量化指标, 技能组表 } from '../../数据/技能分组'
 import { 雷达轴表, 维度标题键, 维度依据键 } from '../../数据/雷达'
 import { t } from '../../国际化/翻译'
 
-/** 数字滚动只允许在 act 内推进；这里冻结 rAF 让终态文本稳定可读 */
 async function 渲染技能板块({ 减少动画 = false }: { 减少动画?: boolean } = {}) {
   vi.spyOn(window, 'matchMedia').mockImplementation(
     () =>
@@ -42,7 +41,7 @@ describe('FP-03 技能板块 - 量化指标', () => {
     量化指标().forEach((指标, 索引) => {
       const 文本 = 卡表[索引].textContent ?? ''
       expect(文本).toContain(指标.value)
-      expect(文本).toContain(指标.label)
+      expect(文本).toContain(指标.标签)
     })
   })
 
@@ -57,16 +56,14 @@ describe('FP-03 技能板块 - 量化指标', () => {
           dispatchEvent: vi.fn(),
         }) as unknown as MediaQueryList
     )
-    // 不提供 IntersectionObserver：组件会走 queueMicrotask 置启动；
-    // 这里冻结 rAF，动画不推进，用来观察「启动前 / 启动后首帧」的显示形态。
+
     let 帧队列: FrameRequestCallback[] = []
     vi.spyOn(window, 'requestAnimationFrame').mockImplementation((帧) => {
       帧队列.push(帧)
       return 0
     })
     const 原IO = window.IntersectionObserver
-    // @ts-expect-error 故意移除以固定 start 置位路径
-    delete window.IntersectionObserver
+    Reflect.deleteProperty(window, 'IntersectionObserver')
 
     let 容器: HTMLElement = document.createElement('div')
     await act(async () => {
@@ -76,10 +73,9 @@ describe('FP-03 技能板块 - 量化指标', () => {
     const 形态 = () =>
       量化指标().map((指标) => {
         const 数字 = 容器.querySelector(`[data-skill-metric="${指标.id}"]`)?.textContent ?? ''
-        return 数字.replace(指标.label, '').trim()
+        return 数字.replace(指标.标签, '').trim()
       })
 
-    // 启动微任务落地后、动画帧未跑：仍是 0 形态
     await act(async () => {})
     expect(形态()).toEqual(['0', '0+', '0', '0年'])
 
@@ -121,11 +117,6 @@ describe('FP-03 技能板块 - 量化指标', () => {
     }
   })
 
-  /**
-   * 滚动时长的行为守卫：技能板块的时长在调用点显式声明为 1280ms，
-   * 半程（640ms）必须仍在滚动、满程（1280ms）必须已到终态。
-   * 谁把时长改回旧的 640ms，半程断言即红；改成别的时间，满程断言即红。
-   */
   it('指标数字滚动时长 1280ms：半程仍在滚动，满程落到终态', async () => {
     vi.spyOn(window, 'matchMedia').mockImplementation(
       () =>
@@ -158,7 +149,6 @@ describe('FP-03 技能板块 - 量化指标', () => {
       })
     }
 
-    // 第一帧：各卡记录各自的起始时间
     await 推进到(0)
     await 推进到(640)
     const 半程 = 容器.querySelector('[data-skill-metric="javaClasses"]')?.textContent ?? ''
@@ -181,7 +171,7 @@ describe('FP-03 技能板块 - 能力分组', () => {
     expect(组表.map((组) => 组.getAttribute('data-skill-group'))).toEqual(数据.map((组) => 组.id))
     expect(组表[0].getAttribute('data-skill-group')).toBe('aiAgent')
     expect(组表[0].querySelector('h4')?.textContent).toBe('AI Agent能力')
-    expect(数据[0].items).toHaveLength(5)
+    expect(数据[0].条目表).toHaveLength(5)
   })
 
   it('每组的陈述句与标签全部渲染，无空组', async () => {
@@ -189,11 +179,11 @@ describe('FP-03 技能板块 - 能力分组', () => {
     const 组表 = 分组节点(容器)
     技能组表().forEach((组, 索引) => {
       const 节点 = 组表[索引]
-      expect(节点.querySelector('h4')?.textContent).toBe(组.label)
+      expect(节点.querySelector('h4')?.textContent).toBe(组.标签)
       const 陈述 = Array.from(节点.querySelectorAll('ul li')).filter((项) => !项.hasAttribute('data-skill-tag'))
-      expect(陈述.map((项) => 项.textContent)).toEqual(组.items)
+      expect(陈述.map((项) => 项.textContent)).toEqual(组.条目表)
       const 标签 = Array.from(节点.querySelectorAll('[data-skill-tag]')).map((项) => 项.getAttribute('data-skill-tag'))
-      expect(标签).toEqual(组.tags)
+      expect(标签).toEqual(组.标签表)
     })
   })
 })
@@ -299,7 +289,7 @@ describe('FP-03 技能板块 - 雷达与残留', () => {
   it('雷达只画 6 条轴，图例与轴集一致', async () => {
     const { 容器 } = await 渲染技能板块()
     expect(容器.querySelectorAll('svg text')).toHaveLength(雷达轴表.length)
-    expect(雷达轴表.filter((轴) => !轴.minor)).toHaveLength(4)
+    expect(雷达轴表.filter((轴) => !轴.辅修)).toHaveLength(4)
     const 图例 = Array.from(容器.querySelectorAll('[class*="rounded-xl border"]')).filter((节点) =>
       (节点.textContent ?? '').includes(t('data.radar.dimensions.aiAgent.basis'))
     )
@@ -340,7 +330,7 @@ describe('FP-03 技能板块 - 雷达与残留', () => {
     const 雷达 = 容器.querySelector('figure')!
     const 右侧 = 雷达.parentElement?.nextElementSibling as HTMLElement
     const 卡片表 = Array.from(右侧.querySelectorAll(':scope > .reveal > div'))
-    const 主轴表 = 雷达轴表.filter((轴) => !轴.minor)
+    const 主轴表 = 雷达轴表.filter((轴) => !轴.辅修)
 
     expect(卡片表).toHaveLength(4)
     主轴表.forEach((轴, 索引) => {
@@ -363,8 +353,7 @@ describe('FP-03 技能板块 - 雷达与残留', () => {
     expect(原值).toBeTruthy()
     const [起点x, 起点y, 宽, 高] = (原值 ?? '').split(/\s+/).map(Number)
     expect([起点x, 起点y, 宽, 高].every(Number.isFinite)).toBe(true)
-    // 画布几何尺寸固定 320（SIZE/CENTER/RADIUS 见 JiNengBanKuai 顶部常量）；
-    // 轴标签画在 1.18×半径=137px 处，再加文字外延，两侧各至少 40px 才不被裁。
+
     const 几何尺寸 = 320
     expect(宽).toBeGreaterThan(几何尺寸)
     expect(宽 - 几何尺寸).toBeGreaterThanOrEqual(80)

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Check, Copy, ExternalLink } from 'lucide-react'
-import { t, type TranslationKey } from '../../国际化/翻译'
+import { t, type 翻译键 } from '../../国际化/翻译'
 import { 合并类名 } from '../../库/工具'
 import { 项目表 } from '../../数据/项目'
 import { 经历表 } from '../../数据/经历'
@@ -8,14 +8,14 @@ import { 教育档案 } from '../../数据/教育'
 import { 个人信息 } from '../../数据/个人信息'
 import type { 项目卡片组件, 时间线组件, 界面组件 } from '../../智能/结构化输出'
 
-interface ComponentRendererProps<T extends 界面组件> {
-  component: T
+interface 界面组件渲染属性<T extends 界面组件> {
+  组件: T
 }
 
-function ProjectCardRenderer({ component }: ComponentRendererProps<项目卡片组件>) {
-  const project = 项目表.find((item) => item.id === component.projectId)
+function XiangMuKaPianXuanRanQi({ 组件 }: 界面组件渲染属性<项目卡片组件>) {
+  const 项目 = 项目表.find((项) => 项.id === 组件.项目编号)
 
-  if (!project) {
+  if (!项目) {
     return (
       <div className="rounded-xl border border-border bg-surface-elevated p-4 text-sm text-muted">
         {t('ai.component.projectNotFound')}
@@ -26,28 +26,28 @@ function ProjectCardRenderer({ component }: ComponentRendererProps<项目卡片�
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-surface-elevated">
       <div className="border-b border-border bg-surface px-4 py-3">
-        <h3 className="text-sm font-medium text-text-primary">{t(project.nameKey)}</h3>
+        <h3 className="text-sm font-medium text-text-primary">{t(项目.名称键)}</h3>
       </div>
       <div className="px-4 py-3">
-        <p className="mb-3 text-xs leading-relaxed text-text-secondary">{t(project.descKey)}</p>
+        <p className="mb-3 text-xs leading-relaxed text-text-secondary">{t(项目.描述键)}</p>
         <div className="mb-3 flex flex-wrap gap-1.5">
-          {project.tags.map((tag) => (
-            <span key={tag} className="rounded-full bg-secondary/10 px-2 py-0.5 text-[10px] text-secondary">
-              {tag}
+          {项目.标签表.map((标签) => (
+            <span key={标签} className="rounded-full bg-secondary/10 px-2 py-0.5 text-[10px] text-secondary">
+              {标签}
             </span>
           ))}
         </div>
-        {project.links && project.links.length > 0 && (
+        {项目.链接表 && 项目.链接表.length > 0 && (
           <div className="flex flex-wrap gap-3">
-            {project.links.map((link) => (
+            {项目.链接表.map((链接) => (
               <a
-                key={link.url}
-                href={link.url}
+                key={链接.url}
+                href={链接.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
               >
-                {t(link.labelKey)}
+                {t(链接.标签键)}
                 <ExternalLink size={10} />
               </a>
             ))}
@@ -59,11 +59,11 @@ function ProjectCardRenderer({ component }: ComponentRendererProps<项目卡片�
 }
 
 interface 时间线条目 {
-  year: string
-  label: string
+  年份: string
+  标签: string
 }
 
-const TIMELINE_TITLE_KEYS: Record<NonNullable<时间线组件['scope']>, TranslationKey> = {
+const 时间线标题键表: Record<NonNullable<时间线组件['scope']>, 翻译键> = {
   experience: 'experience.title',
   media: 'media.title',
   education: 'education.title',
@@ -71,54 +71,54 @@ const TIMELINE_TITLE_KEYS: Record<NonNullable<时间线组件['scope']>, Transla
 
 function 取媒体时间线条目(): 时间线条目[] {
   return [
-    { year: '2022', label: t('data.media.timeline.2022') },
-    { year: '2023', label: t('data.media.timeline.2023') },
-    { year: '2024', label: t('data.media.timeline.2024') },
-    { year: '2025', label: t('data.media.timeline.2025') },
+    { 年份: '2022', 标签: t('data.media.timeline.2022') },
+    { 年份: '2023', 标签: t('data.media.timeline.2023') },
+    { 年份: '2024', 标签: t('data.media.timeline.2024') },
+    { 年份: '2025', 标签: t('data.media.timeline.2025') },
   ]
 }
 
-function getExperienceTimelineEntries(): 时间线条目[] {
-  return 经历表.map((entry) => ({
-    year: t(entry.periodKey).split(' ')[0] ?? t(entry.periodKey),
-    label: `${t(entry.titleKey)}${entry.organizationKey ? ` · ${t(entry.organizationKey)}` : ''}`,
+function 获取经历时间线条目(): 时间线条目[] {
+  return 经历表.map((条目) => ({
+    年份: t(条目.周期键).split(' ')[0] ?? t(条目.周期键),
+    标签: `${t(条目.标题键)}${条目.机构键 ? ` · ${t(条目.机构键)}` : ''}`,
   }))
 }
 
 function 取教育时间线条目(): 时间线条目[] {
-  const summary = 教育档案.summary
+  const 摘要 = 教育档案.摘要
   return [
-    { year: summary.period.split(' - ')[0] ?? summary.period, label: `${summary.school} · ${summary.major}` },
-    ...教育档案.achievementKeys.map((key) => ({ year: '', label: t(key) })),
+    { 年份: 摘要.周期.split(' - ')[0] ?? 摘要.周期, 标签: `${摘要.学校} · ${摘要.专业}` },
+    ...教育档案.成就键表.map((key) => ({ 年份: '', 标签: t(key) })),
   ]
 }
 
 function 取时间线条目(scope: 时间线组件['scope']): 时间线条目[] {
   switch (scope) {
     case 'experience':
-      return getExperienceTimelineEntries()
+      return 获取经历时间线条目()
     case 'education':
       return 取教育时间线条目()
     case 'media':
       return 取媒体时间线条目()
     default:
-      return getExperienceTimelineEntries()
+      return 获取经历时间线条目()
   }
 }
 
-function TimelineRenderer({ component }: ComponentRendererProps<时间线组件>) {
-  const title = component.scope ? t(TIMELINE_TITLE_KEYS[component.scope]) : t('experience.title')
-  const entries = 取时间线条目(component.scope)
+function ShiJianXianXuanRanQi({ 组件 }: 界面组件渲染属性<时间线组件>) {
+  const title = 组件.scope ? t(时间线标题键表[组件.scope]) : t('experience.title')
+  const 条目表 = 取时间线条目(组件.scope)
 
   return (
     <div className="rounded-xl border border-border bg-surface-elevated p-4">
       <h3 className="mb-3 text-xs font-medium text-text-primary">{title}</h3>
       <div className="relative space-y-4 pl-4 before:absolute before:left-1.5 before:top-1 before:h-[calc(100%-8px)] before:w-px before:bg-border">
-        {entries.map((entry, index) => (
-          <div key={`${entry.year}-${index}`} className="relative">
+        {条目表.map((条目, 下标) => (
+          <div key={`${条目.年份}-${下标}`} className="relative">
             <span className="absolute -left-4 top-1 h-3 w-3 rounded-full border-2 border-border bg-surface" />
-            {entry.year && <p className="text-[10px] font-medium text-primary">{entry.year}</p>}
-            <p className="text-xs text-text-secondary">{entry.label}</p>
+            {条目.年份 && <p className="text-[10px] font-medium text-primary">{条目.年份}</p>}
+            <p className="text-xs text-text-secondary">{条目.标签}</p>
           </div>
         ))}
       </div>
@@ -126,13 +126,13 @@ function TimelineRenderer({ component }: ComponentRendererProps<时间线组件>
   )
 }
 
-function ContactLinksRenderer() {
-  const [已复制, set已复制] = useState<string | null>(null)
+function LianXiLianJieXuanRanQi() {
+  const [已复制, 设置已复制] = useState<string | null>(null)
   const 计时器 = useRef<number | undefined>(undefined)
   const 标记复制成功 = (id: string) => {
-    set已复制(id)
+    设置已复制(id)
     window.clearTimeout(计时器.current)
-    计时器.current = window.setTimeout(() => set已复制(null), 2000)
+    计时器.current = window.setTimeout(() => 设置已复制(null), 2000)
   }
   const 复制文本 = async (id: string, 文本: string) => {
     try {
@@ -143,8 +143,6 @@ function ContactLinksRenderer() {
     }
   }
   const 尝试唤起 = (地址: string) => {
-    // 输入验证：只放行 https/http(s) 绝对地址与既有的应用 scheme（QQ/微信），
-    // 拒绝 javascript:/data: 等任意协议，防止将来数据源变化时的注入面
     let 可打开 = false
     try {
       const 解析 = new URL(地址)
@@ -170,8 +168,8 @@ function ContactLinksRenderer() {
   const 按钮样式 =
     'inline-flex items-center justify-center gap-1 rounded-lg border border-border bg-bg px-2 py-1.5 text-xs text-text-primary transition-colors hover:border-primary'
   const 直开项 = [
-    { id: 'github', 地址: 个人信息.github, 标签: t('ai.contactLinks.github') },
-    { id: 'bilibili', 地址: 个人信息.bilibili, 标签: t('ai.contactLinks.bilibili') },
+    { id: 'github', 地址: 个人信息.GitHub, 标签: t('ai.contactLinks.github') },
+    { id: 'bilibili', 地址: 个人信息.哔哩哔哩, 标签: t('ai.contactLinks.bilibili') },
   ]
   return (
     <div className="rounded-xl border border-border bg-surface-elevated p-3">
@@ -192,7 +190,7 @@ function ContactLinksRenderer() {
         <button
           type="button"
           aria-label={`${t('ai.contactLinks.qq')}${t('ai.contactLinks.copy')}`}
-          onClick={() => 复制并唤起('qq', 个人信息.qq, `tencent://message/?uin=${encodeURIComponent(个人信息.qq)}`)}
+          onClick={() => 复制并唤起('qq', 个人信息.QQ, `tencent://message/?uin=${encodeURIComponent(个人信息.QQ)}`)}
           className={按钮样式}
         >
           {已复制 === 'qq' ? <Check size={12} /> : <Copy size={12} />}
@@ -215,7 +213,7 @@ function ContactLinksRenderer() {
         <button
           type="button"
           aria-label={`${t('ai.contactLinks.phone')}${t('ai.contactLinks.copy')}`}
-          onClick={() => void 复制文本('phone', 个人信息.phone)}
+          onClick={() => void 复制文本('phone', 个人信息.电话)}
           className={合并类名(按钮样式, 'col-span-2')}
         >
           {已复制 === 'phone' ? <Check size={12} /> : <Copy size={12} />}
@@ -230,16 +228,16 @@ function ContactLinksRenderer() {
 }
 
 interface 界面组件渲染器属性 {
-  component: 界面组件
+  组件: 界面组件
   className?: string
 }
 
-export function JieMianZuJianXuanRanQi({ component, className }: 界面组件渲染器属性) {
+export function JieMianZuJianXuanRanQi({ 组件, className }: 界面组件渲染器属性) {
   return (
-    <div className={合并类名('mt-2', className)} data-testid={`ui-component-${component.type}`}>
-      {component.type === 'ProjectCard' && <ProjectCardRenderer component={component} />}
-      {component.type === 'Timeline' && <TimelineRenderer component={component} />}
-      {component.type === 'ContactLinks' && <ContactLinksRenderer />}
+    <div className={合并类名('mt-2', className)} data-testid={`ui-component-${组件.type}`}>
+      {组件.type === 'ProjectCard' && <XiangMuKaPianXuanRanQi 组件={组件} />}
+      {组件.type === 'Timeline' && <ShiJianXianXuanRanQi 组件={组件} />}
+      {组件.type === 'ContactLinks' && <LianXiLianJieXuanRanQi />}
     </div>
   )
 }

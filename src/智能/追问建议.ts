@@ -1,9 +1,9 @@
 import type { AI消息 } from '../状态/应用状态仓库'
-import { ta } from '../国际化/翻译'
+import { 翻译数组 } from '../国际化/翻译'
 import { 命中兜底意图, 检测项目卡片, 是否纯问候, 是否感谢, 是否告别 } from './意图表'
 
 function 取组(键: string): string[] {
-  return ta(`ai.followUps.${键}` as never)
+  return 翻译数组(`ai.followUps.${键}` as never)
 }
 
 function 取回退(): string[] {
@@ -24,10 +24,10 @@ export function 生成追问建议(用户问题: string, 助手消息?: AI消息
     return 规范化三元(取组('greeting'))
   }
 
-  const 组件 = 助手消息?.component
+  const 组件 = 助手消息?.组件
   if (组件?.type === 'ProjectCard') {
-    if (组件.projectId === 'xrm') return 规范化三元(取组('projectsXrm'))
-    if (组件.projectId === 'yangLai') return 规范化三元(取组('projectsYangLai'))
+    if (组件.项目编号 === 'xrm') return 规范化三元(取组('projectsXrm'))
+    if (组件.项目编号 === 'yangLai') return 规范化三元(取组('projectsYangLai'))
     return 规范化三元(取组('projectsLove'))
   }
   if (组件?.type === 'Timeline') {

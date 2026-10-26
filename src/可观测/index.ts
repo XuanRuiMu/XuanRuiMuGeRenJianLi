@@ -1,7 +1,7 @@
 export type { 日志级别, 日志条目, 日志分类 } from './环形缓冲'
 export type { 跨度 } from './追踪器'
 export { 环形缓冲 } from './环形缓冲'
-export { 追踪器, withSpan } from './追踪器'
+export { 追踪器, 包裹跨度 as withSpan } from './追踪器'
 export { 日志存储 } from './持久化'
 export { WebSocket传输 } from './WebSocket传输'
 export { 信标传输 } from './信标传输'
@@ -18,16 +18,16 @@ export async function 初始化可观测性(): Promise<void> {
   await 日志存储实例.open()
 
   if (import.meta.env.DEV) {
-    const ws = new WebSocket传输(环形缓冲实例)
-    ws.connect()
+    const 套接字 = new WebSocket传输(环形缓冲实例)
+    套接字.connect()
   }
 
   if (import.meta.env.PROD) {
-    const beacon = new 信标传输(环形缓冲实例, 日志存储实例)
-    beacon.start()
+    const 信标 = new 信标传输(环形缓冲实例, 日志存储实例)
+    信标.开始()
   }
 
-  环形缓冲实例.write('info', 1, 'Observability initialized', {
+  环形缓冲实例.写入('info', 1, 'Observability initialized', {
     mode: import.meta.env.DEV ? 'dev' : 'prod',
   })
 }

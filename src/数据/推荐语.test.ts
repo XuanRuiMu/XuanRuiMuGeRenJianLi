@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import zhCN from '../国际化/zh-CN.json'
-import { t, type TranslationKey } from '../国际化/翻译'
+import { t, type 翻译键 } from '../国际化/翻译'
 import { 推荐语id表, 推荐语列表 } from './推荐语'
 
 const 项目根 = path.resolve(__dirname, '../..')
@@ -10,16 +10,10 @@ const 板块节点 = zhCN.testimonials as Record<string, unknown>
 const 条目表 = zhCN.testimonials.items as Record<string, { role: string; quote: string; context: string }>
 const 组件路径 = 'src/功能/推荐语/TuiJianYuBanKuai.tsx'
 
-/** 用户明令只留这两类推荐人，旧条目名再出现即为回潮 */
 const 已删除id表 = ['graduate', 'player', 'collaborator']
 
-/** 已删除的说明性文案键：元说明类句子不得再有载体 */
 const 已删除键表 = ['subtitle', 'note']
 
-/**
- * 文案红线：翻译文件全仓守卫（职业方向/contentConsistency 已钉）+
- * 技能与推荐语类文本的影子工具词（他没有真实用过，不得写进推荐语）。
- */
 const 禁止词表 = [
   '原创歌曲',
   '架子鼓',
@@ -63,9 +57,8 @@ function 收集文本(值: unknown): string[] {
   return []
 }
 
-/** 覆盖整个 推荐语表 节点：文案从哪个键渲染出来都跑不出红线守卫 */
 function 板块全文(): string {
-  return [...收集文本(板块节点), ...推荐语列表().map((卡片) => `${卡片.role}\n${卡片.quote}\n${卡片.context}`)].join(
+  return [...收集文本(板块节点), ...推荐语列表().map((卡片) => `${卡片.role}\n${卡片.引用语}\n${卡片.上下文}`)].join(
     '\n'
   )
 }
@@ -81,10 +74,11 @@ describe('FP-05 推荐语数据源：两条、单一文案源', () => {
     const 卡片表 = 推荐语列表()
     expect(卡片表).toHaveLength(2)
     for (const 卡片 of 卡片表) {
-      for (const 字段 of ['role', 'quote', 'context'] as const) {
-        expect(卡片[字段], `${卡片.id}.${字段} 不得为空`).toBe(条目表[卡片.id][字段])
+      for (const 字段 of ['role', '引用语', '上下文'] as const) {
+        const 源字段 = 字段 === '引用语' ? 'quote' : 字段 === '上下文' ? 'context' : 'role'
+        expect(卡片[字段], `${卡片.id}.${字段} 不得为空`).toBe(条目表[卡片.id][源字段])
         expect(卡片[字段].trim()).not.toBe('')
-        expect(卡片[字段]).toBe(t(`testimonials.items.${卡片.id}.${字段}` as unknown as TranslationKey))
+        expect(卡片[字段]).toBe(t(`testimonials.items.${卡片.id}.${源字段}` as unknown as 翻译键))
       }
     }
   })
@@ -139,7 +133,7 @@ describe('FP-05 推荐语数据源：两条、单一文案源', () => {
       const 卡片表 = 推荐语列表()
       expect(Array.isArray(卡片表)).toBe(true)
       for (const 卡片 of 卡片表) {
-        for (const 字段 of ['role', 'quote', 'context'] as const) expect(typeof 卡片[字段]).toBe('string')
+        for (const 字段 of ['role', '引用语', '上下文'] as const) expect(typeof 卡片[字段]).toBe('string')
       }
     } finally {
       条目表.student = 原学员

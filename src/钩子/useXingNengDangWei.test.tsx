@@ -17,7 +17,7 @@ describe('useXingNengDangWei', () => {
     const { result } = renderHook(() => useXingNengDangWei())
     expect(result.current.加载中).toBe(true)
     expect(result.current.等级).toBe(设备能力.画质档位.高)
-    expect(result.current.设置.particleCount).toBe(15000)
+    expect(result.current.设置.粒子数量).toBe(15000)
   })
 
   it('updates to detected quality level', async () => {
@@ -29,7 +29,7 @@ describe('useXingNengDangWei', () => {
     })
 
     expect(result.current.等级).toBe(设备能力.画质档位.低)
-    expect(result.current.设置.particleCount).toBe(5000)
+    expect(result.current.设置.粒子数量).toBe(5000)
   })
 
   it('uses ultra settings when ultra is detected', async () => {
@@ -41,6 +41,6 @@ describe('useXingNengDangWei', () => {
     })
 
     expect(result.current.等级).toBe(设备能力.画质档位.极致)
-    expect(result.current.设置.particleCount).toBe(20000)
+    expect(result.current.设置.粒子数量).toBe(20000)
   })
 })

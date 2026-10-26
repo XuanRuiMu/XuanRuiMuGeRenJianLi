@@ -2,10 +2,6 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useShuZiGunDong } from './useShuZiGunDong'
 
-/**
- * 手动推进 rAF 帧并把 performance.now 钉在指定时刻，
- * 让「半程仍在滚动 / 满程到终态」这类时长断言可重复。
- */
 function 挂载滚动(值: string, 时长毫秒?: number, 选项?: { 开始?: boolean; 开始前为零?: boolean }) {
   let 时钟 = 0
   let 帧队列: FrameRequestCallback[] = []

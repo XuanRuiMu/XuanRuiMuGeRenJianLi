@@ -9,8 +9,6 @@ const 状态 = vi.hoisted(() => ({
 }))
 
 vi.mock('../../库/分析接口', () => ({
-  // 根因：mock 工厂在模块实例化时求值，直接写死常量会固化开关值；
-  // 用 getter 按访问时取值，测试间切换 状态.enabled 才会生效
   get 访问统计开关() {
     return 状态.enabled
   },
@@ -49,8 +47,8 @@ describe('VisitorCounter（页脚访问人数）', () => {
     const FangKeJiShu = await 载入组件()
 
     await act(async () => {
-      const { unmount } = render(<FangKeJiShu />)
-      unmount()
+      const { unmount: 卸载 } = render(<FangKeJiShu />)
+      卸载()
     })
     await act(async () => {
       render(<FangKeJiShu />)
@@ -74,7 +72,7 @@ describe('VisitorCounter（页脚访问人数）', () => {
     })
     expect(screen.getByTestId('visitor-counter')).toBeInTheDocument()
     expect(screen.getByTestId('visitor-counter')).toHaveTextContent(t('footer.visitorsLabel'))
-    // 无后端时不虚报 0、不消失：显示本机累计（本次挂载 +1）
+
     expect(screen.getByTestId('visitor-counter')).toHaveTextContent('1')
     expect(localStorage.getItem('visitor-count')).toBe('1')
     expect(状态.mutate).not.toHaveBeenCalled()
@@ -85,7 +83,7 @@ describe('VisitorCounter（页脚访问人数）', () => {
     状态.total = null
     localStorage.setItem('visitor-count', '7')
     const FangKeJiShu = await 载入组件()
-    // 载入组件会清掉 key，这里再写一次模拟「已有累计」
+
     localStorage.setItem('visitor-count', '7')
     await act(async () => {
       render(<FangKeJiShu />)
@@ -99,9 +97,9 @@ describe('VisitorCounter（页脚访问人数）', () => {
     状态.enabled = true
     状态.total = 128
     const FangKeJiShu = await 载入组件()
-    const { container } = render(<FangKeJiShu />)
-    expect(container.querySelector('.visitor-counter-icon')).not.toBeNull()
-    const 数字 = container.querySelector('.visitor-counter-number')
+    const { container: 容器 } = render(<FangKeJiShu />)
+    expect(容器.querySelector('.visitor-counter-icon')).not.toBeNull()
+    const 数字 = 容器.querySelector('.visitor-counter-number')
     expect(数字).not.toBeNull()
     expect(数字).toHaveClass('tabular-nums')
     expect(数字).toHaveTextContent('128')
@@ -110,9 +108,9 @@ describe('VisitorCounter（页脚访问人数）', () => {
   it('访问人数与其数字可被选中复制（根因：user-select禁选）', async () => {
     状态.enabled = true
     const FangKeJiShu = await 载入组件()
-    const { container } = render(<FangKeJiShu />)
-    const 卡片 = container.querySelector('.visitor-counter-card') as HTMLElement
-    const 数字 = container.querySelector('.visitor-counter-number') as HTMLElement
+    const { container: 容器 } = render(<FangKeJiShu />)
+    const 卡片 = 容器.querySelector('.visitor-counter-card') as HTMLElement
+    const 数字 = 容器.querySelector('.visitor-counter-number') as HTMLElement
     expect(卡片).not.toBeNull()
     expect(数字).not.toBeNull()
     const 卡片选中 = window.getComputedStyle(卡片).userSelect

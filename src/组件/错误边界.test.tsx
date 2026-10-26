@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { CuoWuBianJie } from './错误边界'
 
-const ThrowError = () => {
+const PaoCuoWu = () => {
   throw new Error('boom')
 }
 
@@ -21,13 +21,13 @@ describe('错误边界', () => {
   })
 
   it('renders fallback ui when error is thrown', () => {
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const 控制台错误 = vi.spyOn(console, 'error').mockImplementation(() => {})
     render(
       <CuoWuBianJie>
-        <ThrowError />
+        <PaoCuoWu />
       </CuoWuBianJie>
     )
     expect(screen.getByText('页面暂时无法显示')).toBeInTheDocument()
-    consoleError.mockRestore()
+    控制台错误.mockRestore()
   })
 })

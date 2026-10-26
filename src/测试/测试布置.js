@@ -1,7 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { vi } from 'vitest'
 
-// jsdom / node 测试环境均提供 ResizeObserver 最小实现，Three.js / R3F 依赖它
 class 模拟尺寸观察器 {
   observe = vi.fn()
   unobserve = vi.fn()
@@ -12,7 +11,6 @@ if (typeof window !== 'undefined') {
   window.ResizeObserver = 模拟尺寸观察器
 }
 
-// IntersectionObserver 在 jsdom 中不可用，提供最小实现以支持滚动触发动画测试
 class 模拟交叉观察器 {
   constructor(回调) {
     this.回调 = 回调
@@ -24,13 +22,13 @@ class 模拟交叉观察器 {
 
   unobserve = vi.fn()
   disconnect = vi.fn()
+  takeRecords = vi.fn(() => [])
 }
 globalThis.IntersectionObserver = 模拟交叉观察器
 if (typeof window !== 'undefined') {
   window.IntersectionObserver = 模拟交叉观察器
 }
 
-// jsdom 不实现 Canvas getContext，提供最小 WebGL mock 以支持 Three.js 相关组件测试
 if (typeof HTMLCanvasElement !== 'undefined') {
   const 原始获取上下文 = HTMLCanvasElement.prototype.getContext
   HTMLCanvasElement.prototype.getContext = function (上下文标识, 选项) {
@@ -51,6 +49,16 @@ if (typeof HTMLCanvasElement !== 'undefined') {
           return 0
         }),
         createShader: vi.fn(),
+        getShaderParameter: vi.fn(() => true),
+        getShaderInfoLog: vi.fn(() => ''),
+        getProgramParameter: vi.fn(() => true),
+        getProgramInfoLog: vi.fn(() => ''),
+        createVertexArray: vi.fn(),
+        bindVertexArray: vi.fn(),
+        deleteProgram: vi.fn(),
+        deleteShader: vi.fn(),
+        deleteBuffer: vi.fn(),
+        deleteVertexArray: vi.fn(),
         shaderSource: vi.fn(),
         compileShader: vi.fn(),
         createProgram: vi.fn(),
@@ -104,7 +112,7 @@ if (typeof HTMLCanvasElement !== 'undefined') {
         strokeRect: vi.fn(),
         moveTo: vi.fn(),
         lineTo: vi.fn(),
-        // 绘制晾衣绳按设备像素比重置变换，并用二次贝塞尔画悬链线
+
         setTransform: vi.fn(),
         quadraticCurveTo: vi.fn(),
         createRadialGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
@@ -115,7 +123,6 @@ if (typeof HTMLCanvasElement !== 'undefined') {
   }
 }
 
-// matchMedia 在 jsdom 中不可用，提供最小 mock 以支持 prefers-reduced-motion 测试
 if (typeof window !== 'undefined') {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
@@ -129,8 +136,6 @@ if (typeof window !== 'undefined') {
   })
 }
 
-// jsdom 在 opaque origin（about:blank）下不暴露 localStorage，提供最小内存实现
-// 以支持 zustand persist 中间件及直接访问 localStorage 的测试（如 useBianQianFengLi）
 if (typeof window !== 'undefined') {
   let 有本地存储 = false
   try {
@@ -165,7 +170,6 @@ if (typeof window !== 'undefined') {
   }
 }
 
-// Service Worker 在 jsdom 中不可用，提供最小 mock
 const 服务工作线程监听器 = new Map()
 Object.defineProperty(global.navigator, 'serviceWorker', {
   writable: true,
@@ -198,3 +202,16 @@ Object.defineProperty(global.navigator, 'serviceWorker', {
     },
   },
 })
+
+if (typeof globalThis.requestIdleCallback === 'undefined') {
+  globalThis.requestIdleCallback = (回调) => setTimeout(() => 回调({ didTimeout: false, timeRemaining: () => 50 }), 0)
+  globalThis.cancelIdleCallback = (句柄) => clearTimeout(句柄)
+}
+if (typeof window !== 'undefined') {
+  window.requestIdleCallback = globalThis.requestIdleCallback
+  window.cancelIdleCallback = globalThis.cancelIdleCallback
+}
+if (typeof HTMLMediaElement !== 'undefined') {
+  HTMLMediaElement.prototype.play = vi.fn(() => Promise.resolve())
+  HTMLMediaElement.prototype.pause = vi.fn()
+}

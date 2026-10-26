@@ -32,7 +32,7 @@ describe('FP-03排版回归：中英/中数相邻零空格', () => {
   })
 
   it('知识库文本零违规', () => {
-    const 知识库文本 = 构建简历知识库().map((chunk) => chunk.content)
+    const 知识库文本 = 构建简历知识库().map((分块) => 分块.content)
     断言零违规(知识库文本, 'knowledgeBase')
   })
 

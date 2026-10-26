@@ -22,6 +22,7 @@ export default [
       'redesign-lab',
       'references',
       '临时素材',
+      '.workbuddy',
       '图片_旧',
       'data',
       'public/fonts',
@@ -56,6 +57,7 @@ export default [
       'react/prop-types': 'off',
       'react/no-unknown-property': 'off',
       'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
+      'no-empty': ['error', { allowEmptyCatch: true }],
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     },
   },
@@ -81,6 +83,12 @@ export default [
   },
   {
     files: ['scripts/**/*', '*.config.js', 'public/**/*.js'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
+  {
+    files: ['src/可观测/控制台仪表盘.ts'],
     rules: {
       'no-console': 'off',
     },

@@ -6,139 +6,135 @@ import { t } from '../../国际化/翻译'
 import { useJianShaoDongHua } from '../../钩子/useJianShaoDongHua'
 import { useShuZiGunDong } from '../../钩子/useShuZiGunDong'
 
-const TIMELINE_PROGRESS_VAR = '--timeline-progress'
+const 时间线进度变量 = '--timeline-progress'
 
-/** 各经历的图标与主题色（色值取自 02-react-three-fiber 卡片配色体系） */
-const 经历图标表: Record<string, { icon: LucideIcon; color: string }> = {
-  mcserver: { icon: Gamepad2, color: '#00cea8' },
-  bachelor: { icon: BookOpen, color: '#56ccf2' },
-  educator: { icon: GraduationCap, color: '#38ef7d' },
-  wowguild: { icon: Swords, color: '#f472b6' },
-  aiengineer: { icon: Bot, color: '#a78bfa' },
-  indie: { icon: Heart, color: '#fb7185' },
+const 经历图标表: Record<string, { 图标: LucideIcon; 颜色: string }> = {
+  mcserver: { 图标: Gamepad2, 颜色: '#00cea8' },
+  bachelor: { 图标: BookOpen, 颜色: '#56ccf2' },
+  educator: { 图标: GraduationCap, 颜色: '#38ef7d' },
+  wowguild: { 图标: Swords, 颜色: '#f472b6' },
+  aiengineer: { 图标: Bot, 颜色: '#a78bfa' },
+  indie: { 图标: Heart, 颜色: '#fb7185' },
 }
 
-/** 成就条目循环使用 8102 的蓝/绿/粉渐变文字 */
-const ACHIEVEMENT_GRADIENTS = ['text-gradient-blue', 'text-gradient-green', 'text-gradient-pink']
+const 成就渐变表 = ['text-gradient-blue', 'text-gradient-green', 'text-gradient-pink']
 
-/** 滚动驱动进度（0–1）：设置 CSS 变量供 ::after 发光使用，并维护 React 状态驱动 SVG 填充；同时激活节点。 */
-function useTimelineProgress(ref: React.RefObject<HTMLElement | null>, count: number): number {
-  const prefersReducedMotion = useJianShaoDongHua()
-  const [progress, setProgress] = useState(prefersReducedMotion ? 1 : 0)
+function useShiJianXianJinDu(ref: React.RefObject<HTMLElement | null>, 数量: number): number {
+  const 偏好减少动画 = useJianShaoDongHua()
+  const [进度, 设置进度] = useState(偏好减少动画 ? 1 : 0)
 
   useEffect(() => {
-    if (prefersReducedMotion || !ref.current) {
-      setProgress(1)
+    if (偏好减少动画 || !ref.current) {
+      设置进度(1)
       return
     }
 
-    const element = ref.current
-    let rafId = 0
-    let lastProgress = -1
+    const 元素 = ref.current
+    let 帧编号 = 0
+    let 上次进度 = -1
 
-    const nodes = Array.from(element.querySelectorAll<HTMLElement>('[data-timeline-index] .timeline-node'))
+    const 节点表 = Array.from(元素.querySelectorAll<HTMLElement>('[data-timeline-index] .timeline-node'))
 
-    const updateProgress = () => {
-      const rect = element.getBoundingClientRect()
-      const viewportCenter = window.innerHeight * 0.5
-      const timelineHeight = rect.height
-      const ratio = timelineHeight > 0 ? Math.min(1, Math.max(0, (viewportCenter - rect.top) / timelineHeight)) : 0
+    const 更新进度 = () => {
+      const 矩形 = 元素.getBoundingClientRect()
+      const 视口中心 = window.innerHeight * 0.5
+      const 时间线高度 = 矩形.height
+      const 比例 = 时间线高度 > 0 ? Math.min(1, Math.max(0, (视口中心 - 矩形.top) / 时间线高度)) : 0
 
-      if (Math.abs(ratio - lastProgress) > 0.005) {
-        lastProgress = ratio
-        element.style.setProperty(TIMELINE_PROGRESS_VAR, String(ratio))
-        setProgress(ratio)
+      if (Math.abs(比例 - 上次进度) > 0.005) {
+        上次进度 = 比例
+        元素.style.setProperty(时间线进度变量, String(比例))
+        设置进度(比例)
       }
 
-      for (const node of nodes) {
-        const nodeRect = node.getBoundingClientRect()
-        const nodeCenter = nodeRect.top + nodeRect.height * 0.5
-        const nodeRatio = timelineHeight > 0 ? Math.min(1, Math.max(0, (nodeCenter - rect.top) / timelineHeight)) : 0
-        node.classList.toggle('is-active', ratio >= nodeRatio)
+      for (const 节点 of 节点表) {
+        const 节点矩形 = 节点.getBoundingClientRect()
+        const 节点中心 = 节点矩形.top + 节点矩形.height * 0.5
+        const 节点比例 = 时间线高度 > 0 ? Math.min(1, Math.max(0, (节点中心 - 矩形.top) / 时间线高度)) : 0
+        节点.classList.toggle('is-active', 比例 >= 节点比例)
       }
 
-      rafId = 0
+      帧编号 = 0
     }
 
-    const handleScroll = () => {
-      if (rafId) return
-      rafId = requestAnimationFrame(updateProgress)
+    const 处理滚动 = () => {
+      if (帧编号) return
+      帧编号 = requestAnimationFrame(更新进度)
     }
 
-    updateProgress()
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    window.addEventListener('resize', handleScroll, { passive: true })
+    更新进度()
+    window.addEventListener('scroll', 处理滚动, { passive: true })
+    window.addEventListener('resize', 处理滚动, { passive: true })
 
     return () => {
-      window.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('resize', handleScroll)
-      if (rafId) cancelAnimationFrame(rafId)
+      window.removeEventListener('scroll', 处理滚动)
+      window.removeEventListener('resize', 处理滚动)
+      if (帧编号) cancelAnimationFrame(帧编号)
     }
-  }, [prefersReducedMotion, ref, count])
+  }, [偏好减少动画, ref, 数量])
 
-  return progress
+  return 进度
 }
 
-function useTimelineItems(count: number) {
-  const prefersReducedMotion = useJianShaoDongHua()
+function useShiJianXianTiaoMu(数量: number) {
+  const 偏好减少动画 = useJianShaoDongHua()
 
   useEffect(() => {
-    if (prefersReducedMotion) return
+    if (偏好减少动画) return
 
-    const observers: IntersectionObserver[] = []
+    const 观察器表: IntersectionObserver[] = []
 
-    for (let index = 0; index < count; index++) {
-      const element = document.querySelector(`[data-timeline-index="${index}"]`)
-      if (!element) continue
+    for (let 下标 = 0; 下标 < 数量; 下标++) {
+      const 元素 = document.querySelector(`[data-timeline-index="${下标}"]`)
+      if (!元素) continue
 
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            element.classList.add('is-visible')
-            observer.disconnect()
+      const 观察器 = new IntersectionObserver(
+        ([条目]) => {
+          if (条目.isIntersecting) {
+            元素.classList.add('is-visible')
+            观察器.disconnect()
           }
         },
         { threshold: 0.15, rootMargin: '0px 0px -10% 0px' }
       )
-      observer.observe(element)
-      observers.push(observer)
+      观察器.observe(元素)
+      观察器表.push(观察器)
     }
 
     return () => {
-      for (const observer of observers) observer.disconnect()
+      for (const 观察器 of 观察器表) 观察器.disconnect()
     }
-  }, [count, prefersReducedMotion])
+  }, [数量, 偏好减少动画])
 }
 
-interface ExperienceCardProps {
-  entry: (typeof 经历表)[number]
-  isEven: boolean
-  reducedMotion: boolean
+interface 经历卡片属性 {
+  条目: (typeof 经历表)[number]
+  是否偶数: boolean
+  减少动画: boolean
 }
 
-function ExperienceCard({ entry, isEven, reducedMotion }: ExperienceCardProps) {
+function JingLiKaPian({ 条目, 是否偶数, 减少动画 }: 经历卡片属性) {
   const 外层引用 = useRef<HTMLDivElement>(null)
   const 动画帧引用 = useRef(0)
 
-  // 进入视口时触发时期数字滚动动画（一次性）。
-  const [inView, setInView] = useState(false)
+  const [在视口内, 设置在视口内] = useState(false)
   useEffect(() => {
-    const element = 外层引用.current
-    if (!element) return
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true)
-          observer.disconnect()
+    const 元素 = 外层引用.current
+    if (!元素) return
+    const 观察器 = new IntersectionObserver(
+      ([条目]) => {
+        if (条目.isIntersecting) {
+          设置在视口内(true)
+          观察器.disconnect()
         }
       },
       { threshold: 0.2 }
     )
-    observer.observe(element)
-    return () => observer.disconnect()
+    观察器.observe(元素)
+    return () => 观察器.disconnect()
   }, [外层引用])
 
-  const 倾斜可用 = !reducedMotion
+  const 倾斜可用 = !减少动画
 
   useEffect(() => {
     if (!倾斜可用) return
@@ -193,7 +189,6 @@ function ExperienceCard({ entry, isEven, reducedMotion }: ExperienceCardProps) {
       按压中 = 是否按压
       外层.classList.toggle('is-pressed', 是否按压)
       if (是否按压) {
-        // 按压态回正下沉：不再跟随指针倾斜，避免透视下描边层与悬停高光层错位重影
         目标.x = 0.5
         目标.y = 0.5
         当前.x = 0.5
@@ -263,60 +258,60 @@ function ExperienceCard({ entry, isEven, reducedMotion }: ExperienceCardProps) {
     }
   }, [倾斜可用])
 
-  const { 显示: periodDisplay } = useShuZiGunDong({
-    值: t(entry.periodKey),
-    启用: !reducedMotion,
-    开始: inView,
+  const { 显示: 周期显示 } = useShuZiGunDong({
+    值: t(条目.周期键),
+    启用: !减少动画,
+    开始: 在视口内,
   })
 
-  const iconConfig = 经历图标表[entry.id] ?? 经历图标表.mcserver
-  const Icon = iconConfig.icon
+  const 图标配置 = 经历图标表[条目.id] ?? 经历图标表.mcserver
+  const TuBiaoZuJian = 图标配置.图标
 
   return (
     <div
       ref={外层引用}
-      data-experience-card={entry.id}
+      data-experience-card={条目.id}
       data-tilt-outer="true"
       tabIndex={0}
       className={`experience-card group relative rounded-2xl outline-none ${
-        isEven ? 'md:col-start-1 md:col-end-2 md:row-start-1' : 'md:col-start-3 md:col-end-4 md:row-start-1'
+        是否偶数 ? 'md:col-start-1 md:col-end-2 md:row-start-1' : 'md:col-start-3 md:col-end-4 md:row-start-1'
       }`}
     >
       <div className="experience-gradient-border rounded-2xl p-px shadow-[0px_35px_120px_-15px_var(--color-panel-shadow)]">
         <div className="rounded-2xl bg-panel px-6 py-5">
           <div className="mb-2 flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h3 id={`experience-title-${entry.id}`} className="text-[20px] font-bold leading-snug text-text-primary">
-                {t(entry.titleKey)}
+              <h3 id={`experience-title-${条目.id}`} className="text-[20px] font-bold leading-snug text-text-primary">
+                {t(条目.标题键)}
               </h3>
-              {entry.organizationKey && (
+              {条目.机构键 && (
                 <span className="mt-1.5 inline-block rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-text-secondary">
-                  {t(entry.organizationKey)}
+                  {t(条目.机构键)}
                 </span>
               )}
             </div>
-            <Icon
+            <TuBiaoZuJian
               size={40}
-              style={{ color: iconConfig.color } as CSSProperties}
+              style={{ color: 图标配置.颜色 } as CSSProperties}
               className="h-10 w-10 shrink-0"
               aria-hidden="true"
             />
           </div>
 
-          <p className="text-gradient-green mb-2 font-display text-sm font-bold tracking-wide">{periodDisplay}</p>
+          <p className="text-gradient-green mb-2 font-display text-sm font-bold tracking-wide">{周期显示}</p>
 
           <ul className="space-y-1">
-            {entry.descriptionKeys.map((key) => (
+            {条目.描述键表.map((key) => (
               <li key={key} className="text-sm leading-relaxed text-text-secondary">
                 {t(key)}
               </li>
             ))}
           </ul>
 
-          <div className={`experience-achievements mt-3 ${reducedMotion ? 'is-visible' : ''}`}>
+          <div className={`experience-achievements mt-3 ${减少动画 ? 'is-visible' : ''}`}>
             <ul className="space-y-1.5">
-              {(entry.achievementKeys ?? []).map((key, index) => (
-                <li key={key} className={`text-[13px] leading-relaxed ${ACHIEVEMENT_GRADIENTS[index % 3]}`}>
+              {(条目.成就键表 ?? []).map((key, 下标) => (
+                <li key={key} className={`text-[13px] leading-relaxed ${成就渐变表[下标 % 3]}`}>
                   <span className="mr-1" aria-hidden="true">
                     #
                   </span>
@@ -326,18 +321,18 @@ function ExperienceCard({ entry, isEven, reducedMotion }: ExperienceCardProps) {
             </ul>
           </div>
 
-          {entry.links && entry.links.length > 0 && (
+          {条目.链接表 && 条目.链接表.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
-              {entry.links.map((link) => (
+              {条目.链接表.map((链接) => (
                 <a
-                  key={link.url}
-                  href={link.url}
+                  key={链接.url}
+                  href={链接.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs font-medium text-text-primary/70 transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-                  aria-label={`${t(entry.titleKey)}：${t(link.labelKey)}`}
+                  aria-label={`${t(条目.标题键)}：${t(链接.标签键)}`}
                 >
-                  <span>{t(link.labelKey)}</span>
+                  <span>{t(链接.标签键)}</span>
                   <ExternalLink size={12} aria-hidden="true" />
                 </a>
               ))}
@@ -350,51 +345,50 @@ function ExperienceCard({ entry, isEven, reducedMotion }: ExperienceCardProps) {
 }
 
 export function JingLiBanKuai() {
-  const timelineRef = useRef<HTMLOListElement>(null)
-  const prefersReducedMotion = useJianShaoDongHua()
-  useTimelineProgress(timelineRef, 经历表.length)
-  useTimelineItems(经历表.length)
+  const 时间线引用 = useRef<HTMLOListElement>(null)
+  const 偏好减少动画 = useJianShaoDongHua()
+  useShiJianXianJinDu(时间线引用, 经历表.length)
+  useShiJianXianTiaoMu(经历表.length)
 
-  // 键盘导航：←/→ 在卡片间循环切换焦点（焦点自动跟随）。
-  const handleTimelineKeyDown = (event: React.KeyboardEvent<HTMLOListElement>) => {
-    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
-    const target = event.target as HTMLElement
+  const 处理时间线按键 = (事件: React.KeyboardEvent<HTMLOListElement>) => {
+    if (事件.key !== 'ArrowLeft' && 事件.key !== 'ArrowRight') return
+    const target = 事件.target as HTMLElement
     if (!target.classList.contains('experience-card')) return
-    const cards = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('.experience-card'))
-    const currentIndex = cards.indexOf(target)
-    if (currentIndex === -1) return
-    event.preventDefault()
-    const direction = event.key === 'ArrowRight' ? 1 : -1
-    const nextIndex = (currentIndex + direction + cards.length) % cards.length
-    cards[nextIndex]?.focus()
+    const 卡片表 = Array.from(事件.currentTarget.querySelectorAll<HTMLElement>('.experience-card'))
+    const 当前下标 = 卡片表.indexOf(target)
+    if (当前下标 === -1) return
+    事件.preventDefault()
+    const 方向 = 事件.key === 'ArrowRight' ? 1 : -1
+    const 下一个下标 = (当前下标 + 方向 + 卡片表.length) % 卡片表.length
+    卡片表[下一个下标]?.focus()
   }
 
   return (
     <BanKuai id="experience" title={t('experience.title')}>
       <ol
-        ref={timelineRef}
+        ref={时间线引用}
         className="timeline relative mx-auto max-w-5xl list-none py-4 md:py-8"
         aria-label={t('experience.timelineLabel')}
-        onKeyDown={handleTimelineKeyDown}
+        onKeyDown={处理时间线按键}
       >
-        {经历表.map((entry, index) => {
-          const isEven = index % 2 === 0
+        {经历表.map((条目, 下标) => {
+          const 是否偶数 = 下标 % 2 === 0
 
           return (
             <li
-              key={entry.id}
-              data-timeline-index={index}
+              key={条目.id}
+              data-timeline-index={下标}
               className={`timeline-item grid grid-cols-[auto_1fr] gap-4 md:grid-cols-[1fr_auto_1fr] md:gap-6 ${
-                prefersReducedMotion ? 'is-visible' : ''
+                偏好减少动画 ? 'is-visible' : ''
               }`}
-              aria-labelledby={`experience-title-${entry.id}`}
+              aria-labelledby={`experience-title-${条目.id}`}
             >
               <div
                 className={`timeline-card-wrapper relative order-2 md:order-none ${
-                  isEven ? 'md:col-start-1 md:col-end-2 md:row-start-1' : 'md:col-start-3 md:col-end-4 md:row-start-1'
+                  是否偶数 ? 'md:col-start-1 md:col-end-2 md:row-start-1' : 'md:col-start-3 md:col-end-4 md:row-start-1'
                 }`}
               >
-                <ExperienceCard entry={entry} isEven={isEven} reducedMotion={prefersReducedMotion} />
+                <JingLiKaPian 条目={条目} 是否偶数={是否偶数} 减少动画={偏好减少动画} />
               </div>
 
               <div className="order-1 flex w-10 flex-col items-center md:order-none md:col-start-2 md:col-end-3 md:w-20 md:justify-center">

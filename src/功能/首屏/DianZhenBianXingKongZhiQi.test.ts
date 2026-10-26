@@ -1,11 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { 创建点阵变形器, type 点阵变形器, type 点阵图标定义, type 变形器选项 } from './DianZhenBianXing'
 
-/**
- * 控制器测试：jsdom 无 2D 画布/Image/rAF 实现，全部以可控桩替代，
- * 用逐帧时间戳驱动 rAF 循环，验证自动切换计时、瞬切、守卫与销毁行为。
- */
-
 let raf序列 = 0
 const raf回调 = new Map<number, (t: number) => void>()
 let 当前时间戳 = 0
@@ -44,7 +39,7 @@ function 造定义(后缀: string, 数量 = 2): 点阵图标定义[] {
   return Array.from({ length: 数量 }, (_, i) => ({
     id: `技术${后缀}${i}`,
     name: `技术${后缀}${i}`,
-    glyph: 'T',
+    字形: 'T',
     src: `/logos/${后缀}-${i}.svg`,
   }))
 }
@@ -60,10 +55,10 @@ function 推进帧(毫秒总数: number, 步长 = 16) {
   for (let 已进 = 0; 已进 < 毫秒总数; 已进 += 步长) {
     const 首项 = [...raf回调.entries()][0]
     if (!首项) break
-    const [id, cb] = 首项
+    const [id, 回调] = 首项
     raf回调.delete(id)
     当前时间戳 += 步长
-    cb(当前时间戳)
+    回调(当前时间戳)
   }
 }
 
@@ -82,8 +77,8 @@ beforeEach(() => {
   vi.stubGlobal('Image', 假Image)
   vi.stubGlobal(
     'requestAnimationFrame',
-    vi.fn((cb: (t: number) => void) => {
-      raf回调.set(++raf序列, cb)
+    vi.fn((回调: (t: number) => void) => {
+      raf回调.set(++raf序列, 回调)
       return raf序列
     })
   )
@@ -95,8 +90,7 @@ beforeEach(() => {
   )
   vi.stubGlobal(
     'fetch',
-    // 失败图标必须让 fetch 也失败，地址才会保留原始 src（含 bad 标记）走 Image onerror；
-    // 否则地址被改写成不含 bad 的 blob URL，失败路径永远走不到（曾因 URL.createObjectURL 可用性变化踩坑）
+
     vi.fn(async (地址: string) =>
       String(地址).includes('bad')
         ? { ok: false, text: async () => '' }
@@ -104,9 +98,9 @@ beforeEach(() => {
     )
   )
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(() => {
-    const ctx = 造2d上下文()
-    已建上下文.push(ctx)
-    return ctx as never
+    const 上下文 = 造2d上下文()
+    已建上下文.push(上下文)
+    return 上下文 as never
   })
   vi.spyOn(HTMLCanvasElement.prototype, 'getBoundingClientRect').mockReturnValue({
     width: 520,
@@ -135,10 +129,9 @@ describe('点阵变形器控制器', () => {
     await 等待载入(变形器!, 序号回调)
     expect(序号回调).toHaveBeenNthCalledWith(1, 0, '技术t10', 2)
 
-    // 接近一个周期仍未切换（若加载后未重置计时，慢网下此处会提前切换）
     推进帧(4900)
     expect(序号回调).toHaveBeenCalledTimes(1)
-    // 越过 5 秒自动切换到第 2 个
+
     推进帧(300)
     expect(序号回调).toHaveBeenCalledTimes(2)
     expect(序号回调).toHaveBeenNthCalledWith(2, 1, '技术t11', 2)
@@ -160,7 +153,7 @@ describe('点阵变形器控制器', () => {
     const { 画布, 变形器 } = 创建(造定义('t3'), { 静态: true, on序号变更: 序号回调 })
     await 等待载入(变形器!, 序号回调)
     画布.click()
-    expect(序号回调).toHaveBeenCalledTimes(2)
+    await vi.waitFor(() => expect(序号回调).toHaveBeenCalledTimes(2))
     expect(画布.dataset.transition).toBe('idle')
   })
 
@@ -198,8 +191,8 @@ describe('点阵变形器控制器', () => {
 
   it('变形落定帧绘制新形态而非回画旧形态', async () => {
     const 定义: 点阵图标定义[] = [
-      { id: 'Alpha', name: 'Alpha', glyph: 'A', src: '/logos/alpha.svg' },
-      { id: 'Beta', name: 'Beta', glyph: 'B', src: '/logos/beta.svg' },
+      { id: 'Alpha', name: 'Alpha', 字形: 'A', src: '/logos/alpha.svg' },
+      { id: 'Beta', name: 'Beta', 字形: 'B', src: '/logos/beta.svg' },
     ]
     const 序号回调 = vi.fn()
     const { 画布, 变形器 } = 创建(定义, { on序号变更: 序号回调 })
@@ -219,7 +212,7 @@ describe('点阵变形器控制器', () => {
     const 序号回调 = vi.fn()
     const { 变形器 } = 创建(造定义('t6'), { on序号变更: 序号回调 })
     变形器!.销毁()
-    await new Promise((resolve) => setTimeout(resolve, 0))
+    await new Promise((完成) => setTimeout(完成, 0))
     expect(序号回调).not.toHaveBeenCalled()
   })
 })

@@ -6,13 +6,13 @@ export function 安装全局错误处理器(): void {
 
   window.addEventListener(
     'error',
-    (event) => {
-      错误上报器实例.report(event.error ?? new Error(event.message), {
+    (事件) => {
+      错误上报器实例.报告(事件.error ?? new Error(事件.message), {
         category: 'runtime',
         context: {
-          filename: event.filename,
-          lineno: event.lineno,
-          colno: event.colno,
+          filename: 事件.filename,
+          lineno: 事件.lineno,
+          colno: 事件.colno,
         },
       })
     },
@@ -21,34 +21,32 @@ export function 安装全局错误处理器(): void {
 
   window.addEventListener(
     'unhandledrejection',
-    (event) => {
-      const reason = event.reason
-      if (reason instanceof Error) {
-        错误上报器实例.report(reason, { category: 'runtime' })
+    (事件) => {
+      const 原因 = 事件.reason
+      if (原因 instanceof Error) {
+        错误上报器实例.报告(原因, { category: 'runtime' })
       } else {
-        错误上报器实例.report(new Error(String(reason)), {
+        错误上报器实例.报告(new Error(String(原因)), {
           category: 'runtime',
-          context: { rawReason: reason },
+          context: { rawReason: 原因 },
         })
       }
     },
     true
   )
 
-  // 监控 WebGL/WebGPU context lost
-  document.addEventListener('webglcontextlost', (event) => {
-    日志器实例.warn('WebGL context lost', { target: (event.target as Element)?.tagName })
-    错误上报器实例.report(new Error('WebGL context lost'), {
+  document.addEventListener('webglcontextlost', (事件) => {
+    日志器实例.warn('WebGL context lost', { target: (事件.target as Element)?.tagName })
+    错误上报器实例.报告(new Error('WebGL context lost'), {
       category: 'webgl',
-      context: { target: (event.target as Element)?.tagName },
+      context: { target: (事件.target as Element)?.tagName },
     })
   })
 
   document.addEventListener('webglcontextrestored', () => {
-    日志器实例.info('WebGL context restored')
+    日志器实例.信息('WebGL context restored')
   })
 
-  // 页面可见性变化日志（用于性能分析）
   document.addEventListener('visibilitychange', () => {
     日志器实例.debug('Visibility changed', { hidden: document.hidden })
   })

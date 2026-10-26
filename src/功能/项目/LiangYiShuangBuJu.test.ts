@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { 计算晾衣架布局, 应用晾衣架布局, 最小带宽, 最大带宽 } from './LiangYiShuangBuJu'
 
-/** 按真实布局语义给元素打桩：区域宽 = max(内联 min-width, 外层可用宽)，即外层把区域拉伸铺满 */
 function 建宿主(外层可用宽: number, 区域高 = 480) {
   const 区域 = document.createElement('div')
   const 滚动视口 = document.createElement('div')
@@ -121,7 +120,7 @@ describe('应用晾衣架布局（测量 → 计算 → 回写 的唯一接缝�
   it('基准宽只由外层 clientWidth 决定，区域自身外框宽不参与（消除自污染）', () => {
     const 宿主 = 建宿主(1920)
     const 首次 = 应用晾衣架布局(宿主)
-    // 把区域自身外框宽改成任意荒谬值：结果必须纹丝不动
+
     Object.defineProperty(宿主.区域, 'offsetWidth', { get: () => 99999, configurable: true })
     const 二次 = 应用晾衣架布局(宿主)
     expect(二次).toEqual(首次)
@@ -201,8 +200,6 @@ describe('应用晾衣架布局（测量 → 计算 → 回写 的唯一接缝�
   })
 
   it('非拉伸几何（区域不被外层拉伸）下基准不自锁：恢复后回到外层宽而非停在旧 min-width', () => {
-    // 区域宽只由自身内联 min-width 决定（外层转 flex 且 align-items 不拉伸等真实几何）：
-    // 旧实现 min(区域.offsetWidth, 外层.clientWidth) 会选中自己上一轮的 768px 当基准而自锁。
     const 外层可用宽 = { 值: 1920 }
     const 区域 = document.createElement('div')
     const 滚动视口 = document.createElement('div')
@@ -244,14 +241,12 @@ describe('应用晾衣架布局（测量 → 计算 → 回写 的唯一接缝�
     })
     const 宿主 = { 区域, 滚动视口 }
 
-    // 窄视口：有溢出 → 复位不得动用户的滚动位置
     可视宽 = 640
     内容宽 = 768
     偏移 = 128
     应用晾衣架布局(宿主)
     expect(偏移).toBe(128)
 
-    // 恢复宽视口：溢出消失 → 必须归零
     可视宽 = 1920
     内容宽 = 1920
     应用晾衣架布局(宿主)

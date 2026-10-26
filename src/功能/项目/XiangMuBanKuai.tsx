@@ -4,7 +4,7 @@ import { LiangYiShuangBiJi } from './LiangYiShuangBiJi'
 
 export function XiangMuBanKuai() {
   return (
-    <BanKuai id="projects" title={t('projects.title')} subtitle={t('projects.subtitle')}>
+    <BanKuai id="projects" title={t('projects.title')} 副标题={t('projects.subtitle')}>
       <LiangYiShuangBiJi />
     </BanKuai>
   )

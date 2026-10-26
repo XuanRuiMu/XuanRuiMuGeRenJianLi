@@ -16,7 +16,7 @@ const 色调类: Record<片段色调, string> = {
 
 function 渲染片段(片段表: 文本片段[]) {
   return 片段表.map((段, i) => (
-    <span key={i} className={色调类[段.tone]}>
+    <span key={i} className={色调类[段.语气]}>
       {段.text}
     </span>
   ))
@@ -27,7 +27,6 @@ function 读取减少动画(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-/** 每行起始字符下标（纯函数，渲染可重入） */
 function 算行起点表(纯文本表: string[]): number[] {
   const 表: number[] = []
   let 累计 = 0
@@ -39,31 +38,30 @@ function 算行起点表(纯文本表: string[]): number[] {
 }
 
 interface 关于我板块属性 {
-  /** 正文行片段表；默认取 about.introLines 数据源，供测试注入自定义行 */
   介绍行表?: 文本片段[][]
 }
 
 export function GuanYuWoBanKuai({ 介绍行表 }: 关于我板块属性 = {}) {
   const 减少动画 = 读取减少动画()
   const 段落行 = 介绍行表 ?? 关于我介绍行()
-  const [开始打字, set开始打字] = useState(false)
+  const [开始打字, 设置开始打字] = useState(false)
   const 区块引用 = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     if (减少动画) {
-      queueMicrotask(() => set开始打字(true))
+      queueMicrotask(() => 设置开始打字(true))
       return
     }
     const 节点 = 区块引用.current
     if (!节点 || typeof IntersectionObserver === 'undefined') {
-      queueMicrotask(() => set开始打字(true))
+      queueMicrotask(() => 设置开始打字(true))
       return
     }
     const 观察器 = new IntersectionObserver(
       (条目) => {
         for (const 条 of 条目) {
           if (条.isIntersecting) {
-            set开始打字(true)
+            设置开始打字(true)
             观察器.disconnect()
             break
           }
@@ -84,8 +82,6 @@ export function GuanYuWoBanKuai({ 介绍行表 }: 关于我板块属性 = {}) {
     每字毫秒: 总字数 > 0 ? 关于我显现总毫秒 / 总字数 : 48,
   })
 
-  // 行起点表：渲染期纯计算（外部变量在渲染中被就地修改会触发 immutability 告警，
-  // 且违反「渲染必须可重入」约束），提取为纯函数保持等价语义
   const 行起点表 = 算行起点表(纯文本表)
   const 已完成行表 = 行起点表.map((行起点, 行号) => 已显字符数 >= 行起点 + (纯文本表[行号]?.length ?? 0))
 
@@ -150,7 +146,7 @@ export function GuanYuWoBanKuai({ 介绍行表 }: 关于我板块属性 = {}) {
               const 可见长度 = Math.max(0, Math.min(行文本.length, 已显字符数 - 行起点))
               const 已打完 = 可见长度 >= 行文本.length
               const 是当前行 = 开始打字 && 可见长度 > 0 && !已打完
-              const 是强调行 = 行.some((段) => 段.tone === 'accent')
+              const 是强调行 = 行.some((段) => 段.语气 === 'accent')
               const 显示光标 = 可见长度 > 0 && !已打完 && !减少动画
               let 片段偏移 = 0
               return (
@@ -201,7 +197,7 @@ export function GuanYuWoBanKuai({ 介绍行表 }: 关于我板块属性 = {}) {
                           const 段可见 = Math.max(0, Math.min(段.text.length, 可见长度 - 段起点))
                           if (段可见 <= 0) return null
                           return (
-                            <span key={段号} className={色调类[段.tone]}>
+                            <span key={段号} className={色调类[段.语气]}>
                               {段.text.slice(0, 段可见)}
                             </span>
                           )

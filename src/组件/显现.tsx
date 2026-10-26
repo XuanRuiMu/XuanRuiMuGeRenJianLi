@@ -1,54 +1,49 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { 合并类名 } from '../库/工具'
 
-interface RevealProps {
+interface 显现属性 {
   children: ReactNode
   className?: string
-  /** 进入视口后到开始动画的延迟（ms），用于错落节奏 */
-  delay?: number
+
+  延迟?: number
   id?: string
 }
 
-/**
- * 统一入场动画原语：基于 IntersectionObserver，进入视口时加 `reveal--visible`。
- * 减少动画偏好（prefers-reduced-motion 或 .reduced-motion）下在 index.css 中塌缩为静态（直接可见、无位移/过渡）。
- * 不支持 IntersectionObserver 的环境直接可见，保证内容永不隐藏。
- */
-export function XianXian({ children, className, delay = 0, id }: RevealProps) {
+export function XianXian({ children, className, 延迟 = 0, id }: 显现属性) {
   const ref = useRef<HTMLDivElement>(null)
-  const [visible, setVisible] = useState(false)
+  const [可见, 设置可见] = useState(false)
 
   useEffect(() => {
-    const el = ref.current
-    if (!el) return
+    const 元素 = ref.current
+    if (!元素) return
 
     if (typeof IntersectionObserver === 'undefined') {
-      queueMicrotask(() => setVisible(true))
+      queueMicrotask(() => 设置可见(true))
       return
     }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setVisible(true)
-            observer.unobserve(entry.target)
+    const 观察器 = new IntersectionObserver(
+      (条目表) => {
+        for (const 条目 of 条目表) {
+          if (条目.isIntersecting) {
+            设置可见(true)
+            观察器.unobserve(条目.target)
           }
         }
       },
       { threshold: 0.12, rootMargin: '0px 0px -8% 0px' }
     )
-    observer.observe(el)
+    观察器.observe(元素)
 
-    return () => observer.disconnect()
+    return () => 观察器.disconnect()
   }, [])
 
   return (
     <div
       ref={ref}
       id={id}
-      className={合并类名('reveal', visible && 'reveal--visible', className)}
-      style={delay ? { transitionDelay: `${delay}ms` } : undefined}
+      className={合并类名('reveal', 可见 && 'reveal--visible', className)}
+      style={延迟 ? { transitionDelay: `${延迟}ms` } : undefined}
     >
       {children}
     </div>
