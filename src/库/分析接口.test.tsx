@@ -32,9 +32,9 @@ describe('库/api 访客统计（FP-05 公网降级）', () => {
     vi.restoreAllMocks()
   })
 
-  it('开关开启且接口正常时返回统计并只请求一次', async () => {
+  it('开关开启且接口正常时把线上英文键映射为中文统计并只请求一次', async () => {
     const { useFangWenTongJi } = await 载入模块('true')
-    模拟请求.mockResolvedValue({ ok: true, json: async () => ({ 总数: 12, 近一日: 3, 已存储: true }) })
+    模拟请求.mockResolvedValue({ ok: true, json: async () => ({ total: 12, last24h: 3, stored: true }) })
     const 客户端 = new QueryClient()
     const { result } = renderHook(() => useFangWenTongJi(), {
       wrapper: 包装器(客户端),
@@ -43,6 +43,16 @@ describe('库/api 访客统计（FP-05 公网降级）', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(result.current.data).toEqual({ 总数: 12, 近一日: 3, 已存储: true })
     expect(模拟请求).toHaveBeenCalledTimes(1)
+  })
+
+  it('响应字段类型不符时静默返回 null，不把脏数据交给界面', async () => {
+    const { useFangWenTongJi } = await 载入模块('true')
+    模拟请求.mockResolvedValue({ ok: true, json: async () => ({ total: '12', last24h: 3, stored: true }) })
+    const 客户端 = new QueryClient()
+    const { result } = renderHook(() => useFangWenTongJi(), { wrapper: 包装器(客户端) })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(result.current.data).toBeNull()
   })
 
   it('开关关闭时不发起请求（保留 访问统计开关 语义）', async () => {
@@ -98,14 +108,21 @@ describe('库/api 访客统计（FP-05 公网降级）', () => {
     expect(报错spy).not.toHaveBeenCalled()
   })
 
-  it('PV 上报成功仍刷新统计缓存', async () => {
+  it('PV 上报使用线上英文键，成功后刷新统计缓存', async () => {
     const { useShangBaoFangWen } = await 载入模块('true')
-    模拟请求.mockResolvedValue({ ok: true, json: async () => ({ success: true, 总数: 1, 近一日: 1, 已存储: true }) })
+    模拟请求.mockResolvedValue({ ok: true, json: async () => ({ success: true, total: 1, last24h: 1, stored: true }) })
     const 客户端 = new QueryClient()
     const 查询spy = vi.spyOn(客户端, 'invalidateQueries')
     const { result } = renderHook(() => useShangBaoFangWen(), { wrapper: 包装器(客户端) })
 
     await result.current.mutateAsync(上报载荷)
+    expect(模拟请求).toHaveBeenCalledWith(
+      '/api/analytics',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ path: '/', referrer: '', userAgent: 'ua', timestamp: 1_700_000_000_000 }),
+      })
+    )
     expect(查询spy).toHaveBeenCalledTimes(1)
   })
 })

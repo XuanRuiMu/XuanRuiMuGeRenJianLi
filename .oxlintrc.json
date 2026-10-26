@@ -1,5 +1,16 @@
 {
-  "ignorePatterns": ["dist", "dev-dist", "playwright-report", "test-results", "coverage", "node_modules"],
+  "ignorePatterns": [
+    "dist",
+    "dev-dist",
+    "playwright-report",
+    "test-results",
+    "coverage",
+    "node_modules",
+    "临时素材",
+    "图片_旧",
+    "data",
+    "public/fonts"
+  ],
   "plugins": ["react", "oxc"],
   "rules": {
     "react/rules-of-hooks": "error",
