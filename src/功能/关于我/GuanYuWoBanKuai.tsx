@@ -168,7 +168,7 @@ export function GuanYuWoBanKuai({ 介绍行表 }: 关于我板块属性 = {}) {
                   <span
                     aria-hidden="true"
                     className={[
-                      'w-full pt-1 text-right font-mono text-[11px] tabular-nums text-shadow-readable transition-colors duration-300',
+                      'w-full select-none pt-1 text-right font-mono text-[11px] tabular-nums text-shadow-readable transition-colors duration-300',
                       是当前行 ? 'text-primary/70' : 'text-muted/45 group-hover:text-muted/80',
                     ].join(' ')}
                   >
@@ -191,7 +191,7 @@ export function GuanYuWoBanKuai({ 介绍行表 }: 关于我板块属性 = {}) {
                         .filter(Boolean)
                         .join(' ')}
                     >
-                      <span aria-hidden="true" className="opacity-0">
+                      <span aria-hidden="true" className="select-none opacity-0">
                         {渲染片段(行)}
                       </span>
                       <span className="absolute inset-0">

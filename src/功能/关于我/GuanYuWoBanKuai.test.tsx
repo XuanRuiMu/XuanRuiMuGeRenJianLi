@@ -102,6 +102,22 @@ describe('关于我 - 结构与着色', () => {
     expect(dim段).toBeTruthy()
   })
 
+  it('占位层排除在选区之外，复制正文不会出现两份相同句子', async () => {
+    const container = await 渲染关于我()
+    const 段落表 = Array.from(container.querySelectorAll('p[aria-label]'))
+    expect(段落表).toHaveLength(5)
+    for (const 段落 of 段落表) {
+      const 占位层 = 段落.firstElementChild
+      const 显示层 = 段落.lastElementChild
+      expect(占位层?.getAttribute('aria-hidden')).toBe('true')
+      expect((占位层?.getAttribute('class') ?? '').split(/\s+/)).toContain('select-none')
+      expect(显示层).not.toBe(占位层)
+      expect(显示层?.getAttribute('aria-hidden')).toBeNull()
+    }
+    const 行号节点 = container.querySelector('.tabular-nums')
+    expect((行号节点?.getAttribute('class') ?? '').split(/\s+/)).toContain('select-none')
+  })
+
   it('注入自定义行表时按片段渲染', async () => {
     const 自定义: 文本片段[][] = [[{ text: '仅一行测试', tone: 'plain' }]]
     const container = await 渲染关于我(自定义)
